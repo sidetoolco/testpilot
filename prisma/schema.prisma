@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  products  Product[]
+  tests     Test[]
+  sessions  Session[]
+  insights  Insight[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  images      String?  // Stored as JSON string
+  category    String
+  brand       String
+  rating      Float?
+  reviews     Int?
+  isCompetitor Boolean @default(false)
+  bestSeller  Boolean @default(false)
+  loads       Int?
+  amazonUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  sessions    Session[]
+  tests       Test[]
+}
+
+model Test {
+  id          String   @id @default(uuid())
+  name        String
+  status      String   // 'draft', 'active', 'completed'
+  searchTerm  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  products    Product[]
+  sessions    Session[]
+  insights    Insight[]
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  testerName  String
+  testerAge   Int
+  testerGender String
+  testerCountry String
+  device      String
+  duration    String
+  comments    Int      @default(0)
+  outcome     String   // 'selected_our_product', 'selected_competitor'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  testId      String
+  test        Test     @relation(fields: [testId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  insights    Insight[]
+}
+
+model Insight {
+  id          String   @id @default(uuid())
+  type        String   // 'product_appeal', 'purchase_factors', etc.
+  content     String   // JSON string containing insight data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  testId      String
+  test        Test     @relation(fields: [testId], references: [id])
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+}
