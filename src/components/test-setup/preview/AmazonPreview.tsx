@@ -14,7 +14,7 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
     <div className="bg-[#EAEDED] min-h-[600px]">
       <AmazonHeader searchTerm={searchTerm} />
       <AmazonNavigation />
-      
+
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
         {/* Results Count */}
         <div className="bg-white p-4 mb-4 rounded-sm">
@@ -30,18 +30,6 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
 
         {/* Main Content Area */}
         <div className="flex gap-4">
-          {/* Left Sidebar - Filters */}
-          <div className="hidden lg:block w-56 shrink-0">
-            <div className="bg-white p-4 rounded-sm">
-              <h3 className="font-bold text-[#0F1111] text-sm mb-3">Department</h3>
-              <ul className="text-sm space-y-2">
-                <li className="text-[#007185] hover:text-[#C7511F] cursor-pointer">All Departments</li>
-                <li className="text-[#007185] hover:text-[#C7511F] cursor-pointer">Home & Kitchen</li>
-                <li className="text-[#007185] hover:text-[#C7511F] cursor-pointer">Health & Household</li>
-              </ul>
-            </div>
-          </div>
-
           {/* Product Grid */}
           <div className="flex-1">
             <PreviewGrid products={products} />

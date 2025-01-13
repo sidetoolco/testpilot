@@ -5,6 +5,7 @@ import { useProducts } from '../../features/tests/hooks/useProducts';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import ProductModal from '../../features/products/components/ProductModal';
+import { useProductStore } from '../../store/useProductStore';
 
 interface TestVariationsProps {
   variations: {
@@ -20,12 +21,11 @@ interface TestVariationsProps {
 export default function TestVariations({
   variations,
   onChange,
-  onNext,
-  onBack
 }: TestVariationsProps) {
   const [showProductSelector, setShowProductSelector] = useState<'a' | 'b' | 'c' | null>(null);
   const [showProductForm, setShowProductForm] = useState<'a' | 'b' | 'c' | null>(null);
   const { products, loading, error } = useProducts();
+  const { addProduct } = useProductStore();
 
   const handleSelectProduct = (variation: 'a' | 'b' | 'c', product: Product) => {
     onChange({
@@ -39,6 +39,11 @@ export default function TestVariations({
   };
 
   const handleProductSubmit = async (variation: 'a' | 'b' | 'c', productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await addProduct(productData);
+    } catch (err) {
+      console.error('Failed to save product:', err);
+    }
     onChange({
       ...variations,
       [variation]: {
@@ -159,7 +164,7 @@ export default function TestVariations({
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Select Existing Product</h3>
-              <button 
+              <button
                 onClick={() => setShowProductSelector(null)}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -169,7 +174,7 @@ export default function TestVariations({
 
             {loading && <LoadingSpinner />}
             {error && <ErrorMessage message={error} />}
-            
+
             {!loading && !error && (
               <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
                 {products.map((product) => (
@@ -195,10 +200,18 @@ export default function TestVariations({
         </div>
       )}
 
-      {showProductForm && (
+      {/* 
         <ProductModal
           onSubmit={(data) => handleProductSubmit(showProductForm, data)}
           onClose={() => setShowProductForm(null)} isOpen={showProductForm ? true : false} />
+       */}
+      {showProductForm && (
+        <ProductModal
+          isOpen={showProductForm ? true : false}
+          onClose={() => setShowProductForm(null)}
+          onSubmit={(data) => handleProductSubmit(showProductForm, data)}
+          initialData={undefined}
+        />
       )}
     </div>
   );
