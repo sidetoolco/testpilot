@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Package } from 'lucide-react';
 import { Product } from '../../types';
 import { useProducts } from '../../features/tests/hooks/useProducts';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import { ProductFormModal } from './ProductFormModal';
+import ProductModal from '../../features/products/components/ProductModal';
 
 interface TestVariationsProps {
   variations: {
@@ -196,10 +196,9 @@ export default function TestVariations({
       )}
 
       {showProductForm && (
-        <ProductFormModal
+        <ProductModal
           onSubmit={(data) => handleProductSubmit(showProductForm, data)}
-          onClose={() => setShowProductForm(null)}
-        />
+          onClose={() => setShowProductForm(null)} isOpen={showProductForm ? true : false} />
       )}
     </div>
   );
