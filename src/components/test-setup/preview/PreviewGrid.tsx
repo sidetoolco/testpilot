@@ -25,11 +25,11 @@ export default function PreviewGrid({ products, variations }: PreviewGridProps) 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => {
           const variationLabel = getVariationLabel(product);
-          
+
           return (
-            <div 
+            <div
               key={product.id}
-              className="relative flex flex-col p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
+              className="relative flex flex-col justify-between p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
             >
               {variationLabel && (
                 <div className="absolute top-2 left-2 z-10 bg-[#00A67E] text-white text-xs px-2 py-1 rounded-sm">
@@ -39,34 +39,33 @@ export default function PreviewGrid({ products, variations }: PreviewGridProps) 
 
               <div className="relative pt-[100%] mb-3">
                 <img
-                  src={product.image_url}
-                  alt={product.title}
+                  src={product.image_url ? product.image_url : product.image}
+                  alt={product.title ? product.title : product.name}
                   className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
                 />
               </div>
-              
+
               <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
-                {product.title}
+                {product.title ? product.title : product.name}
               </h3>
-              
+
               <div className="flex items-center mb-1">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-[14px] w-[14px] ${
-                        i < Math.floor(product.rating)
-                          ? 'text-[#F8991D] fill-[#F8991D]'
-                          : 'text-[#DDD] fill-[#DDD]'
-                      }`}
+                      className={`h-[14px] w-[14px] ${i < Math.floor(product.rating ? product.rating : product.starRating)
+                        ? 'text-[#F8991D] fill-[#F8991D]'
+                        : 'text-[#DDD] fill-[#DDD]'
+                        }`}
                     />
                   ))}
                 </div>
                 <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-                  {product.reviews_count?.toLocaleString()}
+                  {product.reviews_count ? product.reviews_count?.toLocaleString() : product.reviewCount?.toLocaleString()}
                 </span>
               </div>
-              
+
               <div className="flex items-baseline gap-[2px] text-[#0F1111]">
                 <span className="text-xs align-top mt-[1px]">$</span>
                 <span className="text-[21px] font-medium">{Math.floor(product.price)}</span>
@@ -76,7 +75,7 @@ export default function PreviewGrid({ products, variations }: PreviewGridProps) 
               </div>
 
               <div className="mt-1 flex items-center gap-1">
-                <img 
+                <img
                   src="https://i.imghippo.com/files/nez3966nmQ.png"
                   alt="Prime"
                   className="h-[18px]"
