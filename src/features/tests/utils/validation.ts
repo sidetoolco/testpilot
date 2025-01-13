@@ -6,7 +6,7 @@ export const validateStep = (step: string, data: TestData): boolean => {
       return data.searchTerm.trim().length > 0;
       
     case 'competitors':
-      return data.competitors.length === 10; // Require exactly 10 competitors
+      return data.competitors.length === 11; // Require exactly 10 competitors
       
     case 'variations':
       return data.variations.a !== null; // At least variation A is required
