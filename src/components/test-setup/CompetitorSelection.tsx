@@ -17,14 +17,12 @@ interface CompetitorSelectionProps {
   onBack: () => void;
 }
 
-const MAX_COMPETITORS = 10;
+const MAX_COMPETITORS = 11;
 
 export default function CompetitorSelection({
   searchTerm,
   selectedCompetitors,
   onChange,
-  onNext,
-  onBack
 }: CompetitorSelectionProps) {
   const [searchFilter, setSearchFilter] = useState('');
   const { user } = useAuthStore();

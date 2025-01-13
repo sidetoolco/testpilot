@@ -29,7 +29,7 @@ export function ConsumerTestSetup({ isOpen, onClose, onTestCreated }: ConsumerTe
       gender: [],
       locations: [],
       interests: [],
-      testerCount: 10
+      testerCount: 11
     }
   });
 
