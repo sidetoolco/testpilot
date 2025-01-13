@@ -33,7 +33,7 @@ export const testService = {
 
       // Validate all products exist and belong to company
       const productIds = [
-        ...testData.competitors.map(c => c.id),
+        // ...testData.competitors.map(c => c.id),
         ...Object.values(testData.variations)
           .filter((v): v is NonNullable<typeof v> => v !== null)
           .map(v => v.id)

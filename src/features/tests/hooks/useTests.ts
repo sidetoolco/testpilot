@@ -16,7 +16,7 @@ export function useTests() {
           .select(`
             *,
             competitors:test_competitors(
-              product:products(*)
+              product:amazon_products(*)
             ),
             variations:test_variations(
               product:products(*),
