@@ -24,9 +24,10 @@ export default function DemographicSelection({
   demographics,
   variations,
   onChange,
-  onNext,
-  onBack
 }: DemographicSelectionProps) {
+  const [testerCount, setTesterCount] = useState<number | ''>(10); // Valor inicial
+  const [error, setError] = useState<string | null>(null); // Estado para el error
+
   const ageRanges = ['18-24', '25-34', '35-44', '45-54', '55+'];
   const genders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
   const countries = ['United States', 'Canada'];
@@ -88,11 +89,14 @@ export default function DemographicSelection({
   };
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = parseInt(e.target.value);
-    if (isNaN(value)) value = 10;
-    if (value < 10) value = 10;
-    if (value > 500) value = 500;
-    onChange({ ...demographics, testerCount: value });
+    const value = parseInt(e.target.value, 10); // Convertir a número
+    setTesterCount(isNaN(value) ? '' : value); // Permitir borrar el campo
+
+    if (isNaN(value) || value < 10 || value > 500) {
+      setError('Please enter a number between 10 and 500.');
+    } else {
+      setError(null); // No hay error
+    }
   };
 
   return (
@@ -120,12 +124,16 @@ export default function DemographicSelection({
             <div className="relative flex-1 max-w-xs">
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
+                id="testerCount"
                 type="number"
                 min="10"
                 max="500"
-                value={demographics.testerCount || ''}
+                value={testerCount}
                 onChange={handleTesterCountChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
+                className={`w-full pl-10 pr-4 py-3 border ${error
+                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                  } rounded-xl transition-all`}
                 placeholder="Number of testers"
               />
             </div>
@@ -133,6 +141,11 @@ export default function DemographicSelection({
               Min: 10, Max: 500 testers
             </span>
           </div>
+          {error && (
+            <p className="text-red-500 text-sm mt-1 sm:mt-2 md:mt-3 lg:mt-1">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* Rest of the demographic options... */}
