@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
@@ -33,11 +33,21 @@ const initialTestData: TestData = {
     testerCount: 10
   }
 };
+const LoadingMessages = [
+  "Creating your test...",
+  "Analyzing demographics...",
+  "Setting up your project...",
+  "Almost there...",
+  "Finalizing details..."
+];
 
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
 
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);
@@ -64,16 +74,19 @@ export default function CreateConsumerTest() {
         return;
       }
 
+      setIsLoading(true);
+
       // Create test
       await testService.createTest(testData);
+
       toast.success('Test created successfully');
       navigate('/my-tests');
     } catch (error: any) {
       console.error('Test creation error:', error);
-      
-      // Show specific error message if available
       const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to create test';
       toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,9 +98,45 @@ export default function CreateConsumerTest() {
       }
     }
   };
+  // Efecto para cambiar los mensajes
+  useEffect(() => {
+    if (isLoading) {
+      const interval = setInterval(() => {
+        setLoadingMessageIndex((current: number) =>
+          current < LoadingMessages.length - 1 ? current + 1 : current
+        );
+      }, 4000); // Cambia cada 2 segundos
+
+      return () => {
+        clearInterval(interval);
+        setLoadingMessageIndex(0); // Reset al cerrar
+      };
+    }
+  }, [isLoading]);
+
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative">
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+            <p className="text-lg font-semibold text-gray-800 text-center min-h-[2rem] transition-all duration-500">
+              {LoadingMessages[loadingMessageIndex]}
+            </p>
+            <div className="flex gap-1 mt-2">
+              {LoadingMessages.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${index === loadingMessageIndex ? 'bg-blue-500 w-3' : 'bg-gray-300'
+                    }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <TestCreationSteps
         steps={steps}
         currentStep={currentStep}

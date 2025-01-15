@@ -8,7 +8,7 @@ import ProductQuestionnaire from './ProductQuestionnaire';
 export default function SessionDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const session = sessions.find(s => s.id === Number(id));
+  const session = sessions.find(s => s.id === Number(1));
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [shoppingStarted, setShoppingStarted] = useState(false);

@@ -17,6 +17,8 @@ import ForgotPassword from './features/auth/components/ForgotPassword';
 import ResetPassword from './features/auth/components/ResetPassword';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import CreateConsumerTest from './pages/CreateConsumerTest';
+import AllSessions from './pages/AllSessions';
+import SessionDetail from './components/SessionDetail';
 
 const queryClient = new QueryClient();
 
@@ -57,10 +59,10 @@ function App() {
               <Route path="/signup" element={<SignupForm />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              
+
               {/* Protected Routes */}
               <Route path="/" element={<Navigate to="/my-tests" replace />} />
-              
+
               <Route path="/my-tests" element={
                 <ProtectedRoute>
                   <MainLayout>
@@ -68,7 +70,7 @@ function App() {
                   </MainLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/tests/:id" element={
                 <ProtectedRoute>
                   <MainLayout>
@@ -76,7 +78,7 @@ function App() {
                   </MainLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/all-products" element={
                 <ProtectedRoute>
                   <MainLayout>
@@ -91,6 +93,18 @@ function App() {
                     <CreateConsumerTest />
                   </MainLayout>
                 </ProtectedRoute>
+              } />
+
+              <Route path="/sessions" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AllSessions />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/sessions/:sessionId" element={
+                <SessionDetail />
               } />
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
