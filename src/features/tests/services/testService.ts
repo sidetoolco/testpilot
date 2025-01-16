@@ -161,7 +161,7 @@ export const testService = {
     };
 
     try {
-      const response = await fetch('/webhook-test/create-project', {
+      const response = await fetch('https://sidetool.app.n8n.cloud/webhook/create-project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
