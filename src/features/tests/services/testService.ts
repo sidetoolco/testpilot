@@ -91,18 +91,19 @@ export const testService = {
 
   // Función para insertar competidores
   async insertCompetitors(testId: string, competitors: TestData['competitors']) {
-    for (const competitor of competitors) {
-      const { error } = await supabase
-        .from('test_competitors')
-        .insert({
-          test_id: testId,
-          product_id: competitor.id
-        });
+    // Preparar todos los registros para una inserción masiva
+    const competitorsData = competitors.map(competitor => ({
+      test_id: testId,
+      product_id: competitor.id
+    }));
 
-      if (error) {
-        await supabase.from('tests').delete().eq('id', testId);
-        throw new TestCreationError('Failed to add competitor', { error });
-      }
+    const { error } = await supabase
+      .from('test_competitors')
+      .insert(competitorsData as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to add competitors', { error });
     }
   },
 
@@ -160,7 +161,7 @@ export const testService = {
     };
 
     try {
-      const response = await fetch('/webhook/create-project', {
+      const response = await fetch('/webhook-test/create-project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
