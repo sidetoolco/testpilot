@@ -20,7 +20,7 @@ const ResearcherForm = () => {
     };
 
     try {
-      const response = await fetch('/webhook/create-project', {
+      const response = await fetch('/webhook-test/create-project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
