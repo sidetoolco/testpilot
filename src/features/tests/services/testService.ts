@@ -161,7 +161,7 @@ export const testService = {
     };
 
     try {
-      const response = await fetch('https://sidetool.app.n8n.cloud/webhook/create-project', {
+      await fetch('https://sidetool.app.n8n.cloud/webhook/create-project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -169,17 +169,10 @@ export const testService = {
         body: JSON.stringify(respondentProjectData),
         mode: 'no-cors'
       });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to create Respondent project: ${errorData}`);
-      }
-
-      const respondentProject = await response.json();
-      console.log('Respondent project created:', respondentProject);
     } catch (error) {
       console.error('Respondent integration failed:', error);
-      toast.warning('Test created but participant recruitment setup failed');
+    } finally {
+      console.log('Respondent project being created');
     }
   }
 };
