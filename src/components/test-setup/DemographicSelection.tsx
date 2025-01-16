@@ -51,9 +51,6 @@ export default function DemographicSelection({
       updates.locations = ['United States', 'Canada'];
     }
 
-    if (!demographics.testerCount) {
-      updates.testerCount = 10;
-    }
 
     if (Object.keys(updates).length > 0) {
       onChange({ ...demographics, ...updates });

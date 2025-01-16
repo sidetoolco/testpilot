@@ -30,7 +30,7 @@ const initialTestData: TestData = {
     gender: [],
     locations: [],
     interests: [],
-    testerCount: 10
+    testerCount: 0
   }
 };
 const LoadingMessages = [
