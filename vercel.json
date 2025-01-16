@@ -6,7 +6,7 @@
         },
         {
             "source": "/webhook-test/:path*",
-            "destination": "https://sidetool.app.n8n.cloud/webhook/:path*"
+            "destination": "https://sidetool.app.n8n.cloud/:path*"
         }
     ]
 }
