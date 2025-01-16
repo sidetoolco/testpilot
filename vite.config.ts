@@ -11,9 +11,16 @@ export default defineConfig({
       '/webhook-test': {
         target: 'https://sidetool.app.n8n.cloud/',
         changeOrigin: true,
-        secure: false,       
-        rewrite: (path) => path.replace(/^\/webhook-test/, '/webhook')
-
+        secure: false,
+        rewrite: (path) => path.replace(/^\/webhook-test/, '/webhook'),
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            proxyReq.setHeader('origin', 'https://sidetool.app.n8n.cloud');
+          });
+        }
       }
     }
   }

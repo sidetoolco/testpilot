@@ -3,6 +3,10 @@
         {
             "source": "/(.*)",
             "destination": "/index.html"
+        },
+        {
+            "source": "/webhook-test/:path*",
+            "destination": "https://sidetool.app.n8n.cloud/webhook/:path*"
         }
     ]
 }
