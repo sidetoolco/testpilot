@@ -1,4 +1,3 @@
-import React from 'react';
 import { Calculator, DollarSign } from 'lucide-react';
 
 interface PriceCalculatorProps {

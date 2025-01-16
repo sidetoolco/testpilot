@@ -25,7 +25,7 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  const [testerCount, setTesterCount] = useState<number | ''>(10); // Valor inicial
+  const [testerCount, setTesterCount] = useState<number>(10); // Valor inicial
   const [error, setError] = useState<string | null>(null); // Estado para el error
 
   const ageRanges = ['18-24', '25-34', '35-44', '45-54', '55+'];
@@ -46,11 +46,11 @@ export default function DemographicSelection({
   // Set default values on component mount
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
-    
+
     if (!demographics.locations?.length) {
       updates.locations = ['United States', 'Canada'];
     }
-    
+
     if (!demographics.testerCount) {
       updates.testerCount = 10;
     }
@@ -89,14 +89,14 @@ export default function DemographicSelection({
   };
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10); // Convertir a número
-    setTesterCount(isNaN(value) ? '' : value); // Permitir borrar el campo
+    const value = parseInt(e.target.value);
 
     if (isNaN(value) || value < 10 || value > 500) {
       setError('Please enter a number between 10 and 500.');
     } else {
-      setError(null); // No hay error
+      setError(null);
     }
+    setTesterCount(value);
   };
 
   return (
@@ -113,7 +113,7 @@ export default function DemographicSelection({
       <div className="space-y-8">
         {/* Price Calculator */}
         <PriceCalculator
-          testerCount={demographics.testerCount}
+          testerCount={testerCount}
           variantCount={activeVariantCount}
         />
 
@@ -126,7 +126,7 @@ export default function DemographicSelection({
               <input
                 id="testerCount"
                 type="number"
-                min="10"
+                min="0"
                 max="500"
                 value={testerCount}
                 onChange={handleTesterCountChange}
@@ -157,11 +157,10 @@ export default function DemographicSelection({
               <button
                 key={age}
                 onClick={() => handleAgeSelect(age)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.ageRanges.includes(age)
+                className={`p-4 rounded-xl border-2 transition-all ${demographics.ageRanges.includes(age)
                     ? 'border-[#00A67E] bg-[#00A67E]/5'
                     : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
+                  }`}
               >
                 {age}
               </button>
@@ -177,11 +176,10 @@ export default function DemographicSelection({
               <button
                 key={gender}
                 onClick={() => handleGenderSelect(gender)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.gender.includes(gender)
+                className={`p-4 rounded-xl border-2 transition-all ${demographics.gender.includes(gender)
                     ? 'border-[#00A67E] bg-[#00A67E]/5'
                     : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
+                  }`}
               >
                 {gender}
               </button>
@@ -197,11 +195,10 @@ export default function DemographicSelection({
               <button
                 key={country}
                 onClick={() => handleCountrySelect(country)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.locations.includes(country)
+                className={`p-4 rounded-xl border-2 transition-all ${demographics.locations.includes(country)
                     ? 'border-[#00A67E] bg-[#00A67E]/5'
                     : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
+                  }`}
               >
                 {country}
               </button>
@@ -217,11 +214,10 @@ export default function DemographicSelection({
               <button
                 key={criterion}
                 onClick={() => handleScreeningSelect(criterion)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.interests.includes(criterion)
+                className={`p-4 rounded-xl border-2 transition-all ${demographics.interests.includes(criterion)
                     ? 'border-[#00A67E] bg-[#00A67E]/5'
                     : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
+                  }`}
               >
                 {criterion}
               </button>
