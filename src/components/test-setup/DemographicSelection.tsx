@@ -93,7 +93,11 @@ export default function DemographicSelection({
     } else {
       setError(null);
     }
-    setTesterCount(value);
+    if (!isNaN(value)) {
+      const updatedDemographics = { ...demographics, testerCount: value };
+      onChange(updatedDemographics);
+      setTesterCount(value);
+    }
   };
 
   return (

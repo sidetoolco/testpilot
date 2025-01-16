@@ -1,4 +1,3 @@
-import React from 'react';
 import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
 import CompetitorSelection from '../../../components/test-setup/CompetitorSelection';
 import TestVariations from '../../../components/test-setup/TestVariations';
@@ -59,7 +58,7 @@ export function TestCreationContent({
         <DemographicSelection
           demographics={testData.demographics}
           variations={testData.variations}
-          onChange={(demographics) => handleUpdateData('demographics', demographics)}
+          onChange={(updatedDemographics) => handleUpdateData('demographics', updatedDemographics)}
           onNext={onNext}
           onBack={onBack}
         />
