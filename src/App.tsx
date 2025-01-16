@@ -19,6 +19,7 @@ import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import CreateConsumerTest from './pages/CreateConsumerTest';
 import AllSessions from './pages/AllSessions';
 import SessionDetail from './components/SessionDetail';
+import ResearcherForm from './pages/createproyect';
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,14 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout>
                     <AllSessions />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/dev" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ResearcherForm />
                   </MainLayout>
                 </ProtectedRoute>
               } />
