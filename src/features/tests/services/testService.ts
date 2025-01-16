@@ -165,7 +165,8 @@ export const testService = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(respondentProjectData)
+        body: JSON.stringify(respondentProjectData),
+        mode: 'no-cors'
       });
 
       if (!response.ok) {
