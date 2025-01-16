@@ -21,7 +21,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <div className="flex flex-wrap gap-2">
               {test.competitors.map((competitor, index) => (
                 <div key={index} className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
-                  <img src={competitor.image} alt={competitor.name} className="w-8 h-8 object-contain" />
+                  <img src={competitor.image_url} alt={competitor.name} className="w-8 h-8 object-contain" />
                   <span className="text-sm text-gray-700">{competitor.name}</span>
                 </div>
               ))}
