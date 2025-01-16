@@ -1,8 +1,12 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-} 
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/webhook/create-project",
+            "destination": "https://sidetool.app.n8n.cloud/webhook/create-project"
+        }
+    ]
+}
