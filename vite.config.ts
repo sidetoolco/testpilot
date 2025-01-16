@@ -6,4 +6,19 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    proxy: {
+      '/api': {
+        //target: 'http://localhost:3001',
+        target: 'https://testpilot-1.vercel.app/',
+        changeOrigin: true
+      },
+      '/webhook-test': {
+        target: 'https://sidetool.app.n8n.cloud/',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/webhook-test/, '/webhook')
+      }
+    }
+  }
 });
