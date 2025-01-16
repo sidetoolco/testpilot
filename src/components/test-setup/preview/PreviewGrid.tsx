@@ -1,4 +1,3 @@
-import React from 'react';
 import { Star, ShoppingCart } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
 

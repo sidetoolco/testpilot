@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
@@ -9,7 +9,6 @@ import { useAuthStore } from './features/auth/stores/authStore';
 // Import components
 import MainLayout from './components/layout/MainLayout';
 import MyTests from './pages/MyTests';
-import TestDetail from './pages/TestDetail'; // Add this import
 import AllProducts from './pages/AllProducts';
 import LoginForm from './features/auth/components/LoginForm';
 import SignupForm from './features/auth/components/SignupForm';
@@ -19,7 +18,7 @@ import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import CreateConsumerTest from './pages/CreateConsumerTest';
 import AllSessions from './pages/AllSessions';
 import SessionDetail from './components/SessionDetail';
-import ResearcherForm from './pages/createproyect';
+import TestUserPage from './pages/TestUser';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +54,9 @@ function App() {
             transition={{ duration: 0.3 }}
           >
             <Routes>
+              {/* Unprotected Route */}
+              <Route path="/test/:id" element={<TestUserPage />} />
+
               {/* Auth Routes */}
               <Route path="/login" element={<LoginForm />} />
               <Route path="/signup" element={<SignupForm />} />
@@ -68,14 +70,6 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout>
                     <MyTests />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/tests/:id" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <TestDetail />
                   </MainLayout>
                 </ProtectedRoute>
               } />
@@ -104,13 +98,6 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/dev" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <ResearcherForm />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
 
               <Route path="/sessions/:sessionId" element={
                 <SessionDetail />
