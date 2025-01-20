@@ -18,6 +18,8 @@ import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import CreateConsumerTest from './pages/CreateConsumerTest';
 import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
+import ProductDetail from './components/ProductDetail';
+import HeaderLayout from './components/HeaderLayout';
 
 const queryClient = new QueryClient();
 
@@ -55,8 +57,18 @@ function App() {
             <Routes>
               {/* Unprotected Route */}
 
-              {/* session*/}
-              <Route path="/test/:id" element={<TestUserPage />} />
+              <Route path="/test/:id" element={
+                <HeaderLayout>
+                  <TestUserPage />
+                </HeaderLayout>
+              } />
+
+              <Route path="/product/:id" element={
+                <HeaderLayout>
+                  <ProductDetail />
+                </HeaderLayout>
+              } />
+
 
               {/* detalle testing */}
               <Route path="/tests/:id" element={
