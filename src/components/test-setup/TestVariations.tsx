@@ -200,11 +200,6 @@ export default function TestVariations({
         </div>
       )}
 
-      {/* 
-        <ProductModal
-          onSubmit={(data) => handleProductSubmit(showProductForm, data)}
-          onClose={() => setShowProductForm(null)} isOpen={showProductForm ? true : false} />
-       */}
       {showProductForm && (
         <ProductModal
           isOpen={showProductForm ? true : false}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
@@ -38,7 +37,7 @@ export default function TestDetail() {
     <div className="min-h-screen bg-[#FFF8F8]">
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-[1400px] mx-auto px-8 py-4">
-          <button 
+          <button
             onClick={() => navigate('/my-tests')}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
           >
