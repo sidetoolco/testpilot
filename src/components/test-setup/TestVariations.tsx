@@ -85,7 +85,9 @@ export default function TestVariations({
             </div>
             <button
               onClick={() => setShowProductSelector(key)}
-              className="flex items-center justify-center space-x-2 text-primary-400 hover:text-primary-500"
+              disabled={products.length === 0}
+              className={`flex items-center justify-center space-x-2 ${products.length === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-primary-400 hover:text-primary-500'
+                }`}
             >
               <Package className="h-4 w-4" />
               <span>Select Existing Product</span>
@@ -115,13 +117,13 @@ export default function TestVariations({
         <div className="flex items-start space-x-4">
           <div className="w-24 h-24 flex-shrink-0">
             <img
-              src={variation.image}
-              alt={variation.name}
+              src={variation.image_url}
+              alt={variation.title}
               className="w-full h-full object-contain rounded-lg"
             />
           </div>
           <div>
-            <h5 className="font-medium text-gray-900">{variation.name}</h5>
+            <h5 className="font-medium text-gray-900">{variation.title}</h5>
             <p className="text-sm text-gray-500 mt-1">${variation.price.toFixed(2)}</p>
             {variation.isExisting ? (
               <span className="inline-block mt-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
@@ -175,7 +177,7 @@ export default function TestVariations({
             {loading && <LoadingSpinner />}
             {error && <ErrorMessage message={error} />}
 
-            {!loading && !error && (
+            {!loading && !error && products.length > 0 && (
               <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
                 {products.map((product) => (
                   <div
@@ -185,12 +187,12 @@ export default function TestVariations({
                   >
                     <div className="aspect-square mb-3">
                       <img
-                        src={product.image}
-                        alt={product.name}
+                        src={product.image_url}
+                        alt={product.title}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <h4 className="font-medium text-gray-900 mb-1">{product.name}</h4>
+                    <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
                     <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
                   </div>
                 ))}

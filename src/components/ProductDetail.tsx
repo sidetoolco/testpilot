@@ -29,7 +29,7 @@ export default function ProductDetail() {
                   <div className="relative aspect-square bg-[#F8F8F8] mb-4 rounded-lg">
                     <img
                       src={product.image_url}
-                      alt={product.name}
+                      alt={product.title}
                       className="w-full h-full object-contain p-4"
                     />
 
@@ -41,7 +41,7 @@ export default function ProductDetail() {
               <div className="col-span-5">
                 <div className="mb-4">
                   <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight">
-                    {product.name}
+                    {product.title}
                   </h1>
                   <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline">
                     Visit the {product.brand} Store
@@ -103,11 +103,6 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <img
-                      src="https://m.media-amazon.com/images/G/01/prime/marketing/slashPrime/amazon-prime-delivery-lock._CB485968312_.png"
-                      alt="Prime"
-                      className="h-[22px] object-contain"
-                    />
                     <div>
                       <div className="text-[14px] text-[#007185]">
                         FREE delivery

@@ -41,6 +41,7 @@ export const productService = {
       .insert({
         title: product.title,
         description: product.description,
+        bullet_points: product.bullet_points,
         price: product.price,
         brand: product.brand,
         image_url: product.image_url,
@@ -72,6 +73,7 @@ export const productService = {
         rating: updates.rating,
         reviews_count: updates.reviews_count,
         is_competitor: updates.isCompetitor,
+        bullet_points: updates.bullet_points,
         loads: updates.loads,
         product_url: updates.product_url,
         updated_at: new Date().toISOString()

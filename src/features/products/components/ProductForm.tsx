@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
+import { toast } from 'sonner';
 
 interface ProductFormProps {
   onSubmit: (product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
@@ -9,10 +10,11 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ onSubmit, onClose, initialData }: ProductFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Product>({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    price: initialData?.price || '',
+    bullet_points: initialData?.bullet_points || [],
+    price: initialData?.price || 0,
     brand: initialData?.brand || '',
     image_url: initialData?.image_url || '',
     images: initialData?.images || [],
@@ -23,8 +25,30 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     reviews_count: initialData?.reviews_count || 0
   });
 
+  const [errors, setErrors] = useState({
+    bulletPoints: false,
+    description: false,
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newErrors = {
+      bulletPoints: formData.bullet_points.length < 5,
+      description: formData.description.length < 50,
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error)) {
+      if (newErrors.bulletPoints) {
+        toast.error('Please enter at least 5 bullet points about your product');
+      }
+      if (newErrors.description) {
+        toast.error('Your description needs to be at least 50 characters long to be effective');
+      }
+      return;
+    }
 
     if (formData.images.length === 0) {
       alert('Please upload at least one product image');
@@ -45,9 +69,13 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       return;
     }
 
+    // Split bullet points on submit
+    const bulletPointsArray = formData.bullet_points.join('\n').split('\n').filter(point => point.trim() !== '');
+
     const productData = {
       title: formData.title,
       description: formData.description,
+      bullet_points: bulletPointsArray,
       price: numericPrice,
       brand: formData.brand,
       image_url: formData.images[0],
@@ -97,8 +125,22 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
           rows={3}
+        />
+      </div>
+
+      {/* Bullet Points */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          About the product
+        </label>
+        <textarea
+          value={formData.bullet_points.join('\n')}
+          onChange={(e) => setFormData({ ...formData, bullet_points: e.target.value.split('\n') })}
+          className={`w-full px-4 py-2 border ${errors.bulletPoints ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
+          rows={3}
+          placeholder="Enter bullet points, one per line"
         />
       </div>
 
@@ -113,7 +155,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             step="0.01"
             min="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value  })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />

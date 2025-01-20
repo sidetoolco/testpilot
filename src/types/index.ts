@@ -1,7 +1,8 @@
 export interface Product {
-  id: string;
+  id?: string;
   title: string; // Cambiado de 'name' a 'title'
   description: string;
+  bullet_points: string[];
   price: number;
   image_url: string; // Cambiado de 'image' a 'image_url'
   images: string[];
@@ -13,7 +14,6 @@ export interface Product {
   loads?: number;
   product_url?: string; // Cambiado de 'amazonUrl' a 'product_url'
   userId?: string;
-  bulletPoints?: string[];
   company_id?: string;
   createdAt?: Date;
   updatedAt?: Date;

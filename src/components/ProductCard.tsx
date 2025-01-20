@@ -23,12 +23,12 @@ export function ProductCard({ product }: ProductCardProps) {
       }`}
     >
       <img
-        src={product.image}
-        alt={product.name}
+        src={product.image_url}
+        alt={product.title}
         className="w-full h-32 object-contain mb-2 rounded"
       />
       <div className="space-y-1">
-        <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
+        <h3 className="text-sm font-medium text-gray-900">{product.title}</h3>
         <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
       </div>
     </div>

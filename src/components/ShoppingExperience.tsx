@@ -16,7 +16,7 @@ const mockProducts: Product[] = [
     id: 'fs1',
     name: 'Downy Ultra April Fresh Liquid Fabric Softener',
     description: 'Long-lasting fresh scent fabric softener with 24-hour freshness protection',
-    bulletPoints: [
+    bullet_points: [
       'Keeps clothes soft and fresh for weeks',
       'Reduces wrinkles and static cling',
       'Safe for all washing machines',
@@ -41,7 +41,7 @@ const mockProducts: Product[] = [
     id: 'fs2',
     name: 'Snuggle SuperCare Liquid Fabric Softener',
     description: 'Color-safe fabric softener that protects clothes from fading and wear',
-    bulletPoints: [
+    bullet_points: [
       'Color protection formula',
       'Reduces static cling',
       'Fresh spring scent',
@@ -66,7 +66,7 @@ const mockProducts: Product[] = [
     id: 'ld1',
     name: 'Tide Original Liquid Laundry Detergent',
     description: 'Premium laundry detergent with powerful stain-fighting capabilities',
-    bulletPoints: [
+    bullet_points: [
       'Removes tough stains',
       'Original fresh scent',
       'Works in all temperatures',
@@ -91,7 +91,7 @@ const mockProducts: Product[] = [
     id: 'apc1',
     name: 'Mrs. Meyers Clean Day Multi-Surface Cleaner',
     description: 'Plant-derived all-purpose cleaning solution with natural essential oils',
-    bulletPoints: [
+    bullet_points: [
       'Made with essential oils',
       'Plant-derived ingredients',
       'Biodegradable formula',
@@ -116,7 +116,7 @@ const mockProducts: Product[] = [
     id: 'ds1',
     name: 'Dawn Ultra Dishwashing Liquid',
     description: 'Powerful dish soap that cuts through grease and makes dishes sparkle',
-    bulletPoints: [
+    bullet_points: [
       'Cuts through tough grease',
       'Long-lasting suds',
       'Concentrated formula',
@@ -141,7 +141,7 @@ const mockProducts: Product[] = [
     id: 'bc1',
     name: 'Lysol Power Bathroom Cleaner',
     description: 'Professional-strength bathroom cleaner that eliminates soap scum and limescale',
-    bulletPoints: [
+    bullet_points: [
       'Kills 99.9% of bacteria',
       'Removes soap scum',
       'Eliminates limescale',
@@ -166,7 +166,7 @@ const mockProducts: Product[] = [
     id: 'af1',
     name: 'Febreze Air Freshener Spray',
     description: 'Long-lasting air freshener that eliminates odors and leaves a fresh scent',
-    bulletPoints: [
+    bullet_points: [
       'Eliminates odors',
       'Long-lasting freshness',
       'Safe for fabrics',
@@ -191,7 +191,7 @@ const mockProducts: Product[] = [
     id: 'ld2',
     name: 'Persil ProClean Liquid Laundry Detergent',
     description: 'Premium deep clean laundry detergent with pro-lift technology',
-    bulletPoints: [
+    bullet_points: [
       'Pro-lift technology',
       'Deep cleaning formula',
       'Fresh scent',
@@ -216,7 +216,7 @@ const mockProducts: Product[] = [
     id: 'apc2',
     name: 'Method All-Purpose Natural Surface Cleaner',
     description: 'Plant-based all-purpose cleaner that is tough on dirt but gentle on surfaces',
-    bulletPoints: [
+    bullet_points: [
       'Plant-based formula',
       'Biodegradable',
       'Non-toxic',
@@ -241,7 +241,7 @@ const mockProducts: Product[] = [
     id: 'ds2',
     name: 'Seventh Generation Dish Liquid Soap',
     description: 'Plant-based dish soap that is tough on grease but gentle on hands',
-    bulletPoints: [
+    bullet_points: [
       'Plant-based formula',
       'Free of dyes',
       'Biodegradable',
