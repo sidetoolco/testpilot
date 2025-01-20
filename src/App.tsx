@@ -16,9 +16,8 @@ import ForgotPassword from './features/auth/components/ForgotPassword';
 import ResetPassword from './features/auth/components/ResetPassword';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import CreateConsumerTest from './pages/CreateConsumerTest';
-import AllSessions from './pages/AllSessions';
-import SessionDetail from './components/SessionDetail';
 import TestUserPage from './pages/TestUser';
+import TestDetail from './pages/TestDetail';
 
 const queryClient = new QueryClient();
 
@@ -55,7 +54,18 @@ function App() {
           >
             <Routes>
               {/* Unprotected Route */}
+
+              {/* session*/}
               <Route path="/test/:id" element={<TestUserPage />} />
+
+              {/* detalle testing */}
+              <Route path="/tests/:id" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <TestDetail />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
 
               {/* Auth Routes */}
               <Route path="/login" element={<LoginForm />} />
@@ -88,19 +98,6 @@ function App() {
                     <CreateConsumerTest />
                   </MainLayout>
                 </ProtectedRoute>
-              } />
-
-              <Route path="/sessions" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <AllSessions />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-
-
-              <Route path="/sessions/:sessionId" element={
-                <SessionDetail />
               } />
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
