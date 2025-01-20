@@ -58,7 +58,7 @@ const Modal = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className="mt-4 bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] py-2 px-4 rounded-full border border-[#FCD200] font-medium"
                 >
-                   Ok
+                    Ok
                 </button>
             </div>
         </div>
@@ -109,21 +109,7 @@ const TestUserPage = () => {
     const combinedData = combineVariantsAndCompetitors(data);
 
     return (
-        <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '5px' }}>
-            <div className="fixed top-0 left-0 right-0 bg-white shadow-md flex justify-between items-center p-4 z-50">
-                <div className="flex items-center">
-                    <img
-                        src="https://i.imghippo.com/files/QfED5977I.png"
-                        alt="TestPilot"
-                        className="h-8"
-                    />
-                    <span className="text-lg font-bold">Shopping Simulator</span>
-                </div>
-                <div className="text-sm">
-                    Instructions - {Math.floor(elapsedTime / 60)}:{String(elapsedTime % 60).padStart(2, '0')}
-                </div>
-            </div>
-
+        <div>
             <Modal isOpen={isModalOpen} onClose={closeModal} />
 
             <div className="mt-16"> {/* Add margin to avoid overlap with fixed header */}

@@ -1,4 +1,5 @@
 import { Star, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface PreviewGridProps {
     products: {
@@ -20,15 +21,15 @@ export default function PreviewGrid2({ products }: PreviewGridProps) {
                             className="relative flex flex-col justify-between p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
                         >
 
-
-                            <div className="relative pt-[100%] mb-3">
-                                <img
-                                    src={image_url || image}
-                                    alt={title || name}
-                                    className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
-                                />
+                            <div key={product.id} className="relative pt-[100%] mb-3">
+                                <Link to={`/product/${id}`} state={{ product: product.product }}>
+                                    <img
+                                        src={image_url || image}
+                                        alt={title || name}
+                                        className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
+                                    />
+                                </Link>
                             </div>
-
                             <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
                                 {title || name}
                             </h3>
