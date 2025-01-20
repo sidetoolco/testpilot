@@ -11,6 +11,11 @@ export function useTests() {
   useEffect(() => {
     async function fetchTests() {
       try {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) {
+          throw new Error('Usuario no autenticado');
+        }
+
         const { data, error } = await supabase
           .from('tests')
           .select(`
@@ -30,6 +35,7 @@ export function useTests() {
               tester_count
             )
           `)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
