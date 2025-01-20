@@ -39,18 +39,17 @@ export const productService = {
     const { data, error } = await supabase
       .from('products')
       .insert({
-        name: product.name,
+        title: product.title,
         description: product.description,
         price: product.price,
         brand: product.brand,
-        image: product.image,
+        image_url: product.image_url,
         images: product.images,
-        star_rating: product.starRating,
-        review_count: product.reviewCount,
+        rating: product.rating,
+        reviews_count: product.reviews_count,
         is_competitor: product.isCompetitor || false,
-        best_seller: product.bestSeller || false,
         loads: product.loads || null,
-        amazon_url: product.amazonUrl || null,
+        product_url: product.product_url || null,
         company_id: profile.company_id
       })
       .select()
@@ -64,18 +63,17 @@ export const productService = {
     const { data, error } = await supabase
       .from('products')
       .update({
-        name: updates.name,
+        title: updates.title,
         description: updates.description,
         price: updates.price,
         brand: updates.brand,
-        image: updates.image,
+        image_url: updates.image_url,
         images: updates.images,
-        star_rating: updates.starRating,
-        review_count: updates.reviewCount,
+        rating: updates.rating,
+        reviews_count: updates.reviews_count,
         is_competitor: updates.isCompetitor,
-        best_seller: updates.bestSeller,
         loads: updates.loads,
-        amazon_url: updates.amazonUrl,
+        product_url: updates.product_url,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

@@ -13,11 +13,10 @@ export function ProductCard({ product, isSelected, onSelect }: ProductCardProps)
   return (
     <div
       onClick={() => onSelect(product)}
-      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-        isSelected 
+      className={`border rounded-lg p-4 cursor-pointer transition-all ${isSelected
           ? 'border-[#00A67E] bg-[#00A67E]/5'
           : 'border-gray-200 hover:border-[#00A67E]/30'
-      }`}
+        }`}
     >
       <div className="aspect-square mb-4 relative group">
         <img
@@ -33,29 +32,37 @@ export function ProductCard({ product, isSelected, onSelect }: ProductCardProps)
           </div>
         )}
       </div>
-      
+
       <h4 className="font-medium text-gray-900 line-clamp-2 mb-1">
         {product.title}
       </h4>
-      
+
       <div className="flex items-center space-x-1 mb-1">
         <div className="flex text-yellow-400">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-4 w-4 ${
-                i < Math.floor(product.rating)
-                  ? 'fill-current'
-                  : 'fill-gray-200'
-              }`}
-            />
-          ))}
+          {[...Array(5)].map((_, i) => {
+            const isFullStar = i < Math.floor(product.rating || 5);
+            const isHalfStar = !isFullStar && i < product.rating;
+            return (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${isFullStar
+                  ? 'text-yellow-400 fill-yellow-400'
+                  : isHalfStar
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-200 fill-gray-200'
+                  }`}
+                style={{
+                  clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                }}
+              />
+            );
+          })}
         </div>
         <span className="text-sm text-gray-500">
           ({formatNumber(product.reviews_count)})
         </span>
       </div>
-      
+
       <div className="flex items-baseline space-x-1">
         <span className="text-sm text-gray-500">$</span>
         <span className="text-xl font-semibold">{product.price.toFixed(2)}</span>

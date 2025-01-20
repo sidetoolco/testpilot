@@ -10,8 +10,8 @@ export default function ProductGrid({ products }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {products.map((product) => (
-        <div 
-          key={product.id} 
+        <div
+          key={product.id}
           className="bg-white p-4 border border-gray-200 rounded hover:shadow-lg transition-shadow"
         >
           <div className="aspect-square mb-4 relative">
@@ -33,16 +33,24 @@ export default function ProductGrid({ products }: ProductGridProps) {
 
           <div className="flex items-center mb-1">
             <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.floor(product.starRating || 0)
-                      ? 'text-[#F8991D] fill-[#F8991D]'
-                      : 'text-[#DDD] fill-[#DDD]'
-                  }`}
-                />
-              ))}
+              {[...Array(5)].map((_, i) => {
+                const isFullStar = i < Math.floor(product.rating || 5);
+                const isHalfStar = !isFullStar && i < product.rating;
+                return (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${isFullStar
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : isHalfStar
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-200 fill-gray-200'
+                      }`}
+                    style={{
+                      clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                    }}
+                  />
+                );
+              })}
             </div>
             <span className="ml-1 text-sm text-[#007185] hover:text-[#C7511F] hover:underline">
               {product.reviewCount?.toLocaleString()}

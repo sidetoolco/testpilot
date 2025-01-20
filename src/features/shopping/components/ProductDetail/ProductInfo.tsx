@@ -18,16 +18,24 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       <div className="flex items-center mb-2 mt-2">
         <div className="flex">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-[18px] w-[18px] ${
-                i < Math.floor(product.rating || 0)
-                  ? 'text-[#F8991D] fill-[#F8991D]'
-                  : 'text-[#DDD] fill-[#DDD]'
-              }`}
-            />
-          ))}
+          {[...Array(5)].map((_, i) => {
+            const isFullStar = i < Math.floor(product.rating || 5);
+            const isHalfStar = !isFullStar && i < product.rating;
+            return (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${isFullStar
+                  ? 'text-yellow-400 fill-yellow-400'
+                  : isHalfStar
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-200 fill-gray-200'
+                  }`}
+                style={{
+                  clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                }}
+              />
+            );
+          })}
         </div>
         <a href="#reviews" className="ml-2 text-[14px] text-[#007185] hover:text-[#C7511F] hover:underline">
           {product.reviews?.toLocaleString()} ratings

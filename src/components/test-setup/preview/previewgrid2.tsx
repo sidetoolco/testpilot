@@ -36,15 +36,24 @@ export default function PreviewGrid2({ products }: PreviewGridProps) {
 
                             <div className="flex items-center mb-1">
                                 <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`h-[14px] w-[14px] ${i < Math.floor(rating || starRating)
-                                                ? 'text-[#F8991D] fill-[#F8991D]'
-                                                : 'text-[#DDD] fill-[#DDD]'
-                                                }`}
-                                        />
-                                    ))}
+                                    {[...Array(5)].map((_, i) => {
+                                        const isFullStar = i < Math.floor(product.rating || 5);
+                                        const isHalfStar = !isFullStar && i < product.rating;
+                                        return (
+                                            <Star
+                                                key={i}
+                                                className={`h-4 w-4 ${isFullStar
+                                                    ? 'text-yellow-400 fill-yellow-400'
+                                                    : isHalfStar
+                                                        ? 'text-yellow-400 fill-current'
+                                                        : 'text-gray-200 fill-gray-200'
+                                                    }`}
+                                                style={{
+                                                    clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                                                }}
+                                            />
+                                        );
+                                    })}
                                 </div>
                                 <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
                                     {(reviews_count || reviewCount)?.toLocaleString()}

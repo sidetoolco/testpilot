@@ -264,9 +264,9 @@ const mockProducts: Product[] = [
   }
 ];
 
-export default function ShoppingExperience({ 
+export default function ShoppingExperience({
   onProductSelected,
-  setShowQuestionnaire 
+  setShowQuestionnaire
 }: ShoppingExperienceProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,7 +278,7 @@ export default function ShoppingExperience({
   };
 
   const filteredProducts = mockProducts
-    .filter(product => 
+    .filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -332,8 +332,8 @@ export default function ShoppingExperience({
       <div className="bg-white px-4 py-3">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredProducts.map((product) => (
-            <div 
-              key={product.id} 
+            <div
+              key={product.id}
               className="relative flex flex-col p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
             >
               {product.bestSeller && (
@@ -341,7 +341,7 @@ export default function ShoppingExperience({
                   Best Seller
                 </div>
               )}
-              <div 
+              <div
                 className="relative pt-[100%] mb-3"
                 onClick={() => setSelectedProduct(product)}
               >
@@ -351,7 +351,7 @@ export default function ShoppingExperience({
                   className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
                 />
               </div>
-              <h3 
+              <h3
                 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2 cursor-pointer"
                 onClick={() => setSelectedProduct(product)}
               >
@@ -359,16 +359,24 @@ export default function ShoppingExperience({
               </h3>
               <div className="flex items-center mb-1">
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-[14px] w-[14px] ${
-                        i < Math.floor(product.rating)
-                          ? 'text-[#F8991D] fill-[#F8991D]'
-                          : 'text-[#DDD] fill-[#DDD]'
-                      }`}
-                    />
-                  ))}
+                  {[...Array(5)].map((_, i) => {
+                    const isFullStar = i < Math.floor(product.rating || 5);
+                    const isHalfStar = !isFullStar && i < product.rating;
+                    return (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${isFullStar
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : isHalfStar
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-200 fill-gray-200'
+                          }`}
+                        style={{
+                          clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                        }}
+                      />
+                    );
+                  })}
                 </div>
                 <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
                   {product.reviews?.toLocaleString()}
@@ -382,7 +390,7 @@ export default function ShoppingExperience({
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-1">
-                <img 
+                <img
                   src="https://m.media-amazon.com/images/G/01/prime/marketing/slashPrime/amazon-prime-delivery-lock._CB485968312_.png"
                   alt="Prime"
                   className="h-[18px] object-contain"
@@ -402,8 +410,8 @@ export default function ShoppingExperience({
       </div>
 
       {selectedProduct && (
-        <ProductDetail 
-          product={selectedProduct} 
+        <ProductDetail
+          product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={() => {
             handleAddToCart(selectedProduct);
