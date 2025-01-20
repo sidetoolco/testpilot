@@ -37,8 +37,8 @@ export default function PreviewGrid2({ products }: PreviewGridProps) {
                             <div className="flex items-center mb-1">
                                 <div className="flex">
                                     {[...Array(5)].map((_, i) => {
-                                        const isFullStar = i < Math.floor(product.rating || 5);
-                                        const isHalfStar = !isFullStar && i < product.rating;
+                                        const isFullStar = i < Math.floor(rating || 5);
+                                        const isHalfStar = !isFullStar && i < rating;
                                         return (
                                             <Star
                                                 key={i}
