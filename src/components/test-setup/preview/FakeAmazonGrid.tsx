@@ -4,17 +4,16 @@ import { Link } from 'react-router-dom';
 interface PreviewGridProps {
     products: {
         products: any;
-    }
+    };
+    addToCart: (item: any) => void;
 }
 
-export default function FakeAmazonGrid({ products }: PreviewGridProps) {
-    // Mezclar los productos de manera aleatoria
-    const shuffledProducts = products.sort(() => Math.random() - 0.5);
+export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps) {
 
     return (
         <div className="bg-white p-4 rounded-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {shuffledProducts.map((product) => {
+                {products.map((product) => {
                     const { id, image_url, image, title, name, rating, reviews_count, price } = product.product;
 
                     return (
@@ -82,7 +81,10 @@ export default function FakeAmazonGrid({ products }: PreviewGridProps) {
                                 </div>
                             </div>
 
-                            <button className="mt-4 w-full bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] py-2 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2">
+                            <button
+                                className="mt-4 w-full bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] py-2 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2"
+                                onClick={() => addToCart(product.product)}
+                            >
                                 <ShoppingCart className="h-4 w-4" />
                                 <span>Add to Cart</span>
                             </button>

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import AmazonHeader from '../components/test-setup/preview/AmazonHeader';
 import AmazonNavigation from '../components/test-setup/preview/AmazonNavigation';
-import FakeAmazonGrid from '../components/test-setup/preview/previewgrid2';
+import FakeAmazonGrid from '../components/test-setup/preview/FakeAmazonGrid';
 import HeaderLayout from '../components/HeaderLayout';
 import { Product } from '../types';
 
@@ -109,32 +109,40 @@ const TestUserPage = () => {
     const { id } = useParams();
     const { data, loading, error } = useFetchTestData(id);
     const [isModalOpen, setIsModalOpen] = useState(() => {
-        // Verificar si el modal ya ha sido cerrado previamente
         return !localStorage.getItem('modalClosed');
     });
+    const [cartItems, setCartItems] = useState<any[]>([]);
+    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+
+    const addToCart = (item: any) => {
+        if (cartItems.length === 0) {
+            setCartItems([item]); // Solo agrega el título
+        } else {
+            setIsWarningModalOpen(true); // Muestra el modal de advertencia
+        }
+    };
 
     const closeModal = async () => {
         setIsModalOpen(false);
-
-        // Guardar en localStorage que el modal ha sido cerrado
         localStorage.setItem('modalClosed', 'true');
-
-        // Guardar en la base de datos
         try {
             const { data, error } = await supabase
                 .from('testers_session')
                 .insert([{ test_id: id, status: 'started' }])
-                .select('id'); // Selecciona el ID del registro insertado
+                .select('id');
 
             if (error) {
                 console.error('Error al guardar en la base de datos:', error);
             } else if (data && data.length > 0) {
-                // Guardar el ID del registro en localStorage
                 localStorage.setItem('recordId', data[0].id);
             }
         } catch (error) {
             console.error('Error al intentar guardar en la base de datos:', error);
         }
+    };
+
+    const closeWarningModal = () => {
+        setIsWarningModalOpen(false);
     };
 
     if (loading) return <p>Loading...</p>;
@@ -143,8 +151,21 @@ const TestUserPage = () => {
     const combinedData = combineVariantsAndCompetitors(data);
 
     return (
-        <HeaderLayout>
+        <HeaderLayout cartItems={cartItems} addToCart={addToCart}>
             <Modal isOpen={isModalOpen} onClose={closeModal} />
+            {isWarningModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded shadow-lg text-center z-60">
+                        <p>Only one product can be added to cart.</p>
+                        <button
+                            onClick={closeWarningModal}
+                            className="mt-4 bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] py-2 px-4 rounded-full border border-[#FCD200] font-medium"
+                        >
+                            Ok
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="mt-16">
                 {combinedData && combinedData[0] ? (
                     <div key={combinedData[0].id}>
@@ -153,7 +174,6 @@ const TestUserPage = () => {
                             <AmazonNavigation />
 
                             <div className="max-w-screen-2xl mx-auto px-4 py-4">
-                                {/* Results Count */}
                                 <div className="bg-white p-4 mb-4 rounded-sm">
                                     <div className="flex items-center space-x-2">
                                         <span className="text-sm text-[#565959]">
@@ -167,7 +187,7 @@ const TestUserPage = () => {
 
                                 <div className="flex gap-4">
                                     <div className="flex-1">
-                                        <FakeAmazonGrid products={combinedData[0].competitors} />
+                                        <FakeAmazonGrid products={combinedData[0].competitors} addToCart={addToCart} />
                                     </div>
                                 </div>
                             </div>
@@ -177,7 +197,7 @@ const TestUserPage = () => {
                     <p>No data found</p>
                 )}
             </div>
-        </HeaderLayout >
+        </HeaderLayout>
     );
 };
 
