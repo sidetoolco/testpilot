@@ -7,13 +7,15 @@ interface PreviewGridProps {
     }
 }
 
-export default function PreviewGrid2({ products }: PreviewGridProps) {
+export default function FakeAmazonGrid({ products }: PreviewGridProps) {
+    // Mezclar los productos de manera aleatoria
+    const shuffledProducts = products.sort(() => Math.random() - 0.5);
 
     return (
         <div className="bg-white p-4 rounded-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => {
-                    const { id, image_url, image, title, name, rating, starRating, reviews_count, reviewCount, price } = product.product;
+                {shuffledProducts.map((product) => {
+                    const { id, image_url, image, title, name, rating, reviews_count, price } = product.product;
 
                     return (
                         <div
@@ -56,7 +58,7 @@ export default function PreviewGrid2({ products }: PreviewGridProps) {
                                     })}
                                 </div>
                                 <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-                                    {(reviews_count || reviewCount)?.toLocaleString()}
+                                    {(reviews_count)?.toLocaleString()}
                                 </span>
                             </div>
 

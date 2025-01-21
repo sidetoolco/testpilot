@@ -58,9 +58,7 @@ function App() {
               {/* Unprotected Route */}
 
               <Route path="/test/:id" element={
-                <HeaderLayout>
                   <TestUserPage />
-                </HeaderLayout>
               } />
 
               <Route path="/product/:id" element={

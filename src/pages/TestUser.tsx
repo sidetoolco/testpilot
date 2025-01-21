@@ -3,12 +3,27 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import AmazonHeader from '../components/test-setup/preview/AmazonHeader';
 import AmazonNavigation from '../components/test-setup/preview/AmazonNavigation';
-import PreviewGrid2 from '../components/test-setup/preview/previewgrid2';
+import FakeAmazonGrid from '../components/test-setup/preview/previewgrid2';
+import HeaderLayout from '../components/HeaderLayout';
+import { Product } from '../types';
 
-const useFetchTestData = (id) => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+interface Variation {
+    product: Product;
+}
+interface Competitor {
+    product: Product;
+}
+interface TestData {
+    id: string;
+    searchTerm: string;
+    competitors: Competitor[];
+    variations: Variation[];
+}
+
+const useFetchTestData = (id: string | undefined) => {
+    const [data, setData] = useState<TestData[] | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,7 +45,7 @@ const useFetchTestData = (id) => {
                 if (error) throw error;
                 setData(data);
             } catch (error) {
-                setError(error.message);
+                setError(error as string);
             } finally {
                 setLoading(false);
             }
@@ -44,7 +59,13 @@ const useFetchTestData = (id) => {
     return { data, loading, error };
 };
 
-const Modal = ({ isOpen, onClose }) => {
+// Type the Modal component props
+interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const Modal = ({ isOpen, onClose }: ModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -65,7 +86,7 @@ const Modal = ({ isOpen, onClose }) => {
     );
 };
 
-const combineVariantsAndCompetitors = (data) => {
+const combineVariantsAndCompetitors = (data: TestData[]) => {
     return data.map((item) => {
         // Copia el arreglo de competidores
         const competitorsWithVariations = [...item.competitors];
@@ -74,7 +95,6 @@ const combineVariantsAndCompetitors = (data) => {
         item.variations.forEach((variation) => {
             competitorsWithVariations.push({
                 product: { ...variation.product },
-                variation_type: variation.variation_type,
             });
         });
 
@@ -88,19 +108,33 @@ const combineVariantsAndCompetitors = (data) => {
 const TestUserPage = () => {
     const { id } = useParams();
     const { data, loading, error } = useFetchTestData(id);
-    const [isModalOpen, setIsModalOpen] = useState(true);
-    const [elapsedTime, setElapsedTime] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(() => {
+        // Verificar si el modal ya ha sido cerrado previamente
+        return !localStorage.getItem('modalClosed');
+    });
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setElapsedTime((prevTime) => prevTime + 1);
-        }, 1000);
-
-        return () => clearInterval(timer); // Cleanup interval on component unmount
-    }, []);
-
-    const closeModal = () => {
+    const closeModal = async () => {
         setIsModalOpen(false);
+
+        // Guardar en localStorage que el modal ha sido cerrado
+        localStorage.setItem('modalClosed', 'true');
+
+        // Guardar en la base de datos
+        try {
+            const { data, error } = await supabase
+                .from('testers_session')
+                .insert([{ test_id: id, status: 'started' }])
+                .select('id'); // Selecciona el ID del registro insertado
+
+            if (error) {
+                console.error('Error al guardar en la base de datos:', error);
+            } else if (data && data.length > 0) {
+                // Guardar el ID del registro en localStorage
+                localStorage.setItem('recordId', data[0].id);
+            }
+        } catch (error) {
+            console.error('Error al intentar guardar en la base de datos:', error);
+        }
     };
 
     if (loading) return <p>Loading...</p>;
@@ -109,10 +143,9 @@ const TestUserPage = () => {
     const combinedData = combineVariantsAndCompetitors(data);
 
     return (
-        <div>
+        <HeaderLayout>
             <Modal isOpen={isModalOpen} onClose={closeModal} />
-
-            <div className="mt-16"> {/* Add margin to avoid overlap with fixed header */}
+            <div className="mt-16">
                 {combinedData && combinedData[0] ? (
                     <div key={combinedData[0].id}>
                         <div className="bg-[#EAEDED] min-h-[600px]">
@@ -134,16 +167,7 @@ const TestUserPage = () => {
 
                                 <div className="flex gap-4">
                                     <div className="flex-1">
-                                        <PreviewGrid2 products={combinedData[0].competitors} />
-                                        {/* Render variations with competitors */}
-                                        {combinedData[0].variations.map((variation) => (
-                                            <div key={variation.product.id}>
-                                                <h3>{variation.product.name}</h3>
-                                                {variation.competitor && (
-                                                    <p>Competitor: {variation.competitor.title}</p>
-                                                )}
-                                            </div>
-                                        ))}
+                                        <FakeAmazonGrid products={combinedData[0].competitors} />
                                     </div>
                                 </div>
                             </div>
@@ -153,7 +177,7 @@ const TestUserPage = () => {
                     <p>No data found</p>
                 )}
             </div>
-        </div>
+        </HeaderLayout >
     );
 };
 
