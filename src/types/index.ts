@@ -1,20 +1,20 @@
 export interface Product {
-  id: string;
-  name: string;
+  id?: string;
+  title: string; // Cambiado de 'name' a 'title'
   description: string;
-  bulletPoints?: string[];
+  bullet_points: string[];
   price: number;
-  image: string;
+  image_url: string; // Cambiado de 'image' a 'image_url'
   images: string[];
   brand: string;
   position?: { row: number; column: number };
-  starRating: number;
-  reviewCount: number;
+  rating: number; // Cambiado de 'starRating' a 'rating'
+  reviews_count: number; // Cambiado de 'reviewCount' a 'reviews_count'
   isCompetitor?: boolean;
-  bestSeller?: boolean;
   loads?: number;
-  amazonUrl?: string;
+  product_url?: string; // Cambiado de 'amazonUrl' a 'product_url'
   userId?: string;
+  company_id?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

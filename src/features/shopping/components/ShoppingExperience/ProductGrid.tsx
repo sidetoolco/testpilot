@@ -12,46 +12,50 @@ export default function ProductGrid({ products, onProductClick, onAddToCart }: P
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {products.map((product) => (
-        <div 
-          key={product.id} 
+        <div
+          key={product.id}
           className="relative flex flex-col p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
         >
-          {product.bestSeller && (
-            <div className="absolute top-2 left-2 z-10 bg-[#CC6B10] text-white text-xs px-2 py-0.5 rounded-sm font-medium">
-              Best Seller
-            </div>
-          )}
-          <div 
+
+          <div
             className="relative pt-[100%] mb-3"
             onClick={() => onProductClick(product)}
           >
             <img
-              src={product.image}
-              alt={product.name}
+              src={product.image_url}
+              alt={product.title}
               className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
             />
           </div>
-          <h3 
+          <h3
             className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2 cursor-pointer"
             onClick={() => onProductClick(product)}
           >
-            {product.name}
+            {product.title}
           </h3>
           <div className="flex items-center mb-1">
             <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-[14px] w-[14px] ${
-                    i < Math.floor(product.rating || 0)
-                      ? 'text-[#F8991D] fill-[#F8991D]'
-                      : 'text-[#DDD] fill-[#DDD]'
-                  }`}
-                />
-              ))}
+              {[...Array(5)].map((_, i) => {
+                const isFullStar = i < Math.floor(product.rating || 5);
+                const isHalfStar = !isFullStar && i < product.rating;
+                return (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${isFullStar
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : isHalfStar
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-200 fill-gray-200'
+                      }`}
+                    style={{
+                      clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                    }}
+                  />
+                );
+              })}
             </div>
             <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-              {product.reviews?.toLocaleString()}
+              {product.reviews_count?.toLocaleString()}
             </span>
           </div>
           <div className="flex items-baseline gap-[2px] text-[#0F1111]">

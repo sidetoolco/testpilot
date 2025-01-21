@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, PlayCircle, Users2, Clock, CheckCircle } from 'lucide-react';
@@ -84,17 +83,16 @@ export default function MyTests() {
           </div>
         ) : (
           tests.map((test) => (
-            <motion.div 
-              key={test.id} 
+            <motion.div
+              key={test.id}
               className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate(`/tests/${test.id}`)}
               whileHover={{ y: -2 }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full ${
-                    test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'
-                  } flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-full ${test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'
+                    } flex items-center justify-center`}>
                     {test.status === 'completed' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (
@@ -106,9 +104,8 @@ export default function MyTests() {
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <span>Search term: {test.searchTerm}</span>
                       <span>•</span>
-                      <span className={`${
-                        test.status === 'completed' ? 'text-[#00A67E]' : 'text-blue-500'
-                      }`}>
+                      <span className={`${test.status === 'completed' ? 'text-[#00A67E]' : 'text-blue-500'
+                        }`}>
                         {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                       </span>
                     </div>

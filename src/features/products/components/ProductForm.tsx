@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
+import { toast } from 'sonner';
 
 interface ProductFormProps {
   onSubmit: (product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
@@ -9,23 +10,48 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ onSubmit, onClose, initialData }: ProductFormProps) {
-  const [formData, setFormData] = useState({
-    name: initialData?.name || '',
+  const [formData, setFormData] = useState<Product>({
+    title: initialData?.title || '',
     description: initialData?.description || '',
-    price: initialData?.price || '',
+    bullet_points: initialData?.bullet_points || [],
+    price: initialData?.price || 0,
     brand: initialData?.brand || '',
+    image_url: initialData?.image_url || '',
     images: initialData?.images || [],
     isCompetitor: initialData?.isCompetitor || false,
-    bestSeller: initialData?.bestSeller || false,
-    loads: initialData?.loads || '',
-    amazonUrl: initialData?.amazonUrl || '',
-    starRating: initialData?.starRating || 5,
-    reviewCount: initialData?.reviewCount || 0
+    loads: initialData?.loads || undefined,
+    product_url: initialData?.product_url || '',
+    rating: initialData?.rating || 5,
+    reviews_count: initialData?.reviews_count || 0
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [errors, setErrors] = useState({
+    bulletPoints: false,
+    description: false,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    const newErrors = {
+      bulletPoints: formData.bullet_points.length < 5,
+      description: formData.description.length < 50,
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error)) {
+      if (newErrors.bulletPoints) {
+        toast.error('Please enter at least 5 bullet points about your product');
+      }
+      if (newErrors.description) {
+        toast.error('Your description needs to be at least 50 characters long to be effective');
+      }
+      return;
+    }
+
     if (formData.images.length === 0) {
       alert('Please upload at least one product image');
       return;
@@ -33,8 +59,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
     // Convert numeric values
     const numericPrice = parseFloat(formData.price.toString());
-    const numericReviewCount = parseInt(formData.reviewCount.toString());
-    
+    const numericReviewCount = parseInt(formData.reviews_count.toString());
+
     if (isNaN(numericPrice) || numericPrice <= 0) {
       alert('Please enter a valid price');
       return;
@@ -45,22 +71,28 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       return;
     }
 
+    // Split bullet points on submit
+    const bulletPointsArray = formData.bullet_points.join('\n').split('\n').filter(point => point.trim() !== '');
+
     const productData = {
-      name: formData.name,
+      title: formData.title,
       description: formData.description,
+      bullet_points: bulletPointsArray,
       price: numericPrice,
       brand: formData.brand,
-      image: formData.images[0],
+      image_url: formData.images[0],
       images: formData.images,
       isCompetitor: formData.isCompetitor,
-      bestSeller: formData.bestSeller,
-      loads: parseInt(formData.loads.toString()) || null,
-      amazonUrl: formData.amazonUrl || null,
-      starRating: parseInt(formData.starRating.toString()),
-      reviewCount: numericReviewCount
+      loads: formData.loads ? formData.loads : undefined,
+      product_url: formData.product_url,
+      rating: formData.rating,
+      reviews_count: numericReviewCount
     };
 
-    onSubmit(productData);
+    setLoading(true);
+
+    await onSubmit(productData);
+
   };
 
   return (
@@ -84,8 +116,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         </label>
         <input
           type="text"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
           required
         />
@@ -99,8 +131,22 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
           rows={3}
+        />
+      </div>
+
+      {/* Bullet Points */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          About the product
+        </label>
+        <textarea
+          value={formData.bullet_points.join('\n')}
+          onChange={(e) => setFormData({ ...formData, bullet_points: e.target.value.split('\n') })}
+          className={`w-full px-4 py-2 border ${errors.bulletPoints ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
+          rows={3}
+          placeholder="Enter bullet points, one per line"
         />
       </div>
 
@@ -141,16 +187,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Star Rating
           </label>
-          <select
-            value={formData.starRating}
-            onChange={(e) => setFormData({ ...formData, starRating: parseInt(e.target.value) })}
+          <input
+            type="number"
+            step="0.1" // Permite incrementos de 0.1 para calificaciones decimales
+            min="0"
+            max="5"
+            value={formData.rating}
+            onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
-          >
-            {[1, 2, 3, 4, 5].map(rating => (
-              <option key={rating} value={rating}>{rating} Stars</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div>
@@ -160,8 +206,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <input
             type="number"
             min="0"
-            value={formData.reviewCount}
-            onChange={(e) => setFormData({ ...formData, reviewCount: parseInt(e.target.value) || 0 })}
+            value={formData.reviews_count}
+            onChange={(e) => setFormData({ ...formData, reviews_count: parseInt(e.target.value) || 0 })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
@@ -174,14 +220,24 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           type="button"
           onClick={onClose}
           className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          disabled={loading}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500"
+          className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center justify-center"
+          disabled={loading}
         >
-          {initialData ? 'Update Product' : 'Add Product'}
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Cargando...
+            </>
+          ) : initialData ? 'Update Product' : 'Add Product'}
         </button>
       </div>
     </form>

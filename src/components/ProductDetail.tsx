@@ -29,7 +29,7 @@ export default function ProductDetail() {
                   <div className="relative aspect-square bg-[#F8F8F8] mb-4 rounded-lg">
                     <img
                       src={product.image_url}
-                      alt={product.name}
+                      alt={product.title}
                       className="w-full h-full object-contain p-4"
                     />
 
@@ -41,7 +41,7 @@ export default function ProductDetail() {
               <div className="col-span-5">
                 <div className="mb-4">
                   <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight">
-                    {product.name}
+                    {product.title}
                   </h1>
                   <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline">
                     Visit the {product.brand} Store
@@ -50,15 +50,24 @@ export default function ProductDetail() {
 
                 <div className="flex items-center mb-2">
                   <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-[18px] w-[18px] ${i < Math.floor(product.rating)
-                          ? 'text-[#F8991D] fill-[#F8991D]'
-                          : 'text-[#DDD] fill-[#DDD]'
-                          }`}
-                      />
-                    ))}
+                    {[...Array(5)].map((_, i) => {
+                      const isFullStar = i < Math.floor(product.rating || 5);
+                      const isHalfStar = !isFullStar && i < product.rating;
+                      return (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${isFullStar
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : isHalfStar
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-200 fill-gray-200'
+                            }`}
+                          style={{
+                            clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                   <a href="#reviews" className="ml-2 text-[14px] text-[#007185] hover:text-[#C7511F] hover:underline">
                     {product.reviews?.toLocaleString()} ratings
@@ -94,11 +103,6 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <img
-                      src="https://m.media-amazon.com/images/G/01/prime/marketing/slashPrime/amazon-prime-delivery-lock._CB485968312_.png"
-                      alt="Prime"
-                      className="h-[22px] object-contain"
-                    />
                     <div>
                       <div className="text-[14px] text-[#007185]">
                         FREE delivery

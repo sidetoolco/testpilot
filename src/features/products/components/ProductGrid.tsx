@@ -21,12 +21,12 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
         >
           <div className="aspect-square mb-4 relative bg-gray-50 rounded-lg p-4">
             <img
-              src={product.image}
-              alt={product.name}
+              src={product.image_url}
+              alt={product.title}
               className="w-full h-full object-contain"
             />
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => onEdit(product)}
@@ -34,7 +34,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
               >
                 <Edit2 className="h-4 w-4 text-gray-600" />
               </motion.button>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => onDelete(product.id)}
@@ -46,23 +46,31 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
-            
+            <h3 className="font-medium text-gray-900 line-clamp-2">{product.title}</h3>
+
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < (product.starRating || 5)
+                {[...Array(5)].map((_, i) => {
+                  const isFullStar = i < Math.floor(product.rating || 5);
+                  const isHalfStar = !isFullStar && i < product.rating;
+                  return (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${isFullStar
                         ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-200 fill-gray-200'
-                    }`}
-                  />
-                ))}
+                        : isHalfStar
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-200 fill-gray-200'
+                        }`}
+                      style={{
+                        clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                      }}
+                    />
+                  );
+                })}
               </div>
               <span className="text-sm text-gray-500">
-                ({formatNumber(product.reviewCount || 0)})
+                ({product.reviews_count})
               </span>
             </div>
 
