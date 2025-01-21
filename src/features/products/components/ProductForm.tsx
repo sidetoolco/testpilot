@@ -30,7 +30,9 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors = {
@@ -86,7 +88,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       rating: formData.rating,
       reviews_count: numericReviewCount
     };
-    onSubmit(productData);
+
+    setLoading(true);
+
+    await onSubmit(productData);
+
   };
 
   return (
@@ -155,7 +161,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             step="0.01"
             min="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value  })}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
@@ -214,14 +220,24 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           type="button"
           onClick={onClose}
           className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          disabled={loading}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500"
+          className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center justify-center"
+          disabled={loading}
         >
-          {initialData ? 'Update Product' : 'Add Product'}
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Cargando...
+            </>
+          ) : initialData ? 'Update Product' : 'Add Product'}
         </button>
       </div>
     </form>
