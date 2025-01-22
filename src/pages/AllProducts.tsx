@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useProductStore } from '../store/useProductStore';
 import { Product } from '../types';
 import ProductHeader from '../features/products/components/ProductHeader';
@@ -22,7 +22,7 @@ export default function AllProducts() {
   const handleSubmit = async (productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
     try {
       if (editProduct) {
-        await updateProduct(editProduct.id, productData);
+        await updateProduct(editProduct.id!, productData);
       } else {
         await addProduct(productData);
       }
@@ -43,7 +43,7 @@ export default function AllProducts() {
     }
   };
 
-  const filteredProducts = products.filter(product => 
+  const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.brand.toLowerCase().includes(searchTerm.toLowerCase())
   );
