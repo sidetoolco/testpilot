@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
+import { Product } from '../types';
 
 interface SessionState {
   sessionBeginTime: Date | null;
@@ -15,7 +16,7 @@ interface SessionState {
   startSession: (shopperId: string) => void;
   clickItem: (itemId: string) => void;
   spendTimeOnPDP: (itemId: string, time: number) => void;
-  selectItemAtCheckout: (itemId: string) => void;
+  selectItemAtCheckout: (itemId: Product) => void;
   answerQuestion: (questionId: string, answer: string) => void;
   endSession: () => void;
 }

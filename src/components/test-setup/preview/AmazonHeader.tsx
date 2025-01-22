@@ -1,11 +1,14 @@
 import React from 'react';
 import { Search, MapPin, ShoppingCart } from 'lucide-react';
+import { useSessionStore } from '../../../store/useSessionStore';
 
 interface AmazonHeaderProps {
   searchTerm: string;
 }
 
 export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
+  const itemSelectedAtCheckout = useSessionStore((state) => state.itemSelectedAtCheckout);
+
   return (
     <div className="bg-[#131921] text-white">
       <div className="max-w-screen-2xl mx-auto px-4 py-2">
@@ -20,11 +23,11 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
                 className="h-8"
               />
             </div>
-            
+
             {/* Deliver To */}
             <div className="flex items-center space-x-1">
               <MapPin className="h-4 w-4" />
-              <div>
+              <div className="hidden md:block">
                 <div className="text-[11px] text-gray-300">Deliver to</div>
                 <div className="text-sm font-bold">United States</div>
               </div>
@@ -56,17 +59,20 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
 
           {/* Right Section */}
           <div className="flex items-center space-x-6">
-            <div>
+            <div className="hidden md:block">
               <div className="text-[11px]">Hello, sign in</div>
               <div className="text-sm font-bold">Account & Lists</div>
             </div>
-            <div>
+            <div className="hidden md:block">
               <div className="text-[11px]">Returns</div>
               <div className="text-sm font-bold">& Orders</div>
             </div>
             <div className="flex items-center">
               <ShoppingCart className="h-7 w-7" />
               <span className="text-sm font-bold ml-1">Cart</span>
+              <span className="text-sm font-bold ml-1">
+                ({itemSelectedAtCheckout ? 1 : 0})
+              </span>
             </div>
           </div>
         </div>

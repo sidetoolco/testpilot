@@ -60,7 +60,6 @@ const useFetchTestData = (id: string | undefined) => {
     return { data, loading, error };
 };
 
-// Type the Modal component props
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -89,10 +88,8 @@ const Modal = ({ isOpen, onClose }: ModalProps) => {
 
 const combineVariantsAndCompetitors = (data: TestData[]) => {
     return data.map((item) => {
-        // Copia el arreglo de competidores
         const competitorsWithVariations = [...item.competitors];
 
-        // Agrega cada variación al arreglo de competidores
         item.variations.forEach((variation) => {
             competitorsWithVariations.push({
                 product: { ...variation.product },
@@ -109,36 +106,30 @@ const combineVariantsAndCompetitors = (data: TestData[]) => {
 const TestUserPage = () => {
     const { id } = useParams();
     const { data, loading, error } = useFetchTestData(id);
-    const [isModalOpen, setIsModalOpen] = useState(() => {
-        return !localStorage.getItem('modalClosed');
-    });
-    const [cartItems, setCartItems] = useState<any[]>([]);
+    const [cartItems] = useState<any[]>([]);
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
 
-    const { startSession } = useSessionStore();
+    const { startSession, shopperId } = useSessionStore();
+    const isModalOpen = !shopperId; // Modal abierto si no hay item seleccionado
 
     const addToCart = (item: any) => {
         if (cartItems.length === 0) {
-            setCartItems([item.title]); // Solo agrega el título
+            useSessionStore.getState().selectItemAtCheckout(item); // Actualiza el estado de itemSelectedAtCheckout
         } else {
             setIsWarningModalOpen(true); // Muestra el modal de advertencia
         }
     };
 
     const closeModal = async () => {
-        setIsModalOpen(false);
-        localStorage.setItem('modalClosed', 'true');
-        
         try {
             const { data, error } = await supabase
-            .from('testers_session')
-            .insert([{ test_id: id, status: 'started' }])
-            .select('id');
-            
+                .from('testers_session')
+                .insert([{ test_id: id, status: 'started' }])
+                .select('id');
+
             if (error) {
                 console.error('Error al guardar en la base de datos:', error);
             } else if (data && data.length > 0) {
-                localStorage.setItem('recordId', data[0].id);
                 startSession(data[0].id);
             }
         } catch (error) {
@@ -156,7 +147,7 @@ const TestUserPage = () => {
     const combinedData = combineVariantsAndCompetitors(data);
 
     return (
-        <HeaderLayout cartItems={cartItems} addToCart={addToCart}>
+        <HeaderLayout>
             <Modal isOpen={isModalOpen} onClose={closeModal} />
             {isWarningModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

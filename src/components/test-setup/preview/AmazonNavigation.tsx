@@ -10,9 +10,9 @@ export default function AmazonNavigation() {
           <div className="flex items-center h-[39px]">
             <button className="flex items-center space-x-1 px-2 py-1 hover:border border-white">
               <Menu className="h-5 w-5" />
-              <span>All</span>
+              <span className="hidden md:block">All</span>
             </button>
-            <div className="flex items-center space-x-4 ml-4">
+            <div className="hidden md:flex items-center space-x-4 ml-4">
               <button className="px-2 py-1 hover:border border-white">Today's Deals</button>
               <button className="px-2 py-1 hover:border border-white">Customer Service</button>
               <button className="px-2 py-1 hover:border border-white">Registry</button>
@@ -26,7 +26,7 @@ export default function AmazonNavigation() {
       {/* Secondary Navigation */}
       <div className="bg-[#232f3e] border-t border-[#3a4553] text-white">
         <div className="max-w-screen-2xl mx-auto px-4">
-          <div className="flex items-center h-[35px] text-sm">
+          <div className="hidden md:flex items-center h-[35px] text-sm">
             <button className="px-2 py-1 hover:border border-white">Same-Day Store</button>
             <button className="px-2 py-1 hover:border border-white">Beauty & Personal Care</button>
             <button className="px-2 py-1 hover:border border-white">Health & Wellness</button>
