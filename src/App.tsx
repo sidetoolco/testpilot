@@ -19,7 +19,7 @@ import CreateConsumerTest from './pages/CreateConsumerTest';
 import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
-import HeaderLayout from './components/HeaderLayout';
+import HeaderLayout from './components/testers-session/HeaderLayout';
 
 const queryClient = new QueryClient();
 

@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import AmazonHeader from '../components/test-setup/preview/AmazonHeader';
 import AmazonNavigation from '../components/test-setup/preview/AmazonNavigation';
-import FakeAmazonGrid from '../components/test-setup/preview/FakeAmazonGrid';
-import HeaderLayout from '../components/HeaderLayout';
+import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
+import HeaderLayout from '../components/testers-session/HeaderLayout';
 import { Product } from '../types';
 import { useSessionStore } from '../store/useSessionStore';
 
