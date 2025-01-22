@@ -7,8 +7,8 @@ import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { Product } from '../types';
 import { useSessionStore } from '../store/useSessionStore';
-import { checkAndFetchExistingSession } from '../components/testers-session/services/testerssessionService';
-import { createNewSession } from '../components/testers-session/services/testerssessionService';
+import { checkAndFetchExistingSession } from '../components/testers-session/services/testersSessionService';
+import { createNewSession } from '../components/testers-session/services/testersSessionService';
 
 interface Variation {
     product: Product;
