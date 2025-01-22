@@ -7,6 +7,8 @@ import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { Product } from '../types';
 import { useSessionStore } from '../store/useSessionStore';
+import { checkAndFetchExistingSession } from '../components/testers-session/services/testerssessionService';
+import { createNewSession } from '../components/testers-session/services/testerssessionService';
 
 interface Variation {
     product: Product;
@@ -116,7 +118,7 @@ const TestUserPage = () => {
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
 
     const { startSession, shopperId } = useSessionStore();
-    const isModalOpen = !shopperId; // Modal abierto si no hay item seleccionado
+    const isModalOpen = !shopperId;
 
     const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
@@ -130,18 +132,19 @@ const TestUserPage = () => {
 
     const closeModal = async () => {
         try {
-            const { data, error } = await supabase
-                .from('testers_session')
-                .insert([{ test_id: id, status: 'started' }])
-                .select('id');
+            const existingSession = await checkAndFetchExistingSession();
 
-            if (error) {
-                console.error('Error al guardar en la base de datos:', error);
-            } else if (data && data.length > 0 && combinedData) {
-                startSession(data[0].id, combinedData[0].id, combinedData[0]);
+            if (existingSession) {
+                startSession(existingSession.id, combinedData[0].id, combinedData[0], new Date(existingSession.created_at));
+                return;
+            }
+
+            const sessionId = await createNewSession(id, combinedData);
+            if (sessionId && combinedData) {
+                startSession(sessionId, combinedData[0].id, combinedData[0], new Date());
             }
         } catch (error) {
-            console.error('Error al intentar guardar en la base de datos:', error);
+            console.error('Error attempting to save to the database:', error);
         }
     };
 

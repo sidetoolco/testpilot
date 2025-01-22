@@ -15,7 +15,7 @@ interface SessionState {
   idTest: string | null; // Nuevo campo idTest
   test: Record<string, any> | null; // Nuevo campo test, puedes ajustar el tipo según tus necesidades
 
-  startSession: (shopperId: string, idTest: string, test: Record<string, any>) => void;
+  startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date) => void;
   clickItem: (itemId: string) => void;
   spendTimeOnPDP: (itemId: string, time: number) => void;
   selectItemAtCheckout: (itemId: Product) => void;
@@ -37,8 +37,8 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     idTest: null, // Inicialización del campo idTest
     test: null, // Inicialización del campo test
 
-    startSession: (shopperId, idTest, test) => set({
-      sessionBeginTime: new Date(),
+    startSession: (shopperId, idTest, test, sessionBeginTime) => set({
+      sessionBeginTime: sessionBeginTime,
       shopperId,
       itemsClicked: [],
       timeSpentOnPDP: {},
