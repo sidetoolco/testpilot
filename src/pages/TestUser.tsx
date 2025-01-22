@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import AmazonHeader from '../components/test-setup/preview/AmazonHeader';
 import AmazonNavigation from '../components/test-setup/preview/AmazonNavigation';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
-import HeaderLayout from '../components/testers-session/HeaderLayout';
+import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { Product } from '../types';
 import { useSessionStore } from '../store/useSessionStore';
 
@@ -63,9 +63,11 @@ const useFetchTestData = (id: string | undefined) => {
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
+    test: string;
 }
 
-const Modal = ({ isOpen, onClose }: ModalProps) => {
+const Modal = ({ isOpen, onClose, test }: ModalProps) => {
+
     if (!isOpen) return null;
 
     return (
@@ -73,7 +75,11 @@ const Modal = ({ isOpen, onClose }: ModalProps) => {
             <div className="bg-white p-6 rounded shadow-lg text-center z-60">
                 <h2 className="text-xl font-bold mb-4">Welcome to your shopping experience</h2>
                 <p>
-                    Imagine you are shopping for category-term. Please browse as you normally would, add your selection to cart, and then checkout.
+                    Imagine you are shopping for
+                    <strong>
+                        {" "}"{test}"
+                    </strong>
+                    . Please browse as you normally would, add your selection to cart, and then checkout.
                 </p>
                 <button
                     onClick={onClose}
@@ -112,6 +118,8 @@ const TestUserPage = () => {
     const { startSession, shopperId } = useSessionStore();
     const isModalOpen = !shopperId; // Modal abierto si no hay item seleccionado
 
+    const combinedData = data ? combineVariantsAndCompetitors(data) : null;
+
     const addToCart = (item: any) => {
         if (cartItems.length === 0) {
             useSessionStore.getState().selectItemAtCheckout(item); // Actualiza el estado de itemSelectedAtCheckout
@@ -129,8 +137,8 @@ const TestUserPage = () => {
 
             if (error) {
                 console.error('Error al guardar en la base de datos:', error);
-            } else if (data && data.length > 0) {
-                startSession(data[0].id);
+            } else if (data && data.length > 0 && combinedData) {
+                startSession(data[0].id, combinedData[0].id, combinedData[0]);
             }
         } catch (error) {
             console.error('Error al intentar guardar en la base de datos:', error);
@@ -141,14 +149,10 @@ const TestUserPage = () => {
         setIsWarningModalOpen(false);
     };
 
-    if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
 
-    const combinedData = combineVariantsAndCompetitors(data);
-
     return (
-        <HeaderLayout>
-            <Modal isOpen={isModalOpen} onClose={closeModal} />
+        <HeaderTesterSessionLayout>
             {isWarningModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded shadow-lg text-center z-60">
@@ -163,37 +167,42 @@ const TestUserPage = () => {
                 </div>
             )}
             <div className="mt-16">
-                {combinedData && combinedData[0] ? (
-                    <div key={combinedData[0].id}>
-                        <div className="bg-[#EAEDED] min-h-[600px]">
-                            <AmazonHeader searchTerm={combinedData[0].searchTerm} />
-                            <AmazonNavigation />
-
-                            <div className="max-w-screen-2xl mx-auto px-4 py-4">
-                                <div className="bg-white p-4 mb-4 rounded-sm">
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-sm text-[#565959]">
-                                            {combinedData[0].competitors.length} results for
-                                        </span>
-                                        <span className="text-sm font-bold text-[#0F1111]">
-                                            "{combinedData[0].searchTerm}"
-                                        </span>
+                <div className="bg-[#EAEDED] min-h-[600px]">
+                    <AmazonHeader searchTerm={combinedData ? combinedData[0].search_term : ''} />
+                    <AmazonNavigation />
+                    {loading ? (
+                        <div className="flex justify-center items-center min-h-[600px]">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                        </div>
+                    ) : (
+                        combinedData && combinedData[0] ? (
+                            <div key={combinedData[0].id}>
+                                <Modal isOpen={isModalOpen} onClose={closeModal} test={combinedData[0].search_term} />
+                                <div className="max-w-screen-2xl mx-auto px-4 py-4">
+                                    <div className="bg-white p-4 mb-4 rounded-sm">
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm text-[#565959]">
+                                                {combinedData[0].competitors.length} results for
+                                            </span>
+                                            <span className="text-sm font-bold text-[#0F1111]">
+                                                "{combinedData[0].search_term}"
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <FakeAmazonGrid products={combinedData[0].competitors} addToCart={addToCart} />
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <FakeAmazonGrid products={combinedData[0].competitors} addToCart={addToCart} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                ) : (
-                    <p>No data found</p>
-                )}
+                        ) : (
+                            <p>No data found</p>
+                        )
+                    )}
+                </div>
             </div>
-        </HeaderLayout>
+        </HeaderTesterSessionLayout>
     );
 };
 

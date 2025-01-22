@@ -19,7 +19,7 @@ import CreateConsumerTest from './pages/CreateConsumerTest';
 import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
-import HeaderLayout from './components/testers-session/HeaderLayout';
+import HeaderTesterSessionLayout from './components/testers-session/HeaderLayout';
 
 const queryClient = new QueryClient();
 
@@ -62,9 +62,9 @@ function App() {
               } />
 
               <Route path="/product/:id" element={
-                <HeaderLayout>
+                <HeaderTesterSessionLayout>
                   <ProductDetail />
-                </HeaderLayout>
+                </HeaderTesterSessionLayout>
               } />
 
 
