@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Star, ShoppingCart, Search, Filter } from 'lucide-react';
 import { Product } from '../types';
-import ProductDetail from './ProductDetail';
+import ProductDetail from '../pages/TestProductDetail';
 import ProductQuestionnaire from './ProductQuestionnaire';
 
 interface ShoppingExperienceProps {

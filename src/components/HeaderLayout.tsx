@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { useSessionStore } from '../store/useSessionStore';
 
 interface HeaderLayoutProps {
     children: React.ReactNode;
-    cartItems: string[];
-    addToCart: (item: string) => void;
 }
 
-const HeaderLayout: React.FC<HeaderLayoutProps> = ({ children, cartItems }) => {
+const HeaderLayout: React.FC<HeaderLayoutProps> = ({ children }) => {
+    const sessionBeginTime = useSessionStore(state => state.sessionBeginTime);
     const [elapsedTime, setElapsedTime] = useState(0);
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setElapsedTime(prevTime => prevTime + 1);
-        }, 1000);
+        const calculateElapsedTime = () => {
+            if (sessionBeginTime) {
+                const now = new Date();
+                const elapsed = Math.floor((now.getTime() - sessionBeginTime.getTime()) / 1000);
+                setElapsedTime(elapsed);
+            }
+        };
+
+        calculateElapsedTime();
+        const timer = setInterval(calculateElapsedTime, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [sessionBeginTime]);
 
     return (
         <div>
@@ -25,9 +32,6 @@ const HeaderLayout: React.FC<HeaderLayoutProps> = ({ children, cartItems }) => {
                 </div>
                 <div className="text-sm">
                     Instructions - {Math.floor(elapsedTime / 60)}:{String(elapsedTime % 60).padStart(2, '0')}
-                </div>
-                <div className="text-sm">
-                    Cart: {cartItems.join(', ')}
                 </div>
             </div>
             <div className="content">

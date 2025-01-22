@@ -6,6 +6,7 @@ import AmazonNavigation from '../components/test-setup/preview/AmazonNavigation'
 import FakeAmazonGrid from '../components/test-setup/preview/FakeAmazonGrid';
 import HeaderLayout from '../components/HeaderLayout';
 import { Product } from '../types';
+import { useSessionStore } from '../store/useSessionStore';
 
 interface Variation {
     product: Product;
@@ -114,9 +115,11 @@ const TestUserPage = () => {
     const [cartItems, setCartItems] = useState<any[]>([]);
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
 
+    const { startSession } = useSessionStore();
+
     const addToCart = (item: any) => {
         if (cartItems.length === 0) {
-            setCartItems([item]); // Solo agrega el título
+            setCartItems([item.title]); // Solo agrega el título
         } else {
             setIsWarningModalOpen(true); // Muestra el modal de advertencia
         }
@@ -125,16 +128,18 @@ const TestUserPage = () => {
     const closeModal = async () => {
         setIsModalOpen(false);
         localStorage.setItem('modalClosed', 'true');
+        
         try {
             const { data, error } = await supabase
-                .from('testers_session')
-                .insert([{ test_id: id, status: 'started' }])
-                .select('id');
-
+            .from('testers_session')
+            .insert([{ test_id: id, status: 'started' }])
+            .select('id');
+            
             if (error) {
                 console.error('Error al guardar en la base de datos:', error);
             } else if (data && data.length > 0) {
                 localStorage.setItem('recordId', data[0].id);
+                startSession(data[0].id);
             }
         } catch (error) {
             console.error('Error al intentar guardar en la base de datos:', error);
