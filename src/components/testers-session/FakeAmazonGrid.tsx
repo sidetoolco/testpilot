@@ -1,5 +1,5 @@
 import { Star, ShoppingCart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 interface PreviewGridProps {
@@ -12,6 +12,8 @@ interface PreviewGridProps {
 export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState<any>(null);
+    const navigate = useNavigate();
+
 
     const handleAddToCart = (product: any) => {
         addToCart(product);
@@ -22,6 +24,7 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
     const closeModal = () => {
         setIsModalOpen(false);
         setCurrentProduct(null);
+        navigate('/questions');
     };
 
     return (

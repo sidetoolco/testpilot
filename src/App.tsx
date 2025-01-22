@@ -19,7 +19,7 @@ import CreateConsumerTest from './pages/CreateConsumerTest';
 import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
-import HeaderTesterSessionLayout from './components/testers-session/HeaderLayout';
+import TestQuestions from './pages/TestQuestions';
 
 const queryClient = new QueryClient();
 
@@ -58,15 +58,14 @@ function App() {
               {/* Unprotected Route */}
 
               <Route path="/test/:id" element={
-                  <TestUserPage />
+                <TestUserPage />
               } />
-
               <Route path="/product/:id" element={
-                <HeaderTesterSessionLayout>
-                  <ProductDetail />
-                </HeaderTesterSessionLayout>
+                <ProductDetail />
               } />
-
+              <Route path="/questions" element={
+                <TestQuestions />
+              } />
 
               {/* detalle testing */}
               <Route path="/tests/:id" element={
