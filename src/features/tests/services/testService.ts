@@ -41,6 +41,8 @@ export const testService = {
 
       // Step 3: Insertar competidores
       await this.insertCompetitors(test.id, testData.competitors);
+      //change for n8n endpoint
+      await this.addCompetitorsBulletsDescriptions(testData.competitors);
 
       // Step 4: Insertar variaciones
       await this.insertVariations(test.id, testData.variations);
@@ -167,6 +169,25 @@ export const testService = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(respondentProjectData),
+        mode: 'no-cors'
+      });
+    } catch (error) {
+      console.error('Respondent integration failed:', error);
+    } finally {
+      console.log('Respondent project being created');
+    }
+  },
+
+  // Función addbulletdescriptions
+  async addCompetitorsBulletsDescriptions(competitors: any) {
+
+    try {
+      await fetch('https://sidetool.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(competitors),
         mode: 'no-cors'
       });
     } catch (error) {
