@@ -153,7 +153,18 @@ export default function ProductDetail() {
                       <ShoppingCart className="h-4 w-4" />
                       <span>Add to Cart</span>
                     </button>
-
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[14px] text-[#0F1111] font-bold">
+                        About this product
+                      </p>
+                      <ul className="list-disc pl-5">
+                        {product.bullet_points.map((bullet: string) => (
+                          <li key={bullet} className="text-[14px] text-[#0F1111]">
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                     <div className="flex items-center justify-between pt-4 border-t border-[#DDD]">
                       <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F]">
                         <Share2 className="h-5 w-5" />
