@@ -147,18 +147,26 @@ export const testService = {
       throw new TestCreationError('Failed to add demographics', { error });
     }
   },
-
+  generateDynamicTitle(interests: string[], searchTerm: string): string {
+    const interestsList = interests.map(interest => interest.toLowerCase()).join(', ');
+    return `Amazon shopping for ${interestsList}: Discover '${searchTerm}'!`;
+  },
   // Función para crear el proyecto en Respondent
   async createRespondentProject(test: any, testData: TestData) {
     const respondentProjectData = {
-      publicTitle: `Seeking ${testData.demographics.interests[0]} to shop ${test.id}`,
+      publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
       publicInternalName: `${test.id}`,
       participantTimeRequiredMinutes: 12,
       incentiveAmount: 12,
       targetNumberOfParticipants: testData.demographics.testerCount,
       externalResearcher: {
         researcherId: test.company_id,
-        researcherName: 'Test Researcher'
+        researcherName: 'Company Researcher'
+      },
+      demographics: {
+        ageRanges: testData.demographics.ageRanges,
+        genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
+        locations: testData.demographics.locations
       }
     };
 

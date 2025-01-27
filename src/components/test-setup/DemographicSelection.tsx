@@ -28,9 +28,9 @@ export default function DemographicSelection({
   const [testerCount, setTesterCount] = useState<number>(10); // Valor inicial
   const [error, setError] = useState<string | null>(null); // Estado para el error
 
-  const ageRanges = ['18-24', '25-34', '35-44', '45-54', '55+'];
-  const genders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-  const countries = ['United States', 'Canada'];
+  const ageRanges = ['18-20', '21-29', '30-39', '40-54', '55+', 'N/A'];
+  const genders = ['male', 'female', 'N/A', 'other'];
+  const countries = ['US', 'CA'];
   const screeningCriteria = [
     'Eco Conscious',
     'Value Shopper',
@@ -48,7 +48,7 @@ export default function DemographicSelection({
     const updates: Partial<typeof demographics> = {};
 
     if (!demographics.locations?.length) {
-      updates.locations = ['United States', 'Canada'];
+      updates.locations = ['US', 'CA'];
     }
 
 
