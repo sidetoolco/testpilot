@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, Target, Clock, TrendingUp } from 'lucide-react';
 import { Test } from '../../../../types';
+import { supabase } from '../../../../lib/supabase';
 
 interface TestMetricsProps {
   test: Test;
 }
 
 export default function TestMetrics({ test }: TestMetricsProps) {
+  const [sessionCount, setSessionCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchSessionCount = async () => {
+      const { data, error } = await supabase
+        .from('testers_session') // Asegúrate de que este sea el nombre correcto de tu tabla
+        .select('id', { count: 'exact' })
+        .eq('test_id', test.id);
+
+      if (error) {
+        console.error('Error fetching session count:', error);
+      } else {
+        setSessionCount(data.length);
+      }
+    };
+
+    fetchSessionCount();
+  }, [test.id]);
+
   const metrics = [
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
@@ -31,6 +51,12 @@ export default function TestMetrics({ test }: TestMetricsProps) {
       title: "Completion Rate",
       value: "85%",
       subtitle: "Of all sessions"
+    },
+    {
+      icon: <Users className="h-6 w-6 text-[#00A67E]" />,
+      title: "Active sessions",
+      value: sessionCount,
+      subtitle: "Sessions with this test ID"
     }
   ];
 
