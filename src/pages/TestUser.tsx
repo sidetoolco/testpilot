@@ -129,11 +129,14 @@ const TestUserPage = () => {
     const closeModal = async () => {
         try {
             const existingSession = await checkAndFetchExistingSession();
+            if (existingSession?.ended_at) {
+                navigate('/thanks');
+                return;
+            }
 
             if (existingSession) {
                 startSession(existingSession.id, combinedData[0].id, combinedData[0], new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
                 if (existingSession.product_id || existingSession.competitor_id) {
-                    alert('existingSession.product_id');
                     navigate(`/questions`);
                 }
                 return;

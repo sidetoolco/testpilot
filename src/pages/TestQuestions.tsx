@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const TestDisplay: React.FC = () => {
     const { test, itemSelectedAtCheckout, shopperId } = useSessionStore((state) => state);
     const navigate = useNavigate();
-    
+
     const [responses, setResponses] = useState({
         valueRating: '',
         designAppeal: '',
@@ -37,19 +37,16 @@ const TestDisplay: React.FC = () => {
         try {
             const { data, error } = await supabase
                 .from('testers_session')
-                .update({ response: JSON.stringify(responses), ended_at: new Date() } as any)
+                .update({ response: responses, ended_at: new Date() } as any)
                 .eq('id', shopperId!);
 
             if (error) {
                 console.error('Error updating data:', error);
-                alert('Error updating responses');
             } else {
-                alert('Responses updated successfully');
+                navigate('/thanks');
             }
-            navigate('/thanks');
         } catch (error) {
             console.error('Unexpected error:', error);
-            alert('Unexpected error occurred');
         }
     }, [responses]);
 

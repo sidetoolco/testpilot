@@ -5,9 +5,6 @@ export const checkAndFetchExistingSession = async () => {
     const testId = localStorage.getItem('testId');
 
     if (existingSessionId && testId) {
-        alert('A tester session with ID: ' + existingSessionId + ' already exists.');
-
-        // Fetch the existing session with related product or competitor from the database
         const { data, error } = await supabase
             .from('testers_session')
             .select(`
