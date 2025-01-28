@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
@@ -111,6 +111,7 @@ const combineVariantsAndCompetitors = (data: TestData[]) => {
 
 const TestUserPage = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { data, loading, error } = useFetchTestData(id);
     const [cartItems] = useState<any[]>([]);
 
@@ -130,7 +131,11 @@ const TestUserPage = () => {
             const existingSession = await checkAndFetchExistingSession();
 
             if (existingSession) {
-                startSession(existingSession.id, combinedData[0].id, combinedData[0], new Date(existingSession.created_at));
+                startSession(existingSession.id, combinedData[0].id, combinedData[0], new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
+                if (existingSession.product_id || existingSession.competitor_id) {
+                    alert('existingSession.product_id');
+                    navigate(`/questions`);
+                }
                 return;
             }
 

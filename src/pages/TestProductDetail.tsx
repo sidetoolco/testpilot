@@ -3,7 +3,7 @@ import { ArrowLeft, Star, ShoppingCart, Share2, Heart } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
-import { recordTimeSpent } from '../features/tests/services/testersSessionService';
+import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
 
 export default function ProductDetail() {
   const location = useLocation();
@@ -15,6 +15,17 @@ export default function ProductDetail() {
   const itemSelectedAtCheckout = useSessionStore((state) => state.itemSelectedAtCheckout);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product);
+      console.log(`Product added to cart: ${product.title}`);
+      setIsModalOpen(true);
+      updateSession(product, shopperId);
+    } else {
+      console.error('No product available to add to cart');
+    }
+  };
 
   useEffect(() => {
     if (itemSelectedAtCheckout) {
@@ -42,6 +53,7 @@ export default function ProductDetail() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    
     navigate('/questions');
   };
 
@@ -169,7 +181,7 @@ export default function ProductDetail() {
                     <button
                       className="w-full bg-[#FFD814] hover:bg-[#F7CA00] text-[13px] text-[#0F1111] py-3 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2"
                       aria-label="Add to Cart"
-                      onClick={() => addToCart(product)} // Añade el producto al carrito
+                      onClick={handleAddToCart}
                     >
                       <ShoppingCart className="h-4 w-4" />
                       <span>Add to Cart</span>
@@ -208,7 +220,18 @@ export default function ProductDetail() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg">
             <h2 className="text-lg font-bold mb-4">Product Selected</h2>
-            <p>You have a product selected. Redirecting to questions...</p>
+            <p className="mb-2">You have selected the following product:</p>
+            <div className="mb-4">
+              <h3 className="text-md font-semibold">{product.title}</h3>
+              <p className="text-sm text-gray-700">Price: ${product.price.toFixed(2)}</p>
+              <p className="text-sm text-gray-700">Brand: {product.brand}</p>
+              <img
+                src={product.image_url}
+                alt={product.title}
+                className="w-24 h-24 object-contain mt-2"
+              />
+            </div>
+            <p>Redirecting to questions...</p>
             <button
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
               onClick={closeModal}

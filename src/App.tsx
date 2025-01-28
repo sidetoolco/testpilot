@@ -20,6 +20,7 @@ import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
+import ThankYou from './pages/ThankYou';
 
 const queryClient = new QueryClient();
 
@@ -66,7 +67,9 @@ function App() {
               <Route path="/questions" element={
                 <TestQuestions />
               } />
-
+              <Route path="/thanks" element={
+                <ThankYou />
+              } />
               {/* detalle testing */}
               <Route path="/tests/:id" element={
                 <ProtectedRoute>

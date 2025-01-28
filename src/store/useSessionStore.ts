@@ -7,7 +7,6 @@ interface SessionState {
   sessionBeginTime: Date | null;
   shopperId: string | null;
   itemsClicked: string[];
-  timeSpentOnPDP: Record<string, number>; // Key: Item ID, Value: Time spent in seconds
   totalTimeElapsed: number;
   itemSelectedAtCheckout: Product | null;
   answersToQuestions: Record<string, string>; // Key: Question ID, Value: Answer
@@ -17,7 +16,6 @@ interface SessionState {
 
   startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date) => void;
   clickItem: (itemId: string) => void;
-  spendTimeOnPDP: (itemId: string, time: number) => void;
   selectItemAtCheckout: (itemId: Product) => void;
   answerQuestion: (questionId: string, answer: string) => void;
   endSession: () => void;
@@ -29,7 +27,6 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     sessionBeginTime: null,
     shopperId: null,
     itemsClicked: [],
-    timeSpentOnPDP: {},
     totalTimeElapsed: 0,
     itemSelectedAtCheckout: null,
     answersToQuestions: {},
@@ -37,13 +34,12 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     idTest: null, // Inicialización del campo idTest
     test: null, // Inicialización del campo test
 
-    startSession: (shopperId, idTest, test, sessionBeginTime) => set({
+    startSession: (shopperId, idTest, test, sessionBeginTime, itemSelectedAtCheckout = null) => set({
       sessionBeginTime: sessionBeginTime,
       shopperId,
       itemsClicked: [],
-      timeSpentOnPDP: {},
       totalTimeElapsed: 0,
-      itemSelectedAtCheckout: null,
+      itemSelectedAtCheckout: itemSelectedAtCheckout,
       answersToQuestions: {},
       status: 'shopping', // Cambia el estado a shopping al iniciar la sesión
       idTest: idTest, // Reinicia el idTest al iniciar la sesión
@@ -52,13 +48,6 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
 
     clickItem: (itemId) => set((state) => ({
       itemsClicked: [...state.itemsClicked, itemId],
-    })),
-
-    spendTimeOnPDP: (itemId, time) => set((state) => ({
-      timeSpentOnPDP: {
-        ...state.timeSpentOnPDP,
-        [itemId]: (state.timeSpentOnPDP[itemId] || 0) + time,
-      },
     })),
 
     selectItemAtCheckout: (itemId: Product) => set({

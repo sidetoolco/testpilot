@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Users, Target, Clock, TrendingUp } from 'lucide-react';
 import { Test } from '../../../../types';
 import { supabase } from '../../../../lib/supabase';
@@ -9,21 +9,33 @@ interface TestMetricsProps {
 
 export default function TestMetrics({ test }: TestMetricsProps) {
   const [sessionCount, setSessionCount] = useState<number>(0);
+  const [averageTime, setAverageTime] = useState<number>(0);
+  const [completedSessions, setCompletedSessions] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchSessionCount = async () => {
       const { data, error } = await supabase
-        .from('testers_session') // Asegúrate de que este sea el nombre correcto de tu tabla
-        .select('id', { count: 'exact' })
+        .from('testers_session')
+        .select('*')
         .eq('test_id', test.id);
 
       if (error) {
         console.error('Error fetching session count:', error);
       } else {
+        const completedSessions = data.filter(session => session.ended_at !== null);
+        const totalSessions = completedSessions.length;
+        const totalTime = completedSessions.reduce((acc, session) => {
+          return acc + (new Date(session.ended_at).getTime() - new Date(session.created_at).getTime());
+        }, 0);
+
+        const totalTimeInMinutes = totalTime / 1000 / 60;
+        const averageTime = totalSessions > 0 ? totalTimeInMinutes / totalSessions : 0;
+        console.log('Total session time (min):', totalTimeInMinutes);
         setSessionCount(data.length);
+        setAverageTime(averageTime);
+        setCompletedSessions(completedSessions);
       }
     };
-
     fetchSessionCount();
   }, [test.id]);
 
@@ -31,8 +43,8 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Total Testers",
-      value: test.demographics.testerCount,
-      subtitle: "Active participants"
+      value: `${completedSessions.length} / ${test.demographics.testerCount}`,
+      subtitle: "completed vs participants"
     },
     {
       icon: <Target className="h-6 w-6 text-[#00A67E]" />,
@@ -43,15 +55,15 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     {
       icon: <Clock className="h-6 w-6 text-[#00A67E]" />,
       title: "Average Time",
-      value: "12:30",
-      subtitle: "Per session"
+      value: `${averageTime.toFixed(2)} min`,
+      subtitle: "Per session ended"
     },
-    {
-      icon: <TrendingUp className="h-6 w-6 text-[#00A67E]" />,
-      title: "Completion Rate",
-      value: "85%",
-      subtitle: "Of all sessions"
-    },
+    // {
+    //   icon: <TrendingUp className="h-6 w-6 text-[#00A67E]" />,
+    //   title: "Completion Rate",
+    //   value: "85%",
+    //   subtitle: "Of all sessions"
+    // },
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Active sessions",

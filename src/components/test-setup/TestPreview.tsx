@@ -1,7 +1,5 @@
 import React from 'react';
 import AmazonPreview from './preview/AmazonPreview';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { ErrorMessage } from '../ui/ErrorMessage';
 import { AmazonProduct } from '../../features/amazon/types';
 
 interface TestPreviewProps {
