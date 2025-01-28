@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Star, ShoppingCart, Share2, Heart } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
+import { recordTimeSpent } from '../features/tests/services/testersSessionService';
 
 export default function ProductDetail() {
   const location = useLocation();
   const navigate = useNavigate();
   const product = location.state?.product;
   const addToCart = useSessionStore((state) => state.selectItemAtCheckout); // Usa el hook
+  const { shopperId } = useSessionStore(); // Obtén la sesión actual
+
   const itemSelectedAtCheckout = useSessionStore((state) => state.itemSelectedAtCheckout);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +21,24 @@ export default function ProductDetail() {
       setIsModalOpen(true);
     }
   }, [itemSelectedAtCheckout]);
+
+  useEffect(() => {
+    const startTime = Date.now(); // Captura el tiempo de entrada
+
+    return () => {
+      const endTime = Date.now(); // Captura el tiempo de salida
+      const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
+      // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
+      if (shopperId && product.id && timeSpent > 0) {
+        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
+        if (product.asin) {
+          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
+        } else {
+          recordTimeSpent(shopperId, product.id, startTime, endTime);
+        }
+      }
+    };
+  }, [product]); // Dependencia en el producto para recalcular si cambia
 
   const closeModal = () => {
     setIsModalOpen(false);

@@ -44,3 +44,25 @@ export const createNewSession = async (testId: string, combinedData: any) => {
     }
     return null;
 };
+
+export async function recordTimeSpent(testId: string, itemId: string, startTime: number, endTime: number, isCompetitor: boolean = false): Promise<void> {
+    const timeSpent = Math.floor(endTime - startTime);
+    const column = isCompetitor ? 'competitor_id' : 'product_id';
+
+    try {
+        const { data, error } = await supabase
+            .from('test_times')
+            .insert([
+                { testers_session: testId, [column]: itemId, time_spent: timeSpent / 1000 }
+            ] as any);
+
+        if (error) {
+            throw error;
+        }
+
+        console.log('Data inserted successfully:', data);
+    } catch (error) {
+        console.error('Error inserting data:', error);
+    }
+}
+

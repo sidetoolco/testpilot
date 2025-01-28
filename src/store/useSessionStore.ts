@@ -9,7 +9,7 @@ interface SessionState {
   itemsClicked: string[];
   timeSpentOnPDP: Record<string, number>; // Key: Item ID, Value: Time spent in seconds
   totalTimeElapsed: number;
-  itemSelectedAtCheckout: string | null;
+  itemSelectedAtCheckout: Product | null;
   answersToQuestions: Record<string, string>; // Key: Question ID, Value: Answer
   status: 'introduction' | 'shopping' | 'questions'; // Nuevo campo status
   idTest: string | null; // Nuevo campo idTest
@@ -61,7 +61,7 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
       },
     })),
 
-    selectItemAtCheckout: (itemId) => set({
+    selectItemAtCheckout: (itemId: Product) => set({
       itemSelectedAtCheckout: itemId,
     }),
 

@@ -154,37 +154,45 @@ export const testService = {
   // Función para crear el proyecto en Respondent
   async createRespondentProject(test: any, testData: TestData) {
     const respondentProjectData = {
-      publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
-      publicInternalName: `${test.id}`,
-      participantTimeRequiredMinutes: 12,
-      incentiveAmount: 12,
-      targetNumberOfParticipants: testData.demographics.testerCount,
-      externalResearcher: {
-        researcherId: test.company_id,
-        researcherName: 'Company Researcher'
-      },
-      demographics: {
-        ageRanges: testData.demographics.ageRanges,
-        genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
-        locations: testData.demographics.locations
-      }
+        publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
+        publicInternalName: `${test.id}`,
+        participantTimeRequiredMinutes: 12,
+        incentiveAmount: 12,
+        targetNumberOfParticipants: testData.demographics.testerCount,
+        externalResearcher: {
+            researcherId: test.company_id,
+            researcherName: 'Company Researcher'
+        },
+        demographics: {
+            ageRanges: testData.demographics.ageRanges,
+            genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
+            locations: testData.demographics.locations
+        }
     };
 
     try {
-      await fetch('https://sidetool.app.n8n.cloud/webhook/create-project', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(respondentProjectData),
-        mode: 'no-cors'
-      });
+        const response = await fetch('https://sidetool.app.n8n.cloud/webhook/prolific-create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(respondentProjectData),
+            mode: 'no-cors'
+        });
+
+        // Mostrar en consola el estado de la respuesta
+        console.log('Response status:', response.status);
+
+        // Intentar leer el cuerpo de la respuesta si es posible
+        const responseData = await response.json();
+        console.log('Response data:', responseData);
+
     } catch (error) {
-      console.error('Respondent integration failed:', error);
+        console.error('Prolific integration failed:', error);
     } finally {
-      console.log('Respondent project being created');
+        console.log('Prolific project being created');
     }
-  },
+},
 
   // Función addbulletdescriptions
   async addCompetitorsBulletsDescriptions(competitors: any) {
@@ -199,9 +207,9 @@ export const testService = {
         mode: 'no-cors'
       });
     } catch (error) {
-      console.error('Respondent integration failed:', error);
+      console.error('Bullets descriptions failed:', error);
     } finally {
-      console.log('Respondent project being created');
+      console.log('Bullets descriptions added');
     }
   }
 };
