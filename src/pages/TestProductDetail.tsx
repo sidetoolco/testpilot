@@ -53,7 +53,7 @@ export default function ProductDetail() {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    
+
     navigate('/questions');
   };
 
@@ -147,7 +147,7 @@ export default function ProductDetail() {
 
                   <div className="space-y-4">
                     <div>
-                      <span className="font-bold text-[#0F1111]">About this item:</span>
+                      <span className="font-bold text-[#0F1111]">Description:</span>
                       <p className="text-[14px] text-[#0F1111] mt-1">
                         {product.description}
                       </p>
@@ -188,10 +188,10 @@ export default function ProductDetail() {
                     </button>
                     <div className="flex flex-col gap-2">
                       <p className="text-[14px] text-[#0F1111] font-bold">
-                        About this product
+                        About this product:
                       </p>
                       <ul className="list-disc pl-5">
-                        {product.bullet_points.map((bullet: string) => (
+                        {product.bullet_points && product.bullet_points.map((bullet: string) => (
                           <li key={bullet} className="text-[14px] text-[#0F1111]">
                             {bullet}
                           </li>

@@ -1,15 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ThankYou: React.FC = () => {
     const navigate = useNavigate();
+    const [countdown, setCountdown] = useState(5);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
+        const timer = setInterval(() => {
+            setCountdown(prevCountdown => prevCountdown - 1);
+        }, 1000);
+
+        const redirectTimer = setTimeout(() => {
             window.location.href = 'https://app.prolific.com/submissions/complete'; // Redirige a la URL externa
         }, 5000);
 
-        return () => clearTimeout(timer); // Limpia el temporizador si el componente se desmonta
+        return () => {
+            clearInterval(timer);
+            clearTimeout(redirectTimer);
+        };
     }, [navigate]);
 
     return (
@@ -21,7 +29,7 @@ const ThankYou: React.FC = () => {
                 Thank you for completing our experience!
             </h1>
             <p className="mt-2 text-gray-700 text-lg">
-                Redirecting in <span className="font-medium text-green-600">5 seconds</span>...
+                Redirecting in <span className="font-medium text-green-600">{countdown} seconds</span>...
             </p>
         </div>
 
