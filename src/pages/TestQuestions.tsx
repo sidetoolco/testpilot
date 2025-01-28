@@ -101,7 +101,7 @@ const TestDisplay: React.FC = () => {
 
     return (
         <div className="p-4 bg-gray-100 rounded shadow-md">
-            <h2 className="text-xl font-bold mb-2">Test Information</h2>
+            <h2 className="text-xl font-bold mb-2">Last step, quick survey!</h2>
             <p><strong>Search Term:</strong> {test.search_term}</p>
             {isVariationSelected.length > 0 ? (
                 <SelectedVariation item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} />
@@ -121,42 +121,40 @@ const OPTIONS = [
 ];
 
 const SelectedVariation: React.FC<{ item: any, handleChange: (e: any) => void, handleSubmit: () => void }> = ({ item, handleChange, handleSubmit }) => (
-    <div>
-        <div className="card bg-white p-4 rounded-lg shadow-lg mb-4">
-            <img className="w-full h-48 object-cover rounded-t-lg" src={item?.image_url} alt={item?.title} />
-            <h3 className="text-lg font-semibold mt-2">{item?.title}</h3>
-            <p className="text-gray-700">Price: {item?.price}</p>
-            <p className="text-gray-700">Reviews: {item?.reviews_count}</p>
+    <div className='flex flex-col items-center justify-center w-auto p-6'>
+        <div className="card bg-white p-6 rounded-lg shadow-lg mb-6">
+            <img className="w-full h-48 object-contain rounded-t-lg" src={item?.image_url} alt={item?.title} />
+            <h3 className="text-xl font-semibold mt-4 text-green-800">{item?.title}</h3>
         </div>
-        <div className="questions space-y-4">
-            <p className="font-medium">How would you rate the value of this product? (1 = Very Poor Value, 5 = Excellent Value)</p>
-            <input className="w-full p-2 border border-gray-300 rounded" type="text" name="value_rating" onChange={handleChange} />
+        <div className="questions space-y-6">
+            <p className="font-medium text-green-800">How would you rate the value of this product? (1 = Very Poor Value, 5 = Excellent Value)</p>
+            <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="value_rating" onChange={handleChange} />
 
-            <p className="font-medium">How appealing do you find the design and appearance of this product? (1 = Not Appealing at All, 5 = Extremely Appealing)</p>
-            <input className="w-full p-2 border border-gray-300 rounded" type="text" name="appearance_rating" onChange={handleChange} />
+            <p className="font-medium text-green-800">How appealing do you find the design and appearance of this product? (1 = Not Appealing at All, 5 = Extremely Appealing)</p>
+            <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="appearance_rating" onChange={handleChange} />
 
-            <p className="font-medium">How confident are you that this product will deliver its promised results? (1 = Not Confident at All, 5 = Extremely Confident)</p>
-            <input className="w-full p-2 border border-gray-300 rounded" type="text" name="confidence_rating" onChange={handleChange} />
+            <p className="font-medium text-green-800">How confident are you that this product will deliver its promised results? (1 = Not Confident at All, 5 = Extremely Confident)</p>
+            <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="confidence_rating" onChange={handleChange} />
 
-            <p className="font-medium">How much do you trust this brand to meet your expectations? (1 = No Trust at All, 5 = Complete Trust)</p>
-            <input className="w-full p-2 border border-gray-300 rounded" type="text" name="trust_rating" onChange={handleChange} />
+            <p className="font-medium text-green-800">How much do you trust this brand to meet your expectations? (1 = No Trust at All, 5 = Complete Trust)</p>
+            <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="trust_rating" onChange={handleChange} />
 
-            <p className="font-medium">How convenient does this product seem to use? (1 = Not Convenient at All, 5 = Extremely Convenient)</p>
-            <input className="w-full p-2 border border-gray-300 rounded" type="text" name="convenience_rating" onChange={handleChange} />
+            <p className="font-medium text-green-800">How convenient does this product seem to use? (1 = Not Convenient at All, 5 = Extremely Convenient)</p>
+            <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="convenience_rating" onChange={handleChange} />
 
-            <p className="font-medium">What do you like most about this product?</p>
-            <textarea className="w-full p-2 border border-gray-300 rounded" name="like_most" onChange={handleChange}></textarea>
+            <p className="font-medium text-green-800">What do you like most about this product?</p>
+            <textarea className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" name="like_most" onChange={handleChange}></textarea>
 
-            <p className="font-medium">What would make this product even better? (open text)</p>
-            <textarea className="w-full p-2 border border-gray-300 rounded" name="improve_suggestions" onChange={handleChange}></textarea>
+            <p className="font-medium text-green-800">What would make this product even better? (open text)</p>
+            <textarea className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" name="improve_suggestions" onChange={handleChange}></textarea>
 
-            <button className="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600" onClick={handleSubmit}>Submit</button>
+            <button className="bg-green-500 text-white p-3 rounded mt-6 hover:bg-green-600 transition duration-300" onClick={handleSubmit}>Submit</button>
         </div>
     </div>
 );
 
 const ComparisonView: React.FC<{ responses: any, competitorItem: any, itemSelected: any, handleChange: (e: any) => void, handleSubmit: () => void }> = ({ responses, competitorItem, itemSelected, handleChange, handleSubmit }) => (
-    <div>
+    <div className='flex flex-col items-center justify-center w-auto p-6'>
         <div className="flex space-x-4">
             <ProductCard title="Item A" item={competitorItem} />
             <ProductCard title="Item B" item={itemSelected} />
