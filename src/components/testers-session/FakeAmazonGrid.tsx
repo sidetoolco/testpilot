@@ -1,6 +1,8 @@
 import { Star, ShoppingCart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { updateSession } from '../../features/tests/services/testersSessionService';
+import { useSessionStore } from '../../store/useSessionStore';
 
 interface PreviewGridProps {
     products: {
@@ -13,11 +15,14 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState<any>(null);
     const navigate = useNavigate();
+    const { shopperId } = useSessionStore();
 
 
     const handleAddToCart = (product: any) => {
         addToCart(product);
         setCurrentProduct(product);
+        console.log(`Product added to cart: ${product.title}`);
+        updateSession(product, shopperId);
         setIsModalOpen(true);
     };
 
