@@ -34,11 +34,11 @@ const TestDisplay: React.FC = () => {
 
     const filterEmptyResponses = (responses: Record<string, string>) => {
         return Object.fromEntries(
-            Object.entries(responses).filter(([_, value]) => value !== '')
+            Object.entries(responses).filter(([_, value]) => value !== '' && value !== 'Equal')
         );
     };
 
-    // Uso de la función antes de enviar los datos
+    // Filter responses before sending data
     const handleSubmit = useCallback(async () => {
         try {
             const filteredResponses = filterEmptyResponses(responses);
