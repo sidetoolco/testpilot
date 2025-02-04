@@ -15,7 +15,7 @@ export default function ProductHeader({ onAddProduct, onConnectShopify }: Produc
         <p className="text-gray-600">Manage and organize your product catalog</p>
       </div>
       <div className="flex items-center space-x-4">
-        <motion.button
+        {/* <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onConnectShopify}
@@ -23,7 +23,7 @@ export default function ProductHeader({ onAddProduct, onConnectShopify }: Produc
         >
           <ShoppingBag className="h-5 w-5" />
           <span>Connect Shopify</span>
-        </motion.button>
+        </motion.button> */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
