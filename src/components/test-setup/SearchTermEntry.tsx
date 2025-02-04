@@ -73,7 +73,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
 
         <div className="bg-[#00A67E] bg-opacity-5 rounded-xl p-4">
           <p className="text-sm text-gray-600">
-            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than specific features or benefits. This ensures we capture the full competitive landscape.
+            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than specific features or benefits. This ensures we capture all relevant competitors.
           </p>
         </div>
       </div>
