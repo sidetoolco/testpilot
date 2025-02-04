@@ -44,32 +44,33 @@ export default function TestMetrics({ test }: TestMetricsProps) {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Total Testers",
       value: `${completedSessions.length} / ${test.demographics.testerCount}`,
-      subtitle: "completed vs participants"
-    },
-    {
-      icon: <Target className="h-6 w-6 text-[#00A67E]" />,
-      title: "Competitors",
-      value: test.competitors.length,
-      subtitle: "Products analyzed"
-    },
-    {
-      icon: <Clock className="h-6 w-6 text-[#00A67E]" />,
-      title: "Average Time",
-      value: `${averageTime.toFixed(2)} min`,
-      subtitle: "Per session ended"
-    },
+      subtitle: "Winning Sessions / Total Testers"
+    }
+    // {
+    //   icon: <Target className="h-6 w-6 text-[#00A67E]" />,
+    //   title: "Competitors",
+    //   value: test.competitors.length,
+    //   subtitle: "Products analyzed"
+
+    // },
+    // {
+    //   icon: <Clock className="h-6 w-6 text-[#00A67E]" />,
+    //   title: "Average Time",
+    //   value: `${averageTime.toFixed(2)} min`,
+    //   subtitle: "Per session ended"
+    // },
     // {
     //   icon: <TrendingUp className="h-6 w-6 text-[#00A67E]" />,
     //   title: "Completion Rate",
     //   value: "85%",
     //   subtitle: "Of all sessions"
     // },
-    {
-      icon: <Users className="h-6 w-6 text-[#00A67E]" />,
-      title: "Active sessions",
-      value: sessionCount,
-      subtitle: "Sessions with this test ID"
-    }
+    // {
+    //   icon: <Users className="h-6 w-6 text-[#00A67E]" />,
+    //   title: "Active sessions",
+    //   value: sessionCount,
+    //   subtitle: "Sessions with this test ID"
+    // }
   ];
 
   return (
