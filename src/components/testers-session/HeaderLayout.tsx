@@ -13,6 +13,7 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
     const test = useSessionStore(state => state.test);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const capitalizeFirstLetter = (string: string) => {
         return string.charAt(0).toUpperCase() + string.slice(1);
@@ -40,6 +41,14 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
         document.title = `Shopping Simulator - ${capitalizeFirstLetter(status)}`;
     }, [status]);
 
+    const handleClick = () => {
+        setIsModalVisible(true);
+    };
+
+    const closeModal = () => {
+        setIsModalVisible(false);
+    };
+
     return (
         <div>
             <div className="fixed top-0 left-0 right-0 bg-white shadow-md flex flex-wrap justify-between items-center z-50">
@@ -54,10 +63,28 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
                     )}
                 </div>
             </div>
-            <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }}>
+            <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }} onClick={handleClick}>
                 <AmazonHeader searchTerm={test ? test.search_term : ''} />
                 <AmazonNavigation />
             </div>
+
+            {isModalVisible && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white rounded-lg shadow-lg relative max-w-sm w-full">
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl"
+                        >
+                            &times;
+                        </button>
+                        <div className="p-6">
+                            <p className="text-center">
+                                Navigation is disabled on these pages, please focus on our products.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="content">
                 {children}
             </div>

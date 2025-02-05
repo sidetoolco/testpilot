@@ -28,9 +28,10 @@ export default function DemographicSelection({
   const [testerCount, setTesterCount] = useState<number>(10); // Valor inicial
   const [error, setError] = useState<string | null>(null); // Estado para el error
 
-  const ageRanges = ['18-20', '21-29', '30-39', '40-54', '55+', 'N/A'];
-  const genders = ['male', 'female', 'N/A', 'other'];
+  const ageRanges = ['18-20', '21-29', '30-39', '40-54', '55+'];
+  const genders = ['Male', 'Female', 'Other or Not Selected'];
   const countries = ['US', 'CA'];
+
   const screeningCriteria = [
     'Eco Conscious',
     'Value Shopper',
