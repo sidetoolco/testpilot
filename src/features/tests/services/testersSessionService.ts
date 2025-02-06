@@ -1,8 +1,13 @@
 import { supabase } from "../../../lib/supabase";
+import { TestData } from "../types";
 
-export const checkAndFetchExistingSession = async () => {
+export const checkAndFetchExistingSession = async (id: string) => {
+    if (!id) {
+        return null;
+    }
     const existingSessionId = localStorage.getItem('testerSessionId');
-    const testId = localStorage.getItem('testId');
+    const testId = id;
+
 
     if (existingSessionId && testId) {
         const { data, error } = await supabase
@@ -13,22 +18,24 @@ export const checkAndFetchExistingSession = async () => {
                 competitor_id:amazon_products(*)
             `)
             .eq('id', existingSessionId)
-            .eq('test_id', testId);
+            .eq('test_id', testId)
+            .single();
 
         if (error) {
             console.error('Error fetching the existing session from the database:', error);
             return null;
-        } else if (data && data.length > 0) {
-            return data[0]; // Return the existing session data
+        } else if (data) {
+            return data; // Return the existing session data
         }
     }
     return null;
+
 };
 export const createNewSession = async (testId: string, combinedData: any) => {
     try {
         const { data, error } = await supabase
             .from('testers_session')
-            .insert([{ test_id: testId, status: 'started' }])
+            .insert([{ test_id: testId, status: 'started' } as any])
             .select('id');
 
         if (error) {
@@ -126,4 +133,50 @@ export async function recordTimeSpent(testId: string, itemId: string, startTime:
         console.error('Error processing time spent:', error);
     }
 }
+
+export const fetchProductAndCompetitorData = async (id: string): Promise<TestData | null> => {
+    try {
+        const { data, error } = await supabase
+            .from('tests')
+
+            .select(`
+                *,
+                competitors:test_competitors(
+                  product:amazon_products(
+                    *,
+                    company:companies(name)
+                  )
+                ),
+                variations:test_variations(
+                  product:products(
+                    *,
+                    company:companies(name)
+                  ),
+                  variation_type
+                )
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) throw new Error(`Error fetching test data: ${error.message}`);
+        if (!data || !('variations' in data)) {
+            throw new Error('No variations found');
+        }
+
+        const sessionData = (data.variations as any[]).map((session: any) => {
+            if (session.product && session.product.company?.name) {
+                session.product.brand = session.product.company.name;
+                delete session.product.company;
+            }
+            return session;
+        });
+
+        return { ...data, variations: sessionData } as unknown as TestData;
+    } catch (error) {
+        console.error('Error fetching test data:', error);
+        return null;
+    }
+
+
+};
 

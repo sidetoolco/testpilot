@@ -1,59 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
-import { Product } from '../types';
 import { useSessionStore } from '../store/useSessionStore';
-import { checkAndFetchExistingSession } from '../features/tests/services/testersSessionService';
+import { checkAndFetchExistingSession, fetchProductAndCompetitorData } from '../features/tests/services/testersSessionService';
 import { createNewSession } from '../features/tests/services/testersSessionService';
-
-interface Variation {
-    product: Product;
-}
-interface Competitor {
-    product: Product;
-}
 interface TestData {
     id: string;
     searchTerm: string;
-    competitors: Competitor[];
-    variations: Variation[];
+    competitors: any[];
+    variations: any[];
 }
 
 const useFetchTestData = (id: string | undefined) => {
-    const [data, setData] = useState<TestData[] | null>(null);
+    const [data, setData] = useState<TestData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('tests')
-                    .select(`
-                        *,
-                        competitors:test_competitors(
-                          product:amazon_products(*)
-                        ),
-                        variations:test_variations(
-                          product:products(*),
-                          variation_type
-                        )
-                    `)
-                    .eq('id', id as string);
-
-                if (error) throw error;
-                setData(data);
-            } catch (error) {
-                setError(error as string);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (id) {
-            fetchData();
+            fetchProductAndCompetitorData(id).then((data: any) => {
+                setData(data);
+                setLoading(false);
+            }).catch((error: any) => {
+                setError(error.message);
+                setLoading(false);
+            });
         }
     }, [id]);
 
@@ -92,21 +64,18 @@ const Modal = ({ isOpen, onClose, test }: ModalProps) => {
     );
 };
 
-const combineVariantsAndCompetitors = (data: TestData[]) => {
-    return data.map((item) => {
-        const competitorsWithVariations = [...item.competitors];
-
-        item.variations.forEach((variation) => {
-            competitorsWithVariations.push({
-                product: { ...variation.product },
-            });
+const combineVariantsAndCompetitors = (data: any) => {
+    const competitorsWithVariations = [...data.competitors];
+    data.variations.forEach((variation: any) => {
+        competitorsWithVariations.push({
+            product: { ...variation.product },
         });
-
-        return {
-            ...item,
-            competitors: competitorsWithVariations,
-        };
     });
+
+    return {
+        ...data,
+        competitors: competitorsWithVariations,
+    };
 };
 
 const TestUserPage = () => {
@@ -128,23 +97,22 @@ const TestUserPage = () => {
 
     const closeModal = async () => {
         try {
-            const existingSession = await checkAndFetchExistingSession();
+            const existingSession = await checkAndFetchExistingSession(id);
             if (existingSession?.ended_at) {
                 navigate('/thanks');
                 return;
-            }
 
-            if (existingSession) {
-                startSession(existingSession.id, combinedData[0].id, combinedData[0], new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
+            }
+            if (existingSession && combinedData) {
+                startSession(existingSession.id, combinedData.id, combinedData, new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
                 if (existingSession.product_id || existingSession.competitor_id) {
                     navigate(`/questions`);
                 }
                 return;
             }
-
             const sessionId = await createNewSession(id, combinedData);
             if (sessionId && combinedData) {
-                startSession(sessionId, combinedData[0].id, combinedData[0], new Date());
+                startSession(sessionId, combinedData.id, combinedData, new Date());
             }
         } catch (error) {
             console.error('Error attempting to save to the database:', error);
@@ -163,23 +131,23 @@ const TestUserPage = () => {
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
                 ) : (
-                    combinedData && combinedData[0] ? (
-                        <div key={combinedData[0].id}>
-                            <Modal isOpen={isModalOpen} onClose={closeModal} test={combinedData[0].search_term} />
+                    combinedData ? (
+                        <div key={combinedData.id}>
+                            <Modal isOpen={isModalOpen} onClose={closeModal} test={combinedData.search_term} />
                             <div className="max-w-screen-2xl mx-auto px-4 py-4">
                                 <div className="bg-white p-4 mb-4 rounded-sm">
                                     <div className="flex items-center space-x-2">
                                         <span className="text-sm text-[#565959]">
-                                            {combinedData[0].competitors.length} results for
+                                            {combinedData.competitors.length} results for
                                         </span>
                                         <span className="text-sm font-bold text-[#0F1111]">
-                                            "{combinedData[0].search_term}"
+                                            "{combinedData.search_term}"
                                         </span>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">
                                     <div className="flex-1">
-                                        <FakeAmazonGrid products={combinedData[0].competitors} addToCart={addToCart} />
+                                        <FakeAmazonGrid products={combinedData.competitors} addToCart={addToCart} />
                                     </div>
                                 </div>
                             </div>

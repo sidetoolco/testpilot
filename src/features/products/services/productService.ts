@@ -80,6 +80,19 @@ export const productService = {
   },
 
   async updateProduct(id: string, updates: Partial<Product>) {
+    // Fetch the current product along with the company name
+    const { data: productData, error: productError } = await supabase
+      .from('products')
+      .select(`
+        *,
+        company:companies(name)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (productError || !productData) throw new Error('Error fetching product data');
+
+    // Update the product with the new data
     const { data, error } = await supabase
       .from('products')
       .update({
@@ -101,7 +114,15 @@ export const productService = {
       .single();
 
     if (error) throw error;
-    return data;
+
+    // Ensure data is an object before spreading
+    const dataObject = typeof data === 'object' && data !== null ? data : {};
+
+    // Add the brand to the returned data
+    return {
+      ...dataObject,
+      brand: productData.company?.name || null
+    };
   },
 
   async deleteProduct(id: string) {

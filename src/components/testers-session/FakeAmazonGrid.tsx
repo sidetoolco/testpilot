@@ -5,9 +5,7 @@ import { updateSession } from '../../features/tests/services/testersSessionServi
 import { useSessionStore } from '../../store/useSessionStore';
 
 interface PreviewGridProps {
-    products: {
-        products: any;
-    };
+    products: any[];
     addToCart: (item: any) => void;
 }
 

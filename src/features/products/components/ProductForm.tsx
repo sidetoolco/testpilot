@@ -166,39 +166,6 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             required
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Brand
-          </label>
-          <input
-            type="text"
-            value={formData.brand}
-            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Star Rating and Reviews */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Star Rating
-          </label>
-          <input
-            type="number"
-            step="0.1" // Permite incrementos de 0.1 para calificaciones decimales
-            min="0"
-            max="5"
-            value={formData.rating}
-            onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-            required
-          />
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Number of Reviews
@@ -212,6 +179,31 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             required
           />
         </div>
+      </div>
+
+      {/* Star Rating and Reviews */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
+            Star Rating
+          </label>
+          <div className="flex items-center">
+            <input
+              type="range"
+              id="ratingRange"
+              step="0.1"
+              min="0"
+              max="5"
+              value={formData.rating}
+              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+              className="w-full px-4 py-2"
+              required
+            />
+            <span className="ml-2 text-sm text-gray-700">{formData.rating.toFixed(1)}</span>
+          </div>
+        </div>
+
+
       </div>
 
       {/* Form Actions */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { sessions } from '../data/sessions';
