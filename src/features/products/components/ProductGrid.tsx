@@ -1,8 +1,6 @@
-import React from 'react';
 import { Edit2, Trash2, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Product } from '../../../types';
-import { formatNumber } from '../../../utils/format';
 
 interface ProductGridProps {
   products: Product[];
@@ -37,7 +35,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => onDelete(product.id)}
+                onClick={() => onDelete(product.id || '')}
                 className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
               >
                 <Trash2 className="h-4 w-4 text-red-500" />
@@ -46,7 +44,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-medium text-gray-900 line-clamp-2">{product.title}</h3>
+            <h3 className="font-medium text-gray-900 line-clamp-2 min-h-[48px]">{product.title}</h3>
 
             <div className="flex items-center space-x-2">
               <div className="flex items-center">

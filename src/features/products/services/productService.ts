@@ -2,39 +2,59 @@ import { supabase } from '../../../lib/supabase';
 import { Product } from '../../../types';
 
 export const productService = {
-  async fetchProducts() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
 
-    const { data: profile } = await supabase
+  async getAuthenticatedUser() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) throw new Error('Not authenticated');
+    return user;
+  },
+
+  async getCompanyId(userId: string): Promise<string> {
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('company_id')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
+    if (error) throw new Error('Error fetching company profile');
+    if (!profile || !('company_id' in profile)) {
+      throw new Error('No company found');
+    }
+    return (profile as any).company_id;
+  },
 
-    if (!profile?.company_id) throw new Error('No company found');
+  async fetchProducts() {
+    const user = await this.getAuthenticatedUser();
+    if (!user) throw new Error('Not authenticated');
+    const companyId = await this.getCompanyId(user.id);
 
     const { data, error } = await supabase
       .from('products')
-      .select('*')
-      .eq('company_id', profile.company_id)
+      .select(`
+      *,
+      companies (
+        name
+      )
+    `)
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    if (!data) return [];
+
+    return data.map((product: any) => {
+      const { companies, ...rest } = product;
+      return {
+        ...rest,
+        brand: companies?.name || null
+      };
+    });
   },
 
+
   async addProduct(product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await this.getAuthenticatedUser();
     if (!user) throw new Error('Not authenticated');
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('company_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.company_id) throw new Error('No company found');
+    const companyId = await this.getCompanyId(user.id);
 
     const { data, error } = await supabase
       .from('products')
@@ -43,7 +63,6 @@ export const productService = {
         description: product.description,
         bullet_points: product.bullet_points,
         price: product.price,
-        brand: product.brand,
         image_url: product.image_url,
         images: product.images,
         rating: product.rating,
@@ -51,8 +70,8 @@ export const productService = {
         is_competitor: product.isCompetitor || false,
         loads: product.loads || null,
         product_url: product.product_url || null,
-        company_id: profile.company_id
-      })
+        company_id: companyId
+      } as any)
       .select()
       .single();
 
@@ -67,7 +86,6 @@ export const productService = {
         title: updates.title,
         description: updates.description,
         price: updates.price,
-        brand: updates.brand,
         image_url: updates.image_url,
         images: updates.images,
         rating: updates.rating,
@@ -77,7 +95,7 @@ export const productService = {
         loads: updates.loads,
         product_url: updates.product_url,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', id)
       .select()
       .single();
