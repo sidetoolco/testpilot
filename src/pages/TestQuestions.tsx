@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useSessionStore } from '../store/useSessionStore';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 
 const TestDisplay: React.FC = () => {
     const { test, itemSelectedAtCheckout, shopperId } = useSessionStore((state) => state);
@@ -101,8 +102,8 @@ const TestDisplay: React.FC = () => {
 
     return (
         <div className="p-4 bg-gray-100 rounded shadow-md">
-            <h2 className="text-xl font-bold mb-2">Last step, quick survey!</h2>
-            <p><strong>Search Term:</strong> {test.search_term}</p>
+            <h2 className="text-3xl font-bold mb-2 text-center">Last step, quick survey!</h2>
+            <p className="text-center"><strong>Search Term:</strong> {test.search_term}</p>
             {isVariationSelected.length > 0 ? (
                 <SelectedVariation item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} />
             ) : (
@@ -121,12 +122,11 @@ const OPTIONS = [
 ];
 
 const SelectedVariation: React.FC<{ item: any, handleChange: (e: any) => void, handleSubmit: () => void }> = ({ item, handleChange, handleSubmit }) => (
-    <div className='flex flex-col items-center justify-center w-auto p-6'>
-        <div className="card bg-white p-6 rounded-lg shadow-lg mb-6">
-            <img className="w-full h-48 object-contain rounded-t-lg" src={item?.image_url} alt={item?.title} />
-            <h3 className="text-xl font-semibold mt-4 text-green-800">{item?.title}</h3>
+    <div className='flex flex-col items-center justify-center w-full p-3 md:p-6'>
+        <div className="card bg-white p-3 rounded-lg shadow-lg mb-6 w-full max-w-md">
+            <ProductCard title="Item A" item={item} />
         </div>
-        <div className="questions space-y-6">
+        <div className="questions space-y-6 w-full max-w-md">
             <p className="font-medium text-green-800">How would you rate the value of this product? (1 = Very Poor Value, 5 = Excellent Value)</p>
             <input className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" type="text" name="value_rating" onChange={handleChange} />
 
@@ -148,18 +148,28 @@ const SelectedVariation: React.FC<{ item: any, handleChange: (e: any) => void, h
             <p className="font-medium text-green-800">What would make this product even better? (open text)</p>
             <textarea className="w-full p-3 border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500" name="improve_suggestions" onChange={handleChange}></textarea>
 
-            <button className="bg-green-500 text-white p-3 rounded mt-6 hover:bg-green-600 transition duration-300" onClick={handleSubmit}>Submit</button>
+            <button className="bg-green-500 text-white p-3 rounded mt-6 hover:bg-green-600 transition duration-300 w-full" onClick={handleSubmit}>Submit</button>
         </div>
     </div>
 );
 
 const ComparisonView: React.FC<{ responses: any, competitorItem: any, itemSelected: any, handleChange: (e: any) => void, handleSubmit: () => void }> = ({ responses, competitorItem, itemSelected, handleChange, handleSubmit }) => (
-    <div className='flex flex-col items-center justify-center w-auto p-6'>
-        <div className="flex space-x-4">
-            <ProductCard title="Item A" item={competitorItem} />
-            <ProductCard title="Item B" item={itemSelected} />
+    <div className='flex flex-col items-center justify-center w-full p-6'>
+        <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-2xl">
+            <div className="card bg-white p-4 rounded-lg shadow-lg w-full md:w-1/2">
+                ITEM A
+                <ProductCard title="Item A" item={competitorItem} />
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-lg mb-4 text-center text-2xl font-bold flex items-center justify-center">
+                VS
+            </div>
+
+            <div className="card bg-white p-4 rounded-lg shadow-lg mb-4 w-full md:w-1/2">
+                ITEM B
+                <ProductCard title="Item B" item={itemSelected} />
+            </div>
         </div>
-        <div className="questions space-y-4">
+        <div className="questions space-y-4 w-full max-w-2xl mt-4">
             <p className="font-medium">Compared to Item B, how would you rate the value of Item A?</p>
             <select className="w-full p-2 border border-gray-300 rounded" name="value_comparison" onChange={handleChange} value={responses.value_comparison}>
                 {OPTIONS.map(option => <option key={option}>{option}</option>)}
@@ -194,18 +204,64 @@ const ComparisonView: React.FC<{ responses: any, competitorItem: any, itemSelect
             <p className="font-medium">What would make you choose Item B?</p>
             <textarea className="w-full p-2 border border-gray-300 rounded" name="choose_reason" onChange={handleChange}></textarea>
 
-            <button className="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600" onClick={handleSubmit}>Submit</button>
+            <button className="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600 w-full" onClick={handleSubmit}>Submit</button>
         </div>
     </div>
 );
 
 const ProductCard: React.FC<{ title: string, item: any }> = ({ title, item }) => (
-    <div className="card bg-white p-4 rounded-lg shadow-lg mb-4 w-1/2">
-        <h3 className="text-lg font-semibold mt-2">{title}</h3>
-        <img className="w-full h-48 object-cover rounded-t-lg" src={item?.image_url} alt={item?.title} />
-        <p className="text-gray-700">Title: {item?.title}</p>
-        <p className="text-gray-700">Price: {item?.price}</p>
-        <p className="text-gray-700">Reviews: {item?.reviews_count}</p>
+    <div
+        key={item.id}
+        className="relative flex flex-col justify-between p-1 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer"
+    >
+
+        <div key={item.id} className="relative pt-[100%] mb-3">
+            <Link to={`/product/${item.id}`} state={{ product: item.product }}>
+                <img
+                    src={item.image_url || item.image}
+                    alt={title || item.name}
+                    className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
+                />
+            </Link>
+        </div>
+        <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
+            {item.title || item.name}
+        </h3>
+
+        <div className="flex items-center mb-1">
+            <div className="flex">
+                {[...Array(5)].map((_, i) => {
+                    const isFullStar = i < Math.floor(item.rating || 5);
+                    const isHalfStar = !isFullStar && i < item.rating;
+                    return (
+                        <Star
+                            key={i}
+                            className={`h-4 w-4 ${isFullStar
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : isHalfStar
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-200 fill-gray-200'
+                                }`}
+                            style={{
+                                clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                            }}
+                        />
+                    );
+                })}
+            </div>
+            <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
+                {(item.reviews_count)?.toLocaleString()}
+            </span>
+        </div>
+
+        <div className="flex items-baseline gap-[2px] text-[#0F1111]">
+            <span className="text-xs align-top mt-[1px]">$</span>
+            <span className="text-[21px] font-medium">{Math.floor(item.price)}</span>
+            <span className="text-[13px]">
+                {(item.price % 1).toFixed(2).substring(1)}
+            </span>
+        </div>
+
     </div>
 );
 
