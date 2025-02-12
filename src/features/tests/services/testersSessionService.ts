@@ -68,9 +68,29 @@ export const updateSession = async (combinedData: CombinedData, sessionId: any):
     const column = isCompetitor ? 'competitor_id' : 'product_id';
 
     try {
+        // Fetch the current session to check existing competitor_id or product_id
+        const { data: existingData, error: fetchError } = await supabase
+            .from('testers_session')
+            .select('competitor_id, product_id')
+            .eq('id', sessionId)
+            .single();
+
+        if (fetchError) {
+            console.error('Error fetching current session data:', fetchError);
+            return null;
+        }
+
+        // Prepare the update object to clear existing IDs
+        const updateObject: any = { status: 'questions', [column]: combinedData.id };
+        if (existingData) {
+            if (existingData.competitor_id) updateObject.competitor_id = null;
+            if (existingData.product_id) updateObject.product_id = null;
+        }
+
+        // Update the session
         const { error } = await supabase
             .from('testers_session')
-            .update({ status: 'questions', [column]: combinedData.id } as any)
+            .update(updateObject)
             .eq('id', sessionId)
             .select('id');
 

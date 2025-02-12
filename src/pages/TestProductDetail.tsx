@@ -290,6 +290,7 @@ export default function ProductDetail() {
         <WarningModal
           closeModal={() => setIsWarningModalOpen(false)}
           replaceProduct={handleReplaceProduct}
+          selectedProduct={itemSelectedAtCheckout}
         />
       )}
     </HeaderTesterSessionLayout>
@@ -345,7 +346,7 @@ const ProductModal = ({ product, closeModal }: { product: any, closeModal: (navi
 );
 
 // Componente para mostrar el modal de advertencia
-const WarningModal = ({ closeModal, replaceProduct }: { closeModal: () => void, replaceProduct: () => void }) => (
+const WarningModal = ({ closeModal, replaceProduct, selectedProduct }: { closeModal: () => void, replaceProduct: () => void, selectedProduct: any }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div className="bg-white p-3 md:p-6 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
       <button
@@ -355,13 +356,20 @@ const WarningModal = ({ closeModal, replaceProduct }: { closeModal: () => void, 
         <X className="h-6 w-6" />
       </button>
       <div className="flex items-center justify-center">
-        <h2 className="text-xl font-bold">You only can choose one product</h2>
+        <h2 className="text-xl font-bold">You can only have 1 item in the cart</h2>
       </div>
       <p className="mt-2 text-center text-gray-700">
-        Do you want to replace the current product with this one?
+        Would you like to replace this item?
       </p>
-
-
+      {selectedProduct && (
+        <div className="flex justify-center mt-4">
+          <img
+            src={selectedProduct.image_url || selectedProduct.image}
+            alt={selectedProduct.title || selectedProduct.name}
+            className="max-w-full max-h-32 object-contain"
+          />
+        </div>
+      )}
       <div className="mt-4 flex justify-around">
         <button
           className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"

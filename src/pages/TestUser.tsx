@@ -109,9 +109,9 @@ const TestUserPage = () => {
             }
             if (existingSession && combinedData) {
                 startSession(existingSession.id, combinedData.id, combinedData, new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
-                // if (existingSession.product_id || existingSession.competitor_id) {
-                //     navigate(`/questions`);
-                // }
+                if (existingSession.product_id || existingSession.competitor_id) {
+                    navigate(`/questions`);
+                }
                 return;
             }
             const sessionId = await createNewSession(id, combinedData);
