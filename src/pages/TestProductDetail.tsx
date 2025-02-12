@@ -162,36 +162,40 @@ export default function ProductDetail() {
             </div>
           </div>
           <div className="md:col-span-5 hidden md:grid">
-            <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight ">
-              {product.title}
-            </h1>
-            <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
-              Visit the {product?.brand} Store
-            </a>
-            <div className="items-center flex">
-              <small>
-                {product.rating}
-              </small>
-              <RatingStars rating={product.rating} />
-              <ChevronDown className="h-4 w-4" />
-              <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
-                {product.reviews_count} reviews
+            <div className='flex items-start flex-col gap-2'>
+
+              <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight pt-2 ">
+                {product.title}
+              </h1>
+              <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
+                Visit the {product?.brand} Store
               </a>
+              <div className="items-center flex pb-2">
+                <small>
+                  {product.rating}
+                </small>
+                <RatingStars rating={product.rating} />
+                <ChevronDown className="h-4 w-4" />
+                <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
+                  {product.reviews_count} reviews
+                </a>
+
+              </div>
+              <div className="border-t border-[#DDD] py-4">
+                <p className="text-[14px] text-[#0F1111] font-bold">
+                  About this product:
+                </p>
+                <ul className="list-disc pl-5 py-2">
+                  {product.bullet_points && product.bullet_points.map((bullet: string) => (
+                    <li key={bullet} className="text-[14px] text-[#0F1111]">
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
             </div>
-            <div className="border-t border-[#DDD]">
-              <p className="text-[14px] text-[#0F1111] font-bold">
-                About this product:
-              </p>
-              <ul className="list-disc pl-5">
-                {product.bullet_points && product.bullet_points.map((bullet: string) => (
-                  <li key={bullet} className="text-[14px] text-[#0F1111]">
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex items-center justify-between pt-4 border-t border-[#DDD]">
+            <div className="flex items-start justify-between border-t border-[#DDD] w-full pt-4 mt-4">
               <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
                 <Share2 className="h-5 w-5" />
                 <span>Share</span>
@@ -202,6 +206,7 @@ export default function ProductDetail() {
               </button>
             </div>
           </div>
+
           <div className="col-span-1 md:col-span-2 space-y-2 border border-[#DDD] rounded-lg p-4 m-1">
             <strong className="text-[14px] text-[#0F1111]">
               Buy for first time
