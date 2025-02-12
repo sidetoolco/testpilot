@@ -13,6 +13,7 @@ interface SessionState {
   status: 'introduction' | 'shopping' | 'questions'; // Nuevo campo status
   idTest: string | null; // Nuevo campo idTest
   test: Record<string, any> | null; // Nuevo campo test, puedes ajustar el tipo según tus necesidades
+  clearItemSelectedAtCheckout: () => void; // Nuevo método
 
   startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date, itemSelectedAtCheckout?: Product | null) => void;
   clickItem: (itemId: string) => void;
@@ -65,5 +66,7 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     endSession: () => set((state) => ({
       totalTimeElapsed: (new Date().getTime() - (state.sessionBeginTime?.getTime() || 0)) / 1000,
     })),
+
+    clearItemSelectedAtCheckout: () => set({ itemSelectedAtCheckout: null }), // Implementación del método
   }))
 );

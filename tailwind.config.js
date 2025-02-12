@@ -21,6 +21,9 @@ export default {
           900: '#00331D',
         },
       },
+      screens: {
+        'custom-hide': { 'max': '1099px' }, // Define un punto de quiebre personalizado
+      },
     },
   },
   plugins: [],

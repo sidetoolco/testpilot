@@ -63,9 +63,11 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
                     )}
                 </div>
             </div>
-            <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }} onClick={handleClick}>
+            <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }} >
                 <AmazonHeader searchTerm={test ? test.search_term : ''} />
-                <AmazonNavigation />
+                <div onClick={handleClick}>
+                    <AmazonNavigation />
+                </div>
             </div>
 
             {isModalVisible && (

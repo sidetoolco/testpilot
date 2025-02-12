@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Share2, Heart, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
@@ -29,32 +29,7 @@ const RatingStars = ({ rating }: { rating: number }) => (
   </>
 );
 
-// Componente para mostrar el modal
-const ProductModal = ({ product, closeModal }: { product: any, closeModal: () => void }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded shadow-lg">
-      <h2 className="text-lg font-bold mb-4">Product Selected</h2>
-      <p className="mb-2">You have selected the following product:</p>
-      <div className="mb-4">
-        <h3 className="text-md font-semibold">{product.title}</h3>
-        <p className="text-sm text-gray-700">Price: ${product.price.toFixed(2)}</p>
-        <p className="text-sm text-gray-700">Brand: {product.brand}</p>
-        <img
-          src={product.image_url}
-          alt={product.title}
-          className="w-24 h-24 object-contain mt-2"
-        />
-      </div>
-      <p>Redirecting to questions...</p>
-      <button
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-        onClick={closeModal}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-);
+
 
 export default function ProductDetail() {
   const location = useLocation();
@@ -66,24 +41,31 @@ export default function ProductDetail() {
   const itemSelectedAtCheckout = useSessionStore((state) => state.itemSelectedAtCheckout);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
 
   const handleAddToCart = () => {
     if (!product) {
       console.error('No product available to add to cart');
       return;
     }
-    addToCart(product);
-    console.log(`Product added to cart: ${product.title}`);
-    setIsModalOpen(true);
-    updateSession(product, shopperId);
-  };
-
-  useEffect(() => {
     if (itemSelectedAtCheckout) {
+      setIsWarningModalOpen(true);
+    } else {
+      addToCart(product);
+      console.log(`Product added to cart: ${product.title}`);
+      updateSession(product, shopperId);
       setIsModalOpen(true);
     }
-  }, [itemSelectedAtCheckout]);
+  };
 
+  const handleReplaceProduct = () => {
+    addToCart(product);
+    console.log(`Product replaced in cart: ${product.title}`);
+    updateSession(product, shopperId);
+    setIsWarningModalOpen(false);
+    setIsModalOpen(true);
+  };
+  
   useEffect(() => {
     const startTime = Date.now(); // Captura el tiempo de entrada
 
@@ -102,10 +84,11 @@ export default function ProductDetail() {
     };
   }, [product]); // Dependencia en el producto para recalcular si cambia
 
-  const closeModal = () => {
+  const closeModal = (navigateTo: string = '') => {
     setIsModalOpen(false);
-
-    navigate('/questions');
+    if (navigateTo) {
+      navigate(navigateTo);
+    }
   };
 
   if (!product) {
@@ -150,16 +133,16 @@ export default function ProductDetail() {
         </div>
 
         <div className="col-span-1 md:col-span-5 flex md:flex-row flex-col">
-          <div className="flex-col gap-2 p-2 hidden md:flex">
+          <div className="flex-col gap-2 p-2 hidden custom-hide:hidden md:flex">
             <div className="w-10 h-10 bg-black rounded-lg"></div>
             <div className="w-10 h-10 bg-black rounded-lg"></div>
             <div className="w-10 h-10 bg-black rounded-lg"></div>
           </div>
-          <div className="relative aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md">
+          <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center">
             <img
               src={product.image_url}
               alt={product.title}
-              className="w-full h-full object-contain p-2"
+              className="w-full h-auto object-contain" // Ajusta la imagen para ocupar todo el espacio disponible
             />
           </div>
           <div className="relative md:hidden py-2">
@@ -177,7 +160,6 @@ export default function ProductDetail() {
               </button>
             </div>
           </div>
-
         </div>
         <div className="md:col-span-5 hidden md:grid">
           <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight ">
@@ -273,28 +255,127 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
-      <div className="text-[14px] text-[#0F1111] space-y-4 p-4 mt-5">
+      <div className="text-[14px] text-[#0F1111] space-y-4 p-4 mt-2 ">
         <strong className="block text-lg font-semibold">
           Description about the product
         </strong>
-        <p className="mb-4 border-b border-[#DDD] pb-4">
-          {product.description}
+        <p className="mb-4  pb-4">
+          {product.description ? product.description : 'No description available'}
         </p>
-        <strong className="block text-lg font-semibold">
-          Details about the product
-        </strong>
+        <div className="border-t border-[#DDD] py-2 block md:hidden">
+          <strong className="block text-lg font-semibold">
+            Details about the product
+          </strong>
+
+          <ul className="list-disc pl-5">
+            {product.bullet_points && product.bullet_points.map((bullet: string) => (
+              <li key={bullet} className="text-[14px] text-[#0F1111]">
+                {bullet}
+              </li>
+            ))}
+          </ul>
+        </div>
         <table className="w-full text-left border-collapse">
           <tbody>
-            <tr className="border-b">
+            <tr className="border-b border-[#DDD] border-t">
               <td className="py-2 font-semibold">Brand</td>
-              <td className="py-2">{product.brand}</td>
+              <td className="py-2">{product.brand ? product.brand : product.company ? product.company : 'No brand available'}</td>
             </tr>
-            {/* Puedes agregar más filas aquí si es necesario */}
           </tbody>
         </table>
       </div>
 
       {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+      {isWarningModalOpen && (
+        <WarningModal
+          closeModal={() => setIsWarningModalOpen(false)}
+          replaceProduct={handleReplaceProduct}
+        />
+      )}
     </HeaderTesterSessionLayout>
   );
 }
+
+
+// Componente para mostrar el modal
+const ProductModal = ({ product, closeModal }: { product: any, closeModal: (navigateTo?: string) => void }) => (
+
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        onClick={() => closeModal()}
+      >
+        <X className="h-6 w-6" />
+      </button>
+      <div className="flex items-center flex-row  justify-around">
+        <div className="flex justify-center items-center w-full h-full">
+          <img
+            src={product.image_url || product.image}
+            alt={product.title || product.name}
+            className="max-w-full max-h-full rounded object-contain"
+          />
+        </div>
+        <div className="flex items-center justify-center">
+          <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
+          <h2 className="text-xl font-bold">Added to Cart</h2>
+        </div>
+      </div>
+      <p className="mt-2 text-center text-gray-700">
+        You have added <strong>{product.title || product.name}</strong> to your cart.
+      </p>
+      <div className="mt-4 flex justify-around">
+        <button
+          className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
+          onClick={() => {
+            closeModal('/questions');
+          }}
+        >
+          Go to Checkout
+        </button>
+        <button
+          className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+          onClick={() => closeModal()}
+        >
+          Keep Shopping
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// Componente para mostrar el modal de advertencia
+const WarningModal = ({ closeModal, replaceProduct }: { closeModal: () => void, replaceProduct: () => void }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white p-3 md:p-6 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        onClick={closeModal}
+      >
+        <X className="h-6 w-6" />
+      </button>
+      <div className="flex items-center justify-center">
+        <h2 className="text-xl font-bold">You only can choose one product</h2>
+      </div>
+      <p className="mt-2 text-center text-gray-700">
+        Do you want to replace the current product with this one?
+      </p>
+
+
+      <div className="mt-4 flex justify-around">
+        <button
+          className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
+          onClick={replaceProduct}
+        >
+          Replace
+        </button>
+        <button
+          className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+          onClick={closeModal}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);

@@ -1,4 +1,4 @@
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, CheckCircle, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { updateSession } from '../../features/tests/services/testersSessionService';
@@ -116,17 +116,43 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
             </div>
 
             {isModalOpen && currentProduct && (
+
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded shadow-lg">
-                        <h2 className="text-lg font-bold">Product Added to Cart</h2>
-                        <p className="mt-2">Name: {currentProduct.title || currentProduct.name}</p>
-                        <p>Price: ${currentProduct.price.toFixed(2)}</p>
+                    <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
                         <button
-                            className="mt-4 bg-blue-500 text-white py-2 px-4 rounded"
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                             onClick={closeModal}
                         >
-                            Close
+                            <X className="h-6 w-6" />
                         </button>
+                        <div className="flex items-center flex-row  justify-around">
+                            <img
+                                src={currentProduct.image_url || currentProduct.image}
+                                alt={currentProduct.title || currentProduct.name}
+                                className="w-[200px] h-[200px] rounded"
+                            />
+                            <div className="flex items-center justify-center">
+                                <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
+                                <h2 className="text-xl font-bold">Added to Cart</h2>
+                            </div>
+                        </div>
+                        <p className="mt-2 text-center text-gray-700">
+                            You have added <strong>{currentProduct.title || currentProduct.name}</strong> to your cart.
+                        </p>
+                        <div className="mt-4 flex justify-around">
+                            <button
+                                className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
+                                onClick={closeModal}
+                            >
+                                Go to Checkout
+                            </button>
+                            <button
+                                className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                Keep Shopping
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
