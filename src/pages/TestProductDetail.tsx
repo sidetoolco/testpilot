@@ -48,6 +48,7 @@ export default function ProductDetail() {
       console.error('No product available to add to cart');
       return;
     }
+    console.log('itemSelectedAtCheckout', itemSelectedAtCheckout);
     if (itemSelectedAtCheckout) {
       setIsWarningModalOpen(true);
     } else {
@@ -285,14 +286,14 @@ export default function ProductDetail() {
         </table>
       </div>
 
-      {/* {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+      {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
       {isWarningModalOpen && (
         <WarningModal
           closeModal={() => setIsWarningModalOpen(false)}
           replaceProduct={handleReplaceProduct}
           selectedProduct={itemSelectedAtCheckout}
         />
-      )} */}
+      )}
     </HeaderTesterSessionLayout>
   );
 }
