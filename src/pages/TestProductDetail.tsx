@@ -48,12 +48,10 @@ export default function ProductDetail() {
       console.error('No product available to add to cart');
       return;
     }
-    console.log('itemSelectedAtCheckout', itemSelectedAtCheckout);
     if (itemSelectedAtCheckout) {
       setIsWarningModalOpen(true);
     } else {
       addToCart(product);
-      console.log(`Product added to cart: ${product.title}`);
       updateSession(product, shopperId);
       setIsModalOpen(true);
     }
@@ -61,7 +59,6 @@ export default function ProductDetail() {
 
   const handleReplaceProduct = () => {
     addToCart(product);
-    console.log(`Product replaced in cart: ${product.title}`);
     updateSession(product, shopperId);
     setIsWarningModalOpen(false);
     setIsModalOpen(true);
@@ -92,98 +89,189 @@ export default function ProductDetail() {
     }
   };
 
-  if (!product) {
-    return <div>Producto no encontrado</div>;
-  }
+  try {
+    if (!product) {
+      console.error('No product found');
+      return <div>Producto no encontrado</div>;
+    }
 
-  return (
-    <HeaderTesterSessionLayout>
-      <button
-        className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] my-4 transition-colors duration-200"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="h-5 w-5" />
-        <span>Go Back</span>
-      </button>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 ">
-        <div className='block md:hidden p-2'>
-          <div className="items-center flex">
+    // Verifica propiedades específicas
+    console.log('Product Title:', product.title);
+    console.log('Product Image URL:', product.image_url);
+    console.log('Product Price:', product.price);
+
+    return (
+      <HeaderTesterSessionLayout>
+        <button
+          className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] my-4 transition-colors duration-200"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Go Back</span>
+        </button>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 ">
+          <div className='block md:hidden p-2'>
+            <div className="items-center flex">
+              <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
+                Visit the {product?.brand} Store
+              </a>
+              <small>
+                {product.rating}
+              </small>
+              <RatingStars rating={product.rating} />
+              <ChevronDown className="h-4 w-4" />
+              <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
+                {product.reviews_count} reviews
+              </a>
+            </div>
+            <h1 className="text-[14px] font-medium text-[#565959] py-1 leading-tight">
+              {product.title}
+            </h1>
+            <span className='text-[14px] text-[#0F1111]'>
+              <strong>
+                500 + Sold &nbsp;
+              </strong>
+              last month
+            </span>
+
+
+          </div>
+
+          <div className="col-span-1 md:col-span-5 flex md:flex-row flex-col">
+            <div className="flex-col gap-2 p-2 hidden custom-hide:hidden md:flex">
+              <div className="w-10 h-10 bg-black rounded-lg"></div>
+              <div className="w-10 h-10 bg-black rounded-lg"></div>
+              <div className="w-10 h-10 bg-black rounded-lg"></div>
+            </div>
+            <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center">
+              <img
+                src={product.image_url}
+                alt={product.title}
+                className="w-full h-auto object-contain" // Ajusta la imagen para ocupar todo el espacio disponible
+              />
+            </div>
+            <div className="relative md:hidden py-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2.5 h-2.5 bg-white rounded-full border border-black"></div>
+                <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
+                <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
+              </div>
+              <div className="absolute top-0 right-0 flex items-center justify-end">
+                <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
+                  <Share2 className="h-5 w-5" />
+                </button>
+                <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
+                  <Heart className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="md:col-span-5 hidden md:grid">
+            <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight ">
+              {product.title}
+            </h1>
             <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
               Visit the {product?.brand} Store
             </a>
-            <small>
-              {product.rating}
-            </small>
-            <RatingStars rating={product.rating} />
-            <ChevronDown className="h-4 w-4" />
-            <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
-              {product.reviews_count} reviews
-            </a>
-          </div>
-          <h1 className="text-[14px] font-medium text-[#565959] py-1 leading-tight">
-            {product.title}
-          </h1>
-          <span className='text-[14px] text-[#0F1111]'>
-            <strong>
-              500 + Sold &nbsp;
-            </strong>
-            last month
-          </span>
+            <div className="items-center flex">
+              <small>
+                {product.rating}
+              </small>
+              <RatingStars rating={product.rating} />
+              <ChevronDown className="h-4 w-4" />
+              <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
+                {product.reviews_count} reviews
+              </a>
 
-
-        </div>
-
-        <div className="col-span-1 md:col-span-5 flex md:flex-row flex-col">
-          <div className="flex-col gap-2 p-2 hidden custom-hide:hidden md:flex">
-            <div className="w-10 h-10 bg-black rounded-lg"></div>
-            <div className="w-10 h-10 bg-black rounded-lg"></div>
-            <div className="w-10 h-10 bg-black rounded-lg"></div>
-          </div>
-          <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center">
-            <img
-              src={product.image_url}
-              alt={product.title}
-              className="w-full h-auto object-contain" // Ajusta la imagen para ocupar todo el espacio disponible
-            />
-          </div>
-          <div className="relative md:hidden py-2">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2.5 h-2.5 bg-white rounded-full border border-black"></div>
-              <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
-              <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
             </div>
-            <div className="absolute top-0 right-0 flex items-center justify-end">
+            <div className="border-t border-[#DDD]">
+              <p className="text-[14px] text-[#0F1111] font-bold">
+                About this product:
+              </p>
+              <ul className="list-disc pl-5">
+                {product.bullet_points && product.bullet_points.map((bullet: string) => (
+                  <li key={bullet} className="text-[14px] text-[#0F1111]">
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center justify-between pt-4 border-t border-[#DDD]">
               <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
                 <Share2 className="h-5 w-5" />
+                <span>Share</span>
               </button>
               <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
                 <Heart className="h-5 w-5" />
+                <span>Add to List</span>
               </button>
             </div>
           </div>
-        </div>
-        <div className="md:col-span-5 hidden md:grid">
-          <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight ">
-            {product.title}
-          </h1>
-          <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
-            Visit the {product?.brand} Store
-          </a>
-          <div className="items-center flex">
-            <small>
-              {product.rating}
-            </small>
-            <RatingStars rating={product.rating} />
-            <ChevronDown className="h-4 w-4" />
-            <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
-              {product.reviews_count} reviews
-            </a>
+          <div className="col-span-1 md:col-span-2 space-y-2 border border-[#DDD] rounded-lg p-4 m-1">
+            <strong className="text-[14px] text-[#0F1111]">
+              Buy for first time
+            </strong>
+            <div className="border-b border-[#DDD] ">
+              <div className="flex items-start gap-[2px]">
+                <span className="text-[13px] text-[#0F1111] mt-1">US$</span>
+                <span className="md:text-[28px] text-[#0F1111] text-6xl">{Math.floor(product.price)}</span>
+                <span className="text-[13px] text-[#0F1111] mt-1">
+                  {(product.price % 1).toFixed(2).substring(1)}
+                </span>
+              </div>
+              {product.loads && (
+                <div className="text-[14px] text-[#565959]">
+                  ${(product.price / product.loads).toFixed(2)}/Fl Oz
+                </div>
+              )}
+            </div>
+            <div className="text-[14px] text-[#007185]">
+              FREE delivery
+              <span className="text-[#0F1111]"> Tomorrow</span>
+            </div>
+            <div className="text-[12px] text-[#007185]">
+              Order within 12 hrs 34 mins
+            </div>
+            <span className="text-[18px] text-[#007600]">In Stock</span>
 
+            <p className="text-[14px] text-[#0F1111]">Quantity:</p>
+            <div className="flex space-x-2 text-[#0F1111] text-[14px] flex-col">
+
+              <select className="border border-[#DDD] rounded-lg px-2 py-1 bg-[#F0F2F2]">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              className="w-full bg-[#FFD814] hover:bg-[#F7CA00] text-[13px] text-[#0F1111] py-3 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2 transition-colors duration-200"
+              aria-label="Add to Cart"
+              onClick={handleAddToCart}
+            >
+              <span>Add to Cart</span>
+            </button>
+            <button
+              className="w-full bg-[#ff8c04] hover:bg-[#ff8c04] text-[13px] text-[#0F1111] py-3 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2 transition-colors duration-200"
+              aria-label="Add to Cart"
+              onClick={handleAddToCart}
+            >
+              <span>Buy Now</span>
+            </button>
           </div>
-          <div className="border-t border-[#DDD]">
-            <p className="text-[14px] text-[#0F1111] font-bold">
-              About this product:
-            </p>
+        </div>
+        <div className="text-[14px] text-[#0F1111] space-y-4 p-4 mt-2 ">
+          <strong className="block text-lg font-semibold">
+            Description about the product
+          </strong>
+          <p className="mb-4  pb-4">
+            {product?.description ? product.description : 'No description available'}
+          </p>
+          <div className="border-t border-[#DDD] py-2 block md:hidden">
+            <strong className="block text-lg font-semibold">
+              Details about the product
+            </strong>
+
             <ul className="list-disc pl-5">
               {product.bullet_points && product.bullet_points.map((bullet: string) => (
                 <li key={bullet} className="text-[14px] text-[#0F1111]">
@@ -192,110 +280,30 @@ export default function ProductDetail() {
               ))}
             </ul>
           </div>
-          <div className="flex items-center justify-between pt-4 border-t border-[#DDD]">
-            <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
-              <Share2 className="h-5 w-5" />
-              <span>Share</span>
-            </button>
-            <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
-              <Heart className="h-5 w-5" />
-              <span>Add to List</span>
-            </button>
-          </div>
+          <table className="w-full text-left border-collapse">
+            <tbody>
+              <tr className="border-b border-[#DDD] border-t">
+                <td className="py-2 font-semibold">Brand</td>
+                <td className="py-2">{product?.brand ? product.brand : product?.company ? product.company : 'No brand available'}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div className="col-span-1 md:col-span-2 space-y-2 border border-[#DDD] rounded-lg p-4 m-1">
-          <strong className="text-[14px] text-[#0F1111]">
-            Buy for first time
-          </strong>
-          <div className="border-b border-[#DDD] ">
-            <div className="flex items-start gap-[2px]">
-              <span className="text-[13px] text-[#0F1111] mt-1">US$</span>
-              <span className="md:text-[28px] text-[#0F1111] text-6xl">{Math.floor(product.price)}</span>
-              <span className="text-[13px] text-[#0F1111] mt-1">
-                {(product.price % 1).toFixed(2).substring(1)}
-              </span>
-            </div>
-            {product.loads && (
-              <div className="text-[14px] text-[#565959]">
-                ${(product.price / product.loads).toFixed(2)}/Fl Oz
-              </div>
-            )}
-          </div>
-          <div className="text-[14px] text-[#007185]">
-            FREE delivery
-            <span className="text-[#0F1111]"> Tomorrow</span>
-          </div>
-          <div className="text-[12px] text-[#007185]">
-            Order within 12 hrs 34 mins
-          </div>
-          <span className="text-[18px] text-[#007600]">In Stock</span>
 
-          <p className="text-[14px] text-[#0F1111]">Quantity:</p>
-          <div className="flex space-x-2 text-[#0F1111] text-[14px] flex-col">
-
-            <select className="border border-[#DDD] rounded-lg px-2 py-1 bg-[#F0F2F2]">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            className="w-full bg-[#FFD814] hover:bg-[#F7CA00] text-[13px] text-[#0F1111] py-3 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2 transition-colors duration-200"
-            aria-label="Add to Cart"
-            onClick={handleAddToCart}
-          >
-            <span>Add to Cart</span>
-          </button>
-          <button
-            className="w-full bg-[#ff8c04] hover:bg-[#ff8c04] text-[13px] text-[#0F1111] py-3 rounded-full border border-[#FCD200] font-medium flex items-center justify-center space-x-2 transition-colors duration-200"
-            aria-label="Add to Cart"
-            onClick={handleAddToCart}
-          >
-            <span>Buy Now</span>
-          </button>
-        </div>
-      </div>
-      <div className="text-[14px] text-[#0F1111] space-y-4 p-4 mt-2 ">
-        <strong className="block text-lg font-semibold">
-          Description about the product
-        </strong>
-        <p className="mb-4  pb-4">
-          {product?.description ? product.description : 'No description available'}
-        </p>
-        <div className="border-t border-[#DDD] py-2 block md:hidden">
-          <strong className="block text-lg font-semibold">
-            Details about the product
-          </strong>
-
-          <ul className="list-disc pl-5">
-            {product.bullet_points && product.bullet_points.map((bullet: string) => (
-              <li key={bullet} className="text-[14px] text-[#0F1111]">
-                {bullet}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <table className="w-full text-left border-collapse">
-          <tbody>
-            <tr className="border-b border-[#DDD] border-t">
-              <td className="py-2 font-semibold">Brand</td>
-              <td className="py-2">{product?.brand ? product.brand : product?.company ? product.company : 'No brand available'}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
-      {isWarningModalOpen && (
-        <WarningModal
-          closeModal={() => setIsWarningModalOpen(false)}
-          replaceProduct={handleReplaceProduct}
-          selectedProduct={itemSelectedAtCheckout}
-        />
-      )}
-    </HeaderTesterSessionLayout>
-  );
+        {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+        {isWarningModalOpen && (
+          <WarningModal
+            closeModal={() => setIsWarningModalOpen(false)}
+            replaceProduct={handleReplaceProduct}
+            selectedProduct={itemSelectedAtCheckout}
+          />
+        )}
+      </HeaderTesterSessionLayout>
+    );
+  } catch (error) {
+    console.error('Error rendering ProductDetail:', error);
+    return <div>Error al cargar el producto. Intenta nuevamente más tarde.</div>;
+  }
 }
 
 
