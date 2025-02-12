@@ -63,7 +63,7 @@ export default function ProductDetail() {
     setIsWarningModalOpen(false);
     setIsModalOpen(true);
   };
-  
+
   useEffect(() => {
     const startTime = Date.now(); // Captura el tiempo de entrada
 
@@ -284,8 +284,9 @@ export default function ProductDetail() {
             <tbody>
               <tr className="border-b border-[#DDD] border-t">
                 <td className="py-2 font-semibold">Brand</td>
-                <td className="py-2">{product?.brand ? product.brand : product?.company ? product.company : 'No brand available'}</td>
-              </tr>
+                <td className="py-2">
+                  {product ? (product.brand || product.company || 'No brand available') : 'Cargando...'}
+                </td></tr>
             </tbody>
           </table>
         </div>
