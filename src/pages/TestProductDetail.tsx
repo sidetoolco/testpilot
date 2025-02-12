@@ -285,7 +285,7 @@ export default function ProductDetail() {
               <tr className="border-b border-[#DDD] border-t">
                 <td className="py-2 font-semibold">Brand</td>
                 <td className="py-2">
-                  {product ? (product.brand || product.company || 'No brand available') : 'Cargando...'}
+                  {product.brand || 'No brand available'}
                 </td></tr>
             </tbody>
           </table>
