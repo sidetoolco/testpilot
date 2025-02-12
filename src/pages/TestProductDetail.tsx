@@ -285,14 +285,14 @@ export default function ProductDetail() {
         </table>
       </div>
 
-      {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+      {/* {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
       {isWarningModalOpen && (
         <WarningModal
           closeModal={() => setIsWarningModalOpen(false)}
           replaceProduct={handleReplaceProduct}
           selectedProduct={itemSelectedAtCheckout}
         />
-      )}
+      )} */}
     </HeaderTesterSessionLayout>
   );
 }
