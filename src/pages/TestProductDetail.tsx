@@ -260,7 +260,7 @@ export default function ProductDetail() {
           Description about the product
         </strong>
         <p className="mb-4  pb-4">
-          {product.description ? product.description : 'No description available'}
+          {product?.description ? product.description : 'No description available'}
         </p>
         <div className="border-t border-[#DDD] py-2 block md:hidden">
           <strong className="block text-lg font-semibold">
