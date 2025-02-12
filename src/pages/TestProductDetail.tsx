@@ -89,19 +89,14 @@ export default function ProductDetail() {
     }
   };
 
-  try {
-    if (!product) {
-      console.error('No product found');
-      return <div>Producto no encontrado</div>;
-    }
+  if (!product) {
+    console.error('No product found');
+    return <div>Producto no encontrado</div>;
+  }
 
-    // Verifica propiedades específicas
-    console.log('Product Title:', product.title);
-    console.log('Product Image URL:', product.image_url);
-    console.log('Product Price:', product.price);
-
-    return (
-      <HeaderTesterSessionLayout>
+  return (
+    <HeaderTesterSessionLayout>
+      <div className='max-w-screen-xl mx-auto'>
         <button
           className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] my-4 transition-colors duration-200"
           onClick={() => navigate(-1)}
@@ -299,12 +294,10 @@ export default function ProductDetail() {
             selectedProduct={itemSelectedAtCheckout}
           />
         )}
-      </HeaderTesterSessionLayout>
-    );
-  } catch (error) {
-    console.error('Error rendering ProductDetail:', error);
-    return <div>Error al cargar el producto. Intenta nuevamente más tarde.</div>;
-  }
+      </div>
+    </HeaderTesterSessionLayout>
+  );
+
 }
 
 
