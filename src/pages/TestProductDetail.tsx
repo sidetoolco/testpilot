@@ -108,7 +108,7 @@ export default function ProductDetail() {
         <div className='block md:hidden p-2'>
           <div className="items-center flex">
             <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
-              Visit the {product.brand} Store
+              Visit the {product?.brand} Store
             </a>
             <small>
               {product.rating}
@@ -166,7 +166,7 @@ export default function ProductDetail() {
             {product.title}
           </h1>
           <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
-            Visit the {product.brand} Store
+            Visit the {product?.brand} Store
           </a>
           <div className="items-center flex">
             <small>
@@ -279,7 +279,7 @@ export default function ProductDetail() {
           <tbody>
             <tr className="border-b border-[#DDD] border-t">
               <td className="py-2 font-semibold">Brand</td>
-              <td className="py-2">{product.brand ? product.brand : product.company ? product.company : 'No brand available'}</td>
+              <td className="py-2">{product?.brand ? product.brand : product?.company ? product.company : 'No brand available'}</td>
             </tr>
           </tbody>
         </table>
