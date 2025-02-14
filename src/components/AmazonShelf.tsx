@@ -35,7 +35,7 @@ export function AmazonShelf({ products, onProductClick }: AmazonShelfProps) {
           
           {product.rating && (
             <div className="flex items-center space-x-1 mb-1">
-              <div className="flex text-yellow-400">
+              <div className="flex text-[#dd8433]">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
@@ -54,7 +54,7 @@ export function AmazonShelf({ products, onProductClick }: AmazonShelfProps) {
           )}
           
           <div className="flex items-baseline space-x-1 mb-2">
-            <span className="text-sm text-gray-500">$</span>
+            <span className="text-sm text-gray-500">US$</span>
             <span className="text-xl font-semibold">{product.price.toFixed(2)}</span>
           </div>
           

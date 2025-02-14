@@ -38,7 +38,7 @@ export function ProductCard({ product, isSelected, onSelect }: ProductCardProps)
       </h4>
 
       <div className="flex items-center space-x-1 mb-1">
-        <div className="flex text-yellow-400">
+        <div className="flex text-[#dd8433]">
           {[...Array(5)].map((_, i) => {
             const isFullStar = i < Math.floor(product.rating || 5);
             const isHalfStar = !isFullStar && i < product.rating;
@@ -46,9 +46,9 @@ export function ProductCard({ product, isSelected, onSelect }: ProductCardProps)
               <Star
                 key={i}
                 className={`h-4 w-4 ${isFullStar
-                  ? 'text-yellow-400 fill-yellow-400'
+                  ? 'text-[#dd8433] fill-[#dd8433]'
                   : isHalfStar
-                    ? 'text-yellow-400 fill-current'
+                    ? 'text-[#dd8433] fill-current'
                     : 'text-gray-200 fill-gray-200'
                   }`}
                 style={{

@@ -40,9 +40,9 @@ export default function ProductGrid({ products }: ProductGridProps) {
                   <Star
                     key={i}
                     className={`h-4 w-4 ${isFullStar
-                      ? 'text-yellow-400 fill-yellow-400'
+                      ? 'text-[#dd8433] fill-[#dd8433]'
                       : isHalfStar
-                        ? 'text-yellow-400 fill-current'
+                        ? 'text-[#dd8433] fill-current'
                         : 'text-gray-200 fill-gray-200'
                       }`}
                     style={{
