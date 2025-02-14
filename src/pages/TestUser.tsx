@@ -6,7 +6,7 @@ import { useSessionStore } from '../store/useSessionStore';
 import { checkAndFetchExistingSession, fetchProductAndCompetitorData } from '../features/tests/services/testersSessionService';
 import { createNewSession } from '../features/tests/services/testersSessionService';
 import { Lightbulb } from 'lucide-react';
-import Tracker from '@openreplay/tracker';
+import { getTracker } from '../lib/openReplay';
 
 interface TestData {
     id: string;
@@ -94,19 +94,13 @@ const TestUserPage = () => {
 
     const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
-    // Inicialización del Tracker
-    const tracker = new Tracker({
-        projectKey: "hyctshQRzQlIQG8xsP8J",
-    });
-
-    // Hook trackWs para registrar eventos
-    const trackItemAddedToCart = tracker.trackWs("CartEvents");
+    // Obtener la instancia del tracker
+    const tracker = getTracker();
 
     const addToCart = (item: any) => {
         if (cartItems.length === 0) {
-            useSessionStore.getState().selectItemAtCheckout(item); // Actualiza el estado de itemSelectedAtCheckout
-            // Registrar el evento de agregar al carrito
-            trackItemAddedToCart?.("Item Added", JSON.stringify({ item }), "up");
+            useSessionStore.getState().selectItemAtCheckout(item);
+            tracker.trackWs('CartEvents')?.('Item Added', JSON.stringify({ item }), 'up');
         }
     };
 
@@ -120,7 +114,6 @@ const TestUserPage = () => {
             if (existingSession && combinedData) {
                 startSession(existingSession.id, combinedData.id, combinedData, new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
 
-                // Registrar la reanudación de la sesión
                 const trackSessionResumed = tracker.trackWs('SessionEvents');
                 trackSessionResumed?.('Session Resumed', JSON.stringify({ sessionId: existingSession.id }), 'up');
                 
@@ -132,7 +125,6 @@ const TestUserPage = () => {
             const sessionId = await createNewSession(id, combinedData);
             if (sessionId && combinedData) {
                 startSession(sessionId, combinedData.id, combinedData, new Date());
-                // Registrar el inicio de la sesión
                 const trackSessionStarted = tracker.trackWs('SessionEvents');
                 trackSessionStarted?.('Session Started', JSON.stringify({ sessionId }), 'up');
             }
@@ -142,10 +134,8 @@ const TestUserPage = () => {
     };
 
     useEffect(() => {
-        tracker.start();
-        const trackPageLoaded = tracker.trackWs("PageEvents");
-        trackPageLoaded?.("Page Loaded", JSON.stringify({ page: 'Test User Page' }), "down");
-    }, []);
+        tracker.trackWs('PageEvents')?.('Page Loaded', JSON.stringify({ page: 'Test User Page' }), 'down');
+    }, [tracker]);
 
     if (error) return <p>Error: {error}</p>;
 
