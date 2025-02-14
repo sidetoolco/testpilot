@@ -1,5 +1,5 @@
 export interface Product {
-  id?: string;
+  id: string | undefined;
   title: string; // Cambiado de 'name' a 'title'
   description: string;
   bullet_points: string[];

@@ -25,7 +25,7 @@ export default function TestVariations({
   const [showProductSelector, setShowProductSelector] = useState<'a' | 'b' | 'c' | null>(null);
   const [showProductForm, setShowProductForm] = useState<'a' | 'b' | 'c' | null>(null);
   const { products, loading, error } = useProducts();
-  const { addProduct } = useProductStore();
+  const { addProduct, updateProduct } = useProductStore();
 
   const handleSelectProduct = (variation: 'a' | 'b' | 'c', product: Product) => {
     onChange({
@@ -39,8 +39,13 @@ export default function TestVariations({
   };
 
   const handleProductSubmit = async (variation: 'a' | 'b' | 'c', productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    let idProduct: any;
     try {
-      await addProduct(productData);
+      if (productData.id) {
+        await updateProduct(productData.id, productData);
+      } else {
+        idProduct = await addProduct(productData);
+      }
     } catch (err) {
       console.error('Failed to save product:', err);
     }
@@ -48,7 +53,7 @@ export default function TestVariations({
       ...variations,
       [variation]: {
         ...productData,
-        id: crypto.randomUUID(),
+        id: idProduct,
         isExisting: false
       }
     });
@@ -124,7 +129,7 @@ export default function TestVariations({
           </div>
           <div>
             <h5 className="font-medium text-gray-900">{variation.title}</h5>
-            <p className="text-sm text-gray-500 mt-1">${variation.price.toFixed(2)}</p>
+            <p className="text-sm text-gray-500 mt-1">US${variation.price.toFixed(2)}</p>
             {variation.isExisting ? (
               <span className="inline-block mt-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                 Existing Product

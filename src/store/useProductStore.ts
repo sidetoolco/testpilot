@@ -36,6 +36,7 @@ export const useProductStore = create<ProductStore>((set) => ({
         products: [product, ...state.products],
         loading: false 
       }));
+      return product.id;
     } catch (error: any) {
       set({ error: error.message, loading: false });
       throw error;

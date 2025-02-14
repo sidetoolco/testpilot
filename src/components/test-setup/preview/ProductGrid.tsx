@@ -58,7 +58,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           </div>
 
           <div className="flex items-baseline mb-2">
-            <span className="text-sm">$</span>
+            <span className="text-sm">US$</span>
             <span className="text-lg font-medium">{Math.floor(product.price)}</span>
             <span className="text-sm">
               {(product.price % 1).toFixed(2).substring(1)}

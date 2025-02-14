@@ -64,7 +64,7 @@ export function ProductCard({ product, isSelected, onSelect }: ProductCardProps)
       </div>
 
       <div className="flex items-baseline space-x-1">
-        <span className="text-sm text-gray-500">$</span>
+        <span className="text-sm text-gray-500">US$</span>
         <span className="text-xl font-semibold">{product.price.toFixed(2)}</span>
       </div>
     </div>

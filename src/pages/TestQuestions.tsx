@@ -253,7 +253,7 @@ const ProductCard: React.FC<{ title: string, item: any }> = ({ title, item }) =>
         </div>
 
         <div className="flex items-baseline gap-[2px] text-[#0F1111]">
-            <span className="text-xs align-top mt-[1px]">$</span>
+            <span className="text-xs align-top mt-[1px]">US$</span>
             <span className="text-[21px] font-medium">{Math.floor(item.price)}</span>
             <span className="text-[13px]">
                 {(item.price % 1).toFixed(2).substring(1)}

@@ -22,7 +22,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     loads: initialData?.loads || undefined,
     product_url: initialData?.product_url || '',
     rating: initialData?.rating || 5,
-    reviews_count: initialData?.reviews_count || 0
+    reviews_count: initialData?.reviews_count || 0,
+    id: initialData?.id || undefined
   });
 
   const [errors, setErrors] = useState({
@@ -86,7 +87,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       loads: formData.loads ? formData.loads : undefined,
       product_url: formData.product_url,
       rating: formData.rating,
-      reviews_count: numericReviewCount
+      reviews_count: numericReviewCount,
+      id: initialData?.id || undefined
     };
 
     setLoading(true);

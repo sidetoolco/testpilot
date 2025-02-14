@@ -118,7 +118,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
             </button>
             <div className="flex justify-center flex-col items-center mb-4">
               <h2 className="text-xl font-bold">Subtotal</h2>
-              <span className="text-xl font-bold text-red-600">${itemSelectedAtCheckout?.price || '0.00'}</span>
+              <span className="text-xl font-bold text-red-600">US${itemSelectedAtCheckout?.price || '0.00'}</span>
             </div>
             <p className="mb-4 text-sm text-gray-700 text-center">
               Your order qualifies for <span className="font-bold">FREE Shipping</span>. Choose this option at checkout. <a href="#" className="text-blue-500 hover:underline">See details</a>
@@ -140,7 +140,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
                       alt={itemSelectedAtCheckout.title}
                       className="w-20 h-20 rounded-md"
                     />
-                    <p className="text-sm font-bold">${itemSelectedAtCheckout.price}</p>
+                    <p className="text-sm font-bold">US${itemSelectedAtCheckout.price}</p>
                   </div>
                   <div className="flex items-center justify-between">
                     <select className="border border-gray-300 px-2 py-1 w-2/3 rounded-lg" disabled>

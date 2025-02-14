@@ -90,7 +90,7 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
                                 </div>
 
                                 <div className="flex items-baseline gap-[2px] text-[#0F1111]">
-                                    <span className="text-xs align-top mt-[1px]">$</span>
+                                    <span className="text-xs align-top mt-[1px]">US$</span>
                                     <span className="text-[21px] font-medium">{Math.floor(price)}</span>
                                     <span className="text-[13px]">
                                         {(price % 1).toFixed(2).substring(1)}

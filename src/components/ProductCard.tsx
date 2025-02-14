@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
       />
       <div className="space-y-1">
         <h3 className="text-sm font-medium text-gray-900">{product.title}</h3>
-        <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-500">US${product.price.toFixed(2)}</p>
       </div>
     </div>
   );

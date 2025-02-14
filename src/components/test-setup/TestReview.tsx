@@ -63,7 +63,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
-                <span className="text-2xl">$</span>
+                <span className="text-2xl">US$</span>
               </div>
               <div>
                 <h4 className="text-xl font-medium">Total Cost</h4>
