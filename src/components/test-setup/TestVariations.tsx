@@ -207,7 +207,7 @@ export default function TestVariations({
           isOpen={showProductForm ? true : false}
           onClose={() => setShowProductForm(null)}
           onSubmit={(data) => handleProductSubmit(showProductForm, data)}
-          initialData={undefined}
+          initialData={showProductForm ? variations[showProductForm] : undefined}
         />
       )}
     </div>

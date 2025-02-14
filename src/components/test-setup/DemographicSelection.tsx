@@ -87,17 +87,22 @@ export default function DemographicSelection({
   };
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
+    const value = e.target.value; // Cambiado para permitir valor vacío
+    if (value === '') {
+      setTesterCount(0);
+      return;
+    }
+    const parsedValue = parseInt(value);
 
-    if (isNaN(value) || value < 10 || value > 500) {
+    if (isNaN(parsedValue) || parsedValue < 10 || parsedValue > 500) {
       setError('Please enter a number between 10 and 500.');
     } else {
       setError(null);
     }
-    if (!isNaN(value)) {
-      const updatedDemographics = { ...demographics, testerCount: value };
+    if (!isNaN(parsedValue)) {
+      const updatedDemographics = { ...demographics, testerCount: parsedValue };
       onChange(updatedDemographics);
-      setTesterCount(value);
+      setTesterCount(parsedValue);
     }
   };
 
@@ -130,7 +135,7 @@ export default function DemographicSelection({
                 type="number"
                 min="0"
                 max="500"
-                value={testerCount}
+                value={testerCount || ''}
                 onChange={handleTesterCountChange}
                 className={`w-full pl-10 pr-4 py-3 border ${error
                   ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
