@@ -9,7 +9,8 @@ import RedirectModal from '../components/test-setup/RedirectQuestionModal';
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
     {rating && rating > 0 && [...Array(5)].map((_, i) => {
-      const isFullStar = i < Math.floor(rating || 5);
+      const fullStars = Math.round(rating || 5)
+      const isFullStar = i < fullStars;
       const isHalfStar = !isFullStar && i < rating;
       return (
         <Star
@@ -117,10 +118,12 @@ export default function ProductDetail() {
               <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
                 Visit the {product?.brand} Store
               </a>
-              <small>
+              <small className='text-[14px] text-[#0F1111] px-1'>
                 {product.rating}
               </small>
-              <RatingStars rating={product.rating} />
+              <div className='flex items-center p-1'>
+                <RatingStars rating={product.rating} />
+              </div>
               <ChevronDown className="h-4 w-4" />
               <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
                 {product.reviews_count} reviews
@@ -145,7 +148,7 @@ export default function ProductDetail() {
               <div className="w-10 h-10 bg-black rounded-lg"></div>
               <div className="w-10 h-10 bg-black rounded-lg"></div>
             </div>
-            <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center">
+            <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center min-w-[400px]">
               <img
                 src={product.image_url}
                 alt={product.title}
@@ -178,10 +181,12 @@ export default function ProductDetail() {
                 Visit the {product?.brand} Store
               </a>
               <div className="items-center flex pb-2">
-                <small>
+                <small className='text-[14px] text-[#0F1111] pr-2'>
                   {product.rating}
                 </small>
-                <RatingStars rating={product.rating} />
+                <div className='flex items-center p-1'>
+                  <RatingStars rating={product.rating} />
+                </div>
                 <ChevronDown className="h-4 w-4" />
                 <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
                   {product.reviews_count} reviews
