@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
-
+import RedirectModal from '../components/test-setup/RedirectQuestionModal';
 // Componente para mostrar las estrellas de calificación
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
@@ -42,6 +42,7 @@ export default function ProductDetail() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
 
   const handleAddToCart = () => {
     if (!product) {
@@ -86,7 +87,13 @@ export default function ProductDetail() {
     setIsModalOpen(false);
     if (navigateTo) {
       navigate(navigateTo);
+      setIsRedirectModalOpen(true);
     }
+  };
+
+  const handleRedirectClose = () => {
+    setIsRedirectModalOpen(false);
+    navigate('/questions');
   };
 
   if (!product) {
@@ -299,6 +306,7 @@ export default function ProductDetail() {
             selectedProduct={itemSelectedAtCheckout}
           />
         )}
+        <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
       </div>
     </HeaderTesterSessionLayout>
   );

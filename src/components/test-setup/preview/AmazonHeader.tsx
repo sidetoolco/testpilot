@@ -2,6 +2,7 @@ import { Search, MapPin, ShoppingCart, Trash, X } from 'lucide-react';
 import { useSessionStore } from '../../../store/useSessionStore';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RedirectModal from '../RedirectQuestionModal';
 
 interface AmazonHeaderProps {
   searchTerm: string;
@@ -12,6 +13,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigate = useNavigate();
+  const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
 
   const handleCartClick = () => {
     setIsModalOpen(true);
@@ -29,6 +31,15 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
   const closeModal = () => {
     setIsModalVisible(false);
   };
+  
+  const handleRedirect = () => {
+    setIsRedirectModalOpen(true);
+  };
+  const handleRedirectClose = () => {
+    setIsRedirectModalOpen(false);
+    navigate('/questions');
+  };
+
 
   return (
     <div className="bg-[#131921] text-white">
@@ -112,9 +123,14 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
             <p className="mb-4 text-sm text-gray-700 text-center">
               Your order qualifies for <span className="font-bold">FREE Shipping</span>. Choose this option at checkout. <a href="#" className="text-blue-500 hover:underline">See details</a>
             </p>
-            <button onClick={() => { navigate('/questions') }} disabled={!itemSelectedAtCheckout} className="w-full mb-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-              Go to Cart
+            <button onClick={handleRedirect} disabled={!itemSelectedAtCheckout} className="w-full mb-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              Go to Checkout
             </button>
+
+            <button onClick={handleCloseModal} className="w-full mb-4 px-4 py-2 bg-white text-blue-700 border border-blue-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              Keep Shopping
+            </button>
+
             {itemSelectedAtCheckout ? (
               <>
                 <div className="border-t border-gray-200 py-4">
@@ -162,6 +178,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
           </div>
         </div>
       )}
+      <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
     </div>
   );
 }

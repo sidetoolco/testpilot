@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { updateSession } from '../../features/tests/services/testersSessionService';
 import { useSessionStore } from '../../store/useSessionStore';
+import RedirectModal from '../test-setup/RedirectQuestionModal';
 
 interface PreviewGridProps {
     products: any[];
@@ -14,6 +15,7 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
     const [currentProduct, setCurrentProduct] = useState<any>(null);
     const navigate = useNavigate();
     const { shopperId } = useSessionStore();
+    const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
 
 
     const handleAddToCart = (product: any) => {
@@ -27,6 +29,11 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
     const closeModal = () => {
         setIsModalOpen(false);
         setCurrentProduct(null);
+        setIsRedirectModalOpen(true);
+    };
+    
+    const handleRedirectClose = () => {
+        setIsRedirectModalOpen(false);
         navigate('/questions');
     };
 
@@ -156,6 +163,8 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
                     </div>
                 </div>
             )}
+
+            <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
         </>
     );
 }

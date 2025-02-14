@@ -216,15 +216,13 @@ const ProductCard: React.FC<{ title: string, item: any }> = ({ title, item }) =>
     >
 
         <div key={item.id} className="relative pt-[100%] mb-3">
-            <Link to={`/product/${item.id}`} state={{ product: item.product }}>
-                <img
-                    src={item.image_url || item.image}
-                    alt={title || item.name}
-                    className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
-                />
-            </Link>
+            <img
+                src={item.image_url || item.image}
+                alt={title || item.name}
+                className="absolute top-0 left-0 w-full h-full object-contain "
+            />
         </div>
-        <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
+        <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2 min-h-[38px]">
             {item.title || item.name}
         </h3>
 
