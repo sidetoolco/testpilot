@@ -1,5 +1,4 @@
-import React from 'react';
-import { Plus, ShoppingBag } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProductHeaderProps {

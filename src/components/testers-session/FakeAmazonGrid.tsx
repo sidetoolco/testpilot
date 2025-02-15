@@ -42,7 +42,7 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
             <div className="bg-white p-4 rounded-sm">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {products.map((product) => {
-                        const { id, image_url, image, title, name, rating, reviews_count, price } = product.product;
+                        const { id, image_url, image, title, name, rating, reviews_count, price, images } = product.product;
 
                         return (
                             <div
@@ -51,7 +51,7 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
                             >
 
                                 <div key={product.id} className="relative pt-[100%] mb-3">
-                                    <Link to={`/product/${id}`} state={{ product: product.product }}>
+                                    <Link to={`/product/${id}`} state={{ product: { ...product.product, images } }}>
                                         <img
                                             src={image_url || image}
                                             alt={title || name}

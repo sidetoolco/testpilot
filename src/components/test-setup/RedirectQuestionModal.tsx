@@ -10,7 +10,6 @@ const RedirectModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                     <Lightbulb className="h-10 w-10 text-yellow-500 mb-2 md:mb-0 md:mr-2" />
                     <h2 className="text-2xl md:text-3xl font-bold">Important Instructions</h2>
                 </div>
-
                 <p>You are about to be redirected to the quick survey section.</p>
                 <button
                     onClick={onClose}

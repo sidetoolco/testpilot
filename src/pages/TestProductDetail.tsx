@@ -5,7 +5,7 @@ import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de imp
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
 import RedirectModal from '../components/test-setup/RedirectQuestionModal';
-// Componente para mostrar las estrellas de calificación
+
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
     {rating && rating > 0 && [...Array(5)].map((_, i) => {
@@ -29,8 +29,6 @@ const RatingStars = ({ rating }: { rating: number }) => (
     })}
   </>
 );
-
-
 
 export default function ProductDetail() {
   const location = useLocation();
@@ -102,6 +100,8 @@ export default function ProductDetail() {
     return <div>Producto no encontrado</div>;
   }
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   return (
     <HeaderTesterSessionLayout>
       <div className='max-w-screen-xl mx-auto'>
@@ -138,21 +138,25 @@ export default function ProductDetail() {
               </strong>
               last month
             </span>
-
-
           </div>
 
           <div className="col-span-1 md:col-span-5 flex md:flex-row flex-col">
             <div className="flex-col gap-2 p-2 hidden custom-hide:hidden md:flex">
-              <div className="w-10 h-10 bg-black rounded-lg"></div>
-              <div className="w-10 h-10 bg-black rounded-lg"></div>
-              <div className="w-10 h-10 bg-black rounded-lg"></div>
+              {product.images.map((image: string, index: number) => (
+                <div key={index} className="w-10 h-10 bg-black rounded-lg" onClick={() => setCurrentIndex(index)}>
+                  <img
+                    src={image}
+                    alt={`Product image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
-            <div className="w-full aspect-square bg-[#F8F8F8] mb-4 rounded-lg shadow-md flex justify-center items-center min-w-[400px]">
+            <div className="w-full aspect-square mb-4 rounded-lg max-w-[450px] max-h-[450px]">
               <img
-                src={product.image_url}
-                alt={product.title}
-                className="w-full h-auto object-contain" // Ajusta la imagen para ocupar todo el espacio disponible
+                src={currentIndex === 0 ? product.image_url : product.images[currentIndex]}
+                alt={`Product image ${currentIndex + 1}`}
+                className="w-full h-auto object-contain"
               />
             </div>
             <div className="relative md:hidden py-2">
