@@ -87,7 +87,7 @@ const TestDisplay: React.FC = () => {
             }
 
             console.log('Data saved successfully:', data);
-            navigate('/thanks'); // Navega a la página de agradecimiento
+            navigate('/thanks', { state: { testId:test.id } });
         } catch (error) {
             console.error('Unexpected error:', error);
         }

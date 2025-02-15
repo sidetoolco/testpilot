@@ -103,7 +103,7 @@ const TestUserPage = () => {
             const existingSession = await checkAndFetchExistingSession(id);
 
             if (existingSession?.ended_at) {
-                navigate('/thanks');
+                navigate('/thanks', { state: { testId:id } });
                 return;
             }
             if (existingSession && combinedData) {

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const ThankYou: React.FC = () => {
     const navigate = useNavigate();
     const [countdown, setCountdown] = useState(5);
+    const { testId } = useLocation().state;
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -11,7 +12,7 @@ const ThankYou: React.FC = () => {
         }, 1000);
 
         const redirectTimer = setTimeout(() => {
-            window.location.href = 'https://app.prolific.com/submissions/complete'; // Redirige a la URL externa
+            window.location.href = 'https://app.prolific.com/submissions/complete' + testId; // Redirige a la URL externa
         }, 5000);
 
         return () => {
