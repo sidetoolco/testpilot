@@ -12,7 +12,8 @@ const ThankYou: React.FC = () => {
         }, 1000);
 
         const redirectTimer = setTimeout(() => {
-            window.location.href = 'https://app.prolific.com/submissions/complete' + testId; // Redirige a la URL externa
+            // https://app.prolific.com/submissions/complete?cc=ABC123
+            window.location.href = 'https://app.prolific.com/submissions/complete?cc=' + testId; // Redirige a la URL externa
         }, 5000);
 
         return () => {
