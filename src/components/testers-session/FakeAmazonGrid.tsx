@@ -66,7 +66,8 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
                                 <div className="flex items-center mb-1">
                                     <div className="flex">
                                         {[...Array(5)].map((_, i) => {
-                                            const isFullStar = i < Math.floor(rating || 5);
+                                            const fullStars = Math.round(rating || 5)
+                                            const isFullStar = i < fullStars;
                                             const isHalfStar = !isFullStar && i < rating;
                                             return (
                                                 <Star

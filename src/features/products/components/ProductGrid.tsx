@@ -49,7 +49,8 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
-                  const isFullStar = i < Math.floor(product.rating || 5);
+                  const fullStars = Math.round(product.rating || 5)
+                  const isFullStar = i < fullStars;
                   const isHalfStar = !isFullStar && i < product.rating;
                   return (
                     <Star
