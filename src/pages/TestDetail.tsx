@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import TestSummary from '../features/tests/components/TestSummary';
+import Report from '../features/tests/components/Report/report';
 
 export default function TestDetail() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function TestDetail() {
           </button>
         </div>
       </div>
-
+      <Report variant={test} />
       <TestSummary test={test} />
     </div>
   );
