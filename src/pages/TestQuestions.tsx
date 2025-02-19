@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useSessionStore } from '../store/useSessionStore';
 import { supabase } from '../lib/supabase';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
+import { getTracker } from '../lib/openReplay'; // Asegúrate de tener esta función correctamente configurada
 
 const TestDisplay: React.FC = () => {
     const { test, itemSelectedAtCheckout, shopperId } = useSessionStore((state) => state);
@@ -26,12 +27,22 @@ const TestDisplay: React.FC = () => {
 
     const handleChange = useCallback((e: any) => {
         const { name, value } = e.target;
+
+        // Rastrear la entrada de datos con OpenReplay
+        if (shopperId && test) {
+            const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + test.id);
+            // Rastrear cada vez que se cambia el valor de un input
+            tracker.trackWs('InputEvents')?.('Input Changed', JSON.stringify({
+                fieldName: name,
+                value: value,
+            }), 'up');
+        }
+
         setResponses((prevResponses) => ({
             ...prevResponses,
             [name]: value
         }));
-    }, []);
-
+    }, [shopperId, test?.id]);
 
     const filterEmptyResponses = (responses: Record<string, string>) => {
         return Object.fromEntries(
@@ -39,7 +50,6 @@ const TestDisplay: React.FC = () => {
         );
     };
 
-    // Filter responses before sending data
     const handleSubmit = useCallback(async () => {
         try {
             const filteredResponses = filterEmptyResponses(responses);
@@ -57,7 +67,6 @@ const TestDisplay: React.FC = () => {
                 return;
             }
 
-            // Datos a guardar
             const payload = {
                 test_id: test.id,
                 tester_id: shopperId,
@@ -68,7 +77,6 @@ const TestDisplay: React.FC = () => {
 
             const tableName = isComparison ? 'responses_comparisons' : 'responses_surveys';
 
-            // Inserta los datos en la tabla correspondiente
             const { data, error } = await supabase.from(tableName).insert([payload] as any);
 
             if (error) {
@@ -87,7 +95,7 @@ const TestDisplay: React.FC = () => {
             }
 
             console.log('Data saved successfully:', data);
-            navigate('/thanks', { state: { testId:test.id } });
+            navigate('/thanks', { state: { testId: test.id } });
         } catch (error) {
             console.error('Unexpected error:', error);
         }
@@ -186,7 +194,7 @@ const ComparisonView: React.FC<{ responses: any, competitorItem: any, itemSelect
             </select>
 
             <p className="font-medium">Compared to Item B, how would you rate your brand trust for Item A?</p>
-            <select className="w-full p-2 border border-gray-300 rounded" name="brand_comparison" onChange={handleChange} value={responses.brand_comparison}    >
+            <select className="w-full p-2 border border-gray-300 rounded" name="brand_comparison" onChange={handleChange} value={responses.brand_comparison}>
                 {OPTIONS.map(option => <option key={option}>{option}</option>)}
             </select>
 
