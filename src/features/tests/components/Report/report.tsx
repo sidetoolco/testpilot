@@ -7,6 +7,7 @@ import Recommendations from './recommendations';
 import clsx from 'clsx';
 import { FileSpreadsheet, File as FilePdf } from 'lucide-react';
 import TestSummary from '../TestSummary';
+import html2pdf from 'html2pdf.js';
 
 interface ReportProps {
   variant: any;
@@ -16,29 +17,58 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
   const [activeTab, setActiveTab] = useState('summary');
   console.log(variant);
 
-
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'summary':
-        return <Summary variant={variant.variations} />;
-      case 'purchase-drivers':
-        return <PurchaseDrivers />;
-      case 'competitive-insights':
-        return <CompetitiveInsights />;
-      case 'shopper-comments':
-        return <ShopperComments />;
-      case 'recommendations':
-        return <Recommendations />;
-      case 'test-details':
-        return <TestSummary test={variant} />
-      default:
-        return null;
+    // Find and focus the content
+    const element = document.getElementById(`content-${tab}`);
+    if (element) {
+      element.focus();
     }
   };
+
+  const handleExportPDF = () => {
+    const element = document.getElementById('report-content');
+    const opt = {
+      margin: 1,
+      filename: 'test-report.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollY: -window.scrollY,
+        windowWidth: 1920,
+        windowHeight: 1080,
+        letterRendering: true
+      },
+      jsPDF: {
+        unit: 'in',
+        format: 'a4',
+        orientation: 'landscape',
+        hotfixes: ['px_scaling']
+      },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        before: '.pdf-page'
+      }
+    };
+
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .toPdf()
+      .get('pdf')
+      .then((pdf: any) => {
+        const totalPages = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(10);
+          pdf.text(`Página ${i} de ${totalPages}`, pdf.internal.pageSize.getWidth() - 1, pdf.internal.pageSize.getHeight() - 0.5);
+        }
+      })
+      .save();
+  };
+
 
   return (
     <div className="min-h-screen p-4">
@@ -53,6 +83,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
             Export to Excel
           </button>
           <button
+            onClick={handleExportPDF}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
           >
             <FilePdf size={20} />
@@ -60,9 +91,6 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
           </button>
         </div>
       </div>
-      {/* <div>
-        {JSON.stringify(variant)}
-      </div> */}
       <div className="border-b border-gray-200 overflow-x-auto">
         <nav className="flex gap-4 min-w-max pb-1">
           {['summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations', 'test-details'].map(tab => (
@@ -81,11 +109,37 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
           ))}
         </nav>
       </div>
-      <div className="mt-4 min-h-screen">
-        {renderTabContent()}
+      <div
+        tabIndex={0}
+        className={clsx(
+          'p-4 border rounded-lg ',
+          'focus:outline-none focus:ring-2 focus:ring-green-600 my-4 flex flex-col'
+        )}
+        id="report-content"
+        style={{
+          pageBreakAfter: 'always',
+          pageBreakInside: 'avoid',
+        }}
+      >
+        <div className="pdf-page">
+          <Summary variant={variant.variations} />
+        </div>
+        <div className="pdf-page">
+          <PurchaseDrivers />
+        </div>
+        <div className="pdf-page">
+          <CompetitiveInsights />
+        </div>
+        <div className="pdf-page">
+          <ShopperComments />
+        </div>
+        <div className="pdf-page">
+          <Recommendations />
+        </div>
+        <div className="pdf-page">
+          <TestSummary test={variant} />
+        </div>
       </div>
-
-
     </div>
   );
 };
