@@ -70,8 +70,13 @@ export default function PurchaseDrivers() {
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                     className="w-6 bg-[#00A67E] rounded-sm relative group"
                   >
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#00A67E] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {/* Always show value above bar */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-gray-600 text-sm font-medium">
                       {driver.variant1}
+                    </div>
+                    {/* Tooltip on hover */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#00A67E] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Variant #1: {driver.variant1}
                     </div>
                   </motion.div>
                   <motion.div
@@ -80,8 +85,13 @@ export default function PurchaseDrivers() {
                     transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
                     className="w-6 bg-[#1B1B31] rounded-sm relative group"
                   >
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1B1B31] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {/* Always show value above bar */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-gray-600 text-sm font-medium">
                       {driver.variant2}
+                    </div>
+                    {/* Tooltip on hover */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1B1B31] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Variant #2: {driver.variant2}
                     </div>
                   </motion.div>
                 </div>

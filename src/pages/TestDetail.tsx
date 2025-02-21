@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
-import TestSummary from '../features/tests/components/TestSummary';
 import Report from '../features/tests/components/Report/report';
 
 export default function TestDetail() {
@@ -12,8 +11,10 @@ export default function TestDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+      <div className="max-w-[1400px] mx-auto px-8 py-6">
+        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+        </div>
       </div>
     );
   }
@@ -48,7 +49,6 @@ export default function TestDetail() {
         </div>
       </div>
       <Report variant={test} />
-      <TestSummary test={test} />
     </div>
   );
 }

@@ -13,8 +13,10 @@ export default function MyTests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+      <div className="max-w-[1400px] mx-auto px-8 py-6">
+        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+        </div>
       </div>
     );
   }
@@ -22,13 +24,13 @@ export default function MyTests() {
   return (
     <div className="max-w-[1400px] mx-auto px-8 py-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-[2.5rem] text-[#1B1B1B] font-normal">My Tests</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <h1 className="text-[2rem] sm:text-[2.5rem] text-[#1B1B1B] font-normal">My Tests</h1>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/create-test')}
-          className="flex items-center space-x-2 px-6 py-3 bg-[#0A0A29] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0A0A29] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
         >
           <Plus className="h-5 w-5" />
           <span>Create New Test</span>
@@ -36,7 +38,7 @@ export default function MyTests() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         <motion.div
           whileHover={{ y: -4 }}
           className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
@@ -85,14 +87,13 @@ export default function MyTests() {
           tests.map((test) => (
             <motion.div
               key={test.id}
-              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate(`/tests/${test.id}`)}
               whileHover={{ y: -2 }}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full ${test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'
-                    } flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-full ${test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center`}>
                     {test.status === 'completed' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (
@@ -101,21 +102,18 @@ export default function MyTests() {
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-[#1B1B1B]">{test.name}</h3>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                       <span>Search term: {test.searchTerm}</span>
-                      <span>•</span>
-                      <span className={`${test.status === 'completed' ? 'text-[#00A67E]' : 'text-blue-500'
-                        }`}>
+                      <span className="hidden sm:inline">•</span>
+                      <span className={`${test.status === 'completed' ? 'text-[#00A67E]' : 'text-blue-500'}`}>
                         {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-500">
-                    {new Date(test.createdAt).toLocaleDateString()}
-                  </span>
+                <div className="text-gray-500">
+                  {new Date(test.createdAt).toLocaleDateString()}
                 </div>
               </div>
             </motion.div>
