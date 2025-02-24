@@ -13,7 +13,7 @@ export default function MyTests() {
 
   if (loading) {
     return (
-      <div className="max-w-[1400px] mx-auto px-8 py-6">
+      <div className="mx-auto px-8 py-6 w-full">
         <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
         </div>
@@ -22,7 +22,7 @@ export default function MyTests() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 py-6">
+    <div className="max-w-[1400px] mx-auto px-8 py-6 w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-[2rem] sm:text-[2.5rem] text-[#1B1B1B] font-normal">My Tests</h1>

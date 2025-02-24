@@ -49,48 +49,46 @@ export default function AllProducts() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF8F8] p-8">
-      <div className="max-w-[1400px] mx-auto">
-        <ProductHeader
-          onAddProduct={() => setShowAddProduct(true)}
-          onConnectShopify={() => setShowComingSoon(true)}
-        />
+    <div className="min-h-screen bg-[#FFF8F8] p-8 w-full">
+      <ProductHeader
+        onAddProduct={() => setShowAddProduct(true)}
+        onConnectShopify={() => setShowComingSoon(true)}
+      />
 
-        <ProductSearch
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
+      <ProductSearch
+        value={searchTerm}
+        onChange={setSearchTerm}
+      />
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading products...</p>
-          </div>
-        ) : (
-          <ProductGrid
-            products={filteredProducts}
-            onEdit={setEditProduct}
-            onDelete={handleDelete}
-          />
-        )}
-
-        <ProductModal
-          isOpen={showAddProduct || !!editProduct}
-          onClose={() => {
-            setShowAddProduct(false);
-            setEditProduct(null);
-          }}
-          onSubmit={handleSubmit}
-          initialData={editProduct || undefined}
+      {loading ? (
+        <div className="-mx-8 text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      ) : (
+        <ProductGrid
+          products={filteredProducts}
+          onEdit={setEditProduct}
+          onDelete={handleDelete}
         />
+      )}
 
-        <ComingSoonModal
-          isOpen={showComingSoon}
-          onClose={() => setShowComingSoon(false)}
-          title="Shopify Integration Coming Soon"
-          description="We're currently working on integrating with Shopify to make it easier for you to import and manage your products."
-        />
-      </div>
+      <ProductModal
+        isOpen={showAddProduct || !!editProduct}
+        onClose={() => {
+          setShowAddProduct(false);
+          setEditProduct(null);
+        }}
+        onSubmit={handleSubmit}
+        initialData={editProduct || undefined}
+      />
+
+      <ComingSoonModal
+        isOpen={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+        title="Shopify Integration Coming Soon"
+        description="We're currently working on integrating with Shopify to make it easier for you to import and manage your products."
+      />
     </div>
   );
 }
