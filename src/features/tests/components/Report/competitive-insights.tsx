@@ -9,30 +9,30 @@ const CompetitiveInsights: React.FC<{ comparision: any[], shopper_count: number,
         if (!acc[key]) {
             acc[key] = { ...item, count: 1 };
         } else {
-            acc[key].value_comparison += item.value_comparison;
-            acc[key].appearence_comparison += item.appearence_comparison;
-            acc[key].convenience_comparison += item.convenience_comparison;
-            acc[key].brand_comparison += item.brand_comparison;
-            acc[key].confidence_comparison += item.confidence_comparison;
+            acc[key].value += item.value;
+            acc[key].appearence += item.appearence;
+            acc[key].convenience += item.convenience;
+            acc[key].brand += item.brand;
+            acc[key].confidence += item.confidence;
             acc[key].count += 1;
         }
         return acc;
     }, {});
 
-    const averagedComparison = Object.values(groupedComparison).map(item => ({
+    const averagedComparison = Object.values(groupedComparison).map((item: any) => ({
         ...item,
-        value_comparison: item.value_comparison / item.count,
-        appearence_comparison: item.appearence_comparison / item.count,
-        convenience_comparison: item.convenience_comparison / item.count,
-        brand_comparison: item.brand_comparison / item.count,
-        confidence_comparison: item.confidence_comparison / item.count,
+        value: item.value / item.count,
+        appearence: item.appearence / item.count,
+        convenience: item.convenience / item.count,
+        brand: item.brand / item.count,
+        confidence: item.confidence / item.count,
         share: (item.count / shopper_count) * 100,
     }));
 
-    const getColorClass = (value) => {
-        if (value > 3) return 'bg-green-200';
-        if (value < 3) return 'bg-red-200';
-        return 'bg-yellow-200';
+    const getColorClass = (value: number) => {
+        if (value > 3) return 'bg-green-100';
+        if (value < 3) return 'bg-red-100';
+        return 'bg-yellow-100';
     };
 
     return (
@@ -40,6 +40,11 @@ const CompetitiveInsights: React.FC<{ comparision: any[], shopper_count: number,
             <h2 className="text-xl font-bold mb-4">Competitive Insights</h2>
             <table className="min-w-full border-collapse border border-gray-300">
                 <thead>
+                    <tr className="bg-gray-100 border-none">
+                        <th className="p-2 border-l border-t border-gray-100"></th>
+                        <th className="p-2 border-t border-gray-100"></th>
+                        <th className="border border-gray-300 p-2 col-span-5" colSpan={5}>Your Item vs Competitor</th>
+                    </tr>
                     <tr className="bg-gray-200">
                         <th className="border border-gray-300 p-2">Picture</th>
                         <th className="border border-gray-300 p-2">Share of Buy</th>
@@ -59,20 +64,20 @@ const CompetitiveInsights: React.FC<{ comparision: any[], shopper_count: number,
                                 </a>
                             </td>
                             <td className={`border border-gray-300 p-2 ${getColorClass(item.share)}`}>{item.share}%</td>
-                            <td className={`border border-gray-300 p-2 ${getColorClass(item.value_comparison)}`}>
-                                {item.value_comparison.toFixed(2) - 3}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.value)}`}>
+                                {item.value.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${getColorClass(item.appearence_comparison)}`}>
-                                {item.appearence_comparison.toFixed(2) - 3}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.appearance)}`}>
+                                {item.appearance.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${getColorClass(item.confidence_comparison)}`}>
-                                {item.confidence_comparison.toFixed(2) - 3}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.confidence)}`}>
+                                {item.confidence.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${getColorClass(item.brand_comparison)}`}>
-                                {item.brand_comparison.toFixed(2) - 3}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.brand)}`}>
+                                {item.brand.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${getColorClass(item.convenience_comparison)}`}>
-                                {item.convenience_comparison.toFixed(2) - 3}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.convenience)}`}>
+                                {item.convenience.toFixed(2) - 3}
                             </td>
                         </tr>
                     ))}

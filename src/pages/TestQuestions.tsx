@@ -13,16 +13,11 @@ const TestDisplay: React.FC = () => {
     const navigate = useNavigate();
 
     const [responses, setResponses] = useState({
-        value_rating: 1,
-        appearance_rating: 1,
-        confidence_rating: 1,
-        trust_rating: 1,
-        convenience_rating: 1,
-        value_comparison: 1,
-        appearence_comparison: 1,
-        confidence_comparison: 1,
-        brand_comparison: 1,
-        convenience_comparison: 1,
+        value: 1,
+        appearence: 1,
+        confidence: 1,
+        brand: 1,
+        convenience: 1,
         likes_most: '',
         improve_suggestions: '',
         choose_reason: '',
@@ -55,21 +50,21 @@ const TestDisplay: React.FC = () => {
         const isSelected = selectedVariations.length > 0;
 
         if (isSelected) {
-            if (!responses.likes_most || responses.likes_most.trim().length < 50) {
-                validationErrors.likes_most = "You must write at least 50 characters.";
+            if (!responses.likes_most || responses.likes_most.trim().length <= 150) {
+                validationErrors.likes_most = "You must write at least 150 characters.";
             }
-            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length < 50) {
-                validationErrors.improve_suggestions = "You must write at least 50 characters.";
+            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 150) {
+                validationErrors.improve_suggestions = "You must write at least 150 characters.";
             }
         } else {
-            if (!responses.likes_most || responses.likes_most.trim().length < 50) {
-                validationErrors.likes_most = "You must write at least 50 characters.";
+            if (!responses.likes_most || responses.likes_most.trim().length <= 150) {
+                validationErrors.likes_most = "You must write at least 150 characters.";
             }
-            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length < 50) {
-                validationErrors.improve_suggestions = "You must write at least 50 characters.";
+            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 150) {
+                validationErrors.improve_suggestions = "You must write at least 150 characters.";
             }
-            if (!responses.choose_reason || responses.choose_reason.trim().length < 50) {
-                validationErrors.choose_reason = "You must write at least 50 characters.";
+            if (!responses.choose_reason || responses.choose_reason.trim().length <= 150) {
+                validationErrors.choose_reason = "You must write at least 150 characters.";
             }
         }
         return validationErrors;
@@ -97,13 +92,21 @@ const TestDisplay: React.FC = () => {
                 console.error('Product ID is missing.');
                 return;
             }
+            console.log(responses);
 
             const payload = {
                 test_id: test.id,
                 tester_id: shopperId,
                 product_id: productId,
-                ...responses,
+                appearance: Number(responses.appearence),
+                confidence: Number(responses.confidence),
+                convenience: Number(responses.convenience),
+                value: Number(responses.value),
+                brand: Number(responses.brand),
+                likes_most: responses.likes_most,
+                improve_suggestions: responses.improve_suggestions,
                 ...(isComparison ? { competitor_id: itemSelectedAtCheckout?.id } : {}),
+                ...(isComparison ? { choose_reason: responses.choose_reason } : {}),
             };
 
             const tableName = isComparison ? 'responses_comparisons' : 'responses_surveys';
@@ -145,7 +148,7 @@ const TestDisplay: React.FC = () => {
             <h2 className="text-3xl font-bold mb-2 text-center">Last step, quick survey!</h2>
             <p className="text-center"><strong>Search Term:</strong> {test.search_term}</p>
             {isVariationSelected.length > 0 ? (
-                <SelectedVariation item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
+                <SelectedVariation responses={responses} item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
             ) : (
                 <ComparisonView responses={responses} competitorItem={competitorItem} itemSelected={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
             )}

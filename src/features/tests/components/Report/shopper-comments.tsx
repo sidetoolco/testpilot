@@ -1,44 +1,63 @@
-import React from 'react';
+import React from "react";
 
-interface Comment {
-    name: string;
-    ageGroup: string;
-    text: string;
+interface ShopperCommentsProps {
+    comparision: { improve_suggestions?: string }[];
+    surveys: { likes_most?: string }[];
 }
 
-const positiveComments: Comment[] = [
-    { name: 'Mary', ageGroup: '18-24', text: "Eucalyptus Glow sounds refreshing and unique—I can imagine it being clean and calming, like something I'd use for my bedding." },
-    { name: 'Frank', ageGroup: '25-34', text: "I'd probably choose Eucalyptus Glow over the others because the name makes me think of a natural, fresh scent that's not too strong." },
-    { name: 'Oliver', ageGroup: '55+', text: "The name Eucalyptus Glow caught my attention right away - it feels premium and soothing, like a scent I'd want for my favorite clothes." },
-];
+const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
+    if (comparision.length === 0 || surveys.length === 0) {
+        return <div className="text-gray-500 text-center">No comments available</div>;
+    }
 
-const negativeComments: Comment[] = [
-    { name: 'Rose', ageGroup: '18-24', text: "Eucalyptus Glow didn't really stand out to me—it sounds too niche, and I'm not sure I'd want my laundry to smell like eucalyptus." },
-    { name: 'Martin', ageGroup: '55+', text: "The name Eucalyptus Glow makes me think of a spa, not something I'd want on my clothes every day. It feels a bit too specialized for my taste." },
-    { name: 'Ellen', ageGroup: '35-44', text: "Eucalyptus Glow seems interesting, but if it's more expensive than other scents, I wouldn't go for it. I don't need to pay extra for a fabric softener." },
-];
+    // Extraer comentarios y filtrar valores vacíos
+    const negativeComments = comparision.map((comment: any) => comment.improve_suggestions);
 
-const ShopperComments: React.FC = () => {
+    const positiveComments = surveys.map((comment) => comment.likes_most)
+
+    // Calcular porcentaje de comentarios
+    const totalComments = positiveComments.length + negativeComments.length;
+    const positivePercentage = totalComments ? ((positiveComments.length / totalComments) * 100).toFixed(1) : "0";
+    const negativePercentage = totalComments ? ((negativeComments.length / totalComments) * 100).toFixed(1) : "0";
+
     return (
-        <div>
-            <h2>Shopper Comments</h2>
-            <div>
-                <h3>Positive Comments (87%)</h3>
-                {positiveComments.map((comment, index) => (
-                    <div key={index}>
-                        <p>{comment.text}</p>
-                        <p><strong>{comment.name}</strong>, {comment.ageGroup}</p>
+        <div className="p-6 bg-white rounded-xl shadow-md">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
+
+            {/* Sección de comentarios positivos */}
+            <div className="mb-6">
+                <h3 className="text-xl font-semibold text-green-600">
+                    Positive Comments ({positivePercentage}%)
+                </h3>
+                {positiveComments.length > 0 ? (
+                    <div className="space-y-4 mt-2">
+                        {positiveComments.map((comment, index) => (
+                            <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="text-gray-700">{comment}</p>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                ) : (
+                    <p className="text-gray-500 mt-2">No positive comments available.</p>
+                )}
             </div>
+
+            {/* Sección de comentarios negativos */}
             <div>
-                <h3>Negative Comments (13%)</h3>
-                {negativeComments.map((comment, index) => (
-                    <div key={index}>
-                        <p>{comment.text}</p>
-                        <p><strong>{comment.name}</strong>, {comment.ageGroup}</p>
+                <h3 className="text-xl font-semibold text-red-600">
+                    Negative Comments ({negativePercentage}%)
+                </h3>
+                {negativeComments.length > 0 ? (
+                    <div className="space-y-4 mt-2">
+                        {negativeComments.map((comment, index) => (
+                            <div key={index} className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-gray-700">{comment}</p>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                ) : (
+                    <p className="text-gray-500 mt-2">No negative comments available.</p>
+                )}
             </div>
         </div>
     );

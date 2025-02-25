@@ -18,19 +18,22 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
             </div>
         </div>
         <div className="questions space-y-4 w-full max-w-2xl mt-4">
-            <p className="font-medium">Comparado con el Item B, ¿cómo calificarías el valor del Item A?</p>
-            <RangeInput name="value_comparison" value={responses.value_comparison} onChange={handleChange} />
-            <p className="font-medium">Comparado con el Item B, ¿cómo calificarías el diseño y la apariencia del Item A?</p>
-            <RangeInput name="appearence_comparison" value={responses.appearence_comparison} onChange={handleChange} />
+          
+            <p className="font-medium">Compared to Item B, how would you rate the value of Item A?</p>
+            <RangeInput name="value" value={responses.value} onChange={handleChange} />
+          
+            <p className="font-medium">Compared to Item B, how would you rate the design and appearance of Item A?</p>
+            <RangeInput name="appearence" value={responses.appearence} onChange={handleChange} />
 
-            <p className="font-medium">Comparado con el Item B, ¿cómo calificarías tu confianza en que el Item A cumplirá con los resultados prometidos?</p>
-            <RangeInput name="confidence_comparison" value={responses.confidence_comparison} onChange={handleChange} />
+            <p className="font-medium">Compared to Item B, how would you rate your confidence that Item A will deliver the promised results?</p>
+            <RangeInput name="confidence" value={responses.confidence} onChange={handleChange} />
 
-            <p className="font-medium">Comparado con el Item B, ¿cómo calificarías tu confianza en la marca del Item A?</p>
-            <RangeInput name="brand_comparison" value={responses.brand_comparison} onChange={handleChange} />
+            <p className="font-medium">Compared to Item B, how would you rate the convenience of Item A?</p>
+            <RangeInput name="convenience" value={responses.convenience} onChange={handleChange} />
 
-            <p className="font-medium">Comparado con el Item B, ¿cómo calificarías la conveniencia del Item A?</p>
-            <RangeInput name="convenience_comparison" value={responses.convenience_comparison} onChange={handleChange} />
+            <p className="font-medium">Compared to Item B, how would you rate your trust in the brand of Item A?</p>
+            <RangeInput name="brand" value={responses.brand} onChange={handleChange} />
+
             <div>
 
                 <p className="font-medium">What do you like most about Item A?</p>
@@ -79,5 +82,5 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
 
             <button className="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600 w-full" onClick={handleSubmit}>Submit</button>
         </div>
-    </div >
+    </div>
 );

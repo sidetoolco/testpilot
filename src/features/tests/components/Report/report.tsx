@@ -98,6 +98,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
       })
       .save();
   };
+  console.log(variant);
 
   return (
     <div className="h-[90vh] flex flex-col overflow-hidden">
@@ -155,7 +156,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
             pageBreakInside: 'avoid',
           }}
         >
-          <div className="max-w-screen-2xl mx-auto flex flex-col gap-8">
+          <div className="max-w-screen-2xl mx-auto flex flex-col gap-4">
             <div id="content-summary" className={clsx('pdf-page p-4', activeTab === 'summary')}>
               <Summary variants={variantsArray} />
             </div>
@@ -166,7 +167,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
               <CompetitiveInsights comparision={variant.responses.comparisons} shopper_count={variant.responses.comparisons.length + variant.responses.surveys.length} />
             </div>
             <div id="content-shopper-comments" className={clsx('pdf-page p-4', activeTab === 'shopper-comments')}>
-              <ShopperComments />
+              <ShopperComments comparision={variant.responses.comparisons} surveys={variant.responses.surveys} />
             </div>
             <div id="content-recommendations" className={clsx('pdf-page p-4', activeTab === 'recommendations')}>
               <Recommendations />
