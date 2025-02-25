@@ -1,13 +1,39 @@
 import React from 'react';
 
-const CompetitiveInsights: React.FC = () => {
-    const insights = [
-        { picture: 'Picture 1', share: '35%', value: -0.3, aesthetics: +1.9, utility: +0.5, trust: +0.7, convenience: +0.3 },
-        { picture: 'Picture 2', share: '22%', value: -1.1, aesthetics: +1.7, utility: +0.4, trust: +0.6, convenience: +0.2 },
-        { picture: 'Picture 3', share: '8%', value: -0.9, aesthetics: +0.3, utility: +0.3, trust: +0.5, convenience: +0.1 },
-        { picture: 'Picture 4', share: '5%', value: +0.1, aesthetics: +1.2, utility: +0.2, trust: +0.4, convenience: +0.1 },
-        { picture: 'Picture 5', share: '4%', value: 'Equal', aesthetics: +0.1, utility: +0.1, trust: +0.3, convenience: +0.0 },
-    ];
+const CompetitiveInsights: React.FC<{ comparision: any[], shopper_count: number, }> = ({ comparision, shopper_count }) => {
+    if (!comparision.length) return <p>No data available</p>;
+
+    // Agrupar por competitor_id y calcular promedios
+    const groupedComparison = comparision.reduce((acc, item) => {
+        const key = item.competitor_id;
+        if (!acc[key]) {
+            acc[key] = { ...item, count: 1 };
+        } else {
+            acc[key].value_comparison += item.value_comparison;
+            acc[key].appearence_comparison += item.appearence_comparison;
+            acc[key].convenience_comparison += item.convenience_comparison;
+            acc[key].brand_comparison += item.brand_comparison;
+            acc[key].confidence_comparison += item.confidence_comparison;
+            acc[key].count += 1;
+        }
+        return acc;
+    }, {});
+
+    const averagedComparison = Object.values(groupedComparison).map(item => ({
+        ...item,
+        value_comparison: item.value_comparison / item.count,
+        appearence_comparison: item.appearence_comparison / item.count,
+        convenience_comparison: item.convenience_comparison / item.count,
+        brand_comparison: item.brand_comparison / item.count,
+        confidence_comparison: item.confidence_comparison / item.count,
+        share: (item.count / shopper_count) * 100,
+    }));
+
+    const getColorClass = (value) => {
+        if (value > 3) return 'bg-green-200';
+        if (value < 3) return 'bg-red-200';
+        return 'bg-yellow-200';
+    };
 
     return (
         <div className="w-full p-4">
@@ -25,24 +51,28 @@ const CompetitiveInsights: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {insights.map((insight, index) => (
+                    {averagedComparison.map((item, index) => (
                         <tr key={index} className="hover:bg-gray-100">
-                            <td className="border border-gray-300 p-2">{insight.picture}</td>
-                            <td className="border border-gray-300 p-2">{insight.share}</td>
-                            <td className={`border border-gray-300 p-2 ${insight.value < 0 ? 'bg-red-200' : 'bg-green-200'}`}>
-                                {insight.value}
+                            <td className="border border-gray-300 p-2">
+                                <a href={item.amazon_products.product_url} target="_blank" rel="noopener noreferrer">
+                                    <img src={item.amazon_products.image_url} alt={item.amazon_products.title} className="w-10 h-10" />
+                                </a>
                             </td>
-                            <td className={`border border-gray-300 p-2 ${insight.aesthetics > 0 ? 'bg-green-200' : 'bg-red-200'}`}>
-                                {insight.aesthetics}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.share)}`}>{item.share}%</td>
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.value_comparison)}`}>
+                                {item.value_comparison.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${insight.utility > 0 ? 'bg-green-200' : 'bg-red-200'}`}>
-                                {insight.utility}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.appearence_comparison)}`}>
+                                {item.appearence_comparison.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${insight.trust > 0 ? 'bg-green-200' : 'bg-red-200'}`}>
-                                {insight.trust}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.confidence_comparison)}`}>
+                                {item.confidence_comparison.toFixed(2) - 3}
                             </td>
-                            <td className={`border border-gray-300 p-2 ${insight.convenience > 0 ? 'bg-green-200' : 'bg-red-200'}`}>
-                                {insight.convenience}
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.brand_comparison)}`}>
+                                {item.brand_comparison.toFixed(2) - 3}
+                            </td>
+                            <td className={`border border-gray-300 p-2 ${getColorClass(item.convenience_comparison)}`}>
+                                {item.convenience_comparison.toFixed(2) - 3}
                             </td>
                         </tr>
                     ))}

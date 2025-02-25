@@ -1,13 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useTests } from '../features/tests/hooks/useTests';
+import { useTestDetail } from '../features/tests/hooks/useTestDetail';
 import Report from '../features/tests/components/Report/report';
 
 export default function TestDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { tests, loading } = useTests();
-  const test = tests.find(t => t.id === id);
+  const { test: testInfo, loading } = useTestDetail(id || '');
 
   if (loading) {
     return (
@@ -19,7 +18,7 @@ export default function TestDetail() {
     );
   }
 
-  if (!test) {
+  if (!testInfo) {
     return (
       <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
         <div className="text-center">
@@ -36,19 +35,19 @@ export default function TestDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F8]">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1400px] mx-auto px-8 py-4">
+    <div className="h-screen overflow-hidden bg-[#FFF8F8] flex flex-col">
+      <div className="flex-1 mx-auto w-full overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-8 py-6 h-[100vh]">
           <button
             onClick={() => navigate('/my-tests')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            className="mb-6 px-4 py-2 flex items-center gap-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to tests</span>
+            <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
+            <span className="font-medium">Back to tests</span>
           </button>
+          <Report variant={testInfo} />
         </div>
       </div>
-      <Report variant={test} />
     </div>
   );
 }

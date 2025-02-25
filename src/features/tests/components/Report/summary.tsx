@@ -30,9 +30,12 @@ const data = {
         ['Variant #3', '5%', '9%', '4.2', 'No'],
     ],
 };
-const Summary: React.FC = ({ variant }: any) => {
-    // const variantsArray = [variant.a, variant.b, variant.c].filter(v => v !== null);
-
+const Summary: React.FC<{ variants: any[] }> = ({ variants }) => {
+    
+    if (!variants || variants.length === 0 || variants.length === 1) return (
+        <p className='text-center text-gray-500'>Not enough variants for analysis.</p>
+    );
+    
     return (
         <div className="p-3">
             <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
