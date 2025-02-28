@@ -51,7 +51,7 @@ export const testService = {
       await this.insertDemographics(test.id, testData.demographics);
 
       // Step 6: Crear proyecto en Respondent
-      await this.createRespondentProject(test, testData);
+      await this.createProlificProjectsForVariations(test, testData);
 
       return test;
 
@@ -119,7 +119,7 @@ export const testService = {
             test_id: testId,
             product_id: variation.id,
             variation_type: type
-          });
+          } as any);
 
         if (error) {
           await supabase.from('tests').delete().eq('id', testId);
@@ -140,7 +140,7 @@ export const testService = {
         locations: demographics.locations,
         interests: demographics.interests,
         tester_count: demographics.testerCount
-      });
+      } as any);
 
     if (error) {
       await supabase.from('tests').delete().eq('id', testId);
@@ -152,47 +152,50 @@ export const testService = {
     return `Amazon shopping for ${interestsList}: Discover '${searchTerm}'!`;
   },
   // Función para crear el proyecto en Respondent
-  async createRespondentProject(test: any, testData: TestData) {
-    const respondentProjectData = {
-        publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
-        publicInternalName: `${test.id}`,
-        participantTimeRequiredMinutes: 12,
-        incentiveAmount: 12,
-        targetNumberOfParticipants: testData.demographics.testerCount,
-        externalResearcher: {
+  async createProlificProjectsForVariations(test: any, testData: TestData) {
+    for (const [variationType, variation] of Object.entries(testData.variations)) {
+      if (variation) {
+        const respondentProjectData = {
+          publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
+          publicInternalName: `${test.id}-${variationType}`,
+          participantTimeRequiredMinutes: 12,
+          incentiveAmount: 12,
+          variations: variationType,
+          targetNumberOfParticipants: testData.demographics.testerCount,
+          externalResearcher: {
             researcherId: test.company_id,
             researcherName: 'Company Researcher'
-        },
-        demographics: {
+          },
+          demographics: {
             ageRanges: testData.demographics.ageRanges,
             genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
             locations: testData.demographics.locations
-        }
-    };
+          }
+        };
 
-    try {
-        const response = await fetch('https://sidetool.app.n8n.cloud/webhook/prolific-create', {
+        try {
+          const response = await fetch('https://sidetool.app.n8n.cloud/webhook/prolific-create', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify(respondentProjectData),
             mode: 'no-cors'
-        });
+          });
 
-        // Mostrar en consola el estado de la respuesta
-        console.log('Response status:', response.status);
+          console.log(`Response status for variation ${variationType}:`, response.status);
 
-        // Intentar leer el cuerpo de la respuesta si es posible
-        const responseData = await response.json();
-        console.log('Response data:', responseData);
+          const responseData = await response.json();
+          console.log(`Response data for variation ${variationType}:`, responseData);
 
-    } catch (error) {
-        console.error('Prolific integration failed:', error);
-    } finally {
-        console.log('Prolific project being created');
+        } catch (error) {
+          console.error(`Prolific integration failed for variation ${variationType}:`, error);
+        } finally {
+          console.log(`Prolific project being created for variation ${variationType}`);
+        }
+      }
     }
-},
+  },
 
   // Función addbulletdescriptions
   async addCompetitorsBulletsDescriptions(competitors: any) {
