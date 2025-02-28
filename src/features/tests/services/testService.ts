@@ -160,7 +160,6 @@ export const testService = {
           publicInternalName: `${test.id}-${variationType}`,
           participantTimeRequiredMinutes: 12,
           incentiveAmount: 12,
-          variations: variationType,
           targetNumberOfParticipants: testData.demographics.testerCount,
           externalResearcher: {
             researcherId: test.company_id,
