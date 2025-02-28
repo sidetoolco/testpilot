@@ -21,6 +21,7 @@ import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
 import ThankYou from './pages/ThankYou';
+import Ai from './pages/ai';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,14 @@ function App() {
               <Route path="/test/:id" element={
                 <TestUserPage />
               } />
+              <Route path="/ai" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Ai />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+
               <Route path="/product/:id" element={
                 <ProductDetail />
               } />
