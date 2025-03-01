@@ -15,7 +15,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <div className="text-sm font-medium text-gray-500 mb-1">Search Term</div>
             <div className="text-gray-900">{test.searchTerm}</div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium text-gray-500 mb-1">Competitors</div>
             <div className="flex flex-wrap gap-2">
@@ -31,7 +31,12 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
           <div>
             <div className="text-sm font-medium text-gray-500 mb-1">Variations</div>
             <div className="text-gray-900">
-              {Object.values(test.variations).filter(v => v !== null).length} variations configured
+              {Object.values(test.variations).filter(v => v !== null).map((variation, index) => (
+                <div key={index} className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2 m-1">
+                  <img src={variation.image_url} alt={variation.title} className="w-8 h-8 object-contain" />
+                  <span className="text-sm text-gray-700">{variation.title}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

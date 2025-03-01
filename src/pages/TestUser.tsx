@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { useSessionStore } from '../store/useSessionStore';
-import { checkAndFetchExistingSession, fetchProductAndCompetitorData } from '../features/tests/services/testersSessionService';
+import { checkAndFetchExistingSession, fetchProductAndCompetitorData, processString } from '../features/tests/services/testersSessionService';
 import { createNewSession } from '../features/tests/services/testersSessionService';
 import { Lightbulb } from 'lucide-react';
 import { getTracker } from '../lib/openReplay';
@@ -70,17 +70,38 @@ const Modal = ({ isOpen, onClose, test }: ModalProps) => {
 };
 
 const combineVariantsAndCompetitors = (data: any) => {
-    const competitorsWithVariations = [...data.competitors];
+
+    let storedOrder = sessionStorage.getItem(`productOrder-${data.id}`);
+
+    let competitorsWithVariations = [...data.competitors];
     data.variations.forEach((variation: any) => {
         competitorsWithVariations.push({
             product: { ...variation.product },
         });
     });
 
+    if (storedOrder) {
+        // Si ya hay un orden guardado, parsearlo y aplicar ese orden
+        const orderedIndexes = JSON.parse(storedOrder);
+        competitorsWithVariations = orderedIndexes.map((index: number) => competitorsWithVariations[index]);
+    } else {
+        // Si no hay un orden guardado, barajar y almacenar el orden
+        let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
+        for (let i = shuffledIndexes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledIndexes[i], shuffledIndexes[j]] = [shuffledIndexes[j], shuffledIndexes[i]];
+        }
+
+        // Reordenar la lista basada en los índices aleatorios
+        competitorsWithVariations = shuffledIndexes.map((index) => competitorsWithVariations[index]);
+        sessionStorage.setItem(`productOrder-${data.id}`, JSON.stringify(shuffledIndexes));
+    }
+
     return {
         ...data,
         competitors: competitorsWithVariations,
     };
+
 };
 
 const TestUserPage = () => {
@@ -96,41 +117,53 @@ const TestUserPage = () => {
 
     const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
-
-
     const closeModal = async () => {
         try {
-            const existingSession = await checkAndFetchExistingSession(id);
+            const result = processString(id);
+            const testId = result?.modifiedString ?? '';
+            const variant = result?.lastCharacter ?? '';
+
+            const existingSession: any = await checkAndFetchExistingSession(testId, variant);
 
             if (existingSession?.ended_at) {
-                navigate('/thanks', { state: { testId:id } });
+                navigate('/thanks', { state: { testId: id } });
                 return;
             }
-            if (existingSession && combinedData) {
-                startSession(existingSession.id, combinedData.id, combinedData, new Date(existingSession.created_at), existingSession.product_id ? existingSession.product_id : existingSession.competitor_id);
 
-                if (!shopperId) return; // No tracker until shopperId is available
-                const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + id);
-                const trackSessionResumed = tracker.trackWs('SessionEvents');
-                trackSessionResumed?.('Session Resumed', JSON.stringify({ sessionId: existingSession.id }), 'up');
+            if (existingSession && combinedData) {
+                startSession(
+                    existingSession.id,
+                    combinedData.id,
+                    combinedData,
+                    new Date(existingSession.created_at),
+                    existingSession.product_id ?? existingSession.competitor_id
+                );
 
                 if (existingSession.product_id || existingSession.competitor_id) {
-                    navigate(`/questions`);
+                    navigate('/questions');
                 }
+
+                if (!shopperId) return; // No iniciar tracker sin shopperId
+
+                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
+                tracker.trackWs('SessionEvents')?.('Session Resumed', JSON.stringify({ sessionId: existingSession.id }), 'up');
+
                 return;
             }
+
+            // Crear nueva sesión si no existe una previa
             const sessionId = await createNewSession(id, combinedData);
             if (sessionId && combinedData) {
                 startSession(sessionId, combinedData.id, combinedData, new Date());
-                setSessionStarted(true); // Flag to track session start
+                setSessionStarted(true); // Flag para rastrear el inicio de sesión
 
-                if (!shopperId) return; // No tracker until shopperId is available
-                const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + id);
-                const trackSessionStarted = tracker.trackWs('SessionEvents');
-                trackSessionStarted?.('Session Started', JSON.stringify({ sessionId }), 'up');
+                if (!shopperId) return; // No iniciar tracker sin shopperId
+
+                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
+                tracker.trackWs('SessionEvents')?.('Session Started', JSON.stringify({ sessionId }), 'up');
             }
         } catch (error) {
-            console.error('Error attempting to save to the database:', error);
+            console.error(`Error en closeModal al procesar la sesión (ID: ${id}):`, error);
         }
     };
 

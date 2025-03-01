@@ -1,13 +1,13 @@
 import { supabase } from "../../../lib/supabase";
 import { TestData } from "../types";
 
-export const checkAndFetchExistingSession = async (id: string) => {
+export const checkAndFetchExistingSession = async (id: string, variant: string) => {
     if (!id) {
         return null;
     }
     const existingSessionId = localStorage.getItem('testerSessionId');
     const testId = id;
-
+    const variationType = variant;
 
     if (existingSessionId && testId) {
         const { data, error } = await supabase
@@ -19,6 +19,7 @@ export const checkAndFetchExistingSession = async (id: string) => {
             `)
             .eq('id', existingSessionId)
             .eq('test_id', testId)
+            .eq('variation_type', variationType)
             .single();
 
         if (error) {
@@ -31,11 +32,14 @@ export const checkAndFetchExistingSession = async (id: string) => {
     return null;
 
 };
-export const createNewSession = async (testId: string, combinedData: any) => {
+export const createNewSession = async (testIdraw: string, combinedData: any) => {
+    const result = processString(testIdraw);
+    const testId = result?.modifiedString ? result?.modifiedString : '';
+    const variationType = result?.lastCharacter ? result?.lastCharacter : '';
     try {
         const { data, error } = await supabase
             .from('testers_session')
-            .insert([{ test_id: testId, status: 'started' } as any])
+            .insert([{ test_id: testId, status: 'started', variation_type: variationType } as any])
             .select('id');
 
         if (error) {
@@ -154,11 +158,26 @@ export async function recordTimeSpent(testId: string, itemId: string, startTime:
     }
 }
 
+export const processString = (input: string) => {
+    if (input.length < 2) {
+        console.error("Input string is too short.");
+        return null;
+    }
+    // Cut the last two characters
+    const modifiedString = input.slice(0, -2);
+    // Store the last character
+    const lastCharacter = input.slice(-1);
+    return { modifiedString, lastCharacter };
+}
+
 export const fetchProductAndCompetitorData = async (id: string): Promise<TestData | null> => {
+    const result = processString(id);
+    const variationType = result?.lastCharacter ? result?.lastCharacter : '';
+    const testId = result?.modifiedString ? result?.modifiedString : '';
+
     try {
         const { data, error } = await supabase
             .from('tests')
-
             .select(`
                 *,
                 competitors:test_competitors(
@@ -175,7 +194,8 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
                   variation_type
                 )
             `)
-            .eq('id', id)
+            .eq('id', testId)
+            .eq('variations.variation_type', variationType)
             .single();
 
         if (error) throw new Error(`Error fetching test data: ${error.message}`);
@@ -196,7 +216,5 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
         console.error('Error fetching test data:', error);
         return null;
     }
-
-
 };
 

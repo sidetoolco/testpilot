@@ -8,6 +8,7 @@ interface Survey {
     confidence: number;
     brand: number;
     convenience: number;
+    tester_id: { variation_type: string };
 }
 
 interface GroupedSurvey {
@@ -18,15 +19,15 @@ const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
 const COLORS = ["#34A270", "#075532", "#E0D30D"];
 
 const getProductName = (productId: string): string => {
-    return `Variant: ${productId.substring(0, 40)}...`;
+    return `Variant ${productId.substring(0, 40)}...`;
 };
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
-    if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
+const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey[] } }> = ({ surveys }) => {
+    if (!surveys || Object.keys(surveys).length === 0) return <p>Your product was not chosen for this test</p>;
 
-    const groupedSurveys: GroupedSurvey = surveys.reduce((acc, survey) => {
-        if (!acc[survey.product_id]) acc[survey.product_id] = [];
-        acc[survey.product_id].push(survey);
+    const groupedSurveys: GroupedSurvey = Object.entries(surveys).reduce((acc, [variationType, surveyArray]) => {
+        if (!acc[variationType]) acc[variationType] = [];
+        acc[variationType].push(...surveyArray);
         return acc;
     }, {} as GroupedSurvey);
 
@@ -48,7 +49,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
         ).map(val => val / total);
 
         return {
-            label: getProductName(surveys[0].products.title),
+            label: getProductName(productId + ': ' + surveys[0].products.title),
             data: avgRatings,
             productId,
             keys: LABELS.map((label, index) => ({ key: label, value: avgRatings[index] })),
@@ -70,6 +71,30 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
     const yScale = scaleLinear()
         .domain([0, 5])
         .range([100, 0]);
+
+    // Iterate over each variation type
+    const variationAverages = Object.entries(surveys as Record<string, Survey[]>).map(([variationType, surveyArray]) => {
+        const total = surveyArray.length;
+        const avgRatings = surveyArray.reduce(
+            (acc: number[], survey: Survey) => {
+                acc[0] += survey.value;
+                acc[1] += survey.appearance;
+                acc[2] += survey.confidence;
+                acc[3] += survey.brand;
+                acc[4] += survey.convenience;
+                return acc;
+            },
+            [0, 0, 0, 0, 0]
+        ).map((val: number) => val / total);
+
+        return {
+            variationType,
+            avgRatings
+        };
+    });
+
+    // Compare averages (this is a placeholder for actual comparison logic)
+    console.log('Variation Averages:', variationAverages);
 
     return (
         <div>

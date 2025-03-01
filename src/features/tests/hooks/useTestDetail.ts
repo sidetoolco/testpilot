@@ -65,18 +65,38 @@ export function useTestDetail(id: string) {
         // Fetch survey responses for the test
         const { data: surveysData, error: surveysError } = await supabase
           .from('responses_surveys')
-          .select('*, products(*)') // Hacemos un join con la tabla products para traer el name
+          .select('*, products(*),tester_id(variation_type,id)') // Hacemos un join con la tabla products para traer el name
           .eq('test_id', id);
 
         if (surveysError) throw surveysError;
 
+        // Separate surveys by variation_type
+        const surveysByType = surveysData.reduce((acc: any, item: any) => {
+          const type = item.tester_id.variation_type;
+          if (!acc[type]) {
+            acc[type] = [];
+          }
+          acc[type].push(item);
+          return acc;
+        }, {});
+
         // Fetch comparison responses for the test
         const { data: comparisonsData, error: comparisonsError } = await supabase
           .from('responses_comparisons')
-          .select('*, products(*), amazon_products(*)') // Hacemos un join con la tabla products para traer el name
+          .select('*, products(*), amazon_products(*), tester_id(variation_type,id)') // Include variation_type from tester_id
           .eq('test_id', id);
 
         if (comparisonsError) throw comparisonsError;
+
+        // Separate comparisons by variation_type
+        const comparisonsByType = comparisonsData.reduce((acc: any, item: any) => {
+          const type = item.tester_id.variation_type;
+          if (!acc[type]) {
+            acc[type] = [];
+          }
+          acc[type].push(item);
+          return acc;
+        }, {});
 
         // Transform the data to match our Test type
         const transformedTest: Test = {
@@ -98,8 +118,8 @@ export function useTestDetail(id: string) {
             testerCount: typedTestData.demographics?.[0]?.tester_count || 0
           },
           responses: {
-            surveys: surveysData || [],
-            comparisons: comparisonsData || []
+            surveys: surveysByType,
+            comparisons: comparisonsByType
           },
           createdAt: typedTestData.created_at,
           updatedAt: typedTestData.updated_at

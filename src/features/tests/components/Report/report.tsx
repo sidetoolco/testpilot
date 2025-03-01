@@ -164,14 +164,16 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
               <PurchaseDrivers surveys={variant.responses.surveys} />
             </div>
             <div id="content-competitive-insights" className={clsx('pdf-page p-4', activeTab === 'competitive-insights')}>
-              <CompetitiveInsights comparision={variant.responses.comparisons} shopper_count={variant.responses.comparisons.length + variant.responses.surveys.length} />
+              <CompetitiveInsights comparision={variant.responses.comparisons} />
             </div>
+            {/*
             <div id="content-shopper-comments" className={clsx('pdf-page p-4', activeTab === 'shopper-comments')}>
               <ShopperComments comparision={variant.responses.comparisons} surveys={variant.responses.surveys} />
             </div>
             <div id="content-recommendations" className={clsx('pdf-page p-4', activeTab === 'recommendations')}>
               <Recommendations />
             </div>
+            */}
             <div id="content-test-details" className={clsx('pdf-page p-4', activeTab === 'test-details')}>
               <TestSummary test={variant} />
             </div>
