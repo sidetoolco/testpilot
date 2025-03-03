@@ -51,20 +51,20 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
 
     return (
         <div>
-            <div className="fixed top-0 left-0 right-0 bg-white shadow-md flex flex-wrap justify-between items-center z-50">
+            <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex flex-wrap justify-between items-center z-50">
                 <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
-                    <div className="bg-white p-1">
+                    <div className="bg-white p-1 rounded-lg">
                         <img
                             src="https://i.imghippo.com/files/QfED5977I.png"
                             alt="TestPilot"
                             className="h-8"
                         />
                     </div>
-                    <span className="text-lg font-bold">Shopping Simulator</span>
+                    <span className="text-lg font-bold ml-2">Shopping Simulator</span>
                 </div>
                 <div className="text-sm flex-grow sm:flex-grow-0 text-center sm:text-right p-4">
                     {error ? (
-                        <span className="text-red-500">{error}</span>
+                        <span className="text-red-800">{error}</span>
                     ) : (
                         `${capitalizeFirstLetter(status)} - ${Math.floor(elapsedTime / 60)}:${String(elapsedTime % 60).padStart(2, '0')}`
                     )}

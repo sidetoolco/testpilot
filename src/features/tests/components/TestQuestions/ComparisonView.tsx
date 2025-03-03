@@ -36,7 +36,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
 
             <div>
 
-                <p className="font-medium">What do you like most about Item A?</p>
+                <p className="font-medium">What do you like most about Item B?</p>
                 <textarea
                     className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${errors.likes_most ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-gray-500"
                         }`}
@@ -51,7 +51,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
             </div>
             <div>
 
-                <p className="font-medium">What would make Item A even better?</p>
+                <p className="font-medium">What would make Item B even better?</p>
                 <textarea
                     className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${errors.improve_suggestions ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-gray-500"
                         }`}
@@ -66,7 +66,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
 
             </div>
             <div>
-                <p className="font-medium">What would make you choose Item B?</p>
+                <p className="font-medium">What would make you choose Item A?</p>
                 <textarea
                     className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${errors.choose_reason ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-gray-500"
                         }`}

@@ -48,7 +48,7 @@ const Modal = ({ isOpen, onClose, test }: ModalProps) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg text-center relative z-60 max-w-lg mx-4 md:mx-auto">
                 <div className="flex flex-col md:flex-row items-center justify-center mb-4">
-                    <Lightbulb className="h-10 w-10 text-yellow-500 mb-2 md:mb-0 md:mr-2" />
+                    <Lightbulb className="h-10 w-10 text-[#00A67E] mb-2 md:mb-0 md:mr-2" />
                     <h2 className="text-2xl md:text-3xl font-bold">Important Instructions</h2>
                 </div>
                 <p className="text-gray-700 text-sm md:text-base">
@@ -60,7 +60,7 @@ const Modal = ({ isOpen, onClose, test }: ModalProps) => {
                 </p>
                 <button
                     onClick={onClose}
-                    className="mt-4 bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] py-2 px-6 md:px-7 rounded-full border border-[#FCD200] font-medium"
+                    className="mt-4 bg-[#00A67E] hover:bg-[#00A67E] text-white py-2 px-6 md:px-7 rounded-full font-medium"
                 >
                     Ok
                 </button>
