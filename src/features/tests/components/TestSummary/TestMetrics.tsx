@@ -74,10 +74,10 @@ export default function TestMetrics({ test }: TestMetricsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-2  gap-6 mb-4">
       {metrics.map((metric, index) => (
         <div key={index} className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
+          <div className="flex items-center space-x-3 mb-2">
             <div className="w-12 h-12 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
               {metric.icon}
             </div>

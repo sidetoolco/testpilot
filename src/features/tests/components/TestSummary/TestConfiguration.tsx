@@ -7,9 +7,9 @@ interface TestConfigurationProps {
 export default function TestConfiguration({ test }: TestConfigurationProps) {
   return (
     <div className="overflow-y-auto pb-10">
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8 border-b pb-4">Test Configuration</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Test Configuration</h3>
           <div className="space-y-6">
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Search Term</div>
@@ -42,7 +42,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8 border-b pb-4">Demographics</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Demographics</h3>
           <div className="space-y-6">
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Age Ranges</div>
