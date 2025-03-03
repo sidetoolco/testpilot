@@ -17,7 +17,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [isPrinting, setIsPrinting] = useState(false);
   console.log(variant);
-  const variantsArray = [variant.a, variant.b, variant.c].filter(v => v);
+  const variantsArray = [variant.variations.a, variant.variations.b, variant.variations.c].filter(v => v);
 
   useEffect(() => {
     const observerOptions = {
@@ -168,7 +168,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
                 !isPrinting && (activeTab !== 'summary' && 'hidden')
               )}
             >
-              <Summary variants={variantsArray} />
+              <Summary variants={variantsArray} surveys={variant.responses.surveys} comparision={variant.responses.comparisons} testerId={variant.id}/>
             </div>
             <div
               id="content-purchase-drivers"
