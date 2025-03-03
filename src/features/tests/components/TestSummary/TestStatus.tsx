@@ -1,4 +1,3 @@
-import React from 'react';
 import { PlayCircle, CheckCircle, Clock } from 'lucide-react';
 
 interface TestStatusProps {
@@ -32,7 +31,7 @@ export default function TestStatus({ status }: TestStatusProps) {
   const config = getStatusConfig();
 
   return (
-    <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${config.color}`}>
+    <div className={`flex items-center space-x-2 px-2 py-2 rounded-full ${config.color}`}>
       {config.icon}
       <span className="font-medium">{config.text}</span>
     </div>

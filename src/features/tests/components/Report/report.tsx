@@ -15,6 +15,7 @@ interface ReportProps {
 
 const Report: React.FC<ReportProps> = ({ variant }) => {
   const [activeTab, setActiveTab] = useState('summary');
+  const [isPrinting, setIsPrinting] = useState(false);
   console.log(variant);
   const variantsArray = [variant.a, variant.b, variant.c].filter(v => v);
 
@@ -57,6 +58,7 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
   };
 
   const handleExportPDF = () => {
+    setIsPrinting(true); // Set printing mode before generating PDF
     const element = document.getElementById('report-content');
     const opt = {
       margin: 1,
@@ -82,7 +84,6 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
       }
     };
 
-
     html2pdf()
       .set(opt)
       .from(element)
@@ -96,7 +97,10 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
           pdf.text(`Página ${i} de ${totalPages}`, pdf.internal.pageSize.getWidth() - 1, pdf.internal.pageSize.getHeight() - 0.5);
         }
       })
-      .save();
+      .save()
+      .then(() => {
+        setIsPrinting(false); // Reset printing mode after PDF is generated
+      });
   };
   console.log(variant);
 
@@ -123,11 +127,11 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
           </div>
         </div>
         <div className="border-b border-gray-200 overflow-x-auto">
-          <nav className="flex gap-2 sm:gap-4 min-w-max pb-1">
+          <nav className="flex gap-1 min-w-max pb-1">
             {['summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations', 'test-details'].map(tab => (
               <button
                 className={clsx(
-                  'py-2 px-2 sm:px-3 sm:px-4 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
+                  'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
                   activeTab === tab
                     ? 'border-green-600 text-green-600'
                     : 'border-transparent hover:border-gray-300'
@@ -146,9 +150,9 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
         <div
           tabIndex={0}
           className={clsx(
-            'h-full overflow-y-auto border rounded-lg',
+            'h-full overflow-y-auto',
             'focus:outline-none focus:ring-2 focus:ring-green-600',
-            '[&::-webkit-scrollbar]:hidden scrollbar-none'
+            isPrinting ? 'overflow-visible' : 'overflow-y-auto'
           )}
           id="report-content"
           style={{
@@ -156,25 +160,59 @@ const Report: React.FC<ReportProps> = ({ variant }) => {
             pageBreakInside: 'avoid',
           }}
         >
-          <div className="max-w-screen-2xl mx-auto flex flex-col gap-4">
-            <div id="content-summary" className={clsx('pdf-page p-4', activeTab === 'summary')}>
+          <div className="max-w-screen-2xl mx-auto flex flex-col gap-4 h-full">
+            <div
+              id="content-summary"
+              className={clsx(
+                'pdf-page p-4',
+                !isPrinting && (activeTab !== 'summary' && 'hidden')
+              )}
+            >
               <Summary variants={variantsArray} />
             </div>
-            <div id="content-purchase-drivers" className={clsx('pdf-page p-4', activeTab === 'purchase-drivers')}>
+            <div
+              id="content-purchase-drivers"
+              className={clsx(
+                'pdf-page p-4',
+                !isPrinting && (activeTab !== 'purchase-drivers' && 'hidden')
+              )}
+            >
               <PurchaseDrivers surveys={variant.responses.surveys} />
             </div>
-            <div id="content-competitive-insights" className={clsx('pdf-page p-4', activeTab === 'competitive-insights')}>
+            <div
+              id="content-competitive-insights"
+              className={clsx(
+                'pdf-page p-4',
+                !isPrinting && (activeTab !== 'competitive-insights' && 'hidden')
+              )}
+            >
               <CompetitiveInsights comparision={variant.responses.comparisons} />
             </div>
-            {/*
-            <div id="content-shopper-comments" className={clsx('pdf-page p-4', activeTab === 'shopper-comments')}>
+            <div
+              id="content-shopper-comments"
+              className={clsx(
+                'pdf-page p-4',
+                !isPrinting && (activeTab !== 'shopper-comments' && 'hidden')
+              )}
+            >
               <ShopperComments comparision={variant.responses.comparisons} surveys={variant.responses.surveys} />
             </div>
-            <div id="content-recommendations" className={clsx('pdf-page p-4', activeTab === 'recommendations')}>
+            <div
+              id="content-recommendations"
+              className={clsx(
+                'pdf-page p-4',
+                !isPrinting && (activeTab !== 'recommendations' && 'hidden')
+              )}
+            >
               <Recommendations />
             </div>
-            */}
-            <div id="content-test-details" className={clsx('pdf-page p-4', activeTab === 'test-details')}>
+            <div
+              id="content-test-details"
+              className={clsx(
+                'pdf-page p-4 overflow-y-auto',
+                !isPrinting && (activeTab !== 'test-details' && 'hidden')
+              )}
+            >
               <TestSummary test={variant} />
             </div>
           </div>

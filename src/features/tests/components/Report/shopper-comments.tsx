@@ -6,8 +6,12 @@ interface ShopperCommentsProps {
 }
 
 const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
-    if (comparision.length === 0 || surveys.length === 0) {
-        return <div className="text-gray-500 text-center">No comments available</div>;
+    if (comparision.length === 0 || surveys.length === 0 || comparision) {
+        return <div className="h-80 flex items-center justify-center">
+            <p className="text-gray-500 text-center">
+                No comments available
+            </p>
+        </div>;
     }
 
     // Extraer comentarios y filtrar valores vacíos
