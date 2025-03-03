@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { useSessionStore } from '../store/useSessionStore';
@@ -107,6 +107,8 @@ const combineVariantsAndCompetitors = (data: any) => {
 const TestUserPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const prolificPid = searchParams.get('PROLIFIC_PID');
     const { data, loading, error } = useFetchTestData(id);
     const [cartItems] = useState<any[]>([]);
 
@@ -117,9 +119,15 @@ const TestUserPage = () => {
 
     const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
+    useEffect(() => {
+        if (prolificPid) {
+            sessionStorage.setItem('prolificPid', prolificPid);
+        }
+    }, [prolificPid]);
+
     const closeModal = async () => {
         try {
-            const result = processString(id);
+            const result = processString(id ?? '');
             const testId = result?.modifiedString ?? '';
             const variant = result?.lastCharacter ?? '';
 
@@ -136,31 +144,32 @@ const TestUserPage = () => {
                     combinedData.id,
                     combinedData,
                     new Date(existingSession.created_at),
-                    existingSession.product_id ?? existingSession.competitor_id
+                    existingSession.product_id ?? existingSession.competitor_id,
+                    prolificPid 
                 );
 
                 if (existingSession.product_id || existingSession.competitor_id) {
                     navigate('/questions');
                 }
 
-                if (!shopperId) return; // No iniciar tracker sin shopperId
+                if (!shopperId) return;
 
-                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
-                tracker.trackWs('SessionEvents')?.('Session Resumed', JSON.stringify({ sessionId: existingSession.id }), 'up');
+                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}-prolificPID:${prolificPid}`);
+                tracker.trackWs('SessionEvents')?.('Session Resumed', JSON.stringify({ sessionId: existingSession.id, prolificPid }), 'up');
 
                 return;
             }
 
-            // Crear nueva sesión si no existe una previa
-            const sessionId = await createNewSession(id, combinedData);
+            // Create new session
+            const sessionId = await createNewSession(id ?? '', combinedData, prolificPid);
             if (sessionId && combinedData) {
-                startSession(sessionId, combinedData.id, combinedData, new Date());
-                setSessionStarted(true); // Flag para rastrear el inicio de sesión
+                startSession(sessionId, combinedData.id, combinedData, new Date(), undefined, prolificPid);
+                setSessionStarted(true);
 
-                if (!shopperId) return; // No iniciar tracker sin shopperId
+                if (!shopperId) return;
 
-                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
-                tracker.trackWs('SessionEvents')?.('Session Started', JSON.stringify({ sessionId }), 'up');
+                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}-prolificPID:${prolificPid}`);
+                tracker.trackWs('SessionEvents')?.('Session Started', JSON.stringify({ sessionId, prolificPid }), 'up');
             }
         } catch (error) {
             console.error(`Error en closeModal al procesar la sesión (ID: ${id}):`, error);

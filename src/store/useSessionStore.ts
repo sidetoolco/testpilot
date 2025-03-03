@@ -13,9 +13,10 @@ interface SessionState {
   status: 'introduction' | 'shopping' | 'questions'; // Nuevo campo status
   idTest: string | null; // Nuevo campo idTest
   test: Record<string, any> | null; // Nuevo campo test, puedes ajustar el tipo según tus necesidades
+  prolificPid: string | null;
   clearItemSelectedAtCheckout: () => void; // Nuevo método
 
-  startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date, itemSelectedAtCheckout?: Product | null) => void;
+  startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date, itemSelectedAtCheckout?: Product | null, prolificPid?: string | null) => void;
   clickItem: (itemId: string) => void;
   selectItemAtCheckout: (itemId: Product) => void;
   answerQuestion: (questionId: string, answer: string) => void;
@@ -34,8 +35,9 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     status: 'introduction', // Inicialización del campo status
     idTest: null, // Inicialización del campo idTest
     test: null, // Inicialización del campo test
+    prolificPid: null,
 
-    startSession: (shopperId, idTest, test, sessionBeginTime, itemSelectedAtCheckout?: Product | null) => set({
+    startSession: (shopperId, idTest, test, sessionBeginTime, itemSelectedAtCheckout?: Product | null, prolificPid?: string | null) => set({
       sessionBeginTime: sessionBeginTime,
       shopperId,
       itemsClicked: [],
@@ -45,6 +47,7 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
       status: 'shopping', // Cambia el estado a shopping al iniciar la sesión
       idTest: idTest, // Reinicia el idTest al iniciar la sesión
       test: test, // Reinicia el test al iniciar la sesión
+      prolificPid: prolificPid || null,
     }),
 
     clickItem: (itemId) => set((state) => ({

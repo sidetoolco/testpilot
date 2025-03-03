@@ -32,14 +32,19 @@ export const checkAndFetchExistingSession = async (id: string, variant: string) 
     return null;
 
 };
-export const createNewSession = async (testIdraw: string, combinedData: any) => {
+export const createNewSession = async (testIdraw: string, combinedData: any, prolificPid?: string | null) => {
     const result = processString(testIdraw);
     const testId = result?.modifiedString ? result?.modifiedString : '';
     const variationType = result?.lastCharacter ? result?.lastCharacter : '';
     try {
         const { data, error } = await supabase
             .from('testers_session')
-            .insert([{ test_id: testId, status: 'started', variation_type: variationType } as any])
+            .insert([{
+                test_id: testId,
+                status: 'started',
+                variation_type: variationType,
+                prolific_pid: prolificPid || null
+            } as any])
             .select('id');
 
         if (error) {
@@ -47,8 +52,7 @@ export const createNewSession = async (testIdraw: string, combinedData: any) => 
             return null;
         } else if (data && data.length > 0 && combinedData) {
             const sessionId = data[0].id;
-            localStorage.setItem('testerSessionId', sessionId); // Store the ID in localStorage
-            localStorage.setItem('testId', testId); // Store the ID in localStorage
+            localStorage.setItem('testerSessionId', sessionId);
             return sessionId;
         }
     } catch (error) {
