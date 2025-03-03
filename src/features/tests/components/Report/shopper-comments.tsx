@@ -8,7 +8,12 @@ interface ShopperCommentsProps {
 const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
     const [variant, setVariant] = useState<'a' | 'b' | 'c'>('a');
 
-    if (comparision[variant].length === 0 || surveys[variant].length === 0) {
+    if (
+        Object.keys(comparision).length === 0 ||
+        Object.keys(surveys).length === 0 ||
+        comparision[variant].length === 0 || 
+        surveys[variant].length === 0
+    ) {
         return <div className="h-80 flex items-center justify-center">
             <p className="text-gray-500 text-center">
                 No comments available
