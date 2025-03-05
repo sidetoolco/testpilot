@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
 import clsx from 'clsx';
-import { supabase } from '../../../../lib/supabase';
+import { supabase } from '../../../../../lib/supabase';
 
 const COLORS = {
     success: {
