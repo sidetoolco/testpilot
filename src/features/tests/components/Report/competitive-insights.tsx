@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 type ComparisonData = Record<string, any[]>;
 
-const CompetitiveInsights: React.FC<{ comparision: ComparisonData,  }> = ({ comparision, }) => {
+const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ comparision, }) => {
     const [selectedVariant, setSelectedVariant] = useState('b');
     const handleVariantChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedVariant(event.target.value);
@@ -47,7 +47,7 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData,  }> = ({ comp
             <h2 className="text-xl font-bold mb-4">Competitive Insights</h2>
             <div className="mb-4">
                 <label htmlFor="variant-select" className="mr-2">Select Variant:</label>
-                <select id="variant-select" value={selectedVariant} onChange={handleVariantChange} className="p-2 border border-gray-300">
+                <select id="variant-select" value={selectedVariant} onChange={handleVariantChange} className="p-2 border border-gray-300 rounded-lg">
                     <option value="a">Variant A</option>
                     <option value="b">Variant B</option>
                     <option value="c">Variant C</option>
@@ -56,11 +56,11 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData,  }> = ({ comp
             {variantData.length === 0 ? (
                 <p className='text-red-500'>No data available for this variant</p>
             ) : (
-                <table className="min-w-full border-collapse border border-gray-300">
+                <table className="min-w-full border-collapse max-w-screen-md ">
                     <thead>
                         <tr className="bg-gray-100 border-none">
-                            <th className="p-2 border-l border-t border-gray-100"></th>
-                            <th className="p-2 border-t border-gray-100"></th>
+                            <th className="p-2 bg-[#fff8f8]"></th>
+                            <th className="p-2 bg-[#fff8f8]"></th>
                             <th className="border border-gray-300 p-2 col-span-5" colSpan={5}>Your Item vs Competitor</th>
                         </tr>
                         <tr className="bg-gray-200">
@@ -81,21 +81,21 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData,  }> = ({ comp
                                         <img src={item.amazon_products.image_url} alt={item.amazon_products.title} className="w-10 h-10" />
                                     </a>
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.share)}`}>{item.share}%</td>
+                                <td className={`border border-gray-300 p-2 ${getColorClass(item.share)}`}>{item.share.toFixed(2)}%</td>
                                 <td className={`border border-gray-300 p-2 ${getColorClass(item.value)}`}>
-                                    {item.value.toFixed(2) - 3}
+                                    {(item.value - 3).toFixed(2)}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${getColorClass(item.appearance)}`}>
-                                    {item.appearance.toFixed(2) - 3}
+                                    {(item.appearance - 3).toFixed(2)}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${getColorClass(item.confidence)}`}>
-                                    {item.confidence.toFixed(2) - 3}
+                                    {(item.confidence - 3).toFixed(2)}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${getColorClass(item.brand)}`}>
-                                    {item.brand.toFixed(2) - 3}
+                                    {(item.brand - 3).toFixed(2)}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${getColorClass(item.convenience)}`}>
-                                    {item.convenience.toFixed(2) - 3}
+                                    {(item.convenience - 3).toFixed(2)}
                                 </td>
                             </tr>
                         ))}

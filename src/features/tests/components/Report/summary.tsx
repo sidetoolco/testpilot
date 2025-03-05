@@ -21,10 +21,10 @@ const COLORS = {
 const getColorForValue = (value: string, columnIndex: number, allRows: string[][], testid: string) => {
     if (value === 'Yes') return `${COLORS.success.bg} ${COLORS.success.text}`;
     if (value === 'No') return `${COLORS.error.bg} ${COLORS.error.text}`;
-    
+
     // Skip first column (Variant names)
     if (columnIndex === 0) return '';
-    
+
     // Convert percentage strings to numbers
     const numValue = parseFloat(value.replace('%', ''));
     if (isNaN(numValue)) return '';
@@ -120,7 +120,7 @@ const Summary: React.FC<{
         ]);
 
         const shareOfClicks = calculatePercentage(appearances, totalClicks);
-        
+
         const totalSurveys = surveys[variationType]?.length || 0;
         const totalComparisions = comparision[variationType]?.length || 0;
         const sumCheckouts = totalSurveys + totalComparisions;
@@ -184,8 +184,8 @@ const Summary: React.FC<{
     if (error) return (
         <div className="text-center text-red-500 p-4">
             <p>{error}</p>
-            <button 
-                onClick={() => window.location.reload()} 
+            <button
+                onClick={() => window.location.reload()}
                 className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
             >
                 Retry
@@ -201,19 +201,6 @@ const Summary: React.FC<{
         <div className="p-3">
             <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
             <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <button
-                    className="absolute top-2 right-2 p-1 hover:bg-gray-200 rounded-full transition-colors duration-200"
-                    aria-label="Close insight"
-                    onClick={() => {
-                        const element = document.getElementById('insightPanel');
-                        if (element) {
-                            element.style.opacity = '0';
-                            setTimeout(() => element.style.display = 'none', 300);
-                        }
-                    }}
-                >
-                    <X size={20} className="text-gray-500" />
-                </button>
                 <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
                     <div className="flex-shrink-0">
                         <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-inner">
@@ -237,8 +224,8 @@ const Summary: React.FC<{
                     <thead>
                         <tr>
                             {headers.map((header, index) => (
-                                <th 
-                                    key={index} 
+                                <th
+                                    key={index}
                                     className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50"
                                     title={`Sort by ${header}`}
                                 >
@@ -249,8 +236,8 @@ const Summary: React.FC<{
                     </thead>
                     <tbody>
                         {rows.map((row, rowIndex) => (
-                            <tr 
-                                key={rowIndex} 
+                            <tr
+                                key={rowIndex}
                                 className="border border-gray-100 hover:bg-gray-50 transition-colors duration-200"
                             >
                                 {row.map((cell, cellIndex) => (
