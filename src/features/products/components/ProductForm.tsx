@@ -37,7 +37,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     e.preventDefault();
 
     const newErrors = {
-      bulletPoints: formData.bullet_points.length < 5,
+      bulletPoints: formData.bullet_points.length < 5 || formData.bullet_points.some(point => !point?.trim()),
       description: formData.description.length < 50,
     };
 
@@ -45,7 +45,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
     if (Object.values(newErrors).some(error => error)) {
       if (newErrors.bulletPoints) {
-        toast.error('Please enter at least 5 bullet points about your product');
+        toast.error('Please fill in all 5 bullet points about your product');
       }
       if (newErrors.description) {
         toast.error('Your description needs to be at least 50 characters long to be effective');
@@ -141,15 +141,29 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       {/* Bullet Points */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          About the product
+          About the product ( Enter 5 key points)
         </label>
-        <textarea
-          value={formData.bullet_points.join('\n')}
-          onChange={(e) => setFormData({ ...formData, bullet_points: e.target.value.split('\n') })}
-          className={`w-full px-4 py-2 border ${errors.bulletPoints ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
-          rows={3}
-          placeholder="Enter bullet points, one per line"
-        />
+        <div className="space-y-2">
+          {[0, 1, 2, 3, 4].map((index) => (
+            <input
+              key={index}
+              type="text"
+              value={formData.bullet_points[index] || ''}
+              onChange={(e) => {
+                const newBulletPoints = [...formData.bullet_points];
+                newBulletPoints[index] = e.target.value;
+                setFormData({ ...formData, bullet_points: newBulletPoints });
+              }}
+              className={`w-full px-4 py-2 border ${
+                errors.bulletPoints ? 'border-red-500' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
+              placeholder={`Key point ${index + 1}`}
+            />
+          ))}
+        </div>
+        {errors.bulletPoints && (
+          <p className="mt-1 text-sm text-red-500">Please fill all the bullet points</p>
+        )}
       </div>
 
       {/* Price and Brand */}
