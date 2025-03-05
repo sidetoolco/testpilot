@@ -134,7 +134,7 @@ const TestUserPage = () => {
             const existingSession: any = await checkAndFetchExistingSession(testId, variant);
 
             if (existingSession?.ended_at) {
-                navigate('/thanks', { state: { testId: id } });
+                navigate('/thanks', { state: { testId: id + '-' + variant } });
                 return;
             }
 

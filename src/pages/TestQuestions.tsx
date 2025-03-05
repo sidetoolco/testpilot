@@ -129,7 +129,7 @@ const TestDisplay: React.FC = () => {
             }
 
             console.log('Data saved successfully:', data);
-            navigate('/thanks', { state: { testId: test.id } });
+            navigate('/thanks', { state: { testId: test.id + '-' + test.variations[0].variation_type } });
         } catch (error) {
             console.error('Unexpected error:', error);
         }
