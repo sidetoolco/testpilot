@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useSessionStore } from '../store/useSessionStore';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -134,6 +134,10 @@ const TestDisplay: React.FC = () => {
             console.error('Unexpected error:', error);
         }
     }, [responses, test, shopperId, itemSelectedAtCheckout, navigate, competitorItem]);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     if (!test) {
         return <div>No test data available</div>;
