@@ -19,7 +19,7 @@ export const amazonService = {
       return products;
     } catch (error) {
       console.error('Amazon search error:', error);
-      throw error;
+      return Promise.reject(error);
     }
   }
 };
@@ -31,40 +31,55 @@ function isProfileData(profile: any): profile is ProfileData {
 }
 
 async function getCompanyId(userId: string): Promise<string> {
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('company_id')
-    .eq('id', userId)
-    .single();
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('company_id')
+      .eq('id', userId)
+      .single();
 
-  if (error) throw new ApiError('Failed to fetch user profile', 'PROFILE_ERROR');
-  if (!isProfileData(profile)) throw new ApiError('No company found for user', 'NO_COMPANY');
+    if (error) throw new ApiError('Failed to fetch user profile', 'PROFILE_ERROR');
+    if (!isProfileData(profile)) throw new ApiError('No company found for user', 'NO_COMPANY');
 
-  return profile.company_id;
+    return profile.company_id;
+  } catch (error) {
+    console.error('Error fetching company ID:', error);
+    throw error;
+  }
 }
 
 async function fetchProductsFromDB(searchTerm: string, companyId: string): Promise<AmazonProduct[]> {
-  const { data, error } = await supabase
-    .from('amazon_products')
-    .select('*')
-    .eq('company_id', companyId)
-    .ilike('search_term', searchTerm)
-    .order('reviews_count', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('amazon_products')
+      .select('*')
+      .eq('company_id', companyId)
+      .ilike('search_term', searchTerm)
+      .order('reviews_count', { ascending: false });
 
-  if (error) throw new ApiError('Failed to fetch products from database', 'DB_ERROR');
+    if (error) throw new ApiError('Failed to fetch products from database', 'DB_ERROR');
 
-  return filterUniqueValidProducts(data);
+    return filterUniqueValidProducts(data);
+  } catch (error) {
+    console.error('Error fetching products from DB:', error);
+    throw error;
+  }
 }
 
 async function fetchProductsFromAPI(searchTerm: string, companyId: string): Promise<void> {
-  const response = await fetch('https://sidetool.app.n8n.cloud/webhook/amazon-search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ searchTerm, companyId })
-  });
+  try {
+    const response = await fetch('https://sidetool.app.n8n.cloud/webhook/amazon-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ searchTerm, companyId })
+    });
 
-  if (!response.ok) {
-    throw new ApiError('Failed to fetch from Amazon API', 'API_ERROR');
+    if (!response.ok) {
+      throw new ApiError('Failed to fetch from Amazon API', 'API_ERROR');
+    }
+  } catch (error) {
+    console.error('Error fetching from Amazon API:', error);
+    throw error;
   }
 }
 
