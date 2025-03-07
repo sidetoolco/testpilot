@@ -9,7 +9,7 @@ export default function MyTests() {
 
   // Calculate statistics
   const activeTests = tests.filter(s => s.status === 'active').length;
-  const completedTests = tests.filter(s => s.status === 'completed').length;
+  const completedTests = tests.filter(s => s.status === 'complete').length;
 
   if (loading) {
     return (
@@ -94,7 +94,7 @@ export default function MyTests() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
                   <div className={`w-12 h-12 rounded-full ${test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center`}>
-                    {test.status === 'completed' ? (
+                    {test.status === 'complete' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (
                       <Clock className="h-6 w-6 text-blue-500" />
@@ -105,7 +105,7 @@ export default function MyTests() {
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                       <span>Search term: {test.searchTerm}</span>
                       <span className="hidden sm:inline">•</span>
-                      <span className={`${test.status === 'completed' ? 'text-[#00A67E]' : 'text-blue-500'}`}>
+                      <span className={`${test.status === 'complete' ? 'text-[#00A67E]' : 'text-blue-500'}`}>
                         {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                       </span>
                     </div>

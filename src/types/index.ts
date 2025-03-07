@@ -22,7 +22,7 @@ export interface Product {
 export interface Test {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'completed';
+  status: 'draft' | 'active' | 'complete';
   searchTerm: string;
   competitors: Product[];
   variations: {
