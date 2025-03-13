@@ -173,7 +173,7 @@ export const testService = {
         };
 
         try {
-          const response = await fetch('https://sidetool.app.n8n.cloud/webhook/prolific-create', {
+          const response = await fetch('https://testpilot.app.n8n.cloud/webhook/prolific-create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -200,7 +200,7 @@ export const testService = {
   async addCompetitorsBulletsDescriptions(competitors: any) {
 
     try {
-      await fetch('https://sidetool.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
+      await fetch('https://testpilot.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

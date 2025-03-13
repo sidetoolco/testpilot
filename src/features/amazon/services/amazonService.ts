@@ -68,7 +68,7 @@ async function fetchProductsFromDB(searchTerm: string, companyId: string): Promi
 
 async function fetchProductsFromAPI(searchTerm: string, companyId: string): Promise<void> {
   try {
-    const response = await fetch('https://sidetool.app.n8n.cloud/webhook/amazon-search', {
+    const response = await fetch('https://testpilot.app.n8n.cloud/webhook/amazon-search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ searchTerm, companyId })
