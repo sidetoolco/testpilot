@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X } from 'lucide-react';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 export default function SideNav() {
@@ -101,6 +101,18 @@ export default function SideNav() {
             ))}
           </ul>
         </nav>
+
+        {/* Support */}
+        <div className="p-4 border-t border-[#00C495]">
+          <Link
+            to="/support"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center space-x-1 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors"
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span className="font-medium">Support</span>
+          </Link>
+        </div>
 
         {/* Logout */}
         <div className="p-4 border-t border-[#00C495]">

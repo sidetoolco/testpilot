@@ -23,6 +23,7 @@ import TestQuestions from './pages/TestQuestions';
 import ThankYou from './pages/ThankYou';
 import Ai from './pages/ai';
 import AdalineComponent from './pages/adaline';
+import Support from './pages/Support';
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,15 @@ function App() {
                   </MainLayout>
                 </ProtectedRoute>
               } />
+
+              <Route path="/support" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Support />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+
 
               <Route path="/product/:id" element={
                 <ProductDetail />
