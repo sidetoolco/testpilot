@@ -107,7 +107,7 @@ export default function SideNav() {
           <Link
             to="/support"
             onClick={() => setIsOpen(false)}
-            className="flex items-center space-x-1 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors"
+            className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <HelpCircle className="h-5 w-5" />
             <span className="font-medium">Support</span>
