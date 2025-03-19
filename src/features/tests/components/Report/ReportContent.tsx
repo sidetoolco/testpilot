@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import PurchaseDrivers from './sections/PurchaseDrivers';
 import CompetitiveInsights from './sections/CompetitiveInsights';
 import ShopperComments from './sections/ShopperComments';
-import Recommendations from './sections/Recommendations';
 import TestSummary from '../TestSummary';
 import Summary from './sections/summary';
+import Recommendations from './sections/Recommendations';
 
 interface ReportContentProps {
   activeTab: string;
