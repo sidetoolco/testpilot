@@ -44,7 +44,6 @@ export const fetchOpenAIResponse = async (prompt: string, dataToAnalyze: any) =>
   if (!prompt.trim()) return;
 
   try {
-    // Convert dataToAnalyze to a JSON string if it's an object or an array
     const dataString = (typeof dataToAnalyze === 'object' || Array.isArray(dataToAnalyze))
       ? JSON.stringify(dataToAnalyze)
       : dataToAnalyze;
@@ -53,14 +52,14 @@ export const fetchOpenAIResponse = async (prompt: string, dataToAnalyze: any) =>
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`, // Use VITE_ for environment variables in React
+        Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
           { role: "user", content: `${prompt}, this is the data to analyze: ${dataString}` },
         ],
-        max_tokens: 100,
+        max_tokens: 500,
       }),
     });
 
@@ -139,7 +138,7 @@ const prompt = ["comparison-between-variants", "purchase-drivers", "competitive-
 //   - testId (string): The ID of the test associated with the response.
 // Returns: None.
 const writePromptResponseInDatabase = async (promptResponses: string[], testId: string) => {
-  if (promptResponses.length === 0) return;
+  if (promptResponses.length === 0) return null;
   try {
     const { data, error } = await supabase
       .from('ia_insights')
@@ -150,13 +149,23 @@ const writePromptResponseInDatabase = async (promptResponses: string[], testId: 
         competitive_insights: promptResponses[2],
         recommendations: promptResponses[3]
       } as any);
+
     if (error) {
       console.error('Error writing prompt response in database:', error);
+      return null;
     } else {
       console.log('Prompt response written in database:', data);
+      return {
+        test_id: testId,
+        comparison_between_variants: promptResponses[0],
+        purchase_drivers: promptResponses[1],
+        competitive_insights: promptResponses[2],
+        recommendations: promptResponses[3]
+      };
     }
   } catch (parseError) {
     console.error('Error parsing prompt response:', parseError);
+    return null;
   }
 }
 
@@ -186,7 +195,16 @@ const processCompetitiveInsightsData = (comparisons: { a: any[]; b: any[]; c: an
     return array.reduce((acc: any, item: any) => {
       const key = item.competitor_id;
       if (!acc[key]) {
-        acc[key] = { ...item, count: 1, shopper_count: array.length };
+        acc[key] = {
+          title: item.amazon_products.title,
+          count: 1,
+          shopper_count: array.length,
+          value: item.value,
+          appearance: item.appearance,
+          convenience: item.convenience,
+          brand: item.brand,
+          confidence: item.confidence
+        };
       } else {
         acc[key].value += item.value;
         acc[key].appearance += item.appearance;
@@ -272,7 +290,7 @@ export const getIaInsight = async (testId: string, testInfo: any) => {
 
   if (!iaInsight) {
     try {
-      const recomendations = await fetchOpenAIResponse("recomendations", allResponses).then(async (response) => {
+      await fetchOpenAIResponse("recomendations", allResponses).then(async (response) => {
         console.log('Recomendations:', response);
         allResponses.push(response);
         const result = await writePromptResponseInDatabase(allResponses, testId);

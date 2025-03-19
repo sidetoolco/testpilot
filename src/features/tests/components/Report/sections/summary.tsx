@@ -111,6 +111,8 @@ const Summary: React.FC<{
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { insight, loading } = useInsightStore();
+    const [showFullText, setShowFullText] = useState(false);
+    const maxLength = 250; // Define the maximum length for the truncated text
 
     const processVariantData = async (variant: Variant, index: number): Promise<string[]> => {
         const variationType: VariationType = index === 0 ? 'a' : index === 1 ? 'b' : 'c';
@@ -176,6 +178,22 @@ const Summary: React.FC<{
         return ((numerator / denominator) * 100).toFixed(1);
     };
 
+    const toggleText = () => {
+        setShowFullText(!showFullText);
+    };
+
+    const renderText = () => {
+        if (!insight) return '';
+
+        const fullText = insight.comparison_between_variants;
+        if (showFullText || fullText.length <= maxLength) {
+            return <ReactMarkdown>{fullText}</ReactMarkdown>;
+        }
+
+        const truncatedText = fullText.substring(0, maxLength) + '...';
+        return <ReactMarkdown>{truncatedText}</ReactMarkdown>;
+    };
+
     if (isLoading && loading) return (
         <div className="flex justify-center items-center min-h-[200px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -211,7 +229,12 @@ const Summary: React.FC<{
                     <div>
                         <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
                         <div className="text-gray-700 leading-relaxed">
-                            {insight ? <ReactMarkdown>{insight.comparison_between_variants}</ReactMarkdown> : ''}
+                            {renderText()}
+                            {insight && insight.comparison_between_variants.length > maxLength && (
+                                <button onClick={toggleText} className="text-blue-500">
+                                    {showFullText ? 'See Less' : 'See More'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -2,9 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTestDetail } from '../features/tests/hooks/useTestDetail';
-import Report from '../features/tests/components/Report/Report';
 import { getIaInsight } from '../features/tests/components/Report/services/dataInsightService';
 import { useInsightStore } from '../features/tests/hooks/useIaInsight';
+import Report from '../features/tests/components/Report/ReportMain';
 
 export default function TestDetail() {
   const navigate = useNavigate();
