@@ -33,7 +33,9 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                 {Object.values(test.variations).filter(v => v !== null).map((variation, index) => (
                   <div key={index} className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors duration-200">
                     <img src={variation.image_url} alt={variation.title} className="w-10 h-10 object-contain rounded-md" />
-                    <span className="text-sm font-medium text-gray-700">{variation.title}</span>
+                    <span className="text-sm font-medium text-gray-700" title={variation.title}>
+                      {variation.title.length > 30 ? `${variation.title.substring(0, 30)}...` : variation.title}
+                    </span>
                   </div>
                 ))}
               </div>
