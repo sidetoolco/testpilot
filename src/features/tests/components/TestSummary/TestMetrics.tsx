@@ -39,11 +39,13 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     fetchSessionCount();
   }, [test.id]);
 
+  const variationCount = Object.values(test.variations).filter(variation => variation !== null).length;
+
   const metrics = [
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Total Testers",
-      value: `${completedSessions.length} / ${test.demographics.testerCount}`,
+      value: `${completedSessions.length} / ${test.demographics.testerCount * variationCount}`,
       subtitle: "Winning Sessions / Total Testers"
     }
     // {
