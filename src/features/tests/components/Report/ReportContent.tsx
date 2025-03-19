@@ -5,7 +5,7 @@ import CompetitiveInsights from './sections/CompetitiveInsights';
 import ShopperComments from './sections/ShopperComments';
 import TestSummary from '../TestSummary';
 import Summary from './sections/summary';
-import Recommendations from './sections/Recommendations';
+import Recommendations from './sections/RecommendationsList';
 
 interface ReportContentProps {
   activeTab: string;
