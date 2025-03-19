@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { supabase } from '../../../../../lib/supabase';
-
+import { useInsightStore } from '../../../hooks/useIaInsight';
+import ReactMarkdown from 'react-markdown';
 const COLORS = {
     success: {
         bg: 'bg-[#ebfff7]',
@@ -109,6 +110,7 @@ const Summary: React.FC<{
     const [rows, setRows] = useState<string[][]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { insight, loading } = useInsightStore();
 
     const processVariantData = async (variant: Variant, index: number): Promise<string[]> => {
         const variationType: VariationType = index === 0 ? 'a' : index === 1 ? 'b' : 'c';
@@ -174,7 +176,7 @@ const Summary: React.FC<{
         return ((numerator / denominator) * 100).toFixed(1);
     };
 
-    if (isLoading) return (
+    if (isLoading && loading) return (
         <div className="flex justify-center items-center min-h-[200px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
@@ -208,12 +210,9 @@ const Summary: React.FC<{
                     </div>
                     <div>
                         <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
-                        <p className="text-gray-700 leading-relaxed">
-                            Your first variant, Eucalyptus Glow, significantly outperformed the competitive set.
-                            The bold but familiar scent name stood out from more traditional competitive options.
-                            At your price point, perceived value was exceptional outperforming all other items on shelf.
-                            Unfortunately, the other two options underperformed.
-                        </p>
+                        <div className="text-gray-700 leading-relaxed">
+                            {insight ? <ReactMarkdown>{insight.comparison_between_variants}</ReactMarkdown> : ''}
+                        </div>
                     </div>
                 </div>
             </div>

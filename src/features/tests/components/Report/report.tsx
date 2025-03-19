@@ -11,33 +11,39 @@ interface ReportProps {
 interface ReportTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  variantStatus: string;
 }
 
-const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange }) => {
+const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
   return (
     <div className="border-b border-gray-200 overflow-x-auto">
       <nav className="flex gap-1 min-w-max pb-1">
-        {['summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations', 'test-details'].map(tab => (
-          <button
-            className={clsx(
-              'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
-              activeTab === tab
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent hover:border-gray-300'
-            )}
-            key={tab}
-            onClick={() => onTabChange(tab)}
-          >
-            {tab.replace('-', ' ').replace(/\b\w/g, char => char.toUpperCase())}
-          </button>
-        ))}
+        {[ 'test-details','summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations'].map(tab => {
+          const isDisabled = variantStatus === 'draft' && tab !== 'test-details';
+          return (
+            <button
+              className={clsx(
+                'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
+                activeTab === tab
+                  ? 'border-green-600 text-green-600'
+                  : 'border-transparent hover:border-gray-300',
+                isDisabled && 'opacity-50 cursor-not-allowed'
+              )}
+              key={tab}
+              onClick={() => !isDisabled && onTabChange(tab)}
+              disabled={isDisabled}
+            >
+              {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
 };
 
 const Report: React.FC<ReportProps> = ({ variant: testData }) => {
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting, setIsPrinting] = useState(false);
   const variantsArray = [testData.variations.a, testData.variations.b, testData.variations.c].filter(v => v);
 
@@ -74,6 +80,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   }, [isPrinting]); // Add isPrinting to dependencies
 
   const handleTabChange = (tab: string) => {
+    if (testData.status === 'draft' && tab !== 'test-details') return;
     setActiveTab(tab);
     // Find and focus the content
     const element = document.getElementById(`content-${tab}`);
@@ -94,7 +101,11 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
             testDetails={testData}
           />
         </div>
-        <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
+        <ReportTabs 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          variantStatus={testData.status}
+        />
       </div>
       {isPrinting ? (
         <LoadingSpinner />

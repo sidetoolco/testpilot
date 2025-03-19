@@ -1,5 +1,7 @@
 import React, { CSSProperties } from "react";
 import { scaleBand, scaleLinear } from "d3";
+import { useInsightStore } from "../../../hooks/useIaInsight";
+import ReactMarkdown from "react-markdown";
 interface Survey {
     product_id: string;
     products: { title: string };
@@ -23,6 +25,7 @@ const getProductName = (productId: string): string => {
 };
 
 const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey[] } }> = ({ surveys }) => {
+    const { insight, loading } = useInsightStore();
     if (!surveys || Object.keys(surveys).length === 0) return <p>Your product was not chosen for this test</p>;
 
     const groupedSurveys: GroupedSurvey = Object.entries(surveys).reduce((acc, [variationType, surveyArray]) => {
@@ -108,7 +111,7 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
             } as CSSProperties}>
                 {/* Legend */}
                 <div className="absolute -top-12 left-0 flex space-x-2 p-2 bg-white rounded shadow">
-                    {datasets.map((dataset, index) => (
+                    {datasets.map((dataset: any, index: number) => (
                         <div key={index} className="flex items-center space-x-1">
                             <div className="w-4 h-4 rounded" style={{ backgroundColor: dataset.backgroundColor }}></div>
                             <span className="text-xs text-gray-600">{dataset.label}</span>
@@ -147,8 +150,8 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
                             ))}
                         </svg>
 
-                        {datasets.map((dataset) => (
-                            dataset.keys.map(({ key, value }) => (
+                        {datasets.map((dataset: any) => (
+                            dataset.keys.map(({ key, value }: { key: string, value: number }) => (
                                 <div key={`${dataset.productId}-${key}`} className="absolute bottom-0 rounded-t" style={{
                                     left: `${xScale(key)! + subXScale(dataset.productId)!}%`,
                                     width: `${subXScale.bandwidth()}%`,
@@ -160,6 +163,21 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
                                 </div>
                             ))
                         ))}
+                    </div>
+                </div>
+            </div>
+            <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
+                    <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-inner">
+                            <span className="text-2xl transform hover:scale-110 transition-transform duration-200">💡</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
+                        <div className="text-gray-700 leading-relaxed">
+                            {insight && !loading && <ReactMarkdown>{insight.purchase_drivers}</ReactMarkdown>}
+                        </div>
                     </div>
                 </div>
             </div>

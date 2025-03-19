@@ -1,23 +1,44 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTestDetail } from '../features/tests/hooks/useTestDetail';
-import Report from '../features/tests/components/Report/report';
+import Report from '../features/tests/components/Report/Report';
+import { getIaInsight } from '../features/tests/components/Report/services/dataInsightService';
+import { useInsightStore } from '../features/tests/hooks/useIaInsight';
 
 export default function TestDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { test: testInfo, loading } = useTestDetail(id || '');
+  const { insight, loading: insightLoading, setInsight, setLoading } = useInsightStore();
 
-  if (loading) {
+  useEffect(() => {
+    if (testInfo && id) {
+      setLoading(true);
+      getIaInsight(id || '', testInfo)
+        .then((data: any) => {
+          setInsight(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoading(false);
+        });
+    }
+  }, [id, testInfo]);
+
+  const isInsightLoading = testInfo && insightLoading;
+  console.log(insight, 'insight', loading, 'loading', insightLoading, 'insightLoading');
+
+  if (loading || isInsightLoading) {
     return (
       <div className="max-w-[1400px] mx-auto px-8 py-6">
         <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+          {isInsightLoading && <p className="mt-4 text-primary-400 animate-pulse">Loading insights...</p>}
         </div>
       </div>
     );
   }
-
   if (!testInfo) {
     return (
       <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
+import { useInsightStore } from '../../../hooks/useIaInsight';
+import ReactMarkdown from 'react-markdown';
 
 type ComparisonData = Record<string, any[]>;
 
 const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ comparision, }) => {
     const [selectedVariant, setSelectedVariant] = useState('b');
+    const { insight, loading } = useInsightStore();
+
     const handleVariantChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedVariant(event.target.value);
     };
@@ -17,7 +21,7 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
             acc[key] = { ...item, count: 1 };
         } else {
             acc[key].value += item.value;
-            acc[key].appearence += item.appearence;
+            acc[key].appearance += item.appearance;
             acc[key].convenience += item.convenience;
             acc[key].brand += item.brand;
             acc[key].confidence += item.confidence;
@@ -26,10 +30,11 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
         return acc;
     }, {});
 
+    // name: item.amazon_products.title,
     const averagedComparison = Object.values(groupedComparison).map((item: any) => ({
         ...item,
         value: item.value / item.count,
-        appearence: item.appearence / item.count,
+        appearance: item.appearance / item.count,
         convenience: item.convenience / item.count,
         brand: item.brand / item.count,
         confidence: item.confidence / item.count,
@@ -103,6 +108,7 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
                 </table>
             )}
             <p className="mt-4 text-sm text-gray-600">Hovering over each picture will show item title price and reviews.</p>
+            {insight && !loading && <ReactMarkdown>{insight.competitive_insights}</ReactMarkdown>}
         </div>
     );
 };

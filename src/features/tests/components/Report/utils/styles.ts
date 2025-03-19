@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
         top: 20,
         right: 20,
         width: 100,
-        opacity: 0.7,
+        opacity: 1,
     },
     section: {
         margin: 10,
@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
-        color: '#111827',
+        color: 'white',
     },
     sectionTitle: {
         fontSize: 18,
@@ -183,4 +183,60 @@ export const styles = StyleSheet.create({
         color: '#666',
         zIndex: -1,
     },
+    subtitle: {
+        fontSize: 18,
+        marginBottom: 10,
+        color: '#374151',
+    },
+    date: {
+        fontSize: 14,
+        marginBottom: 20,
+        color: '#6B7280',
+    },
+    disclaimer: {
+        fontSize: 10,
+        marginTop: 20,
+        color: '#6B7280',
+        textAlign: 'center',
+    },
+    coverLogo: {
+        width: '100%',
+        height: 'auto',
+    }
+});
+
+export const otherStyles = StyleSheet.create({
+    logo: styles.logo,
+    section: styles.section,
+    title: styles.title,
+    sectionTitle: styles.sectionTitle,
+    text: styles.text,
+    pageNumber: styles.pageNumber,
+    grid: styles.grid,
+    card: styles.card,
+    label: styles.label,
+    value: styles.value,
+    recommendationCard: styles.recommendationCard,
+    detailsGrid: styles.detailsGrid,
+    detailsCard: styles.detailsCard,
+    objectivesList: styles.objectivesList,
+    objectiveItem: styles.objectiveItem,
+    chartContainer: styles.chartContainer,
+    chartLegend: styles.chartLegend,
+    legendItem: styles.legendItem,
+    legendColor: styles.legendColor,
+    legendText: styles.legendText,
+    chartGrid: styles.chartGrid,
+    yAxis: styles.yAxis,
+    yAxisLabel: styles.yAxisLabel,
+    xAxis: styles.xAxis,
+    xAxisLabel: styles.xAxisLabel,
+    barGroup: styles.barGroup,
+    bar: styles.bar,
+    barValue: styles.barValue,
+    watermark: styles.watermark,
+    subtitle: styles.subtitle,
+    date: styles.date,
+    disclaimer: styles.disclaimer,
+    coverLogo: styles.coverLogo
 }); 

@@ -1,7 +1,7 @@
 import { PlayCircle, CheckCircle, Clock } from 'lucide-react';
 
 interface TestStatusProps {
-  status: 'draft' | 'active' | 'completed';
+  status: 'draft' | 'active' | 'complete';
 }
 
 export default function TestStatus({ status }: TestStatusProps) {
@@ -13,7 +13,7 @@ export default function TestStatus({ status }: TestStatusProps) {
           text: 'Active',
           color: 'bg-blue-50 text-blue-600'
         };
-      case 'completed':
+      case 'complete':
         return {
           icon: <CheckCircle className="h-5 w-5" />,
           text: 'Completed',

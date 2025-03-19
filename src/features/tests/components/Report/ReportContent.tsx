@@ -1,9 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
-import PurchaseDrivers from './sections/purchase-drivers';
-import CompetitiveInsights from './sections/competitive-insights';
-import ShopperComments from './sections/shopper-comments';
-import Recommendations from './sections/recommendations';
+import PurchaseDrivers from './sections/PurchaseDrivers';
+import CompetitiveInsights from './sections/CompetitiveInsights';
+import ShopperComments from './sections/ShopperComments';
+import Recommendations from './sections/Recommendations';
 import TestSummary from '../TestSummary';
 import Summary from './sections/summary';
 
