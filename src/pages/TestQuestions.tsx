@@ -13,11 +13,11 @@ const TestDisplay: React.FC = () => {
     const navigate = useNavigate();
 
     const [responses, setResponses] = useState({
-        value: 1,
-        appearence: 1,
-        confidence: 1,
-        brand: 1,
-        convenience: 1,
+        value: 3,
+        appearence: 3,
+        confidence: 3,
+        brand: 3,
+        convenience: 3,
         likes_most: '',
         improve_suggestions: '',
         choose_reason: '',
@@ -38,7 +38,7 @@ const TestDisplay: React.FC = () => {
         }
         setResponses((prevResponses) => ({
             ...prevResponses,
-            [name]: value
+            [name]: Number(value)
         }));
     }, [shopperId, test?.id, errors]);
 
@@ -50,21 +50,21 @@ const TestDisplay: React.FC = () => {
         const isSelected = selectedVariations.length > 0;
 
         if (isSelected) {
-            if (!responses.likes_most || responses.likes_most.trim().length <= 150) {
-                validationErrors.likes_most = "You must write at least 150 characters.";
+            if (!responses.likes_most || responses.likes_most.trim().length <= 50) {
+                validationErrors.likes_most = "You must write at least 50 characters.";
             }
-            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 150) {
-                validationErrors.improve_suggestions = "You must write at least 150 characters.";
+            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 50) {
+                validationErrors.improve_suggestions = "You must write at least 50 characters.";
             }
         } else {
-            if (!responses.likes_most || responses.likes_most.trim().length <= 150) {
-                validationErrors.likes_most = "You must write at least 150 characters.";
+            if (!responses.likes_most || responses.likes_most.trim().length <= 50) {
+                validationErrors.likes_most = "You must write at least 50 characters.";
             }
-            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 150) {
-                validationErrors.improve_suggestions = "You must write at least 150 characters.";
+            if (!responses.improve_suggestions || responses.improve_suggestions.trim().length <= 50) {
+                validationErrors.improve_suggestions = "You must write at least 50 characters.";
             }
-            if (!responses.choose_reason || responses.choose_reason.trim().length <= 150) {
-                validationErrors.choose_reason = "You must write at least 150 characters.";
+            if (!responses.choose_reason || responses.choose_reason.trim().length <= 50) {
+                validationErrors.choose_reason = "You must write at least 50 characters.";
             }
         }
         return validationErrors;

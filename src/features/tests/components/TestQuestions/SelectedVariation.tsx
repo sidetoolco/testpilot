@@ -32,7 +32,7 @@ export const SelectedVariation: React.FC<{ responses: any, item: any, handleChan
                     name="likes_most"
                     value={responses.likes_most}
                     onChange={handleChange}
-                    minLength={150}
+                    minLength={50}
                     required
                 ></textarea>
                 <div className='min-h-[20px]'>
@@ -48,7 +48,7 @@ export const SelectedVariation: React.FC<{ responses: any, item: any, handleChan
                     name="improve_suggestions"
                     value={responses.improve_suggestions}
                     onChange={handleChange}
-                    minLength={150}
+                    minLength={50}
                     required
                 ></textarea>
                 <div className='min-h-[20px]'>

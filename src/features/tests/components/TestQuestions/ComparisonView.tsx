@@ -42,7 +42,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
                         }`}
                     name="likes_most"
                     onChange={handleChange}
-                    minLength={150}
+                    minLength={50}
                     required
                 ></textarea>
                 <div className='min-h-[20px]'>
@@ -57,7 +57,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
                         }`}
                     name="improve_suggestions"
                     onChange={handleChange}
-                    minLength={150}
+                    minLength={50}
                     required
                 ></textarea>
                 <div className='min-h-[20px]'>
@@ -72,7 +72,7 @@ export const ComparisonView: React.FC<{ responses: any, competitorItem: any, ite
                         }`}
                     name="choose_reason"
                     onChange={handleChange}
-                    minLength={150}
+                    minLength={50}
                     required
                 ></textarea>
                 <div className='min-h-[20px]'>
