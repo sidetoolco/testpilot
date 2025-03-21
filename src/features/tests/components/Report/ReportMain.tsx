@@ -99,6 +99,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
             onPrintStart={() => setIsPrinting(true)}
             onPrintEnd={() => setIsPrinting(false)}
             testDetails={testData}
+            disabled={testData.status !== 'complete'}
           />
         </div>
         <ReportTabs 
