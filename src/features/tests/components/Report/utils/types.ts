@@ -19,6 +19,9 @@ export interface TestDetails {
     demographics: {
         testerCount: number;
     };
+    competitors: {
+        image_url: string;
+    };
     duration: string;
     methodology: string;
     objectives: string[];
@@ -29,12 +32,17 @@ export interface TestDetails {
             c: Survey[];
         };
     };
+    variations: {
+        image_url: string;
+        title: string;
+    }[];
 }
 
 export interface ReportPDFProps {
     onPrintStart: () => void;
     onPrintEnd: () => void;
     testDetails: TestDetails;
+    disabled: boolean;
 }
 
 export interface DatasetType {

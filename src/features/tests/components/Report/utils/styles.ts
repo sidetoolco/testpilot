@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
         right: 20,
         width: 100,
         opacity: 1,
+        zIndex: 100,
     },
     section: {
         margin: 10,
@@ -79,7 +80,7 @@ export const styles = StyleSheet.create({
     },
     detailsCard: {
         backgroundColor: '#F3F4F6',
-        padding: 12,
+        padding: 5,
         borderRadius: 4,
         minWidth: '45%',
     },
@@ -202,7 +203,23 @@ export const styles = StyleSheet.create({
     coverLogo: {
         width: '100%',
         height: 'auto',
-    }
+    },
+    competitorImage: {
+        height: '10px',
+        width: '100%',
+        objectFit: 'contain',
+    },
+    pill: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#1F2937',
+        backgroundColor: '#E5E7EB',
+        borderRadius: 12,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        margin: 2,
+        textAlign: 'center',
+    },
 });
 
 export const otherStyles = StyleSheet.create({
@@ -238,5 +255,6 @@ export const otherStyles = StyleSheet.create({
     subtitle: styles.subtitle,
     date: styles.date,
     disclaimer: styles.disclaimer,
-    coverLogo: styles.coverLogo
+    coverLogo: styles.coverLogo,
+    pill: styles.pill
 }); 

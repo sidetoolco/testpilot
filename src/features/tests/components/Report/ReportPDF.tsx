@@ -11,8 +11,9 @@ import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSect
 import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
 import logo from './utils/testpilot-logo.png';
 
-// PDF Document Component
 const PDFDocument = ({ testDetails }: { testDetails: ReportPDFProps['testDetails'] }) => {
+    const variantsArray = [testDetails.variations.a, testDetails.variations.b, testDetails.variations.c].filter(v => v);
+
     return (
         <Document>
             <Page size="A4" orientation="portrait" style={{ ...styles.page, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -21,9 +22,10 @@ const PDFDocument = ({ testDetails }: { testDetails: ReportPDFProps['testDetails
                     style={styles.coverLogo}
                 />
                 <View style={{ color: 'white', backgroundColor: 'black', padding: 10, borderRadius: 10 }}>
-                    <Text style={styles.title}>Saint Rocco's Amazon Test #1</Text>
-                    <Text style={styles.subtitle}>2 Tested Variants, 11 Competitors</Text>
-                    <Text style={styles.date}>March 2, 2025</Text>
+                    <Text style={styles.title}>{testDetails.name}</Text>
+                    <Text style={styles.subtitle}>{testDetails.updatedAt}</Text>
+                    <Text style={styles.subtitle}>{testDetails.demographics.testerCount * variantsArray.length} Participants</Text>
+                    <Text style={styles.subtitle}>{testDetails.competitors.length} Competitors</Text>
                 </View>
                 <Text style={styles.disclaimer}>
                     TestPilot provides insights based on real shopper behavior in realistic eCommerce environments, helping you to make faster and more informed decisions. Actual market results may vary due to factors like competition, economic shifts, and retail dynamics. While our testing reduces risk, TestPilot makes no guarantees of real-world success. Final decisions rest with you.
@@ -31,18 +33,15 @@ const PDFDocument = ({ testDetails }: { testDetails: ReportPDFProps['testDetails
             </Page>
 
             <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image
-                    src={logo}
-                    style={styles.logo}
-                />
+                <Image src={logo} style={styles.logo} />
+                <View style={{ color: 'white', backgroundColor: 'black', padding: 10, borderRadius: 10 }}>
+                    <Text style={styles.title}>Test Design</Text>
+                </View>
                 <TestDetailsPDFSection testDetails={testDetails} />
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page>
             <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image
-                    src={logo}
-                    style={styles.logo}
-                />
+                <Image src={logo} style={styles.logo} />
                 <SummaryPDFSection />
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page>
@@ -71,10 +70,7 @@ const PDFDocument = ({ testDetails }: { testDetails: ReportPDFProps['testDetails
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page>
             <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image
-                    src={logo}
-                    style={styles.logo}
-                />
+                <Image src={logo} style={styles.logo} />
                 <RecommendationsPDFSection />
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page>
