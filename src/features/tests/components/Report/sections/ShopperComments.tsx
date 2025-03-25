@@ -1,21 +1,74 @@
 import React, { useState } from "react";
 
-interface ShopperCommentsProps {
-    comparision: { a: { improve_suggestions: string }[], b: { improve_suggestions: string }[], c: { improve_suggestions: string }[] };
-    surveys: { a: { likes_most: string }[], b: { likes_most: string }[], c: { likes_most: string }[] };
+interface Comment {
+    likes_most?: string;
+    improve_suggestions?: string;
+    choose_reason?: string;
+    tester_id: {
+        shopper_demographic: {
+            age: null | number;
+            sex: null | string;
+            country_residence: null | string;
+        };
+    };
 }
+
+interface ShopperCommentsProps {
+    comparision: {
+        a: Comment[];
+        b: Comment[];
+        c: Comment[];
+    };
+    surveys: {
+        a: Comment[];
+        b: Comment[];
+        c: Comment[];
+    };
+}
+
+const CommentSection: React.FC<{
+    title: string;
+    comments: Comment[];
+    isPositive?: boolean;
+}> = ({ title, comments, isPositive = true }) => (
+    <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
+        {comments.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+                {comments.map((comment, index) => (
+                    <div
+                        key={index}
+                        className={`p-4 rounded-lg border justify-between flex flex-col ${isPositive
+                            ? "bg-green-50 border-green-200"
+                            : "bg-red-50 border-red-200"
+                            }`}
+                    >
+                        <p className="text-gray-700">{comment.likes_most || comment.improve_suggestions || comment.choose_reason}</p>
+                        <div className="mt-2 text-sm text-gray-500">
+                            {comment.tester_id?.shopper_demographic?.age && <p>Age: {comment.tester_id.shopper_demographic.age}</p>}
+                            {comment.tester_id?.shopper_demographic?.sex && <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>}
+                            {comment.tester_id?.shopper_demographic?.country_residence && <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        ) : (
+            <p className="text-gray-500">No comments available.</p>
+        )}
+    </div>
+);
 
 const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
     const [variant, setVariant] = useState<'a' | 'b' | 'c'>('a');
     const variants: ('a' | 'b' | 'c')[] = ['a', 'b', 'c'];
-    
+
     const handleVariantChange = () => {
         const currentIndex = variants.indexOf(variant);
         setVariant(variants[(currentIndex + 1) % variants.length]);
     };
 
-    const hasComparision = comparision[variant] && comparision[variant].length > 0;
-    const hasSurveys = surveys[variant] && surveys[variant].length > 0;
+    const hasComparision = comparision[variant]?.length > 0;
+    const hasSurveys = surveys[variant]?.length > 0;
 
     if (!hasComparision && !hasSurveys) {
         return (
@@ -32,13 +85,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
         );
     }
 
-    // Filtrar comentarios vacíos o undefined
-    const negativeComments = hasComparision ? comparision[variant].map(comment => comment.improve_suggestions).filter(Boolean) : [];
-    const positiveComments = hasSurveys ? surveys[variant].map(comment => comment.likes_most).filter(Boolean) : [];
-    
-    const totalComments = positiveComments.length + negativeComments.length;
-    const positivePercentage = totalComments ? ((positiveComments.length / totalComments) * 100).toFixed(1) : "0";
-    const negativePercentage = totalComments ? ((negativeComments.length / totalComments) * 100).toFixed(1) : "0";
+    const getComments = (data: Comment[], field: keyof Comment) =>
+        data.filter(comment => comment[field]).map(comment => comment);
+
+    const currentComparision = comparision[variant];
+    const currentSurveys = surveys[variant];
 
     return (
         <div className="p-6 bg-white rounded-xl shadow-md">
@@ -52,39 +103,40 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
                 </button>
             </div>
 
-            {/* Positive Comments Section */}
             {hasSurveys && (
-                <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-green-600">Positive Comments ({positivePercentage}%)</h3>
-                    {positiveComments.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4 mt-2">
-                            {positiveComments.map((comment, index) => (
-                                <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                    <p className="text-gray-700">{comment}</p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 mt-2">No positive comments available.</p>
-                    )}
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Our Product Comments</h2>
+                    <CommentSection
+                        title="What do you like most about our product?"
+                        comments={getComments(currentSurveys, 'likes_most')}
+                        isPositive={true}
+                    />
+                    <CommentSection
+                        title="What would make this product even better?"
+                        comments={getComments(currentSurveys, 'improve_suggestions')}
+                        isPositive={false}
+                    />
                 </div>
             )}
 
-            {/* Negative Comments Section */}
             {hasComparision && (
                 <div>
-                    <h3 className="text-xl font-semibold text-red-600">Negative Comments ({negativePercentage}%)</h3>
-                    {negativeComments.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4 mt-2">
-                            {negativeComments.map((comment, index) => (
-                                <div key={index} className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-gray-700">{comment}</p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 mt-2">No negative comments available.</p>
-                    )}
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Competitor Comments</h2>
+                    <CommentSection
+                        title="What do you like most about the competitor?"
+                        comments={getComments(currentComparision, 'likes_most')}
+                        isPositive={true}
+                    />
+                    <CommentSection
+                        title="What would make the competitor even better?"
+                        comments={getComments(currentComparision, 'improve_suggestions')}
+                        isPositive={false}
+                    />
+                    <CommentSection
+                        title="What would make you choose our product?"
+                        comments={getComments(currentComparision, 'choose_reason')}
+                        isPositive={true}
+                    />
                 </div>
             )}
         </div>

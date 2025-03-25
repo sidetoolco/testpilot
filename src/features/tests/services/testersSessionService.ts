@@ -37,6 +37,40 @@ export const createNewSession = async (testIdraw: string, combinedData: any, pro
     const testId = result?.modifiedString ? result?.modifiedString : '';
     const variationType = result?.lastCharacter ? result?.lastCharacter : '';
     try {
+        // Primero verificar si existe un registro en shopper_demographic
+        if (!prolificPid) {
+            console.error('No prolific_pid provided');
+            return null;
+        }
+
+        const { data: demographicData, error: demographicError } = await supabase
+            .from('shopper_demographic')
+            .select('*')
+            .eq('id_prolific', prolificPid)
+            .single();
+
+        if (demographicError && demographicError.code !== 'PGRST116') { // PGRST116 es el código para "no se encontraron filas"
+            console.error('Error checking shopper demographic:', demographicError);
+            return null;
+        }
+
+        // Si no existe el registro demográfico, crearlo
+        if (!demographicData) {
+            const { error: insertError } = await supabase
+                .from('shopper_demographic')
+                .insert([{
+                    id_prolific: prolificPid,
+                    country_residence: 'No set',
+                    nationality: 'No set'
+                } as any]);
+
+            if (insertError) {
+                console.error('Error creating demographic record:', insertError);
+                return null;
+            }
+        }
+
+        // Crear la sesión
         const { data, error } = await supabase
             .from('testers_session')
             .insert([{

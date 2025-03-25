@@ -108,7 +108,7 @@ const TestUserPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const prolificPid = searchParams.get('PROLIFIC_PID');
+    const prolificPid = searchParams.get('PROLIFIC_PID') ? searchParams.get('PROLIFIC_PID') : '123456789';
     const { data, loading, error } = useFetchTestData(id);
     const [cartItems] = useState<any[]>([]);
 

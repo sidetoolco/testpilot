@@ -83,8 +83,24 @@ export function useTestDetail(id: string) {
         // Fetch comparison responses for the test
         const { data: comparisonsData, error: comparisonsError } = await supabase
           .from('responses_comparisons')
-          .select('*, products(*), amazon_products(*), tester_id(variation_type,id)') // Include variation_type from tester_id
+          .select(`
+          *,
+          products(*),
+          amazon_products(*),
+          tester_id(
+            variation_type,
+            id,
+            prolific_pid,
+            shopper_demographic (
+              id_prolific,
+              age,
+              sex,
+              country_residence
+            )
+          )
+        `)
           .eq('test_id', id);
+
 
         if (comparisonsError) throw comparisonsError;
 
