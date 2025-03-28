@@ -50,7 +50,7 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, varia
               activeTab !== 'competitive-insights' && 'hidden'
             )}
           >
-            <CompetitiveInsights comparision={variant.responses.comparisons} />
+            <CompetitiveInsights comparision={variant.responses.comparisons} competitorProducts={variant.competitors} />
           </div>
           <div
             id="content-shopper-comments"

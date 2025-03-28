@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 
 type ComparisonData = Record<string, any[]>;
 
-const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ comparision, }) => {
+const CompetitiveInsights: React.FC<{ comparision: ComparisonData, competitorProducts: any[] }> = ({ comparision, competitorProducts }) => {
     const [selectedVariant, setSelectedVariant] = useState('b');
     const { insight, loading } = useInsightStore();
 
@@ -14,8 +14,9 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
     // Access the correct variant array
     const variantData: any[] = comparision[selectedVariant] || [];
     let shopper_count = variantData.length;
-    // Agrupar por competitor_id y calcular promedios
-    const groupedComparison = variantData.reduce((acc: any, item: any) => {
+
+    // Create a map of selected products for easy lookup
+    const selectedProductsMap = variantData.reduce((acc: any, item: any) => {
         const key = item.competitor_id;
         if (!acc[key]) {
             acc[key] = { ...item, count: 1 };
@@ -30,16 +31,26 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
         return acc;
     }, {});
 
-    // name: item.amazon_products.title,
-    const averagedComparison = Object.values(groupedComparison).map((item: any) => ({
-        ...item,
-        value: item.value / item.count,
-        appearance: item.appearance / item.count,
-        convenience: item.convenience / item.count,
-        brand: item.brand / item.count,
-        confidence: item.confidence / item.count,
-        share: (item.count / shopper_count) * 100,
-    }));
+    // Combine all competitor products with their data
+    const allProducts = competitorProducts.map(product => {
+        const selectedData = selectedProductsMap[product.id];
+        if (selectedData) {
+            return {
+                ...selectedData,
+                share: (selectedData.count / shopper_count) * 100,
+            };
+        }
+        return {
+            amazon_products: product,
+            value: 0,
+            appearance: 0,
+            convenience: 0,
+            brand: 0,
+            confidence: 0,
+            share: 0,
+            count: 0
+        };
+    }).sort((a, b) => b.share - a.share); // Sort by share of buy in descending order
 
     const getColorClass = (value: number) => {
         if (value > 3) return 'bg-green-100';
@@ -79,28 +90,30 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, }> = ({ compa
                         </tr>
                     </thead>
                     <tbody>
-                        {averagedComparison.map((item, index) => (
+                        {allProducts.map((item, index) => (
                             <tr key={index} className="hover:bg-gray-100">
                                 <td className="border border-gray-300 p-2">
                                     <a href={item.amazon_products.product_url} target="_blank" rel="noopener noreferrer">
                                         <img src={item.amazon_products.image_url} alt={item.amazon_products.title} className="w-10 h-10" />
                                     </a>
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.share)}`}>{item.share.toFixed(2)}%</td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.value)}`}>
-                                    {(item.value - 3).toFixed(2)}
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.share) : ''}`}>
+                                    {item.count > 0 ? `${item.share.toFixed(2)}%` : '-'}
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.appearance)}`}>
-                                    {(item.appearance - 3).toFixed(2)}
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.value) : ''}`}>
+                                    {item.count > 0 ? (item.value - 3).toFixed(2) : '-'}
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.confidence)}`}>
-                                    {(item.confidence - 3).toFixed(2)}
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.appearance) : ''}`}>
+                                    {item.count > 0 ? (item.appearance - 3).toFixed(2) : '-'}
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.brand)}`}>
-                                    {(item.brand - 3).toFixed(2)}
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.confidence) : ''}`}>
+                                    {item.count > 0 ? (item.confidence - 3).toFixed(2) : '-'}
                                 </td>
-                                <td className={`border border-gray-300 p-2 ${getColorClass(item.convenience)}`}>
-                                    {(item.convenience - 3).toFixed(2)}
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.brand) : ''}`}>
+                                    {item.count > 0 ? (item.brand - 3).toFixed(2) : '-'}
+                                </td>
+                                <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.convenience) : ''}`}>
+                                    {item.count > 0 ? (item.convenience - 3).toFixed(2) : '-'}
                                 </td>
                             </tr>
                         ))}
