@@ -305,6 +305,15 @@ export default function ProductDetail() {
                 </td></tr>
             </tbody>
           </table>
+          <div className="border-t border-[#DDD] py-6">
+            <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
+            <div className="bg-[#F3F3F3] p-6 rounded-lg">
+              <div className="flex items-center justify-center flex-col text-center">
+                <p className="text-[#565959] text-[14px] mb-2">Reviews are not included in this test</p>
+                <p className="text-[#565959] text-[12px]">This is a test environment where reviews are not available. In a real shopping experience, you would see customer reviews here.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
