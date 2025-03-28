@@ -71,7 +71,9 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
                 </div>
             </div>
             <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }} >
-                <AmazonHeader searchTerm={test ? test.search_term : ''} />
+                <div className='mt-3'>
+                    <AmazonHeader searchTerm={test ? test.search_term : ''} />
+                </div>
                 <div onClick={handleClick}>
                     <AmazonNavigation />
                 </div>
