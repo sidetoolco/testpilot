@@ -21,7 +21,7 @@ export interface TestDetails {
     };
     competitors: {
         image_url: string;
-    };
+    }[];
     duration: string;
     methodology: string;
     objectives: string[];
