@@ -12,7 +12,16 @@ const TestDisplay: React.FC = () => {
     const competitorItem = test?.variations?.[0]?.product;
     const navigate = useNavigate();
 
-    const [responses, setResponses] = useState({
+    const [responses, setResponses] = useState<{
+        value: number;
+        appearence: number;
+        confidence: number;
+        brand: number;
+        convenience: number;
+        likes_most: string;
+        improve_suggestions: string;
+        choose_reason: string;
+    }>({
         value: 3,
         appearence: 3,
         confidence: 3,
@@ -25,6 +34,9 @@ const TestDisplay: React.FC = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
+    const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
+
     const handleChange = useCallback((e: any) => {
         const { name, value } = e.target;
 
@@ -36,9 +48,10 @@ const TestDisplay: React.FC = () => {
             const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + test.id);
             tracker.trackWs('InputEvents')?.('Input Changed', JSON.stringify({ fieldName: name, value: value }), 'up');
         }
+
         setResponses((prevResponses) => ({
             ...prevResponses,
-            [name]: Number(value)
+            [name]: stringFields.includes(name) ? value : Number(value)
         }));
     }, [shopperId, test?.id, errors]);
 

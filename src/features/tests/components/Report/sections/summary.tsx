@@ -153,7 +153,7 @@ const Summary: React.FC<{
 
     useEffect(() => {
         async function loadData() {
-            if (!variants || variants.length === 0 || variants.length === 1) return;
+            if (!variants || variants.length === 0 ) return <div className='text-center text-gray-500'>Not enough data for analysis.</div>;
 
             setIsLoading(true);
             setError(null);
