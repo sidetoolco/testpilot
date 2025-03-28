@@ -19,17 +19,40 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, competitorPro
     const selectedProductsMap = variantData.reduce((acc: any, item: any) => {
         const key = item.competitor_id;
         if (!acc[key]) {
-            acc[key] = { ...item, count: 1 };
+            acc[key] = {
+                ...item,
+                sumValue: item.value,
+                sumAppearance: item.appearance,
+                sumConvenience: item.convenience,
+                sumBrand: item.brand,
+                sumConfidence: item.confidence,
+                count: 1
+            };
         } else {
-            acc[key].value += item.value;
-            acc[key].appearance += item.appearance;
-            acc[key].convenience += item.convenience;
-            acc[key].brand += item.brand;
-            acc[key].confidence += item.confidence;
+            acc[key].sumValue += item.value;
+            acc[key].sumAppearance += item.appearance;
+            acc[key].sumConvenience += item.convenience;
+            acc[key].sumBrand += item.brand;
+            acc[key].sumConfidence += item.confidence;
             acc[key].count += 1;
         }
         return acc;
     }, {});
+
+    // Calculate final averages
+    Object.keys(selectedProductsMap).forEach(key => {
+        const item = selectedProductsMap[key];
+        item.value = item.sumValue / item.count;
+        item.appearance = item.sumAppearance / item.count;
+        item.convenience = item.sumConvenience / item.count;
+        item.brand = item.sumBrand / item.count;
+        item.confidence = item.sumConfidence / item.count;
+        delete item.sumValue;
+        delete item.sumAppearance;
+        delete item.sumConvenience;
+        delete item.sumBrand;
+        delete item.sumConfidence;
+    });
 
     // Combine all competitor products with their data
     const allProducts = competitorProducts.map(product => {
