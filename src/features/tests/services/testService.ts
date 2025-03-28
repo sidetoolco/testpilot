@@ -147,16 +147,15 @@ export const testService = {
       throw new TestCreationError('Failed to add demographics', { error });
     }
   },
-  generateDynamicTitle(interests: string[], searchTerm: string): string {
-    const interestsList = interests.map(interest => interest.toLowerCase()).join(', ');
-    return `Amazon shopping for ${interestsList}: Discover '${searchTerm}'!`;
+  generateDynamicTitle(searchTerm: string): string {
+    return `Amazon shopping: Discover '${searchTerm}'!`;
   },
   // Función para crear el proyecto en Respondent
   async createProlificProjectsForVariations(test: any, testData: TestData) {
     for (const [variationType, variation] of Object.entries(testData.variations)) {
       if (variation) {
         const respondentProjectData = {
-          publicTitle: this.generateDynamicTitle(testData.demographics.interests, test.search_term),
+          publicTitle: this.generateDynamicTitle(test.search_term),
           publicInternalName: `${test.id}-${variationType}`,
           participantTimeRequiredMinutes: 12,
           incentiveAmount: 12,
@@ -168,7 +167,8 @@ export const testService = {
           demographics: {
             ageRanges: testData.demographics.ageRanges,
             genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
-            locations: testData.demographics.locations
+            locations: testData.demographics.locations,
+            interests: testData.demographics.interests
           }
         };
 

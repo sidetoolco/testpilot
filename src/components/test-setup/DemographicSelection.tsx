@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calculator } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { PriceCalculator } from './PriceCalculator';
 
 interface DemographicSelectionProps {
@@ -25,20 +25,22 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  const [testerCount, setTesterCount] = useState<number>(10); // Valor inicial
-  const [error, setError] = useState<string | null>(null); // Estado para el error
+  const [testerCount, setTesterCount] = useState<number>(10);
+  const [error, setError] = useState<string | null>(null);
+  const [minAge, setMinAge] = useState<number>(18);
+  const [maxAge, setMaxAge] = useState<number>(20);
+  const [ageError, setAgeError] = useState<string | null>(null);
 
-  const ageRanges = ['18-20', '21-29', '30-39', '40-54', '55+'];
-  const genders = ['Male', 'Female', 'Other or Not Selected'];
+  const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
 
   const screeningCriteria = [
-    'Eco Conscious',
-    'Value Shopper',
-    'Family with Young Children',
-    'Family with Pets',
-    'Bulk Shopper',
-    'Tech Savvy'
+    "Health & Fitness",
+    "Actively Religious",
+    "Environmentally Conscious",
+    "College Graduate",
+    "Military Veteran",
+    "Lower Income"
   ];
 
   // Calculate number of active variants
@@ -58,11 +60,34 @@ export default function DemographicSelection({
     }
   }, []);
 
-  const handleAgeSelect = (age: string) => {
-    const newAges = demographics.ageRanges.includes(age)
-      ? demographics.ageRanges.filter(a => a !== age)
-      : [...demographics.ageRanges, age];
-    onChange({ ...demographics, ageRanges: newAges });
+  const handleAgeChange = (type: 'min' | 'max', value: string) => {
+    const numValue = parseInt(value);
+    if (isNaN(numValue)) return;
+
+    let newMinAge = minAge;
+    let newMaxAge = maxAge;
+
+    if (type === 'min') {
+      newMinAge = numValue;
+      if (numValue > maxAge) {
+        setAgeError('Minimum age cannot be greater than maximum age');
+      } else {
+        setAgeError(null);
+      }
+    } else {
+      newMaxAge = numValue;
+      if (numValue < minAge) {
+        setAgeError('Maximum age cannot be less than minimum age');
+      } else {
+        setAgeError(null);
+      }
+    }
+
+    setMinAge(newMinAge);
+    setMaxAge(newMaxAge);
+
+    // Update the ageRanges array with the new range
+    onChange({ ...demographics, ageRanges: [newMinAge, newMaxAge] });
   };
 
   const handleGenderSelect = (gender: string) => {
@@ -155,24 +180,44 @@ export default function DemographicSelection({
           )}
         </div>
 
-        {/* Rest of the demographic options... */}
-        {/* Age Ranges */}
+        {/* Age Range Inputs */}
         <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Age Ranges</h4>
-          <div className="grid grid-cols-3 gap-3">
-            {ageRanges.map((age) => (
-              <button
-                key={age}
-                onClick={() => handleAgeSelect(age)}
-                className={`p-4 rounded-xl border-2 transition-all ${demographics.ageRanges.includes(age)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
-                  }`}
-              >
-                {age}
-              </button>
-            ))}
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Age Range</h4>
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Age</label>
+              <input
+                type="number"
+                min="18"
+                max="100"
+                value={minAge}
+                onChange={(e) => handleAgeChange('min', e.target.value)}
+                className={`w-full px-4 py-3 border ${ageError
+                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                  } rounded-xl transition-all`}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Age</label>
+              <input
+                type="number"
+                min="18"
+                max="100"
+                value={maxAge}
+                onChange={(e) => handleAgeChange('max', e.target.value)}
+                className={`w-full px-4 py-3 border ${ageError
+                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                  } rounded-xl transition-all`}
+              />
+            </div>
           </div>
+          {ageError && (
+            <p className="text-red-500 text-sm mt-1">
+              {ageError}
+            </p>
+          )}
         </div>
 
         {/* Gender */}
@@ -184,8 +229,8 @@ export default function DemographicSelection({
                 key={gender}
                 onClick={() => handleGenderSelect(gender)}
                 className={`p-4 rounded-xl border-2 transition-all ${demographics.gender.includes(gender)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
+                  ? 'border-[#00A67E] bg-[#00A67E]/5'
+                  : 'border-gray-200 hover:border-[#00A67E]/30'
                   }`}
               >
                 {gender}
@@ -203,8 +248,8 @@ export default function DemographicSelection({
                 key={country}
                 onClick={() => handleCountrySelect(country)}
                 className={`p-4 rounded-xl border-2 transition-all ${demographics.locations.includes(country)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
+                  ? 'border-[#00A67E] bg-[#00A67E]/5'
+                  : 'border-gray-200 hover:border-[#00A67E]/30'
                   }`}
               >
                 {country}
@@ -222,8 +267,8 @@ export default function DemographicSelection({
                 key={criterion}
                 onClick={() => handleScreeningSelect(criterion)}
                 className={`p-4 rounded-xl border-2 transition-all ${demographics.interests.includes(criterion)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
+                  ? 'border-[#00A67E] bg-[#00A67E]/5'
+                  : 'border-gray-200 hover:border-[#00A67E]/30'
                   }`}
               >
                 {criterion}
