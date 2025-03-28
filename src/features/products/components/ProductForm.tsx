@@ -204,18 +204,26 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             Star Rating
           </label>
           <div className="flex items-center">
-            <input
-              type="range"
-              id="ratingRange"
-              step="0.1"
-              min="0"
-              max="5"
-              value={formData.rating}
-              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-              className="w-full px-4 py-2"
-              required
-            />
-            <span className="ml-2 text-sm text-gray-700">{formData.rating.toFixed(1)}</span>
+            <div className="relative w-full">
+              <input
+                type="range"
+                id="ratingRange"
+                step="0.1"
+                min="0"
+                max="5"
+                value={formData.rating}
+                onChange={(e) => {
+                  const newRating = parseFloat(e.target.value);
+                  setFormData(prev => ({ ...prev, rating: newRating }));
+                }}
+                style={{
+                  background: `linear-gradient(to right, #22c55e ${(formData.rating/5)*100}%, #e5e7eb ${(formData.rating/5)*100}%)`
+                }}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-green-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+                required
+              />
+            </div>
+            <span className="ml-2 text-sm text-gray-700 min-w-[2.5rem]">{formData.rating.toFixed(1)}</span>
           </div>
         </div>
 
