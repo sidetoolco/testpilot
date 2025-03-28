@@ -59,11 +59,11 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, competitorPro
     };
 
     return (
-        <div className="w-full p-4">
-            <h2 className="text-xl font-bold mb-4">Competitive Insights</h2>
-            <div className="mb-4">
-                <label htmlFor="variant-select" className="mr-2">Select Variant:</label>
-                <select id="variant-select" value={selectedVariant} onChange={handleVariantChange} className="p-2 border border-gray-300 rounded-lg">
+        <div className="w-full p-6 bg-white rounded-lg shadow-sm">
+            <h2 className="text-xl font-bold mb-6 text-gray-800">Competitive Insights</h2>
+            <div className="mb-6">
+                <label htmlFor="variant-select" className="mr-2 text-gray-700">Select Variant:</label>
+                <select id="variant-select" value={selectedVariant} onChange={handleVariantChange} className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none">
                     <option value="a">Variant A</option>
                     <option value="b">Variant B</option>
                     <option value="c">Variant C</option>
@@ -94,34 +94,45 @@ const CompetitiveInsights: React.FC<{ comparision: ComparisonData, competitorPro
                             <tr key={index} className="hover:bg-gray-100">
                                 <td className="border border-gray-300 p-2">
                                     <a href={item.amazon_products.product_url} target="_blank" rel="noopener noreferrer">
-                                        <img src={item.amazon_products.image_url} alt={item.amazon_products.title} className="w-10 h-10" />
+                                        <div className="relative">
+                                            <img src={item.amazon_products.image_url} alt={item.amazon_products.title} className="w-10 h-10" />
+                                            {item.count === 1 && (
+                                                <span className="absolute -top-1 -right-1 bg-blue-100 text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px]">🔍</span>
+                                            )}
+                                        </div>
                                     </a>
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.share) : ''}`}>
-                                    {item.count > 0 ? `${item.share.toFixed(2)}%` : '-'}
+                                    {item.count > 0 ? `${item.share.toFixed(1)}%` : '-'}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.value) : ''}`}>
-                                    {item.count > 0 ? (item.value - 3).toFixed(2) : '-'}
+                                    {item.count > 0 ? (item.value - 3).toFixed(1) : '-'}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.appearance) : ''}`}>
-                                    {item.count > 0 ? (item.appearance - 3).toFixed(2) : '-'}
+                                    {item.count > 0 ? (item.appearance - 3).toFixed(1) : '-'}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.confidence) : ''}`}>
-                                    {item.count > 0 ? (item.confidence - 3).toFixed(2) : '-'}
+                                    {item.count > 0 ? (item.confidence - 3).toFixed(1) : '-'}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.brand) : ''}`}>
-                                    {item.count > 0 ? (item.brand - 3).toFixed(2) : '-'}
+                                    {item.count > 0 ? (item.brand - 3).toFixed(1) : '-'}
                                 </td>
                                 <td className={`border border-gray-300 p-2 ${item.count > 0 ? getColorClass(item.convenience) : ''}`}>
-                                    {item.count > 0 ? (item.convenience - 3).toFixed(2) : '-'}
+                                    {item.count > 0 ? (item.convenience - 3).toFixed(1) : '-'}
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             )}
-            <p className="mt-4 text-sm text-gray-600">Hovering over each picture will show item title price and reviews.</p>
-            {insight && !loading && <ReactMarkdown>{insight.competitive_insights}</ReactMarkdown>}
+            <div className="space-y-2">
+                <p className="text-sm text-gray-600">Products marked with <span className="inline-flex items-center justify-center bg-blue-100 text-black rounded-full w-4 h-4 text-[10px]">🔍</span> have only one observation.</p>
+                <p className="text-sm text-gray-600">Hovering over each picture will show item title price and reviews.</p>
+            </div>
+            <div className='mt-6 p-4 bg-gray-50 rounded-lg'>
+                <strong>Resume:</strong>
+                {insight && !loading && <ReactMarkdown>{insight.competitive_insights}</ReactMarkdown>}
+            </div>
         </div>
     );
 };
