@@ -140,6 +140,7 @@ export default function DemographicSelection({
         <p className="text-lg text-gray-500">
           Choose the demographic criteria for your test participants.
         </p>
+
       </div>
 
       <div className="space-y-8">
@@ -148,7 +149,11 @@ export default function DemographicSelection({
           testerCount={testerCount}
           variantCount={activeVariantCount}
         />
-
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            ⚠️ Warning: Applying too many filters may limit the number of available shoppers and increase the time needed to complete your study. Consider selecting only the most essential criteria.
+          </p>
+        </div>
         {/* Number of Testers per Variant */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4"># of Testers per Variant</h4>
