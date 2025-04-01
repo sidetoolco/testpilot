@@ -88,17 +88,4 @@ export const authService = {
       throw error;
     }
   },
-
-  async exchangeCodeForSession(code: string) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      console.error('Exchange code for session error:', error);
-      throw error;
-    }
-    return { data, error };
-  },
-
-  getUser() {
-    return supabase.auth.getUser().then(({ data: { user } }) => user);
-  },
 };

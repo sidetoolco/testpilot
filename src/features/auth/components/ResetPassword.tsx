@@ -1,51 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AuthLayout from './AuthLayout';
 import AuthError from './AuthError';
 import AuthButton from './AuthButton';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
+import { supabase } from '../../../lib/supabase';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { loading, error } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'authenticating' | 'updating' | 'success' | 'error'>('idle');
   const [email, setEmail] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    const getTokenFromLocalStorage = () => {
+      const tokenString = localStorage.getItem('sb-hykelmayopljuguuueme-auth-token');
+      if (!tokenString) return { access_token: null, refresh_token: null };
+
+      try {
+        const tokens = JSON.parse(tokenString);
+        return tokens;
+      } catch (error) {
+        console.error('Error parsing token from localStorage:', error);
+        return { access_token: null, refresh_token: null };
+      }
+    };
+
     const restoreSession = async () => {
-      const code = searchParams.get('code');
-      if (!code) {
+      const tokens = getTokenFromLocalStorage();
+
+      if (!tokens.access_token) {
         setStatus('error');
+        setFormError('Authentication token not found. Please request a new link.');
         return;
       }
 
       setStatus('authenticating');
 
       try {
-        const { data } = await authService.exchangeCodeForSession(code);
-        if (data?.user?.email) {
-          setEmail(data.user.email);
-          setStatus('idle');
-        } else {
-          setStatus('error');
+        const { data, error } = await supabase.auth.setSession({
+          access_token: tokens.access_token as string,
+          refresh_token: tokens.refresh_token as string
+        });
+        if (error) {
+          throw error;
         }
-      } catch (err) {
-        console.error('Session restoration error:', err);
+        if (!data.user?.email) {
+          throw new Error('User email not found');
+        }
+        setEmail(data.user.email);
+        setStatus('idle');
+      } catch (err: any) {
+        console.error('Error restoring session:', err);
         setStatus('error');
+        setFormError(err.message || 'Error verifying the link. Please request a new one.');
       }
     };
 
     restoreSession();
-  }, [searchParams]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError(null);
+    setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
     const password = formData.get('password') as string;
@@ -53,11 +79,13 @@ export default function ResetPassword() {
 
     if (password !== confirmPassword) {
       setFormError('Passwords do not match');
+      setIsSubmitting(false);
       return;
     }
 
     if (password.length < 8) {
       setFormError('Password must be at least 8 characters long');
+      setIsSubmitting(false);
       return;
     }
 
@@ -68,17 +96,19 @@ export default function ResetPassword() {
       toast.success('Password updated successfully');
       setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
-      setFormError(err.message);
+      setFormError(err.message || 'Error updating password');
       setStatus('error');
       toast.error('Failed to update password');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (status === 'authenticating') {
+  if (status === 'authenticating' || authLoading) {
     return (
       <AuthLayout
-        title="Verifying reset link"
-        subtitle="Please wait while we verify your reset link"
+        title="Verifying link"
+        subtitle="Please wait while we verify your link"
       >
         <div className="flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A67E]"></div>
@@ -91,7 +121,7 @@ export default function ResetPassword() {
     return (
       <AuthLayout
         title="Reset Password Failed"
-        subtitle="The reset link is invalid or has expired"
+        subtitle="The link is invalid or has expired"
       >
         <div className="text-center">
           <p className="text-red-500 mb-4">{formError}</p>
@@ -99,7 +129,7 @@ export default function ResetPassword() {
             onClick={() => navigate('/forgot-password')}
             className="text-[#00A67E] hover:text-[#008F6B] font-medium"
           >
-            Request a new reset link
+            Request a new link
           </button>
         </div>
       </AuthLayout>
@@ -121,8 +151,8 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout
-      title="Reset your password"
-      subtitle="Enter your new password below"
+      title="Reset Password"
+      subtitle="Enter your new password"
     >
       {email && (
         <p className="text-center text-gray-600 mb-4">
@@ -130,7 +160,7 @@ export default function ResetPassword() {
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <AuthError error={formError || error} />
+        <AuthError error={formError} />
 
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -141,12 +171,21 @@ export default function ResetPassword() {
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               minLength={8}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors duration-200"
+              disabled={isSubmitting}
+              className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
               placeholder="••••••••"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              disabled={isSubmitting}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
@@ -159,18 +198,27 @@ export default function ResetPassword() {
             <input
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               required
               minLength={8}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors duration-200"
+              disabled={isSubmitting}
+              className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
               placeholder="••••••••"
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              disabled={isSubmitting}
+            >
+              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
         <AuthButton
-          loading={status === 'updating'}
-          label="Reset Password"
+          loading={isSubmitting}
+          label="Update Password"
           loadingLabel="Updating..."
         />
       </form>
