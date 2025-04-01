@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AuthLayout from './AuthLayout';
@@ -7,52 +7,41 @@ import AuthError from './AuthError';
 import AuthButton from './AuthButton';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
-import { supabase } from '../../../lib/supabase';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { loading, error } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'authenticating' | 'updating' | 'success' | 'error'>('idle');
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const getTokenFromHash = () => {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      return {
-        access_token: params.get("access_token"),
-        refresh_token: params.get("refresh_token")
-      };
-    };
-
     const restoreSession = async () => {
-      const tokens = getTokenFromHash();
-
-      if (!tokens.access_token) {
-        setFormError('Missing authentication token');
+      const code = searchParams.get('code');
+      if (!code) {
         setStatus('error');
         return;
       }
 
       setStatus('authenticating');
 
-      const { data, error } = await supabase.auth.setSession({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token || ''
-      });
-
-      if (error) {
-        setFormError('Error authenticating session. Please try opening the link again.');
+      try {
+        const { data } = await authService.exchangeCodeForSession(code);
+        if (data?.user?.email) {
+          setEmail(data.user.email);
+          setStatus('idle');
+        } else {
+          setStatus('error');
+        }
+      } catch (err) {
+        console.error('Session restoration error:', err);
         setStatus('error');
-      } else {
-        setEmail(data.user?.email || null);
-        setStatus('idle');
       }
     };
 
     restoreSession();
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,7 +63,7 @@ export default function ResetPassword() {
 
     try {
       setStatus('updating');
-      await authService.updatePassword(password, '');
+      await authService.updatePassword(password);
       setStatus('success');
       toast.success('Password updated successfully');
       setTimeout(() => navigate('/login'), 3000);

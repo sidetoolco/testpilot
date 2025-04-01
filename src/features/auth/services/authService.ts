@@ -66,29 +66,7 @@ export const authService = {
     }
   },
 
-  async updatePassword(newPassword: string, code: string) {
-    // Get tokens from hash fragment
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
-
-    if (!access_token) {
-      throw new Error('Missing authentication token');
-    }
-
-    // Set the session with the tokens
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token,
-      refresh_token: refresh_token || ''
-    });
-
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      throw sessionError;
-    }
-
-    // Update the password
+  async updatePassword(newPassword: string) {
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword
     });
@@ -109,5 +87,18 @@ export const authService = {
       console.error('Email verification error:', error);
       throw error;
     }
+  },
+
+  async exchangeCodeForSession(code: string) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error('Exchange code for session error:', error);
+      throw error;
+    }
+    return { data, error };
+  },
+
+  getUser() {
+    return supabase.auth.getUser().then(({ data: { user } }) => user);
   },
 };
