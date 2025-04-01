@@ -208,7 +208,7 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
 
     return (
         <>
-            <Page size="A4" orientation="portrait" >
+            <Page size="A4" orientation="portrait" style={styles.page} >
                 <View style={styles.section}>
                     <View style={TABLE_STYLES.pageHeader}>
                         <Header title="Competitive Insights" />
@@ -222,9 +222,9 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                     <Text style={styles.pageNumber} render={({ pageNumber }: { pageNumber: number; }) => `${pageNumber}`} />
                 </View>
             </Page>
-            <Page size="A4" orientation="portrait">
-                <Header title="Competitive Insights" />
+            <Page size="A4" orientation="portrait" style={styles.page}>
                 <View style={styles.section}>
+                <Header title="Competitive Insights" />
                     {averageMetrics && (
                         <View style={TABLE_STYLES.averageMetricsContainer}>
                             <Text style={TABLE_STYLES.averageMetricsTitle}>Average metrics your product vs the competitors</Text>
