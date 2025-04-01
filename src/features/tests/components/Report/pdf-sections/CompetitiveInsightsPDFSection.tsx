@@ -27,6 +27,7 @@ const TABLE_STYLES = {
         marginTop: 16,
         borderRadius: 4,
         border: '1px solid #E0E0E0',
+        width: '100%',
     },
     header: {
         flexDirection: 'row' as const,
@@ -35,33 +36,37 @@ const TABLE_STYLES = {
         borderBottomColor: '#E0E0E0',
         width: '100%',
     },
-    headerCell: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#374151',
-        padding: '8px 4px',
-        textAlign: 'center' as const,
+    headerCellFirst: {
+        width: '30%',
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'flex-start' as const,
         borderRightWidth: 1,
         borderRightColor: '#E0E0E0',
-        width: '12%',
+        paddingLeft: 8,
+        paddingVertical: 8,
+    },
+    headerCell: {
+        width: '11.6%',
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
+        borderRightWidth: 1,
+        borderRightColor: '#E0E0E0',
+        paddingVertical: 8,
     },
     headerCellLast: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#374151',
-        padding: '8px 4px',
-        textAlign: 'center' as const,
-        width: '12%',
+        width: '11.6%',
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
+        paddingVertical: 8,
     },
-    headerCellFirst: {
+    headerText: {
         fontSize: 11,
         fontWeight: 'bold',
         color: '#374151',
-        padding: '8px 4px',
-        textAlign: 'left' as const,
-        borderRightWidth: 1,
-        borderRightColor: '#E0E0E0',
-        width: '28%',
+        textAlign: 'center' as const,
     },
     row: {
         flexDirection: 'row' as const,
@@ -73,23 +78,16 @@ const TABLE_STYLES = {
         flexDirection: 'row' as const,
         width: '100%',
     },
-    cell: {
-        fontSize: 11,
-        padding: 10,
-        textAlign: 'center' as const,
-        borderRightWidth: 1,
-        borderRightColor: '#E0E0E0',
-    },
     productCell: {
-        width: '28%',
+        width: '30%',
         fontSize: 11,
         textAlign: 'left' as const,
-        padding: '8px 4px',
+        padding: '8px',
         borderRightWidth: 1,
         borderRightColor: '#E0E0E0',
     },
     metricCell: {
-        width: '12%',
+        width: '11.6%',
         fontSize: 11,
         textAlign: 'center' as const,
         padding: '8px 4px',
@@ -97,7 +95,7 @@ const TABLE_STYLES = {
         borderRightColor: '#E0E0E0',
     },
     metricCellLast: {
-        width: '12%',
+        width: '11.6%',
         fontSize: 11,
         textAlign: 'center' as const,
         padding: '8px 4px',
@@ -242,13 +240,27 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                     <View style={TABLE_STYLES.container}>
                         <Text style={TABLE_STYLES.tableTitle}>Your Item vs Competitor</Text>
                         <View style={TABLE_STYLES.header}>
-                            <Text style={TABLE_STYLES.headerCellFirst}>Product</Text>
-                            <Text style={TABLE_STYLES.headerCell}>Share</Text>
-                            <Text style={TABLE_STYLES.headerCell}>Value</Text>
-                            <Text style={TABLE_STYLES.headerCell}>Appearance</Text>
-                            <Text style={TABLE_STYLES.headerCell}>Convenience</Text>
-                            <Text style={TABLE_STYLES.headerCell}>Brand</Text>
-                            <Text style={TABLE_STYLES.headerCellLast}>Confidence</Text>
+                            <View style={TABLE_STYLES.headerCellFirst}>
+                                <Text style={TABLE_STYLES.headerText}>Competitor</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCell}>
+                                <Text style={TABLE_STYLES.headerText}>Share</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCell}>
+                                <Text style={TABLE_STYLES.headerText}>Value</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCell}>
+                                <Text style={TABLE_STYLES.headerText}>{'Appear-\nance'}</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCell}>
+                                <Text style={TABLE_STYLES.headerText}>{'Conve-\nnience'}</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCell}>
+                                <Text style={TABLE_STYLES.headerText}>Brand</Text>
+                            </View>
+                            <View style={TABLE_STYLES.headerCellLast}>
+                                <Text style={TABLE_STYLES.headerText}>{'Confi-\ndence'}</Text>
+                            </View>
                         </View>
                         {competitiveinsights.map((competitor, index) => (
                             <View key={index} style={index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row}>
