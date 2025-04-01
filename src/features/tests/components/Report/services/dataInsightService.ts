@@ -191,7 +191,7 @@ const processPromptData = async (testInfo: any) => {
   };
 }
 
-const processCompetitiveInsightsData = (comparisons: { a: any[]; b: any[]; c: any[] }) => {
+export const processCompetitiveInsightsData = (comparisons: { a: any[]; b: any[]; c: any[] }) => {
   const processArray = (array: any[]) => {
     return array.reduce((acc: any, item: any) => {
       const key = item.competitor_id;

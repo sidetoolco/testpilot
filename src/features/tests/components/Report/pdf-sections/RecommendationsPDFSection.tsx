@@ -22,7 +22,6 @@ export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps>
                 </Text>
                 <Text style={styles.pageNumber} render={({ pageNumber }: { pageNumber: number; }) => `${pageNumber}`} />
             </View>
-
         </Page>
     );
 }; 

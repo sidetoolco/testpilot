@@ -18,14 +18,17 @@ interface PDFDocumentProps {
     insights: {
         purchase_drivers?: string;
         recommendations?: string;
+        competitive_insights?: string;
     };
+    competitiveinsights: any;
     disabled?: boolean;
 }
 
-const PDFDocument = ({ testDetails, summaryData, insights }: {
+const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights }: {
     testDetails: PDFDocumentProps['testDetails'];
     summaryData: PDFDocumentProps['summaryData'];
     insights: PDFDocumentProps['insights'];
+    competitiveinsights: PDFDocumentProps['competitiveinsights'];
 }) => {
     if (!testDetails || !summaryData) {
         return null;
@@ -52,7 +55,10 @@ const PDFDocument = ({ testDetails, summaryData, insights }: {
                             variationType={key}
                             insights={insights?.purchase_drivers}
                         />
-                        <CompetitiveInsightsPDFSection />
+                        <CompetitiveInsightsPDFSection
+                            competitiveinsights={competitiveinsights[key]}
+                            insights={insights?.competitive_insights}
+                        />
                     </React.Fragment>
                 )
             )}
@@ -102,14 +108,15 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     testDetails,
     summaryData,
     insights,
-    disabled,
+    competitiveinsights,
+    disabled
 }) => {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const handleExportPDF = async () => {
         try {
-            if (!testDetails || !summaryData) {
+            if (!testDetails || !summaryData || !competitiveinsights || !insights) {
                 console.error('Missing required data for PDF generation');
                 return;
             }
@@ -119,6 +126,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                     testDetails={testDetails}
                     summaryData={summaryData}
                     insights={insights}
+                    competitiveinsights={competitiveinsights}
                 />
             ).toBlob();
             const url = URL.createObjectURL(blob);

@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
-import { getSummaryData, checkIdInIaInsights } from './services/dataInsightService';
+import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData } from './services/dataInsightService';
 
 interface ReportProps {
   variant: any;
@@ -48,7 +48,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [insights, setInsights] = useState<any>(null);
-
+  const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -57,6 +57,9 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
       if (existingInsights && typeof existingInsights === 'object' && 'comparison_between_variants' in existingInsights) {
         // If we have insights, add them to the existing summary data
         const data = await getSummaryData(testData);
+        const competitiveinsights = await processCompetitiveInsightsData(testData.responses.comparisons);
+        console.log(competitiveinsights);
+        setCompetitiveinsights(competitiveinsights);
         setSummaryData({
           ...data,
           insights: {
@@ -123,12 +126,11 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
         <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
           <h1 className="text-xl sm:text-2xl font-bold">Insights Summary</h1>
           <ReportPDF
-            onPrintStart={() => setIsPrinting(true)}
-            onPrintEnd={() => setIsPrinting(false)}
             testDetails={testData}
             summaryData={summaryData}
             insights={insights}
             disabled={testData.status !== 'complete'}
+            competitiveinsights={competitiveinsights}
           />
         </div>
         <ReportTabs
