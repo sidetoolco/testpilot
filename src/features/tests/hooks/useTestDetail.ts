@@ -118,7 +118,7 @@ export function useTestDetail(id: string) {
         const transformedTest: Test = {
           id: typedTestData.id,
           name: typedTestData.name,
-          status: typedTestData.status,
+          status: typedTestData.status as 'draft' | 'active' | 'complete',
           searchTerm: typedTestData.search_term,
           competitors: typedTestData.competitors?.map(c => c.product) || [],
           variations: {
@@ -147,6 +147,7 @@ export function useTestDetail(id: string) {
         console.error('Error fetching test:', err);
         setError(err.message);
         toast.error('Failed to fetch test');
+        setLoading(false);
       } finally {
         setLoading(false);
       }

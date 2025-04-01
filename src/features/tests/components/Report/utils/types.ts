@@ -33,9 +33,10 @@ export interface TestDetails {
         };
     };
     variations: {
-        image_url: string;
-        title: string;
-    }[];
+        a: { image_url: string; title: string; } | null;
+        b: { image_url: string; title: string; } | null;
+        c: { image_url: string; title: string; } | null;
+    };
 }
 
 export interface ReportPDFProps {

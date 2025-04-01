@@ -11,10 +11,12 @@ Font.register({
 
 interface CoverPageSectionProps {
     testDetails: TestDetails;
-    variantsArray: { image_url: string; title: string; }[];
+    variantsArray: ({ image_url: string; title: string; } | null)[];
 }
 
 export const CoverPageSection: React.FC<CoverPageSectionProps> = ({ testDetails, variantsArray }) => {
+    const validVariants = variantsArray.filter((v): v is { image_url: string; title: string; } => v !== null);
+
     return (
         <Page size="A4" orientation="portrait" style={{ display: 'flex', flexDirection: 'column', gap: 40, padding: 40, backgroundColor: '#000000' }}>
             <Image
@@ -62,7 +64,7 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({ testDetails,
                                 Tested Variants
                             </Text>
                             <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', textAlign: 'left' }}>
-                                {variantsArray.length}
+                                {validVariants.length}
                             </Text>
                         </View>
                     </View>

@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, File as FilePdf, X } from 'lucide-react';
-import { Document, Page, Text, Image, pdf, View } from '@react-pdf/renderer';
-import { styles } from './utils/styles';
+import { Document, pdf } from '@react-pdf/renderer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
 import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSection';
 import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
 import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
 import { CoverPageSection } from './pdf-sections/CoverPageSection';
-import logo from './utils/testpilot-logo.png';
 import { TestDetails } from './utils/types';
 import { VariantCover } from './sections/VariantCover';
+
 interface PDFDocumentProps {
     testDetails: TestDetails;
     summaryData: any;
     onPrintStart?: () => void;
     onPrintEnd?: () => void;
-    insights: string;
+    insights: {
+        purchase_drivers?: string;
+        recommendations?: string;
+    };
     disabled?: boolean;
 }
 
@@ -25,6 +27,10 @@ const PDFDocument = ({ testDetails, summaryData, insights }: {
     summaryData: PDFDocumentProps['summaryData'];
     insights: PDFDocumentProps['insights'];
 }) => {
+    if (!testDetails || !summaryData) {
+        return null;
+    }
+
     const variantsArray = [testDetails.variations.a, testDetails.variations.b, testDetails.variations.c].filter(v => v);
 
     return (
@@ -35,15 +41,19 @@ const PDFDocument = ({ testDetails, summaryData, insights }: {
 
             {Object.entries(testDetails.variations).map(([key, variation]) =>
                 variation && (
-                    <>
+                    <React.Fragment key={key}>
                         <VariantCover
                             variantKey={key}
                             title={variation.title}
                             imageUrl={variation.image_url}
                         />
-                        <PurchaseDriversPDFSection testDetails={testDetails} variationType={key} insights={insights.purchase_drivers} />
+                        <PurchaseDriversPDFSection
+                            testDetails={testDetails}
+                            variationType={key}
+                            insights={insights?.purchase_drivers}
+                        />
                         <CompetitiveInsightsPDFSection />
-                    </>
+                    </React.Fragment>
                 )
             )}
             {/* <Page size="A4" orientation="portrait" style={styles.page}>
@@ -54,11 +64,9 @@ const PDFDocument = ({ testDetails, summaryData, insights }: {
                 <ShopperCommentsPDFSection />
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page> */}
-            <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image src={logo} style={styles.logo} />
-                <RecommendationsPDFSection />
-                <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
-            </Page>
+            {insights?.recommendations && (
+                <RecommendationsPDFSection insights={insights.recommendations} />
+            )}
         </Document>
     );
 };
@@ -93,41 +101,31 @@ const PDFPreviewModal = ({ isOpen, onClose, pdfUrl }: { isOpen: boolean; onClose
 export const ReportPDF: React.FC<PDFDocumentProps> = ({
     testDetails,
     summaryData,
-    onPrintStart,
-    onPrintEnd,
     insights,
     disabled,
 }) => {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-    const handleRenderStart = () => {
-        onPrintStart?.();
-    };
-
-    const handleRenderEnd = () => {
-        onPrintEnd?.();
-    };
-
     const handleExportPDF = async () => {
         try {
+            if (!testDetails || !summaryData) {
+                console.error('Missing required data for PDF generation');
+                return;
+            }
+
             const blob = await pdf(
-                <PDFDocument testDetails={testDetails} summaryData={summaryData} insights={insights} />
+                <PDFDocument
+                    testDetails={testDetails}
+                    summaryData={summaryData}
+                    insights={insights}
+                />
             ).toBlob();
             const url = URL.createObjectURL(blob);
             setPdfUrl(url);
             setIsPreviewOpen(true);
         } catch (error) {
             console.error('Error generating PDF:', error);
-        }
-    };
-
-    const handleDownload = () => {
-        if (pdfUrl) {
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = 'test-report.pdf';
-            link.click();
         }
     };
 
@@ -152,7 +150,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                 <button
                     onClick={handleExportPDF}
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={disabled}
+                    disabled={disabled || !testDetails || !summaryData}
                 >
                     <FilePdf size={20} />
                     Export to PDF

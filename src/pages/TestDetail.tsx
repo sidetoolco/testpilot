@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTestDetail } from '../features/tests/hooks/useTestDetail';
 import { getIaInsight } from '../features/tests/components/Report/services/dataInsightService';
@@ -9,36 +9,81 @@ import Report from '../features/tests/components/Report/ReportMain';
 export default function TestDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { test: testInfo, loading } = useTestDetail(id || '');
-  const { insight, loading: insightLoading, setInsight, setLoading } = useInsightStore();
+  const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
+  const { loading: insightLoading, setInsight, setLoading } = useInsightStore();
+  const [showLoading, setShowLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (testInfo && id) {
       setLoading(true);
-      getIaInsight(id || '', testInfo)
-        .then((data: any) => {
+      setError(null);
+      getIaInsight(id, testInfo)
+        .then((data) => {
           setInsight(data);
-          setLoading(false);
         })
-        .catch(() => {
+        .catch((err) => {
+          setError('Failed to load insights. Please try again later.');
+          console.error('Error loading insights:', err);
+        })
+        .finally(() => {
           setLoading(false);
         });
     }
-  }, [id, testInfo]);
+  }, [id, testInfo, setInsight, setLoading]);
 
-  const isInsightLoading = testInfo && insightLoading;
-  console.log(insight, 'insight', loading, 'loading', insightLoading, 'insightLoading');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoading(loading || insightLoading);
+    }, 300);
 
-  if (loading || isInsightLoading) {
+    return () => clearTimeout(timer);
+  }, [loading, insightLoading]);
+
+  if (testError) {
     return (
-      <div className="max-w-[1400px] mx-auto px-8 py-6">
-        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
-          {isInsightLoading && <p className="mt-4 text-primary-400 animate-pulse">Loading insights...</p>}
+      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-medium text-gray-900 mb-2">Error loading test</h2>
+          <p className="text-gray-600 mb-4">{testError}</p>
+          <button
+            onClick={() => navigate('/my-tests')}
+            className="text-primary-400 hover:text-primary-500 hover:underline"
+          >
+            Return to tests
+          </button>
         </div>
       </div>
     );
   }
+
+  if (showLoading) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-8 py-6">
+        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+          <div className="text-center space-y-6 max-w-md mx-auto px-4">
+            <div className="inline-flex relative w-16 h-16">
+              <div className="absolute w-16 h-16 border-4 border-primary-100 rounded-full"></div>
+              <div className="absolute w-16 h-16 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold text-gray-800">Analyzing your test results</h3>
+              {insightLoading ? (
+                <p className="text-primary-500 text-sm font-medium">
+                  Bringing powerful insights to you...
+                </p>
+              ) : (
+                <p className="text-primary-500/50 text-sm font-medium">
+                  Loading test data...
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!testInfo) {
     return (
       <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
@@ -66,6 +111,11 @@ export default function TestDetail() {
             <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
             <span className="font-medium">Back to tests</span>
           </button>
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
           <Report variant={testInfo} />
         </div>
       </div>

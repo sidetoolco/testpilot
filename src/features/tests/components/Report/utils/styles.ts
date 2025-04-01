@@ -4,7 +4,7 @@ export const styles = StyleSheet.create({
     page: {
         flexDirection: 'column',
         backgroundColor: '#fff',
-        padding: 30,
+        padding: 20,
         position: 'relative',
     },
     logo: {

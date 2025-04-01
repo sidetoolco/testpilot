@@ -19,38 +19,49 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
             // Check if it's a header (starts with ###)
             if (paragraph.startsWith('###')) {
                 return (
-                    <Text key={index} style={[
-                        styles.text,
-                        { 
-                            fontSize: 18,
-                            fontWeight: 'bold',
-                            color: '#374151',
-                            marginBottom: 16,
+                    <View key={index} style={{ marginBottom: 20, marginTop: 12 }}>
+                        <Text style={[
+                            styles.text,
+                            { 
+                                fontSize: 24,
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                letterSpacing: -0.5,
+                                lineHeight: 1.3
+                            },
+                            baseTextStyle
+                        ]}>
+                            {paragraph.replace('###', '').trim()}
+                        </Text>
+                        {/* Decorative line under h3 headers */}
+                        <View style={{
+                            width: 60,
+                            height: 3,
+                            backgroundColor: '#34A270',
                             marginTop: 8
-                        },
-                        baseTextStyle
-                    ]}>
-                        {paragraph.replace('###', '').trim()}
-                    </Text>
+                        }} />
+                    </View>
                 );
             }
 
             // Check if it's a subheader (starts with ##)
             if (paragraph.startsWith('##')) {
                 return (
-                    <Text key={index} style={[
-                        styles.text,
-                        { 
-                            fontSize: 16,
-                            fontWeight: 'bold',
-                            color: '#4B5563',
-                            marginBottom: 12,
-                            marginTop: 6
-                        },
-                        baseTextStyle
-                    ]}>
-                        {paragraph.replace('##', '').trim()}
-                    </Text>
+                    <View key={index} style={{ marginBottom: 16, marginTop: 10 }}>
+                        <Text style={[
+                            styles.text,
+                            { 
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                color: '#1F2937',
+                                letterSpacing: -0.3,
+                                lineHeight: 1.3
+                            },
+                            baseTextStyle
+                        ]}>
+                            {paragraph.replace('##', '').trim()}
+                        </Text>
+                    </View>
                 );
             }
 
@@ -60,14 +71,23 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
             return (
                 <Text key={index} style={[
                     styles.text,
-                    { marginBottom: 8, lineHeight: 1.5 },
+                    { 
+                        fontSize: 14,
+                        color: '#4B5563',
+                        marginBottom: 12,
+                        lineHeight: 1.6,
+                        letterSpacing: 0.2
+                    },
                     baseTextStyle
                 ]}>
                     {parts.map((part, partIndex) => {
                         if (part.startsWith('**') && part.endsWith('**')) {
                             // Bold text
                             return (
-                                <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                                <Text key={partIndex} style={{ 
+                                    fontWeight: 'bold',
+                                    color: '#111827'
+                                }}>
                                     {part.slice(2, -2)}
                                 </Text>
                             );
@@ -81,7 +101,10 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
     };
 
     return (
-        <View style={{ marginBottom: 16 }}>
+        <View style={{ 
+            marginBottom: 24,
+            paddingHorizontal: 4
+        }}>
             {renderMarkdownText(text)}
         </View>
     );
