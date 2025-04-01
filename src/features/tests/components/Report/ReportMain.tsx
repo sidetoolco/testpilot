@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
+import { getSummaryData, checkIdInIaInsights } from './services/dataInsightService';
 
 interface ReportProps {
   variant: any;
@@ -45,7 +46,34 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
 const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting, setIsPrinting] = useState(false);
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [insights, setInsights] = useState<any>(null);
   const variantsArray = [testData.variations.a, testData.variations.b, testData.variations.c].filter(v => v);
+
+  
+  useEffect(() => {
+    const fetchSummaryData = async () => {
+      // First check if we already have insights for this test
+      const existingInsights = await checkIdInIaInsights(testData.id);
+      if (existingInsights && typeof existingInsights === 'object' && 'comparison_between_variants' in existingInsights) {
+        // If we have insights, add them to the existing summary data
+        const data = await getSummaryData(testData);
+        setSummaryData({
+          ...data,
+          insights: {
+            comparison_between_variants: existingInsights.comparison_between_variants,
+          }
+        });
+        setInsights(existingInsights);
+        return;
+      }
+
+      // If no insights exist, fetch new summary data
+      const data = await getSummaryData(testData);
+      setSummaryData(data);
+    };
+    fetchSummaryData();
+  }, [testData]);
 
   useEffect(() => {
     const observerOptions = {
@@ -100,11 +128,12 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
             onPrintEnd={() => setIsPrinting(false)}
             testDetails={testData}
             disabled={testData.status !== 'complete'}
+            summaryData={summaryData}
           />
         </div>
-        <ReportTabs 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange} 
+        <ReportTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
           variantStatus={testData.status}
         />
       </div>

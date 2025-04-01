@@ -43,6 +43,7 @@ export interface ReportPDFProps {
     onPrintEnd: () => void;
     testDetails: TestDetails;
     disabled: boolean;
+    summaryData: any;
 }
 
 export interface DatasetType {

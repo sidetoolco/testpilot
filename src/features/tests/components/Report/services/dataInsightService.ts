@@ -1,5 +1,6 @@
 import { Variant, SurveyData, VariationType } from '../models/insight';
 import { supabase } from '../../../../../lib/supabase';
+import { TestDetails } from '../utils/types';
 // Sends a prompt to a specified endpoint and returns the response.
 // Parameters:
 //   - prompt (string): The prompt to be sent to the endpoint.
@@ -469,3 +470,104 @@ export const processSurveyData = (surveys: { [key: string]: Survey[] }, LABELS: 
     };
   });
 };
+
+interface SummaryRow {
+  title: string;
+  shareOfClicks: string;
+  shareOfBuy: string;
+  valueScore: string;
+  isWinner: string;
+}
+
+export const getSummaryData = async (testDetails: TestDetails): Promise<{
+  rows: SummaryRow[];
+  error: string | null;
+}> => {
+  console.log('Me ejecuto');
+
+  if (!testDetails || !testDetails.variations) {
+    return {
+      rows: [],
+      error: 'Not enough data for analysis.'
+    };
+  }
+
+  try {
+    const variations = testDetails.variations;
+    // Convert the variations object into an array of entries with their types
+    const variationEntries = Object.entries(variations)
+      .filter(([_, variant]) => variant !== null); // Filter out null variations
+
+    if (variationEntries.length === 0) {
+      return {
+        rows: [],
+        error: 'No variations found.'
+      };
+    }
+
+    const rows = await Promise.all(
+      variationEntries.map(async ([variationType, variant]) => {
+        // Get appearances count
+        const { data: appearancesData, error: appearancesError } = await supabase
+          .from('test_times')
+          .select('*', { count: 'exact' })
+          .eq('product_id', variant.id);
+
+        if (appearancesError) throw appearancesError;
+        const appearances = appearancesData?.length || 0;
+
+        // Get total clicks
+        const { data: clicksData, error: clicksError } = await supabase
+          .from('test_times')
+          .select('*, testers_session!inner(*)')
+          .eq('testers_session.variation_type', variationType);
+
+        if (clicksError) throw clicksError;
+        const totalClicks = clicksData?.length || 0;
+
+        // Calculate share of clicks
+        const shareOfClicks = totalClicks > 0 ? (appearances / totalClicks) * 100 : 0;
+
+        // Calculate share of buy
+        const surveys = testDetails.responses.surveys[variationType] || [];
+        const shareOfBuy = surveys.length > 0 ? (surveys.length / totalClicks) * 100 : 0;
+
+        // Calculate value score
+        const scores = surveys.map(survey => {
+          const metrics = [
+            survey.appearance,
+            survey.confidence,
+            survey.value,
+            survey.convenience,
+            survey.brand
+          ];
+          return calculateAverageScore(metrics);
+        });
+        const valueScore = scores.length ? calculateAverageScore(scores) : 0;
+
+        return {
+          title: variant.title,
+          shareOfClicks: formatPercentage(shareOfClicks),
+          shareOfBuy: formatPercentage(shareOfBuy),
+          valueScore: valueScore.toFixed(1),
+          isWinner: totalClicks >= 30 ? 'Yes' : 'No'
+        };
+      })
+    );
+
+    return {
+      rows,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error loading summary data:', error);
+    return {
+      rows: [],
+      error: 'Failed to load summary data. Please try again.'
+    };
+  }
+};
+
+
+
+

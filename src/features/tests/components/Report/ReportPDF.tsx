@@ -12,18 +12,17 @@ import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSect
 import { CoverPageSection } from './pdf-sections/CoverPageSection';
 import logo from './utils/testpilot-logo.png';
 
-const PDFDocument = ({ testDetails }: { testDetails: ReportPDFProps['testDetails'] }) => {
+const PDFDocument = ({ testDetails, summaryData }: { 
+    testDetails: ReportPDFProps['testDetails'];
+    summaryData: ReportPDFProps['summaryData'];
+}) => {
     const variantsArray = [testDetails.variations.a, testDetails.variations.b, testDetails.variations.c].filter(v => v);
 
     return (
         <Document>
             <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} />
             <TestDetailsPDFSection testDetails={testDetails} />
-            <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image src={logo} style={styles.logo} />
-                <SummaryPDFSection />
-                <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
-            </Page>
+            <SummaryPDFSection summaryData={summaryData} />
             <Page size="A4" orientation="portrait" style={styles.page}>
                 <Image
                     src={logo}
@@ -84,16 +83,18 @@ const PDFPreviewModal = ({ isOpen, onClose, pdfUrl }: { isOpen: boolean; onClose
     );
 };
 
-const ReportPDF: React.FC<ReportPDFProps> = ({ onPrintStart, onPrintEnd, testDetails, disabled }) => {
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const ReportPDF: React.FC<ReportPDFProps> = ({ onPrintStart, onPrintEnd, testDetails, disabled, summaryData }) => {
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const handleExportPDF = async () => {
         onPrintStart();
         try {
-            const blob = await pdf(<PDFDocument testDetails={testDetails} />).toBlob();
+            const blob = await pdf(
+                <PDFDocument testDetails={testDetails} summaryData={summaryData} />
+            ).toBlob();
             const url = URL.createObjectURL(blob);
-            setPreviewUrl(url);
+            setPdfUrl(url);
             setIsPreviewOpen(true);
         } catch (error) {
             console.error('Error generating PDF:', error);
@@ -103,9 +104,9 @@ const ReportPDF: React.FC<ReportPDFProps> = ({ onPrintStart, onPrintEnd, testDet
     };
 
     const handleDownload = () => {
-        if (previewUrl) {
+        if (pdfUrl) {
             const link = document.createElement('a');
-            link.href = previewUrl;
+            link.href = pdfUrl;
             link.download = 'test-report.pdf';
             link.click();
         }
@@ -113,9 +114,9 @@ const ReportPDF: React.FC<ReportPDFProps> = ({ onPrintStart, onPrintEnd, testDet
 
     const handleClosePreview = () => {
         setIsPreviewOpen(false);
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            setPreviewUrl(null);
+        if (pdfUrl) {
+            URL.revokeObjectURL(pdfUrl);
+            setPdfUrl(null);
         }
     };
 
@@ -139,11 +140,11 @@ const ReportPDF: React.FC<ReportPDFProps> = ({ onPrintStart, onPrintEnd, testDet
                 </button>
             </div>
 
-            {isPreviewOpen && previewUrl && (
+            {isPreviewOpen && pdfUrl && (
                 <PDFPreviewModal
                     isOpen={isPreviewOpen}
                     onClose={handleClosePreview}
-                    pdfUrl={previewUrl}
+                    pdfUrl={pdfUrl}
                 />
             )}
         </>

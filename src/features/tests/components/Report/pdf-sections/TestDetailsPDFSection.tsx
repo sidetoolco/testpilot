@@ -17,94 +17,99 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
                     <Text style={styles.value}>{testDetails.name}</Text>
                     <Text style={styles.label}>Created on {new Date(testDetails.updatedAt).toLocaleDateString()}</Text>
                 </View>
-                <View style={styles.detailsGrid}>
+                <View>
+                    <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 10, marginTop: 5 }}>
+                        <Text style={styles.value}>Test configurations</Text>
 
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Participants</Text>
-                        <Text style={styles.value}>{testDetails.demographics.testerCount}</Text>
-                    </View>
-
-
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Age Ranges</Text>
-                        {testDetails.demographics.ageRanges.map((age: string, index: number) => (
-                            <Text key={index} style={styles.pill}>{age}</Text>
-                        ))}
-                    </View>
-
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Gender</Text>
-                        {testDetails.demographics.gender.map((gender: string, index: number) => (
-                            <Text key={index} style={styles.pill}>{gender}</Text>
-                        ))}
-                    </View>
-
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Locations</Text>
-                        {testDetails.demographics.locations.map((location: string, index: number) => (
-                            <Text key={index} style={styles.pill}>{location}</Text>
-                        ))}
-                    </View>
-
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Search Term</Text>
-                        <Text style={styles.value}>
-                            {testDetails.searchTerm}
-                        </Text>
-                    </View>
-
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Competitors</Text>
-                        <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}>
-                            {testDetails.competitors.map((competitor: string, index: number) => (
-                                <Image key={index} src={competitor.image_url} style={{
-                                    width: 40,
-                                    height: 40,
-                                    objectFit: 'contain',
-                                    borderRadius: 4,
-                                }} />
-                            ))}
+                        <View style={styles.detailsCard}>
+                            <Text style={styles.label}>Participants</Text>
+                            <Text style={styles.value}>{testDetails.demographics.testerCount}</Text>
                         </View>
-                    </View>
-                    <View style={styles.detailsCard}>
-                        <Text style={styles.label}>Variations</Text>
-                        <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}>
-                            {Object.values(testDetails.variations).filter(v => v !== null).map((variation, index) => (
-                                <View key={index} style={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    backgroundColor: '#F9FAFB',
-                                    borderRadius: 8,
-                                    padding: 2,
-                                    marginBottom: 2,
-                                    minWidth: '45%',
-                                }}>
-                                    <Image src={variation.image_url} style={{
+
+                        <View style={styles.detailsCard}>
+                            <Text style={styles.label}>Search Term</Text>
+                            <Text style={styles.value}>
+                                {testDetails.searchTerm}
+                            </Text>
+                        </View>
+
+                        <View style={styles.detailsCard}>
+                            <Text style={styles.label}>Competitors</Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}>
+                                {testDetails.competitors.map((competitor: string, index: number) => (
+                                    <Image key={index} src={competitor.image_url} style={{
                                         width: 40,
                                         height: 40,
                                         objectFit: 'contain',
                                         borderRadius: 4,
                                     }} />
-                                    <Text style={{
-                                        fontSize: 10,
-                                        fontWeight: 'bold',
-                                        color: '#1F2937',
-                                        flex: 1,
-                                        marginLeft: 4,
+                                ))}
+                            </View>
+                        </View>
+                        <View style={styles.detailsCard}>
+                            <Text style={styles.label}>Variations</Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}>
+                                {Object.values(testDetails.variations).filter(v => v !== null).map((variation, index) => (
+                                    <View key={index} style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        backgroundColor: '#F9FAFB',
+                                        borderRadius: 8,
+                                        padding: 2,
+                                        marginBottom: 2,
+                                        minWidth: '45%',
                                     }}>
-                                        {variation.title.length > 20 ? `${variation.title.substring(0, 20)}...` : variation.title}
-                                    </Text>
-                                </View>
-                            ))}
+                                        <Image src={variation.image_url} style={{
+                                            width: 40,
+                                            height: 40,
+                                            objectFit: 'contain',
+                                            borderRadius: 4,
+                                        }} />
+                                        <Text style={{
+                                            fontSize: 10,
+                                            fontWeight: 'bold',
+                                            color: '#1F2937',
+                                            flex: 1,
+                                            marginLeft: 4,
+                                        }}>
+                                            {variation.title.length > 20 ? `${variation.title.substring(0, 20)}...` : variation.title}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    </View>
+                    <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 10, marginTop: 5 }}>
+                        <Text style={styles.value}>Demographics</Text>
+                        <View>
+                            <View style={styles.detailsCard}>
+                                <Text style={styles.label}>Age Ranges</Text>
+                                {testDetails.demographics.ageRanges.map((age: string, index: number) => (
+                                    <Text key={index} style={styles.pill}>{age}</Text>
+                                ))}
+                            </View>
+                            <View style={styles.detailsCard}>
+                                <Text style={styles.label}>Gender</Text>
+                                {testDetails.demographics.gender.map((gender: string, index: number) => (
+                                    <Text key={index} style={styles.pill}>{gender}</Text>
+                                ))}
+                            </View>
+
+                            <View style={styles.detailsCard}>
+                                <Text style={styles.label}>Locations</Text>
+                                {testDetails.demographics.locations.map((location: string, index: number) => (
+                                    <Text key={index} style={styles.pill}>{location}</Text>
+                                ))}
+                            </View>
                         </View>
                     </View>
                 </View>
