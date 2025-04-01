@@ -19,7 +19,7 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
   return (
     <div className="border-b border-gray-200 overflow-x-auto">
       <nav className="flex gap-1 min-w-max pb-1">
-        {[ 'test-details','summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations'].map(tab => {
+        {['test-details', 'summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations'].map(tab => {
           const isDisabled = variantStatus === 'draft' && tab !== 'test-details';
           return (
             <button
@@ -48,9 +48,8 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [insights, setInsights] = useState<any>(null);
-  const variantsArray = [testData.variations.a, testData.variations.b, testData.variations.c].filter(v => v);
 
-  
+
   useEffect(() => {
     const fetchSummaryData = async () => {
       // First check if we already have insights for this test
@@ -127,8 +126,9 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
             onPrintStart={() => setIsPrinting(true)}
             onPrintEnd={() => setIsPrinting(false)}
             testDetails={testData}
-            disabled={testData.status !== 'complete'}
             summaryData={summaryData}
+            insights={insights}
+            disabled={testData.status !== 'complete'}
           />
         </div>
         <ReportTabs
@@ -143,7 +143,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
         <ReportContent
           activeTab={activeTab}
           variant={testData}
-          variantsArray={variantsArray}
+          summaryData={summaryData}
         />
       )}
     </div>

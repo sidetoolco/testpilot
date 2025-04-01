@@ -10,10 +10,10 @@ import Recommendations from './sections/RecommendationsList';
 interface ReportContentProps {
   activeTab: string;
   variant: any;
-  variantsArray: any[];
+  summaryData: any;
 }
 
-const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, variantsArray }) => {
+const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summaryData }) => {
   return (
     <div className="flex-1 overflow-hidden">
       <div
@@ -28,16 +28,14 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, varia
           <div
             id="content-summary"
             className={clsx(
-              'p-4',
               activeTab !== 'summary' && 'hidden'
             )}
           >
-            <Summary variants={variantsArray} surveys={variant.responses.surveys} comparision={variant.responses.comparisons} testerId={variant.id} />
+            <Summary summaryData={summaryData} />
           </div>
           <div
             id="content-purchase-drivers"
             className={clsx(
-              'p-4',
               activeTab !== 'purchase-drivers' && 'hidden'
             )}
           >
@@ -46,7 +44,6 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, varia
           <div
             id="content-competitive-insights"
             className={clsx(
-              'p-4',
               activeTab !== 'competitive-insights' && 'hidden'
             )}
           >
@@ -64,7 +61,6 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, varia
           <div
             id="content-recommendations"
             className={clsx(
-              'p-4',
               activeTab !== 'recommendations' && 'hidden'
             )}
           >
@@ -73,7 +69,6 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, varia
           <div
             id="content-test-details"
             className={clsx(
-              'p-4',
               activeTab !== 'test-details' && 'hidden'
             )}
           >

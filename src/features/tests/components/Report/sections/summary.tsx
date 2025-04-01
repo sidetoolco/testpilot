@@ -102,90 +102,38 @@ interface SurveyData {
 const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score', 'Win? (90% Confidence)'];
 
 const Summary: React.FC<{
-    variants: Variant[],
-    surveys: SurveyData,
-    comparision: SurveyData,
-    testerId: string
-}> = ({ variants, surveys, comparision, testerId }) => {
+    summaryData: any
+}> = ({ summaryData }) => {
+    if (!summaryData) return (
+        <p className='text-center text-gray-500'>Not enough variants for analysis.</p>
+    );
     const [rows, setRows] = useState<string[][]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { insight, loading } = useInsightStore();
     const [showFullText, setShowFullText] = useState(false);
-    const maxLength = 250; // Define the maximum length for the truncated text
-
-    const processVariantData = async (variant: Variant, index: number): Promise<string[]> => {
-        const variationType: VariationType = index === 0 ? 'a' : index === 1 ? 'b' : 'c';
-
-        const [appearances, totalClicks] = await Promise.all([
-            countVariationAppearances(variant.id),
-            countClicksPerProduct(testerId, variationType)
-        ]);
-
-        const shareOfClicks = calculatePercentage(appearances, totalClicks);
-
-        const totalSurveys = surveys[variationType]?.length || 0;
-        const totalComparisions = comparision[variationType]?.length || 0;
-        const sumCheckouts = totalSurveys + totalComparisions;
-        const shareOfBuy = sumCheckouts > 0 ? (totalSurveys / sumCheckouts) * 100 : 0;
-
-        const scores = surveys[variationType]?.map(survey => {
-            const metrics = [
-                survey.appearance,
-                survey.confidence,
-                survey.value,
-                survey.convenience,
-                survey.brand
-            ];
-            return calculateAverageScore(metrics);
-        }) || [];
-
-        const valueScore = scores.length ? calculateAverageScore(scores) : 0;
-
-        return [
-            `Variant #${index + 1}: ${variant.title}`,
-            formatPercentage(parseFloat(shareOfClicks)),
-            formatPercentage(shareOfBuy),
-            valueScore.toFixed(1),
-            totalClicks >= 30 ? 'Yes' : 'No'
-        ];
-    };
+    const maxLength = 250;
 
     useEffect(() => {
         async function loadData() {
-            if (!variants || variants.length === 0 ) return <div className='text-center text-gray-500'>Not enough data for analysis.</div>;
+            const { rows: summaryRows } = summaryData;
 
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                const newRows = await Promise.all(
-                    variants.map((variant, index) => processVariantData(variant, index))
-                );
-                setRows(newRows);
-            } catch (error) {
-                console.error('Error loading summary data:', error);
-                setError('Failed to load summary data. Please try again.');
-            } finally {
-                setIsLoading(false);
-            }
+            setRows(summaryRows.map((row: any) => [
+                row.title,
+                row.shareOfClicks,
+                row.shareOfBuy,
+                row.valueScore,
+                row.isWinner
+            ]));
         }
         loadData();
-    }, [variants, testerId, surveys, comparision]);
-
-    const calculatePercentage = (numerator: number, denominator: number): string => {
-        if (denominator === 0 || numerator === 0) return '0.0';
-        return ((numerator / denominator) * 100).toFixed(1);
-    };
+    }, [summaryData]);
 
     const toggleText = () => {
         setShowFullText(!showFullText);
     };
 
     const renderText = () => {
-        if (!insight) return '';
+        if (!summaryData.insights) return '';
 
-        const fullText = insight.comparison_between_variants;
+        const fullText = summaryData.insights.comparison_between_variants;
         if (showFullText || fullText.length <= maxLength) {
             return <ReactMarkdown>{fullText}</ReactMarkdown>;
         }
@@ -193,29 +141,6 @@ const Summary: React.FC<{
         const truncatedText = fullText.substring(0, maxLength) + '...';
         return <ReactMarkdown>{truncatedText}</ReactMarkdown>;
     };
-
-    if (isLoading && loading) return (
-        <div className="flex justify-center items-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-    );
-
-    if (error) return (
-        <div className="text-center text-red-500 p-4">
-            <p>{error}</p>
-            <button
-                onClick={() => window.location.reload()}
-                className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-                Retry
-            </button>
-        </div>
-    );
-
-    if (!variants || variants.length === 0) return (
-        <p className='text-center text-gray-500'>Not enough variants for analysis.</p>
-    );
-
     return (
         <div className="p-3">
             <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
@@ -230,7 +155,7 @@ const Summary: React.FC<{
                         <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
                         <div className="text-gray-700 leading-relaxed">
                             {renderText()}
-                            {insight && insight.comparison_between_variants.length > maxLength && (
+                            {summaryData.insights.comparison_between_variants.length > maxLength && (
                                 <button onClick={toggleText} className="text-blue-500">
                                     {showFullText ? 'See Less' : 'See More'}
                                 </button>
