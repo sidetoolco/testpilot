@@ -52,7 +52,7 @@ export default function CompetitorSelection({
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState message="Gathering competitive products..." />;
   if (error) return <ErrorState error={error} onRetry={() => window.location.reload()} />;
 
   return (
