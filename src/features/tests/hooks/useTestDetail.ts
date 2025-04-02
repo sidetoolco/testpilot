@@ -65,7 +65,21 @@ export function useTestDetail(id: string) {
         // Fetch survey responses for the test
         const { data: surveysData, error: surveysError } = await supabase
           .from('responses_surveys')
-          .select('*, products(*),tester_id(variation_type,id)') // Hacemos un join con la tabla products para traer el name
+          .select(`
+            *,
+            products(*),
+            tester_id(
+              variation_type,
+              id,
+              prolific_pid,
+              shopper_demographic (
+                id_prolific,
+                age,
+                sex,
+                country_residence
+              )
+            )
+          `)
           .eq('test_id', id);
 
         if (surveysError) throw surveysError;
