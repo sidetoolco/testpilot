@@ -18,16 +18,18 @@ interface TestVariationsProps {
   onBack: () => void;
 }
 
+type Variations = 'a' | 'b' | 'c';
+
 export default function TestVariations({
   variations,
   onChange,
 }: TestVariationsProps) {
-  const [showProductSelector, setShowProductSelector] = useState<'a' | 'b' | 'c' | null>(null);
-  const [showProductForm, setShowProductForm] = useState<'a' | 'b' | 'c' | null>(null);
+  const [showProductSelector, setShowProductSelector] = useState<Variations | null>(null);
+  const [showProductForm, setShowProductForm] = useState<Variations | null>(null);
   const { products, loading, error } = useProducts();
   const { addProduct, updateProduct } = useProductStore();
 
-  const handleSelectProduct = (variation: 'a' | 'b' | 'c', product: Product) => {
+  const handleSelectProduct = (variation: Variations, product: Product) => {
     onChange({
       ...variations,
       [variation]: {
@@ -38,7 +40,14 @@ export default function TestVariations({
     setShowProductSelector(null);
   };
 
-  const handleProductSubmit = async (variation: 'a' | 'b' | 'c', productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+  const handleRemoveProduct = (key: Variations) => {
+    onChange({
+      ...variations,
+      [key]: null
+    })
+  }
+
+  const handleProductSubmit = async (variation: Variations, productData: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => {
     let idProduct: any;
     try {
       if (productData.id) {
@@ -60,7 +69,7 @@ export default function TestVariations({
     setShowProductForm(null);
   };
 
-  const renderVariation = (key: 'a' | 'b' | 'c') => {
+  const renderVariation = (key: Variations) => {
     const isRequired = key === 'a';
     const variation = variations[key];
 
@@ -135,12 +144,21 @@ export default function TestVariations({
                 Existing Product
               </span>
             ) : (
-              <button
-                onClick={() => setShowProductForm(key)}
-                className="text-primary-400 hover:text-primary-500 text-sm mt-2"
-              >
-                Edit Product
-              </button>
+              <>
+                <button
+                  onClick={() => setShowProductForm(key)}
+                  className="text-primary-400 hover:text-primary-500 text-sm mt-2"
+                >
+                  Edit Product
+                </button>
+                <span className="text-sm mt-2 text-gray-500">&nbsp;|&nbsp;</span>
+                <button
+                  onClick={() => handleRemoveProduct(key)}
+                  className="text-red-500 hover:text-red-600 text-sm mt-2"
+                >
+                  Remove Product
+                </button>
+              </>
             )}
           </div>
         </div>
