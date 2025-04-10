@@ -5,7 +5,7 @@ import ProductForm from './ProductForm';
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => void;
   initialData?: Product;
 }
 
