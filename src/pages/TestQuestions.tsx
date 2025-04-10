@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getTracker } from '../lib/openReplay';
 import { ComparisonView } from '../features/tests/components/TestQuestions/ComparisonView';
 import { SelectedVariation } from '../features/tests/components/TestQuestions/SelectedVariation';
+import FeedbackModal from '../features/tests/components/TestQuestions/FeedbackModal';
 
 const TestDisplay: React.FC = () => {
 
@@ -33,6 +34,7 @@ const TestDisplay: React.FC = () => {
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
     const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
     const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
@@ -142,7 +144,8 @@ const TestDisplay: React.FC = () => {
             }
 
             console.log('Data saved successfully:', data);
-            navigate('/thanks', { state: { testId: test.id + '-' + test.variations[0].variation_type } });
+
+            setShowFeedbackModal(true);
         } catch (error) {
             console.error('Unexpected error:', error);
         }
@@ -169,6 +172,18 @@ const TestDisplay: React.FC = () => {
             ) : (
                 <ComparisonView responses={responses} competitorItem={competitorItem} itemSelected={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
             )}
+            <FeedbackModal
+                isOpen={showFeedbackModal}
+                handleModalClose={() => setShowFeedbackModal(false)}
+                isSelectedVariation={isVariationSelected.length}
+                handleSubmit={() =>
+                    navigate("/thanks", {
+                        state: {
+                            testId: test.id + "-" + test.variations[0].variation_type,
+                        },
+                    })
+                }
+            />
         </div>
     );
 };
