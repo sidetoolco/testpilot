@@ -140,9 +140,17 @@ export default function TestVariations({
             <h5 className="font-medium text-gray-900">{variation.title}</h5>
             <p className="text-sm text-gray-500 mt-1">US${variation.price.toFixed(2)}</p>
             {variation.isExisting ? (
-              <span className="inline-block mt-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                Existing Product
-              </span>
+              <>
+                <span className="inline-block mt-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  Existing Product
+                </span>
+                <button
+                  onClick={() => handleRemoveProduct(key)}
+                  className="text-red-500 hover:text-red-600 text-xs mt-2 ml-2"
+                >
+                  Remove Product
+                </button>
+              </>
             ) : (
               <>
                 <button
