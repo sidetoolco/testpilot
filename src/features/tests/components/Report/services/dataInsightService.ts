@@ -481,7 +481,7 @@ interface SummaryRow {
 
 export const transformDataToSummaryRow = (data: any): SummaryRow => {
   return {
-    title: `Variant ${data.variant_type}`, // Ajusta esto según sea necesario
+    title: `Variant ${data.variant_type.toUpperCase()} - ${data.product.title}`, // Ajusta esto según sea necesario
     shareOfClicks: data.share_of_click.toString(),
     shareOfBuy: data.share_of_buy.toString(),
     valueScore: data.value_score.toString(),
@@ -504,7 +504,7 @@ export const getSummaryData = async (testDetails: TestDetails): Promise<{
   try {
     const { data: summaryData, error: summaryError } = await supabase
       .from('summary')
-      .select('*')
+      .select('*, product:product_id(title)')
       .eq('test_id', testDetails.id);
 
     if (summaryError) throw summaryError;
