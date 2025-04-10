@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { supabase } from '../../../../../lib/supabase';
-import { useInsightStore } from '../../../hooks/useIaInsight';
 import ReactMarkdown from 'react-markdown';
 const COLORS = {
     success: {
@@ -38,66 +36,6 @@ const getColorForValue = (value: string, columnIndex: number, allRows: string[][
     return COLORS.warning.bg;
 };
 
-const formatPercentage = (value: number): string => {
-    return `${value.toFixed(1)}%`;
-};
-
-const calculateAverageScore = (scores: number[]): number => {
-    if (!scores.length) return 0;
-    const validScores = scores.filter(score => typeof score === 'number' && !isNaN(score));
-    return validScores.length ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
-};
-
-export async function countVariationAppearances(variationId: string): Promise<number> {
-    try {
-        const { data, error } = await supabase
-            .from('test_times')
-            .select('*', { count: 'exact' })
-            .eq('product_id', variationId);
-
-        if (error) {
-            console.error('Error counting variation appearances:', error);
-            throw error;
-        }
-
-        return data?.length || 0;
-    } catch (error) {
-        console.error('Error in countVariationAppearances:', error);
-        throw error;
-    }
-}
-
-export async function countClicksPerProduct(testId: string, variationType: string): Promise<number> {
-    try {
-        const { data, error } = await supabase
-            .from('test_times')
-            .select('*, testers_session!inner(*)')
-            .eq('testers_session.test_id', testId)
-            .eq('testers_session.variation_type', variationType);
-
-        if (error) {
-            console.error('Error counting clicks per product:', error);
-            throw error;
-        }
-
-        return data?.length || 0;
-    } catch (error) {
-        console.error('Error in countClicksPerProduct:', error);
-        throw error;
-    }
-}
-
-type VariationType = 'a' | 'b' | 'c';
-
-interface Variant {
-    id: string;
-    title: string;
-    valueScore: number;
-}
-
-interface SurveyData {
-    [key: string]: any[];
-}
 
 const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score', 'Win? (90% Confidence)'];
 
@@ -117,8 +55,8 @@ const Summary: React.FC<{
 
             setRows(summaryRows.map((row: any) => [
                 row.title,
-                row.shareOfClicks,
-                row.shareOfBuy,
+                `${row.shareOfClicks}%`,
+                `${row.shareOfBuy}%`,
                 row.valueScore,
                 row.isWinner
             ]));

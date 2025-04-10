@@ -479,13 +479,22 @@ interface SummaryRow {
   isWinner: string;
 }
 
+export const transformDataToSummaryRow = (data: any): SummaryRow => {
+  return {
+    title: `Variant ${data.variant_type}`, // Ajusta esto según sea necesario
+    shareOfClicks: data.share_of_click.toString(),
+    shareOfBuy: data.share_of_buy.toString(),
+    valueScore: data.value_score.toString(),
+    isWinner: data.win ? 'Yes' : 'No', // Ajusta según la lógica de tu aplicación
+  };
+}
+
 export const getSummaryData = async (testDetails: TestDetails): Promise<{
   rows: SummaryRow[];
   error: string | null;
 }> => {
-  console.log('Me ejecuto');
 
-  if (!testDetails || !testDetails.variations) {
+  if (!testDetails || !testDetails.id) {
     return {
       rows: [],
       error: 'Not enough data for analysis.'
@@ -493,70 +502,15 @@ export const getSummaryData = async (testDetails: TestDetails): Promise<{
   }
 
   try {
-    const variations = testDetails.variations;
-    // Convert the variations object into an array of entries with their types
-    const variationEntries = Object.entries(variations)
-      .filter(([_, variant]) => variant !== null); // Filter out null variations
+    const { data: summaryData, error: summaryError } = await supabase
+      .from('summary')
+      .select('*')
+      .eq('test_id', testDetails.id);
 
-    if (variationEntries.length === 0) {
-      return {
-        rows: [],
-        error: 'No variations found.'
-      };
-    }
-
-    const rows = await Promise.all(
-      variationEntries.map(async ([variationType, variant]) => {
-        // Get appearances count
-        const { data: appearancesData, error: appearancesError } = await supabase
-          .from('test_times')
-          .select('*', { count: 'exact' })
-          .eq('product_id', variant.id);
-
-        if (appearancesError) throw appearancesError;
-        const appearances = appearancesData?.length || 0;
-
-        // Get total clicks
-        const { data: clicksData, error: clicksError } = await supabase
-          .from('test_times')
-          .select('*, testers_session!inner(*)')
-          .eq('testers_session.variation_type', variationType);
-
-        if (clicksError) throw clicksError;
-        const totalClicks = clicksData?.length || 0;
-
-        // Calculate share of clicks
-        const shareOfClicks = totalClicks > 0 ? (appearances / totalClicks) * 100 : 0;
-
-        // Calculate share of buy
-        const surveys = testDetails.responses.surveys[variationType] || [];
-        const shareOfBuy = surveys.length > 0 ? (surveys.length / totalClicks) * 100 : 0;
-
-        // Calculate value score
-        const scores = surveys.map(survey => {
-          const metrics = [
-            survey.appearance,
-            survey.confidence,
-            survey.value,
-            survey.convenience,
-            survey.brand
-          ];
-          return calculateAverageScore(metrics);
-        });
-        const valueScore = scores.length ? calculateAverageScore(scores) : 0;
-
-        return {
-          title: variant.title,
-          shareOfClicks: formatPercentage(shareOfClicks),
-          shareOfBuy: formatPercentage(shareOfBuy),
-          valueScore: valueScore.toFixed(1),
-          isWinner: totalClicks >= 30 ? 'Yes' : 'No'
-        };
-      })
-    );
+    if (summaryError) throw summaryError;
 
     return {
-      rows,
+      rows: summaryData.map(transformDataToSummaryRow),
       error: null
     };
   } catch (error) {
@@ -567,7 +521,3 @@ export const getSummaryData = async (testDetails: TestDetails): Promise<{
     };
   }
 };
-
-
-
-
