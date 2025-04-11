@@ -60,6 +60,8 @@ const CommentSection: React.FC<{
 
 const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
     const [variant, setVariant] = useState<'a' | 'b' | 'c'>('a');
+    const [sortedComments, setSortedComments] = useState<Comment[] | null>(null);
+
     const variants: ('a' | 'b' | 'c')[] = ['a', 'b', 'c'];
 
     const handleVariantChange = () => {
@@ -67,77 +69,69 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
         setVariant(variants[(currentIndex + 1) % variants.length]);
     };
 
+    const sortComments = (criteria: 'age' | 'sex' | 'country_residence') => {
+        const currentComments = [...(comparision[variant] || []), ...(surveys[variant] || [])];
+        const sorted = currentComments.sort((a, b) => {
+            const aValue = a.tester_id.shopper_demographic[criteria];
+            const bValue = b.tester_id.shopper_demographic[criteria];
+            if (aValue === null || bValue === null) return 0;
+            if (aValue < bValue) return -1;
+            if (aValue > bValue) return 1;
+            return 0;
+        });
+        setSortedComments(sorted);
+    };
+
     const hasComparision = comparision[variant]?.length > 0;
     const hasSurveys = surveys[variant]?.length > 0;
 
-    if (!hasComparision && !hasSurveys) {
-        return (
-            <div className="h-80 flex flex-col items-center justify-center bg-white p-6 rounded-xl shadow-md">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
-                <button
-                    onClick={handleVariantChange}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mb-4"
-                >
-                    Switch Variant ({variant.toUpperCase()})
-                </button>
-                <p className="text-gray-500 text-center">No comments available for variant {variant.toUpperCase()}</p>
-            </div>
-        );
-    }
-
-    const getComments = (data: Comment[], field: keyof Comment) =>
-        data.filter(comment => comment[field]).map(comment => comment);
-
     const currentComparision = comparision[variant];
     const currentSurveys = surveys[variant];
+
+    const displayedComments = sortedComments || [...(currentComparision || []), ...(currentSurveys || [])];
 
     return (
         <div className="p-6 bg-white rounded-xl shadow-md">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Shopper Comments</h2>
-                <button
-                    onClick={handleVariantChange}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                    Switch Variant ({variant.toUpperCase()})
-                </button>
+                <div className="flex items-center space-x-4">
+                    <select
+                        id="sortCriteria"
+                        onChange={(e) => sortComments(e.target.value as 'age' | 'sex' | 'country_residence')}
+                        className="block px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                    >
+                        <option value="" className="text-gray-400">sort by....</option>
+                        <option value="age">Age</option>
+                        <option value="sex">Gender</option>
+                        <option value="country_residence">Country</option>
+                    </select>
+                    <button
+                        onClick={handleVariantChange}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Switch Variant ({variant.toUpperCase()})
+                    </button>
+                </div>
             </div>
 
-            {hasSurveys && (
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Our Product Comments</h2>
-                    <CommentSection
-                        title="What do you like most about our product?"
-                        comments={getComments(currentSurveys, 'likes_most')}
-                        isPositive={true}
-                    />
-                    <CommentSection
-                        title="What would make this product even better?"
-                        comments={getComments(currentSurveys, 'improve_suggestions')}
-                        isPositive={false}
-                    />
+            {displayedComments.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                    {displayedComments.map((comment, index) => (
+                        <div
+                            key={index}
+                            className="p-4 rounded-lg border bg-gray-50"
+                        >
+                            <p className="text-gray-700">{comment.likes_most || comment.improve_suggestions || comment.choose_reason}</p>
+                            <div className="mt-2 text-sm text-gray-500">
+                                {comment.tester_id?.shopper_demographic?.age && <p>Age: {comment.tester_id.shopper_demographic.age}</p>}
+                                {comment.tester_id?.shopper_demographic?.sex && <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>}
+                                {comment.tester_id?.shopper_demographic?.country_residence && <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            )}
-
-            {hasComparision && (
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Competitor Comments</h2>
-                    <CommentSection
-                        title="What do you like most about the competitor?"
-                        comments={getComments(currentComparision, 'likes_most')}
-                        isPositive={true}
-                    />
-                    <CommentSection
-                        title="What would make the competitor even better?"
-                        comments={getComments(currentComparision, 'improve_suggestions')}
-                        isPositive={false}
-                    />
-                    <CommentSection
-                        title="What would make you choose our product?"
-                        comments={getComments(currentComparision, 'choose_reason')}
-                        isPositive={true}
-                    />
-                </div>
+            ) : (
+                <p className="text-gray-500">No comments available.</p>
             )}
         </div>
     );
