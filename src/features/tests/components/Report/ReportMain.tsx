@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
-import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData } from './services/dataInsightService';
+import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData, getAveragesurveys } from './services/dataInsightService';
 
 interface ReportProps {
   variant: any;
@@ -47,6 +47,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting, setIsPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
+  const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [insights, setInsights] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
 
@@ -57,6 +58,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
       if (existingInsights && typeof existingInsights === 'object' && 'comparison_between_variants' in existingInsights) {
         // If we have insights, add them to the existing summary data
         const data = await getSummaryData(testData);
+        const averagesurveys = await getAveragesurveys(testData);
         const competitiveinsights = await processCompetitiveInsightsData(testData.responses.comparisons);
         console.log(competitiveinsights);
         setCompetitiveinsights(competitiveinsights);
@@ -66,6 +68,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
             comparison_between_variants: existingInsights.comparison_between_variants,
           }
         });
+        setAveragesurveys(averagesurveys);
         setInsights(existingInsights);
         return;
       }
@@ -146,6 +149,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
           activeTab={activeTab}
           variant={testData}
           summaryData={summaryData}
+          averagesurveys={averagesurveys?.summaryData}
         />
       )}
     </div>

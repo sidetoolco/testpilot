@@ -521,3 +521,36 @@ export const getSummaryData = async (testDetails: TestDetails): Promise<{
     };
   }
 };
+
+export const getAveragesurveys = async (testDetails: TestDetails): Promise<{
+  summaryData: any;
+  error: string | null;
+}> => {
+
+  if (!testDetails || !testDetails.id) {
+    return {
+      summaryData: [],
+      error: 'Not enough data for analysis.'
+    };
+  }
+
+  try {
+    const { data: summaryData, error: summaryError } = await supabase
+      .from('purchase_drivers')
+      .select('*, product:product_id(title)')
+      .eq('test_id', testDetails.id);
+
+    if (summaryError) throw summaryError;
+
+    return {
+      summaryData,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error loading summary data:', error);
+    return {
+      summaryData: [],
+      error: 'Failed to load summary data. Please try again.'
+    };
+  }
+};
