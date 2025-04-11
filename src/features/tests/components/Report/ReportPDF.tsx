@@ -52,7 +52,6 @@ const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights }
                         />
                         <PurchaseDriversPDFSection
                             testDetails={testDetails}
-                            variationType={key}
                             insights={insights?.purchase_drivers}
                         />
                         <CompetitiveInsightsPDFSection
@@ -176,4 +175,4 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     );
 };
 
-export default ReportPDF; 
+export default ReportPDF;
