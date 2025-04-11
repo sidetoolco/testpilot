@@ -4,7 +4,7 @@ import ImageUpload from './ImageUpload';
 import { toast } from 'sonner';
 
 interface ProductFormProps {
-  onSubmit: (product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => void;
   onClose: () => void;
   initialData?: Product;
 }
@@ -93,7 +93,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
     setLoading(true);
 
-    await onSubmit(productData);
+    onSubmit(productData);
 
   };
 
@@ -177,7 +177,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             step="0.01"
             min="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
@@ -251,7 +251,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Cargando...
+              Loading...
             </>
           ) : initialData ? 'Update Product' : 'Add Product'}
         </button>
