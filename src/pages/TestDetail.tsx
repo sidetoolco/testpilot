@@ -70,7 +70,7 @@ export default function TestDetail() {
               <h3 className="text-xl font-semibold text-gray-800">Analyzing your test results</h3>
               {insightLoading ? (
                 <p className="text-primary-500 text-sm font-medium">
-                  Bringing powerful insights to you...
+                  Turning data into insights...
                 </p>
               ) : (
                 <p className="text-primary-500/50 text-sm font-medium">
