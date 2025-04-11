@@ -55,9 +55,9 @@ const Summary: React.FC<{
 
             setRows(summaryRows.map((row: any) => [
                 row.title,
-                `${row.shareOfClicks}%`,
-                `${row.shareOfBuy}%`,
-                row.valueScore,
+                `${parseFloat(row.shareOfClicks).toFixed(1)}%`,
+                `${parseFloat(row.shareOfBuy).toFixed(1)}%`,
+                (parseFloat(row.valueScore) || 0).toFixed(1),
                 row.isWinner
             ]));
         }
