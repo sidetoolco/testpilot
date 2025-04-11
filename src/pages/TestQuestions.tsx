@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { getTracker } from '../lib/openReplay';
 import { ComparisonView } from '../features/tests/components/TestQuestions/ComparisonView';
 import { SelectedVariation } from '../features/tests/components/TestQuestions/SelectedVariation';
+import { compareTwoStrings } from 'string-similarity';
+const REPEATED_STRING_ERROR_MSG = "Please provide different feedback for each response.";
 import FeedbackModal from '../features/tests/components/TestQuestions/FeedbackModal';
 
 const TestDisplay: React.FC = () => {
@@ -82,6 +84,12 @@ const TestDisplay: React.FC = () => {
                 validationErrors.choose_reason = "You must write at least 50 characters.";
             }
         }
+
+        if(responses.likes_most && responses.improve_suggestions && compareTwoStrings(responses.likes_most.trim().toLowerCase(), responses.improve_suggestions.trim().toLowerCase()) >= .8) {
+            validationErrors.improve_suggestions = REPEATED_STRING_ERROR_MSG;
+            validationErrors.likes_most = REPEATED_STRING_ERROR_MSG;
+        }
+        
         return validationErrors;
     };
 
