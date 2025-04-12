@@ -40,8 +40,9 @@ const getColorForValue = (value: string, columnIndex: number, allRows: string[][
 const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score', 'Win? (90% Confidence)'];
 
 const Summary: React.FC<{
-    summaryData: any
-}> = ({ summaryData }) => {
+    summaryData: any,
+    insights: any
+}> = ({ summaryData, insights }) => {
     if (!summaryData) return (
         <p className='text-center text-gray-500'>Not enough variants for analysis.</p>
     );
@@ -69,9 +70,9 @@ const Summary: React.FC<{
     };
 
     const renderText = () => {
-        if (!summaryData.insights) return '';
+        if (!insights) return '';
 
-        const fullText = summaryData.insights.comparison_between_variants;
+        const fullText = insights.comparison_between_variants;
         if (showFullText || fullText.length <= maxLength) {
             return <ReactMarkdown>{fullText}</ReactMarkdown>;
         }
@@ -93,7 +94,7 @@ const Summary: React.FC<{
                         <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
                         <div className="text-gray-700 leading-relaxed">
                             {renderText()}
-                            {summaryData.insights.comparison_between_variants.length > maxLength && (
+                            {insights.comparison_between_variants.length > maxLength && (
                                 <button onClick={toggleText} className="text-blue-500">
                                     {showFullText ? 'See Less' : 'See More'}
                                 </button>

@@ -3,10 +3,13 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
-import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData, getAveragesurveys, getCompetitiveInsights } from './services/dataInsightService';
+import { getSummaryData, checkIdInIaInsights, getAveragesurveys, getCompetitiveInsights } from './services/dataInsightService';
+import { useTestDetail } from '../../hooks/useTestDetail';
+import { useInsightStore } from '../../hooks/useIaInsight';
+import { useNavigate } from 'react-router-dom';
 
 interface ReportProps {
-  variant: any;
+  id: string;
 }
 
 interface ReportTabsProps {
@@ -15,71 +18,72 @@ interface ReportTabsProps {
   variantStatus: string;
 }
 
-const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
-  return (
-    <div className="border-b border-gray-200 overflow-x-auto">
-      <nav className="flex gap-1 min-w-max pb-1">
-        {['test-details', 'summary', 'purchase-drivers', 'competitive-insights', 'shopper-comments', 'recommendations'].map(tab => {
-          const isDisabled = variantStatus === 'draft' && tab !== 'test-details';
-          return (
-            <button
-              className={clsx(
-                'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
-                activeTab === tab
-                  ? 'border-green-600 text-green-600'
-                  : 'border-transparent hover:border-gray-300',
-                isDisabled && 'opacity-50 cursor-not-allowed'
-              )}
-              key={tab}
-              onClick={() => !isDisabled && onTabChange(tab)}
-              disabled={isDisabled}
-            >
-              {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
-  );
-};
+const TABS = [
+  'test-details',
+  'summary',
+  'purchase-drivers',
+  'competitive-insights',
+  'shopper-comments',
+  'recommendations'
+];
 
-const Report: React.FC<ReportProps> = ({ variant: testData }) => {
+const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => (
+  <div className="border-b border-gray-200 overflow-x-auto">
+    <nav className="flex gap-1 min-w-max pb-1">
+      {TABS.map(tab => {
+        const isDisabled = variantStatus === 'draft' && tab !== 'test-details';
+        return (
+          <button
+            key={tab}
+            className={clsx(
+              'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
+              activeTab === tab
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent hover:border-gray-300',
+              isDisabled && 'opacity-50 cursor-not-allowed'
+            )}
+            onClick={() => !isDisabled && onTabChange(tab)}
+            disabled={isDisabled}
+          >
+            {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+          </button>
+        );
+      })}
+    </nav>
+  </div>
+);
+
+const Report: React.FC<ReportProps> = ({ id }) => {
+  const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
+  const { insight, loading: insightLoading, setInsight, setLoading } = useInsightStore();
   const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting, setIsPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
-  const [insights, setInsights] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
-      // First check if we already have insights for this test
-      const existingInsights = await checkIdInIaInsights(testData.id);
-      if (existingInsights && typeof existingInsights === 'object' && 'comparison_between_variants' in existingInsights) {
-        // If we have insights, add them to the existing summary data
-        const data = await getSummaryData(testData);
-        const averagesurveys = await getAveragesurveys(testData);
-        const competitiveinsights = await getCompetitiveInsights(testData);
+      if (!testInfo) return;
+      const existingInsights = await checkIdInIaInsights(id);
+      const data = await getSummaryData(id);
+      const averagesurveys = await getAveragesurveys(id);
+      const competitiveinsights = await getCompetitiveInsights(id);
 
-        console.log(competitiveinsights);
-        setCompetitiveinsights(competitiveinsights);
-        setSummaryData({
-          ...data,
-          insights: {
-            comparison_between_variants: existingInsights.comparison_between_variants,
-          }
-        });
-        setAveragesurveys(averagesurveys);
-        setInsights(existingInsights);
-        return;
-      }
-
-      // If no insights exist, fetch new summary data
-      const data = await getSummaryData(testData);
-      setSummaryData(data);
+      setSummaryData({
+        ...data,
+      });
+      setAveragesurveys(averagesurveys);
+      setCompetitiveinsights(competitiveinsights);
+      setInsight(existingInsights);
+      return;
     };
+    setLoading(true);
     fetchSummaryData();
-  }, [testData]);
+    setLoading(false);
+  }, [testInfo]);
 
   useEffect(() => {
     const observerOptions = {
@@ -114,7 +118,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
   }, [isPrinting]); // Add isPrinting to dependencies
 
   const handleTabChange = (tab: string) => {
-    if (testData.status === 'draft' && tab !== 'test-details') return;
+    if (testInfo?.status === 'draft' && tab !== 'test-details') return;
     setActiveTab(tab);
     // Find and focus the content
     const element = document.getElementById(`content-${tab}`);
@@ -124,31 +128,92 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
     }
   };
 
+  if (testError) {
+    return (
+      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-medium text-gray-900 mb-2">Error loading test</h2>
+          <p className="text-gray-600 mb-4">{testError}</p>
+          <button
+            onClick={() => navigate('/my-tests')}
+            className="text-primary-400 hover:text-primary-500 hover:underline"
+          >
+            Return to tests
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading || insightLoading) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-8 py-6">
+        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+          <div className="text-center space-y-6 max-w-md mx-auto px-4">
+            <div className="inline-flex relative w-16 h-16">
+              <div className="absolute w-16 h-16 border-4 border-primary-100 rounded-full"></div>
+              <div className="absolute w-16 h-16 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold text-gray-800">Analyzing your test results</h3>
+              {insightLoading ? (
+                <p className="text-primary-500 text-sm font-medium">
+                  Turning data into insights...
+                </p>
+              ) : (
+                <p className="text-primary-500/50 text-sm font-medium">
+                  Loading test data...
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!testInfo) {
+    return (
+      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-medium text-gray-900 mb-2">Test not found</h2>
+          <button
+            onClick={() => navigate('/my-tests')}
+            className="text-primary-400 hover:text-primary-500 hover:underline"
+          >
+            Return to tests
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[90vh] flex flex-col overflow-hidden">
       <div className="max-w-screen-2xl px-4">
         <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
           <h1 className="text-xl sm:text-2xl font-bold">Insights Summary</h1>
           <ReportPDF
-            testDetails={testData}
+            testDetails={testInfo}
             summaryData={summaryData}
-            insights={insights}
-            disabled={testData.status !== 'complete'}
+            insights={insight}
+            disabled={testInfo?.status !== 'complete'}
             competitiveinsights={competitiveinsights}
           />
         </div>
         <ReportTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          variantStatus={testData.status}
+          variantStatus={testInfo?.status}
         />
       </div>
       {isPrinting ? (
         <LoadingSpinner />
       ) : (
         <ReportContent
+          insights={insight}
           activeTab={activeTab}
-          variant={testData}
+          variant={testInfo}
           summaryData={summaryData}
           averagesurveys={averagesurveys?.summaryData}
           competitiveinsights={competitiveinsights?.summaryData}

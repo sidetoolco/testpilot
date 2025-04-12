@@ -23,16 +23,7 @@ export interface TestDetails {
     competitors: {
         image_url: string;
     }[];
-    duration: string;
-    methodology: string;
-    objectives: string[];
-    responses: {
-        surveys: {
-            a: Survey[];
-            b: Survey[];
-            c: Survey[];
-        };
-    };
+    
     variations: {
         a: { image_url: string; title: string; } | null;
         b: { image_url: string; title: string; } | null;
