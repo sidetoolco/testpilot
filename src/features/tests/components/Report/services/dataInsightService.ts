@@ -554,3 +554,36 @@ export const getAveragesurveys = async (testDetails: TestDetails): Promise<{
     };
   }
 };
+
+export const getCompetitiveInsights = async (testDetails: TestDetails): Promise<{
+  summaryData: any;
+  error: string | null;
+}> => {
+
+  if (!testDetails || !testDetails.id) {
+    return {
+      summaryData: [],
+      error: 'Not enough data for analysis.'
+    };
+  }
+
+  try {
+    const { data: summaryData, error: summaryError } = await supabase
+      .from('competitive_insights')
+      .select('*, competitor_product_id: competitor_product_id(title, image_url, product_url)')
+      .eq('test_id', testDetails.id);
+
+    if (summaryError) throw summaryError;
+
+    return {
+      summaryData,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error loading summary data:', error);
+    return {
+      summaryData: [],
+      error: 'Failed to load summary data. Please try again.'
+    };
+  }
+};

@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
-import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData, getAveragesurveys } from './services/dataInsightService';
+import { getSummaryData, checkIdInIaInsights, processCompetitiveInsightsData, getAveragesurveys, getCompetitiveInsights } from './services/dataInsightService';
 
 interface ReportProps {
   variant: any;
@@ -59,7 +59,8 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
         // If we have insights, add them to the existing summary data
         const data = await getSummaryData(testData);
         const averagesurveys = await getAveragesurveys(testData);
-        const competitiveinsights = await processCompetitiveInsightsData(testData.responses.comparisons);
+        const competitiveinsights = await getCompetitiveInsights(testData);
+
         console.log(competitiveinsights);
         setCompetitiveinsights(competitiveinsights);
         setSummaryData({
@@ -150,6 +151,7 @@ const Report: React.FC<ReportProps> = ({ variant: testData }) => {
           variant={testData}
           summaryData={summaryData}
           averagesurveys={averagesurveys?.summaryData}
+          competitiveinsights={competitiveinsights?.summaryData}
         />
       )}
     </div>

@@ -12,9 +12,10 @@ interface ReportContentProps {
   variant: any;
   summaryData: any;
   averagesurveys: any;
+  competitiveinsights: any;
 }
 
-const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summaryData, averagesurveys }) => {
+const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summaryData, averagesurveys, competitiveinsights }) => {
   return (
     <div className="flex-1 overflow-hidden">
       <div
@@ -48,7 +49,7 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summa
               activeTab !== 'competitive-insights' && 'hidden'
             )}
           >
-            <CompetitiveInsights comparision={variant.responses.comparisons} competitorProducts={variant.competitors} />
+            <CompetitiveInsights competitiveinsights={competitiveinsights} />
           </div>
           <div
             id="content-shopper-comments"
