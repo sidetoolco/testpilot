@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Test } from '../../../../types';
 import { Users } from 'lucide-react';
 
@@ -44,8 +43,9 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     // }
   ];
 
+
   return (
-    <div className="grid grid-cols-2  gap-6 mb-4">
+    <div className="grid grid-cols-2 gap-6 mb-4">
       {metrics.map((metric, index) => (
         <div key={index} className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-6">
           <div className="flex items-center space-x-3 mb-2">
@@ -60,6 +60,31 @@ export default function TestMetrics({ test }: TestMetricsProps) {
           <div className="text-sm text-gray-500">{metric.subtitle}</div>
         </div>
       ))}
+      {test.status !== "complete" && (
+        <div className="bg-white rounded-xl p-6">
+          <div className="flex flex-col items-center space-x-3 mb-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4 w-full">
+              Analysis per variant
+            </h3>
+            {Object.entries(test.variations).map(([variationName, value]) => {
+              if (!value) return null;
+
+              return (
+                <div
+                  className="flex items-center gap-2 w-full"
+                  key={`variant-analysis-${variationName}`}
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#00A67E]" />
+                  <p>
+                    <b>Variant {variationName.toUpperCase()}</b>:{" "}
+                    {value.prolificStatus || "-"}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
