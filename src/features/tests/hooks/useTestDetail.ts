@@ -3,6 +3,30 @@ import { supabase } from '../../../lib/supabase';
 import { Test } from '../../../types';
 import { toast } from 'sonner';
 
+type TestResponse = {
+  id: string;
+  name: string;
+  status: 'draft' | 'active' | 'completed';
+  search_term: string;
+  created_at: string;
+  updated_at: string;
+  competitors: Array<{ product: any }>;
+  variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>;
+  demographics: Array<{
+    age_ranges: string[];
+    genders: string[];
+    locations: string[];
+    interests: string[];
+    tester_count: number;
+  }>;
+};
+
+const getVariationWithProduct = (variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>, type: 'a' | 'b' | 'c') => {
+  const variation = variations?.find(v => v.variation_type === type);
+
+  return variation ? { ...variation.product, prolificStatus: variation.prolific_status } : null;
+};
+
 export function useTestDetail(id: string) {
   const [test, setTest] = useState<Test | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,24 +40,6 @@ export function useTestDetail(id: string) {
           throw new Error('Usuario no autenticado');
         }
 
-        type TestResponse = {
-          id: string;
-          name: string;
-          status: 'draft' | 'active' | 'completed';
-          search_term: string;
-          created_at: string;
-          updated_at: string;
-          competitors: Array<{ product: any }>;
-          variations: Array<{ product: any; variation_type: string }>;
-          demographics: Array<{
-            age_ranges: string[];
-            genders: string[];
-            locations: string[];
-            interests: string[];
-            tester_count: number;
-          }>;
-        };
-
         const { data: testData, error: testError } = await supabase
           .from('tests')
           .select(`
@@ -43,7 +49,8 @@ export function useTestDetail(id: string) {
           ),
           variations:test_variations(
             product:products(*),
-            variation_type
+            variation_type,
+            prolific_status
           ),
           demographics:test_demographics(
             age_ranges,
@@ -136,9 +143,9 @@ export function useTestDetail(id: string) {
           searchTerm: typedTestData.search_term,
           competitors: typedTestData.competitors?.map(c => c.product) || [],
           variations: {
-            a: typedTestData.variations?.find(v => v.variation_type === 'a')?.product || null,
-            b: typedTestData.variations?.find(v => v.variation_type === 'b')?.product || null,
-            c: typedTestData.variations?.find(v => v.variation_type === 'c')?.product || null
+            a: getVariationWithProduct(typedTestData.variations, 'a'),
+            b: getVariationWithProduct(typedTestData.variations, 'b'),
+            c: getVariationWithProduct(typedTestData.variations, 'c'),
           },
           demographics: {
             ageRanges: typedTestData.demographics?.[0]?.age_ranges || [],

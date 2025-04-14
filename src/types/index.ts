@@ -17,6 +17,7 @@ export interface Product {
   company_id?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  prolificStatus?: string | null;
 }
 
 export interface Test {
