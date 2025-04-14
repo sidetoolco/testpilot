@@ -1,52 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Users, Target, Clock, TrendingUp } from 'lucide-react';
 import { Test } from '../../../../types';
-import { supabase } from '../../../../lib/supabase';
+import { Users } from 'lucide-react';
 
 interface TestMetricsProps {
   test: Test;
 }
 
 export default function TestMetrics({ test }: TestMetricsProps) {
-  const [sessionCount, setSessionCount] = useState<number>(0);
-  const [averageTime, setAverageTime] = useState<number>(0);
-  const [completedSessions, setCompletedSessions] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchSessionCount = async () => {
-      const { data, error } = await supabase
-        .from('testers_session')
-        .select('*')
-        .eq('test_id', test.id);
-
-      if (error) {
-        console.error('Error fetching session count:', error);
-      } else {
-        const completedSessions = data.filter(session => session.ended_at !== null);
-        const totalSessions = completedSessions.length;
-        const totalTime = completedSessions.reduce((acc, session) => {
-          return acc + (new Date(session.ended_at).getTime() - new Date(session.created_at).getTime());
-        }, 0);
-
-        const totalTimeInMinutes = totalTime / 1000 / 60;
-        const averageTime = totalSessions > 0 ? totalTimeInMinutes / totalSessions : 0;
-        console.log('Total session time (min):', totalTimeInMinutes);
-        setSessionCount(data.length);
-        setAverageTime(averageTime);
-        setCompletedSessions(completedSessions);
-      }
-    };
-    fetchSessionCount();
-  }, [test.id]);
 
   const variationCount = Object.values(test.variations).filter(variation => variation !== null).length;
-
   const metrics = [
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Total Testers",
-      value: completedSessions.length > test.demographics.testerCount * variationCount ?
-       `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}` : `${completedSessions.length} / ${test.demographics.testerCount * variationCount}`,
+      value: test.completed_sessions > test.demographics.testerCount * variationCount ?
+        `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}` : `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
       subtitle: "Winning Sessions / Total Testers"
     }
     // {
