@@ -29,6 +29,15 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
     if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
     const datasets = surveys.map((product, productIndex) => {
+        if (!product || !product.product) {
+            return {
+                label: `Variant ${product.variant_type} : Unknown Product`,
+                productId: product.id,
+                backgroundColor: COLORS[productIndex % COLORS.length],
+                borderRadius: 5,
+                data: [0, 0, 0, 0, 0],
+            };
+        }
         return {
             label: `Variant ${product.variant_type} : ${product.product.title.substring(0, 30)}`,
             productId: product.id,

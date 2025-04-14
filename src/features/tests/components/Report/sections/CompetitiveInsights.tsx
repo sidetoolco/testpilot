@@ -69,9 +69,9 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({ competitivein
     };
 
     const renderCell = (value: number, count: number) => {
-        if (count === 0) return '-';
+        if (count === 0) return <td className={`border border-gray-300 p-2`}>-</td>;
         const diff = value - 3;
-        return <td className={`border border-gray-300 p-2 ${getColorClass(value)}`}>{diff.toFixed(1)}</td>;
+        return <td className={`border border-gray-300 p-2 ${getColorClass(diff)}`}>{diff.toFixed(1)}</td>;
     };
 
     return (
