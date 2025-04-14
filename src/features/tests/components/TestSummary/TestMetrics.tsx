@@ -54,11 +54,10 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: "Total Testers",
-      value: `${completedSessions.length} / ${
-        test.demographics.testerCount * variationCount
-      }`,
-      subtitle: "Winning Sessions / Total Testers",
-    },
+      value: completedSessions.length > test.demographics.testerCount * variationCount ?
+       `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}` : `${completedSessions.length} / ${test.demographics.testerCount * variationCount}`,
+      subtitle: "Winning Sessions / Total Testers"
+    }
     // {
     //   icon: <Target className="h-6 w-6 text-[#00A67E]" />,
     //   title: "Competitors",
