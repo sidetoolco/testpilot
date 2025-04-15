@@ -21,9 +21,8 @@ import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
 import ThankYou from './pages/ThankYou';
-import Ai from './pages/ai';
-import AdalineComponent from './pages/adaline';
 import Support from './pages/Support';
+import { Adminpanel } from './pages/Adminpanel';
 
 const queryClient = new QueryClient();
 
@@ -67,15 +66,7 @@ function App() {
               <Route path="/ai" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <Ai />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/adaline" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <AdalineComponent />
+                    <Adminpanel />
                   </MainLayout>
                 </ProtectedRoute>
               } />
