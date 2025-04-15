@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import { PriceCalculator } from './PriceCalculator';
 
@@ -25,7 +25,7 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  const [testerCount, setTesterCount] = useState<number>(10);
+  const [testerCount, setTesterCount] = useState<number>(25);
   const [error, setError] = useState<string | null>(null);
   const [minAge, setMinAge] = useState<number>(18);
   const [maxAge, setMaxAge] = useState<number>(20);
@@ -113,14 +113,15 @@ export default function DemographicSelection({
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value; // Cambiado para permitir valor vacío
+
     if (value === '') {
       setTesterCount(0);
       return;
     }
     const parsedValue = parseInt(value);
 
-    if (isNaN(parsedValue) || parsedValue < 10 || parsedValue > 500) {
-      setError('Please enter a number between 10 and 500.');
+    if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
+      setError('Please enter a number between 25 and 500.');
     } else {
       setError(null);
     }
@@ -163,7 +164,7 @@ export default function DemographicSelection({
               <input
                 id="testerCount"
                 type="number"
-                min="0"
+                min="25"
                 max="500"
                 value={testerCount || ''}
                 onChange={handleTesterCountChange}
@@ -175,7 +176,7 @@ export default function DemographicSelection({
               />
             </div>
             <span className="text-sm text-gray-500">
-              Min: 10, Max: 500 testers
+              Min: 25, Max: 500 testers
             </span>
           </div>
           {error && (
