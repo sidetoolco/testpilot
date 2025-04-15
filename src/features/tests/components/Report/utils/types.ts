@@ -14,6 +14,7 @@ export interface Recommendation {
 }
 
 export interface TestDetails {
+    id: string;
     name: string;
     updatedAt: string;
     demographics: {

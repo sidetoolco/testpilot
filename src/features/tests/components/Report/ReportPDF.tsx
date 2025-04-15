@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, File as FilePdf, X } from 'lucide-react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
 import { Document, pdf } from '@react-pdf/renderer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
@@ -113,6 +113,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 }) => {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [loadingInsights, setLoadingInsights] = useState(false);
 
     const handleExportPDF = async () => {
         try {
@@ -145,6 +146,19 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         }
     };
 
+    const handleRegenerateInsights = () => {
+        setLoadingInsights(true);
+
+        fetch(`https://testpilot.app.n8n.cloud/webhook/af3bf557-b01e-46b7-b74c-6df471231e3d?test_id=${testDetails.id}`, {
+            method: "POST"
+        })
+        .then(() => window.location.reload())
+        .catch(err => {
+            console.error("Failed to regenerate insights: " + err);
+            setLoadingInsights(false);
+        });
+    }
+
     return (
         <>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
@@ -154,6 +168,14 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                 >
                     <FileSpreadsheet size={20} />
                     Export to Excel
+                </button>
+                <button
+                    disabled={loadingInsights}
+                    onClick={handleRegenerateInsights}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                    <RefreshCcw size={20} />
+                    {loadingInsights ? "Regenerating Insights..." : "Regenerate Insights"}
                 </button>
                 <button
                     onClick={handleExportPDF}
