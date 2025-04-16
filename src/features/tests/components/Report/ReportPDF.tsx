@@ -40,7 +40,7 @@ const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights }
         <Document>
             <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} />
             <TestDetailsPDFSection testDetails={testDetails} />
-            <SummaryPDFSection summaryData={summaryData} />
+            <SummaryPDFSection summaryData={summaryData} insights={insights} />
 
             {Object.entries(testDetails.variations).map(([key, variation]) =>
                 variation && (

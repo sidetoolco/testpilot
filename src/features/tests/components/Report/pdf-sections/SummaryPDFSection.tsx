@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 
 interface SummaryPDFSectionProps {
     summaryData: any;
+    insights: any;
 }
 
 const COLORS = {
@@ -51,7 +52,7 @@ const tableHeaders = [
     { label: "Win? (90% Confidence)", width: "15%" }
 ];
 
-export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryData }) => {
+export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryData, insights }) => {
     const [rows, setRows] = useState<string[][]>([]);
 
     useEffect(() => {
@@ -79,7 +80,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
                     marginBottom: 20,
                     lineHeight: 1.5
                 }}>
-                    {summaryData.insights.comparison_between_variants.split('\n').map((line: string, index: number) => {
+                    {insights.comparison_between_variants.split('\n').map((line: string, index: number) => {
                         const parts = line.split(/(\*\*.*?\*\*)/g);
                         return (
                             <Text key={index}>
