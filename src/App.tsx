@@ -63,6 +63,7 @@ function App() {
               <Route path="/test/:id" element={
                 <TestUserPage />
               } />
+
               <Route path="/ai" element={
                 <ProtectedRoute>
                   <MainLayout>
@@ -78,7 +79,6 @@ function App() {
                   </MainLayout>
                 </ProtectedRoute>
               } />
-
 
               <Route path="/product/:id" element={
                 <ProductDetail />
