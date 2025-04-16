@@ -9,10 +9,10 @@ interface Competitor {
     count: number;
     shopper_count: number;
     value: number;
-    appearance: number;
+    aesthetics: number;
     convenience: number;
-    brand: number;
-    confidence: number;
+    trust: number;
+    utility: number;
     share: number;
 }
 
@@ -169,23 +169,23 @@ const calculateAverageMetrics = (competitors: Competitor[]) => {
 
     const sum = competitors.reduce((acc, curr) => ({
         value: acc.value + curr.value,
-        appearance: acc.appearance + curr.appearance,
+        aesthetics: acc.aesthetics + curr.aesthetics,
         convenience: acc.convenience + curr.convenience,
-        brand: acc.brand + curr.brand,
-        confidence: acc.confidence + curr.confidence,
-    }), { value: 0, appearance: 0, convenience: 0, brand: 0, confidence: 0 });
+        trust: acc.trust + curr.trust,
+        utility: acc.utility + curr.utility,
+    }), { value: 0, aesthetics: 0, convenience: 0, trust: 0, utility: 0 });
 
     return {
         value: sum.value / competitors.length,
-        appearance: sum.appearance / competitors.length,
+        aesthetics: sum.aesthetics / competitors.length,
         convenience: sum.convenience / competitors.length,
-        brand: sum.brand / competitors.length,
-        confidence: sum.confidence / competitors.length,
+        trust: sum.trust / competitors.length,
+        utility: sum.utility / competitors.length,
     };
 };
 
 export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSectionProps> = ({ competitiveinsights, insights }) => {
-    if (!competitiveinsights?.length) {
+    if (!competitiveinsights) {
         return (
             <Page size="A4" orientation="portrait" style={{ padding: 30, backgroundColor: '#fff' }}>
                 <View style={styles.section}>
@@ -230,10 +230,10 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                             <Text style={TABLE_STYLES.averageMetricsTitle}>Average metrics your product vs the competitors</Text>
                             <View style={TABLE_STYLES.averageMetricsRow}>
                                 <Text style={TABLE_STYLES.averageMetricItem}>Value: {averageMetrics.value.toFixed(1)}</Text>
-                                <Text style={TABLE_STYLES.averageMetricItem}>Appearance: {averageMetrics.appearance.toFixed(1)}</Text>
+                                <Text style={TABLE_STYLES.averageMetricItem}>aesthetics: {averageMetrics.aesthetics.toFixed(1)}</Text>
                                 <Text style={TABLE_STYLES.averageMetricItem}>Convenience: {averageMetrics.convenience.toFixed(1)}</Text>
-                                <Text style={TABLE_STYLES.averageMetricItem}>Brand: {averageMetrics.brand.toFixed(1)}</Text>
-                                <Text style={TABLE_STYLES.averageMetricItem}>Confidence: {averageMetrics.confidence.toFixed(1)}</Text>
+                                <Text style={TABLE_STYLES.averageMetricItem}>trust: {averageMetrics.trust.toFixed(1)}</Text>
+                                <Text style={TABLE_STYLES.averageMetricItem}>utility: {averageMetrics.utility.toFixed(1)}</Text>
                             </View>
                         </View>
                     )}
@@ -256,7 +256,7 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                                 <Text style={TABLE_STYLES.headerText}>{'Conve-\nnience'}</Text>
                             </View>
                             <View style={TABLE_STYLES.headerCell}>
-                                <Text style={TABLE_STYLES.headerText}>Brand</Text>
+                                <Text style={TABLE_STYLES.headerText}>trust</Text>
                             </View>
                             <View style={TABLE_STYLES.headerCellLast}>
                                 <Text style={TABLE_STYLES.headerText}>{'Confi-\ndence'}</Text>
@@ -264,13 +264,13 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                         </View>
                         {competitiveinsights.map((competitor, index) => (
                             <View key={index} style={index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row}>
-                                <Text style={TABLE_STYLES.productCell}>{truncateTitle(competitor.title)}</Text>
-                                <Text style={TABLE_STYLES.metricCell}>{competitor.share.toFixed(1)}%</Text>
+                                <Text style={TABLE_STYLES.productCell}>{truncateTitle(competitor.competitor_product_id.title)}</Text>
+                                <Text style={TABLE_STYLES.metricCell}>{competitor.share_of_buy.toFixed(1)}%</Text>
                                 <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.value) }}>{competitor.value.toFixed(1)}</Text>
-                                <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.appearance) }}>{competitor.appearance.toFixed(1)}</Text>
+                                <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.aesthetics) }}>{competitor.aesthetics.toFixed(1)}</Text>
                                 <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.convenience) }}>{competitor.convenience.toFixed(1)}</Text>
-                                <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.brand) }}>{competitor.brand.toFixed(1)}</Text>
-                                <Text style={{ ...TABLE_STYLES.metricCellLast, ...getColorStyle(competitor.confidence) }}>{competitor.confidence.toFixed(1)}</Text>
+                                <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.trust) }}>{competitor.trust.toFixed(1)}</Text>
+                                <Text style={{ ...TABLE_STYLES.metricCellLast, ...getColorStyle(competitor.utility) }}>{competitor.utility.toFixed(1)}</Text>
                             </View>
                         ))}
                     </View>

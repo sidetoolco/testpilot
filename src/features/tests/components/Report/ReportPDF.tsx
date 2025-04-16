@@ -57,7 +57,7 @@ const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights, 
                             averagesurveys={averagesurveys.summaryData.find((item: any) => item.variant_type === key)}
                         />
                         <CompetitiveInsightsPDFSection
-                            competitiveinsights={competitiveinsights[key]}
+                            competitiveinsights={competitiveinsights.summaryData.filter((item: any) => item.variant_type === key)}
                             insights={insights?.competitive_insights}
                         />
                     </React.Fragment>
