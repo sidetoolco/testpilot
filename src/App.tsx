@@ -64,7 +64,7 @@ function App() {
                 <TestUserPage />
               } />
 
-              <Route path="/ai" element={
+              <Route path="/admin" element={
                 <ProtectedRoute>
                   <MainLayout>
                     <Adminpanel />

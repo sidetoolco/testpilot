@@ -94,7 +94,7 @@ const Summary: React.FC<{
                         <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
                         <div className="text-gray-700 leading-relaxed">
                             {renderText()}
-                            {insights.comparison_between_variants.length > maxLength && (
+                            {insights.comparison_between_variants && insights.comparison_between_variants.length > maxLength && (
                                 <button onClick={toggleText} className="text-blue-500">
                                     {showFullText ? 'See Less' : 'See More'}
                                 </button>

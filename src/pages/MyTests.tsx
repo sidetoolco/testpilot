@@ -1,11 +1,92 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle } from 'lucide-react';
+import { Plus, PlayCircle, Users2, Clock, CheckCircle, X } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
+import { useAuth } from '../features/auth/hooks/useAuth';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
+import ModalLayout from '../layouts/ModalLayout';
+
+interface Variation {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface ConfirmationModal {
+  isOpen: boolean;
+  testId: string;
+  test: {
+    name: string;
+    demographics: {
+      testerCount: number;
+    };
+    variations: Variation[];
+  };
+  variantsArray: Variation[];
+}
 
 export default function MyTests() {
   const navigate = useNavigate();
   const { tests, loading } = useTests();
+  const user = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [publishingTests, setPublishingTests] = useState<string[]>([]);
+  const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.user.id)
+        .single();
+
+      if (!error && data) {
+        setIsAdmin(data.role === 'admin');
+      }
+    };
+
+    checkAdminRole();
+  }, [user?.user?.id]);
+
+  const handlePublishConfirm = async () => {
+    if (!confirmationModal) return;
+
+    const { testId, test } = confirmationModal;
+    setPublishingTests(prev => [...prev, testId]);
+    setConfirmationModal(null);
+
+    try {
+      const response = await fetch('https://testpilot.app.n8n.cloud/webhook-test/publish-prolific', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ testId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to publish test');
+      }
+      toast.success('Test published successfully');
+    } catch (error) {
+      console.error('Error publishing test:', error);
+      toast.error('Failed to publish test. Please try again.');
+    } finally {
+      setPublishingTests(prev => prev.filter(id => id !== testId));
+    }
+  };
+
+  const handlePublish = (testId: string, e: React.MouseEvent, test: any) => {
+    e.stopPropagation();
+    const variantsArray = [test.variations.a, test.variations.b, test.variations.c].filter(v => v);
+
+    setConfirmationModal({ isOpen: true, testId, test, variantsArray });
+  };
 
   // Calculate statistics
   const activeTests = tests.filter(s => s.status === 'active').length;
@@ -93,7 +174,7 @@ export default function MyTests() {
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full ${test.status === 'completed' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center`}>
                     {test.status === 'complete' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (
@@ -111,15 +192,86 @@ export default function MyTests() {
                     </div>
                   </div>
                 </div>
-
                 <div className="text-gray-500">
                   {new Date(test.createdAt).toLocaleDateString()}
                 </div>
+                {isAdmin && test.status !== 'complete' && (
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={(e) => handlePublish(test.id, e, test)}
+                      disabled={publishingTests.includes(test.id)}
+                      className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${publishingTests.includes(test.id)
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'hover:bg-green-600'
+                        }`}
+                    >
+                      {publishingTests.includes(test.id) ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Publishing...
+                        </span>
+                      ) : (
+                        'Publish'
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           ))
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmationModal && (
+        <ModalLayout
+          isOpen={confirmationModal.isOpen}
+          onClose={() => setConfirmationModal(null)}
+          title="Confirm Publication"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              Are you sure you want to publish the test "{confirmationModal.test.name}"?
+            </p>
+            <p className="text-gray-600">
+              {confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length} testers will be invited to participate in the test.
+            </p>
+
+            <div className="mt-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
+                  <div key={variation.id} className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="text-gray-700 font-medium">{variation.title || `Variation ${index + 1}`}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-4">
+              This action will make the test available on Prolific.
+            </p>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setConfirmationModal(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePublishConfirm}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Confirm Publication
+              </button>
+            </div>
+          </div>
+        </ModalLayout>
+      )}
     </div>
   );
 }
