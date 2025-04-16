@@ -22,6 +22,7 @@ import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
 import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
+import { Adminpanel } from './pages/Adminpanel';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,14 @@ function App() {
 
               <Route path="/test/:id" element={
                 <TestUserPage />
+              } />
+
+              <Route path="/ai" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Adminpanel />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
 
               <Route path="/support" element={
