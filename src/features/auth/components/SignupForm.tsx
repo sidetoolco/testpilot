@@ -42,7 +42,7 @@ export default function SignupForm() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
             <img 
-              src="https://i.imghippo.com/files/QfED5977I.png"
+              src="/assets/images/testPilot-black.png"
               alt="TestPilot"
               className="h-12 mx-auto"
             />

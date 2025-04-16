@@ -40,7 +40,7 @@ export default function SideNav() {
   return (
     <>
       {/* Mobile Menu Button */}
-      <div className="lg:hidden p-6 border-b border-[#00C495] flex justify-between items-center">
+      <div className="lg:hidden p-6 border-b border-[#00C495] bg-[#00A67E] flex justify-between items-center">
         <button
           onClick={toggleMenu}
           className="z-50 p-2 rounded-lg bg-[#00A67E] text-white hover:bg-[#008F6B]"
@@ -53,9 +53,9 @@ export default function SideNav() {
           className="flex items-center space-x-2"
           onClick={() => setIsOpen(false)}
         >
-          <div className="bg-white p-2 rounded-lg">
+          <div className="bg-[#00A67E] p-2 rounded-lg">
             <img
-              src="https://i.imghippo.com/files/QfED5977I.png"
+              src="/assets/images/testpilot-logo.png"
               alt="TestPilot"
               className="h-8"
             />
@@ -107,11 +107,10 @@ export default function SideNav() {
                   <Link
                     to={item.path}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive(item.path)
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.path)
                         ? "bg-[#008F6B] text-white"
                         : "text-white/90 hover:bg-[#008F6B] hover:text-white"
-                    }`}
+                      }`}
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
