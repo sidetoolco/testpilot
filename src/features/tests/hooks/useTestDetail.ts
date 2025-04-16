@@ -105,6 +105,7 @@ export function useTestDetail(id: string) {
           .select(`
           improve_suggestions,
           likes_most,
+          choose_reason,
           products(id, title, image_url, price),
           amazon_products(id, title, image_url, price),
           tester_id(

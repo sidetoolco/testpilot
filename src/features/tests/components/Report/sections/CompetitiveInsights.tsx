@@ -83,7 +83,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       </h2>
 
       <div className="mb-6 flex items-center justify-center space-x-3">
-        {["a", "b", "b"].map((variant) => (
+        {[...new Set(competitiveinsights.map((item) => item.variant_type))].map((variant) => (
           <button
             key={`variant-btn-${variant}`}
             onClick={() => setSelectedVariant(variant)}
@@ -150,9 +150,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   </a>
                 </td>
                 <td
-                  className={`border border-gray-300 p-2 ${
-                    item.count > 0 ? getShareOfBuyColor(item.share_of_buy) : ""
-                  }`}
+                  className={`border border-gray-300 p-2 ${item.count > 0 ? getShareOfBuyColor(item.share_of_buy) : ""
+                    }`}
                 >
                   {item.count > 0 ? `${item.share_of_buy.toFixed(1)}%` : "-"}
                 </td>
