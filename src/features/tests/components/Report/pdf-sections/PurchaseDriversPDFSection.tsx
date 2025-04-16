@@ -18,11 +18,10 @@ interface Survey {
 
 interface PurchaseDriversPDFSectionProps {
     testDetails: TestDetails;
-    variationType?: string;
     insights?: string;
 }
 
-const InsufficientDataMessage: React.FC<{ variant?: string }> = ({ variant }) => (
+const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantCount }) => (
     <View style={{
         backgroundColor: '#FEF2F2',
         borderRadius: 8,
@@ -48,7 +47,9 @@ const InsufficientDataMessage: React.FC<{ variant?: string }> = ({ variant }) =>
                 Insufficient Data
             </Text>
             <Text style={{ color: '#7F1D1D', fontSize: 12 }}>
-                No shoppers selected {variant ? `Variant ${variant.toUpperCase()}` : 'this variant'}
+                {variantCount && variantCount > 0
+                    ? `No shoppers selected any of the ${variantCount} variants.`
+                    : 'No data available for this test.'}
             </Text>
         </View>
     </View>
@@ -67,24 +68,18 @@ const calculateAverageRatings = (surveys: Survey[]): number[] => {
     ].map(val => Number(val.toFixed(2)));
 };
 
-const getChartData = (testDetails: TestDetails, variationType?: string): DatasetType[] => {
+const getChartData = (testDetails: TestDetails): DatasetType[] => {
     if (!testDetails?.responses?.surveys) return [];
 
-    const data = variationType
-        ? testDetails.responses.surveys[variationType as keyof typeof testDetails.responses.surveys] || []
-        : Object.values(testDetails.responses.surveys).flat();
+    return Object.entries(testDetails?.responses?.surveys)
+        .map(([variant, surveys]) => {
+            if (!surveys || surveys.length === 0) return null;
 
-    if (data.length === 0) return [];
-
-    return data
-        .map((survey) => {
-            if (!survey) return null;
-
-            const avgRatings = calculateAverageRatings([survey]);
-            const colorIndex = Object.keys(testDetails.responses.surveys).indexOf(variationType || '');
+            const avgRatings = calculateAverageRatings(surveys);
+            const colorIndex = Object.keys(testDetails.responses.surveys).indexOf(variant);
 
             return {
-                label: `Variant ${variationType?.toUpperCase() || ''}`,
+                label: `Variant ${variant.toUpperCase()}`,
                 data: avgRatings,
                 color: COLORS[colorIndex % COLORS.length] as string,
             };
@@ -101,15 +96,16 @@ const Footer: React.FC = () => (
     </View>
 );
 
-export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps> = ({ testDetails, variationType, insights }) => {
-    const datasets = getChartData(testDetails, variationType);
+export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps> = ({ testDetails, insights }) => {
+    const datasets = getChartData(testDetails);
+    const variantCount = Object.keys(testDetails?.responses?.surveys || {}).length;
 
-    if (!testDetails?.responses?.surveys || Object.keys(testDetails.responses.surveys).length === 0) {
+    if (!testDetails?.responses?.surveys || variantCount === 0) {
         return (
             <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
                 <Header title="Purchase Drivers" />
                 <View style={styles.section}>
-                    <InsufficientDataMessage />
+                    <InsufficientDataMessage variantCount={variantCount} />
                 </View>
                 <Footer />
             </Page>
@@ -121,7 +117,7 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
             <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
                 <Header title="Purchase Drivers" />
                 <View style={styles.section}>
-                    <InsufficientDataMessage variant={variationType} />
+                    <InsufficientDataMessage variantCount={variantCount} />
                 </View>
                 <Footer />
             </Page>
@@ -188,4 +184,4 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
             <Footer />
         </Page>
     );
-}; 
+};

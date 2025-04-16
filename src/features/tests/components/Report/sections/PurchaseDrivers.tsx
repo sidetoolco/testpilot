@@ -2,71 +2,48 @@ import React, { CSSProperties } from "react";
 import { scaleBand, scaleLinear } from "d3";
 import { useInsightStore } from "../../../hooks/useIaInsight";
 import ReactMarkdown from "react-markdown";
+
+const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
+const COLORS = ["#34A270", "#075532", "#E0D30D"];
+
+// Define interfaces for surveys and products
 interface Survey {
-    product_id: string;
-    products: { title: string };
+    id: string;
+    variant_type: string;
+    product: {
+        title: string;
+    };
     value: number;
     appearance: number;
     confidence: number;
     brand: number;
     convenience: number;
-    tester_id: { variation_type: string };
+    count?: number;
 }
 
-interface GroupedSurvey {
-    [key: string]: Survey[];
-}
 
-const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
-const COLORS = ["#34A270", "#075532", "#E0D30D"];
-
-const getProductName = (productId: string): string => {
-    return `Variant ${productId.substring(0, 40)}...`;
-};
-
-const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey[] } }> = ({ surveys }) => {
+const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
     const { insight, loading } = useInsightStore();
-    if (!surveys || Object.keys(surveys).length === 0) return <p>Your product was not chosen for this test</p>;
 
-    // Check for variants with only one observation and missing variants
-    const singleObservationVariants = Object.entries(surveys)
-        .filter(([_, surveyArray]) => surveyArray.length === 1)
-        .map(([variant]) => variant.toUpperCase());
+    if (loading) return <p>Loading insights...</p>;
+    if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
-    const missingVariants = (['a', 'b', 'c'] as const)
-        .filter(variant => !surveys[variant] || surveys[variant].length === 0)
-        .map(variant => variant.toUpperCase());
-
-    const groupedSurveys: GroupedSurvey = Object.entries(surveys).reduce((acc, [variationType, surveyArray]) => {
-        if (!acc[variationType]) acc[variationType] = [];
-        acc[variationType].push(...surveyArray);
-        return acc;
-    }, {} as GroupedSurvey);
-
-    const productIds = Object.keys(groupedSurveys);
-
-    const datasets = productIds.map((productId, productIndex) => {
-        const surveys = groupedSurveys[productId];
-        const total = surveys.length;
-        const avgRatings = surveys.reduce(
-            (acc, survey) => {
-                acc[0] += survey.value;
-                acc[1] += survey.appearance;
-                acc[2] += survey.confidence;
-                acc[3] += survey.brand;
-                acc[4] += survey.convenience;
-                return acc;
-            },
-            [0, 0, 0, 0, 0]
-        ).map(val => val / total);
-
+    const datasets = surveys.map((product, productIndex) => {
+        if (!product || !product.product) {
+            return {
+                label: `Variant ${product.variant_type} : Unknown Product`,
+                productId: product.id,
+                backgroundColor: COLORS[productIndex % COLORS.length],
+                borderRadius: 5,
+                data: [0, 0, 0, 0, 0],
+            };
+        }
         return {
-            label: getProductName(productId + ': ' + surveys[0].products.title),
-            data: avgRatings,
-            productId,
-            keys: LABELS.map((label, index) => ({ key: label, value: avgRatings[index] })),
+            label: `Variant ${product.variant_type} : ${product.product.title.substring(0, 30)}`,
+            productId: product.id,
             backgroundColor: COLORS[productIndex % COLORS.length],
             borderRadius: 5,
+            data: [product.value, product.appearance, product.confidence, product.brand, product.convenience],
         };
     });
 
@@ -76,7 +53,7 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
         .padding(0.3);
 
     const subXScale = scaleBand()
-        .domain(productIds)
+        .domain(datasets.map((dataset: any) => dataset.productId))
         .range([0, xScale.bandwidth()])
         .padding(0.1);
 
@@ -84,29 +61,6 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
         .domain([0, 5])
         .range([100, 0]);
 
-    // Iterate over each variation type
-    const variationAverages = Object.entries(surveys as Record<string, Survey[]>).map(([variationType, surveyArray]) => {
-        const total = surveyArray.length;
-        const avgRatings = surveyArray.reduce(
-            (acc: number[], survey: Survey) => {
-                acc[0] += survey.value;
-                acc[1] += survey.appearance;
-                acc[2] += survey.confidence;
-                acc[3] += survey.brand;
-                acc[4] += survey.convenience;
-                return acc;
-            },
-            [0, 0, 0, 0, 0]
-        ).map((val: number) => val / total);
-
-        return {
-            variationType,
-            avgRatings
-        };
-    });
-
-    // Compare averages (this is a placeholder for actual comparison logic)
-    console.log('Variation Averages:', variationAverages);
 
     return (
         <div>
@@ -133,7 +87,7 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
                     {yScale.ticks(8).map((value, i) => (
                         <div key={i} style={{ top: `${yScale(value)}%` }}
                             className="absolute text-xs tabular-nums -translate-y-1/2 text-gray-300 w-full text-right pr-2">
-                            {value}
+                            {value.toFixed(1)}
                         </div>
                     ))}
                 </div>
@@ -160,15 +114,15 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
                         </svg>
 
                         {datasets.map((dataset: any) => (
-                            dataset.keys.map(({ key, value }: { key: string, value: number }) => (
-                                <div key={`${dataset.productId}-${key}`} className="absolute bottom-0 rounded-t" style={{
-                                    left: `${xScale(key)! + subXScale(dataset.productId)!}%`,
+                            dataset.data.map((value: number, index: number) => (
+                                <div key={`${dataset.productId}-${index}`} className="absolute bottom-0 rounded-t" style={{
+                                    left: `${xScale(LABELS[index])! + subXScale(dataset.productId)!}%`,
                                     width: `${subXScale.bandwidth()}%`,
                                     height: `${100 - yScale(value)}%`,
                                     backgroundColor: dataset.backgroundColor,
                                     border: `1px solid #a07dff22`,
                                 }}>
-                                    <span className="absolute top-0 text-xs text-white w-full text-center">{value.toFixed(2)}</span>
+                                    <span className="absolute top-0 text-xs text-white w-full text-center">{value.toFixed(1)}</span>
                                 </div>
                             ))
                         ))}
@@ -190,26 +144,43 @@ const PurchaseDrivers: React.FC<{ surveys: { a: Survey[]; b: Survey[]; c: Survey
                     </div>
                 </div>
             </div>
-            {singleObservationVariants.length > 0 && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
+            {surveys.map((survey: any) => (
+                <div key={survey.id}>
+                    {survey.count === 1 && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-yellow-700">
+                                        Only one observation in variant {survey.variant_type}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-yellow-700">
-                                {singleObservationVariants.length > 0 && `Only one observation in variant ${singleObservationVariants.join(', ')}`}
-                                {missingVariants.length > 0 && singleObservationVariants.length > 0 && ' and '}
-                                {missingVariants.length > 0 && `No observations in variant ${missingVariants.join(', ')}`}
-                            </p>
+                    )}
+                    {survey.count === 0 || !survey.count && (
+                        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-red-700">
+                                        No observations in variant {survey.variant_type}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
-            )}
+            ))}
         </div>
-
     );
 };
 

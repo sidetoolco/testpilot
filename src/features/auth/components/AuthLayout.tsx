@@ -30,7 +30,7 @@ export default function AuthLayout({ children, title, subtitle, rightPanel }: Au
         transition={{ duration: 0.6, delay: 0.2 }}
         className="hidden lg:block lg:w-1/2 relative"
         style={{
-          backgroundImage: 'url(https://i.imghippo.com/files/CEfg6767tLs.png)',
+          backgroundImage: 'url(/assets/signup_background.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}

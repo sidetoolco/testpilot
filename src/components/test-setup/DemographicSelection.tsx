@@ -28,7 +28,7 @@ export default function DemographicSelection({
   const [testerCount, setTesterCount] = useState<number>(25);
   const [error, setError] = useState<string | null>(null);
   const [minAge, setMinAge] = useState<number>(18);
-  const [maxAge, setMaxAge] = useState<number>(20);
+  const [maxAge, setMaxAge] = useState<number>(55);
   const [ageError, setAgeError] = useState<string | null>(null);
 
   const genders = ['Male', 'Female'];
@@ -54,6 +54,13 @@ export default function DemographicSelection({
       updates.locations = ['US', 'CA'];
     }
 
+    if (!demographics.gender?.length) {
+      updates.gender = ['Male', 'Female'];
+    }
+
+    if (!demographics.ageRanges?.length) {
+      updates.ageRanges = [minAge.toString(), maxAge.toString()];
+    }
 
     if (Object.keys(updates).length > 0) {
       onChange({ ...demographics, ...updates });

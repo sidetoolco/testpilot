@@ -1,3 +1,4 @@
+import { Survey } from "../features/tests/components/Report/utils/types";
 export interface Product {
   id: string | undefined;
   title: string; // Cambiado de 'name' a 'title'
@@ -17,6 +18,7 @@ export interface Product {
   company_id?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  prolificStatus?: string | null;
 }
 
 export interface Test {
@@ -37,6 +39,11 @@ export interface Test {
     interests: string[];
     testerCount: number;
   };
+  responses: {
+    surveys: Survey[];
+    comparisons: any[];
+  };
   createdAt: string;
   updatedAt: string;
+  completed_sessions: number;
 }
