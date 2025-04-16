@@ -199,6 +199,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             insights={insight}
             disabled={testInfo?.status !== 'complete'}
             competitiveinsights={competitiveinsights}
+            averagesurveys={averagesurveys}
           />
         </div>
         <ReportTabs

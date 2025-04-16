@@ -21,14 +21,16 @@ interface PDFDocumentProps {
         competitive_insights?: string;
     };
     competitiveinsights: any;
+    averagesurveys: any;
     disabled?: boolean;
 }
 
-const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights }: {
+const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights, averagesurveys }: {
     testDetails: PDFDocumentProps['testDetails'];
     summaryData: PDFDocumentProps['summaryData'];
     insights: PDFDocumentProps['insights'];
     competitiveinsights: PDFDocumentProps['competitiveinsights'];
+    averagesurveys: PDFDocumentProps['averagesurveys'];
 }) => {
     if (!testDetails || !summaryData) {
         return null;
@@ -51,8 +53,8 @@ const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights }
                             imageUrl={variation.image_url}
                         />
                         <PurchaseDriversPDFSection
-                            testDetails={testDetails}
                             insights={insights?.purchase_drivers}
+                            averagesurveys={averagesurveys.summaryData.find((item: any) => item.variant_type === key)}
                         />
                         <CompetitiveInsightsPDFSection
                             competitiveinsights={competitiveinsights[key]}
@@ -104,6 +106,7 @@ const PDFPreviewModal = ({ isOpen, onClose, pdfUrl }: { isOpen: boolean; onClose
 };
 
 export const ReportPDF: React.FC<PDFDocumentProps> = ({
+    averagesurveys,
     testDetails,
     summaryData,
     insights,
@@ -127,6 +130,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                     summaryData={summaryData}
                     insights={insights}
                     competitiveinsights={competitiveinsights}
+                    averagesurveys={averagesurveys}
                 />
             ).toBlob();
             const url = URL.createObjectURL(blob);

@@ -9,17 +9,52 @@ const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'] as con
 const COLORS = ["#34A270", "#075532", "#E0D30D"] as const;
 
 interface Survey {
-    value: number;
+    id: number;
+    created_at: string;
     appearance: number;
     confidence: number;
-    brand: number;
     convenience: number;
+    brand: number;
+    value: number;
+    test_id: string;
+    variant_type: string;
+    count: number;
+    product_id: string;
+    product: {
+        title: string;
+    };
+}
+
+interface Dataset {
+    label: string;
+    color: string;
+    data: number[];
 }
 
 interface PurchaseDriversPDFSectionProps {
-    testDetails: TestDetails;
     insights?: string;
+    averagesurveys: Survey[];
 }
+
+const getChartData = (surveys: Survey[]): Dataset[] => {
+    if (!surveys || surveys.length === 0) {
+        return [];
+    }
+
+    const data = [
+        surveys.appearance,
+        surveys.value,
+        surveys.confidence,
+        surveys.brand,
+        surveys.convenience,
+    ];
+
+    return [{
+        label: 'Average Score',
+        color: COLORS[0],
+        data: data,
+    }];
+};
 
 const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantCount }) => (
     <View style={{
@@ -55,38 +90,6 @@ const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantC
     </View>
 );
 
-const calculateAverageRatings = (surveys: Survey[]): number[] => {
-    if (!surveys.length) return [0, 0, 0, 0, 0];
-
-    const total = surveys.length;
-    return [
-        surveys.reduce((sum, survey) => sum + (survey.value || 0), 0) / total,
-        surveys.reduce((sum, survey) => sum + (survey.appearance || 0), 0) / total,
-        surveys.reduce((sum, survey) => sum + (survey.confidence || 0), 0) / total,
-        surveys.reduce((sum, survey) => sum + (survey.brand || 0), 0) / total,
-        surveys.reduce((sum, survey) => sum + (survey.convenience || 0), 0) / total
-    ].map(val => Number(val.toFixed(2)));
-};
-
-const getChartData = (testDetails: TestDetails): DatasetType[] => {
-    if (!testDetails?.responses?.surveys) return [];
-
-    return Object.entries(testDetails?.responses?.surveys)
-        .map(([variant, surveys]) => {
-            if (!surveys || surveys.length === 0) return null;
-
-            const avgRatings = calculateAverageRatings(surveys);
-            const colorIndex = Object.keys(testDetails.responses.surveys).indexOf(variant);
-
-            return {
-                label: `Variant ${variant.toUpperCase()}`,
-                data: avgRatings,
-                color: COLORS[colorIndex % COLORS.length] as string,
-            };
-        })
-        .filter((dataset): dataset is DatasetType => dataset !== null);
-};
-
 const Footer: React.FC = () => (
     <View style={{ borderTop: '1px solid #000000', paddingTop: 20, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>
@@ -96,28 +99,15 @@ const Footer: React.FC = () => (
     </View>
 );
 
-export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps> = ({ testDetails, insights }) => {
-    const datasets = getChartData(testDetails);
-    const variantCount = Object.keys(testDetails?.responses?.surveys || {}).length;
+export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps> = ({ insights, averagesurveys }) => {
+    const datasets = getChartData(averagesurveys);
 
-    if (!testDetails?.responses?.surveys || variantCount === 0) {
+    if (!averagesurveys.count) {
         return (
             <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
                 <Header title="Purchase Drivers" />
                 <View style={styles.section}>
-                    <InsufficientDataMessage variantCount={variantCount} />
-                </View>
-                <Footer />
-            </Page>
-        );
-    }
-
-    if (datasets.length === 0) {
-        return (
-            <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
-                <Header title="Purchase Drivers" />
-                <View style={styles.section}>
-                    <InsufficientDataMessage variantCount={variantCount} />
+                    <InsufficientDataMessage variantCount={averagesurveys.count} />
                 </View>
                 <Footer />
             </Page>
@@ -133,7 +123,7 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
                     <View style={styles.chartContainer}>
                         {/* Legend */}
                         <View style={styles.chartLegend}>
-                            {datasets.map((dataset, i) => (
+                            {datasets.map((dataset: Dataset, i: number) => (
                                 <View key={i} style={styles.legendItem}>
                                     <View style={[styles.legendColor, { backgroundColor: dataset.color }]} />
                                     <Text style={styles.legendText}>{dataset.label}</Text>
@@ -156,12 +146,12 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
                             <View style={{ flexDirection: 'row', flex: 1, marginLeft: 35, justifyContent: 'space-between' }}>
                                 {LABELS.map((label, labelIndex) => (
                                     <View key={label} style={[styles.barGroup, { width: '18%' }]}>
-                                        {datasets.map((dataset, datasetIndex) => {
+                                        {datasets.map((dataset: Dataset, datasetIndex: number) => {
                                             const value = dataset.data[labelIndex];
                                             const height = `${(value / 5) * 100}%`;
                                             return (
                                                 <View key={datasetIndex} style={[styles.bar, { height, backgroundColor: dataset.color }]}>
-                                                    <Text style={styles.barValue}>{value}</Text>
+                                                    <Text style={styles.barValue}>{value.toFixed(1)}</Text>
                                                 </View>
                                             );
                                         })}
