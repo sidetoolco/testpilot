@@ -62,9 +62,9 @@ export function useTestDetail(id: string) {
               age_ranges, genders, locations, interests, tester_count
             )
           `)
-          .eq('user_id', userId)
           .eq('id', id)
           .single();
+          // .eq('user_id', userId)
 
         if (testError) throw testError;
         if (!testData) throw new Error('Test not found');

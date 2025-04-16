@@ -5,6 +5,22 @@ import { validateProducts } from '../utils/validators/productValidator';
 import { validateTestData } from '../utils/validators/testDataValidator';
 import { TestCreationError } from '../utils/errors';
 
+interface Profile {
+  role?: string;
+}
+
+interface TestResponse {
+  id: string;
+  name: string;
+  search_term: string;
+  status: string;
+  competitors: any[];
+  variations: any[];
+  demographics: any[];
+  created_at: string;
+  updated_at: string;
+}
+
 export const testService = {
   async createTest(testData: TestData) {
     try {
@@ -157,8 +173,8 @@ export const testService = {
         const respondentProjectData = {
           publicTitle: this.generateDynamicTitle(test.search_term),
           publicInternalName: `${test.id}-${variationType}`,
-          participantTimeRequiredMinutes: 12,
-          incentiveAmount: 12,
+          participantTimeRequiredMinutes: 10,
+          incentiveAmount: Math.round((20 / 60) * 10 * 100),
           targetNumberOfParticipants: testData.demographics.testerCount,
           externalResearcher: {
             researcherId: test.company_id,
@@ -200,7 +216,7 @@ export const testService = {
   async addCompetitorsBulletsDescriptions(competitors: any) {
 
     try {
-      await fetch('https://testpilot.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
+      await fetch('https://testpilot.app.n8n.cloud/webhook/publish-prolific', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -212,6 +228,65 @@ export const testService = {
       console.error('Bullets descriptions failed:', error);
     } finally {
       console.log('Bullets descriptions added');
+    }
+  },
+
+  async getAllTests(): Promise<TestResponse[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      // Check if user is admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        throw new TestCreationError('Error fetching user profile');
+      }
+
+      const typedProfile = profile as Profile;
+      if (typedProfile?.role !== 'admin') {
+        throw new TestCreationError('Unauthorized: Admin access required');
+      }
+
+      // Fetch all tests with their relationships
+      const { data: tests, error: testsError } = await supabase
+        .from('tests')
+        .select(`
+         *,
+          competitors:test_competitors(
+          product:amazon_products(
+          *,
+          company:companies(name)
+          )),
+          variations:test_variations(
+          product:products(
+          *,
+          company:companies(name)),
+          variation_type
+              ),
+              demographics:test_demographics(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (testsError) {
+        throw new TestCreationError('Error fetching tests');
+      }
+
+      return tests as unknown as TestResponse[];
+    } catch (error) {
+      console.error('Error fetching all tests:', error);
+      if (error instanceof TestCreationError) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred while fetching tests');
+      }
+      throw error;
     }
   }
 };
