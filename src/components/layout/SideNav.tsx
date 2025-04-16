@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle } from 'lucide-react';
-import { useAuth } from '../../features/auth/hooks/useAuth';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Beaker,
+  Package,
+  LogOut,
+  Menu,
+  X,
+  HelpCircle,
+  Settings,
+} from "lucide-react";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+
+const menuItems = [
+  { path: "/my-tests", icon: Beaker, label: "My Tests" },
+  { path: "/all-products", icon: Package, label: "My Products" },
+  { path: "/support", icon: HelpCircle, label: "Support" },
+  { path: "/", icon: Settings, label: "Settings", inactive: true },
+];
 
 export default function SideNav() {
   const location = useLocation();
@@ -14,14 +29,9 @@ export default function SideNav() {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     }
   };
-
-  const menuItems = [
-    { path: '/my-tests', icon: Beaker, label: 'My Tests' },
-    { path: '/all-products', icon: Package, label: 'My Products' },
-  ];
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -38,7 +48,11 @@ export default function SideNav() {
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
         {/* Logo */}
-        <Link to="/my-tests" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
+        <Link
+          to="/my-tests"
+          className="flex items-center space-x-2"
+          onClick={() => setIsOpen(false)}
+        >
           <div className="bg-white p-2 rounded-lg">
             <img
               src="https://i.imghippo.com/files/QfED5977I.png"
@@ -58,7 +72,8 @@ export default function SideNav() {
       )}
 
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed lg:static
         inset-y-0 left-0
         w-56 h-full
@@ -66,19 +81,16 @@ export default function SideNav() {
         flex flex-col
         transition-transform duration-300 ease-in-out
         z-40
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-
-
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
+      >
         <div className="p-6 border-b border-[#00C495]">
           <Link to="/my-tests" className="flex items-center space-x-2">
-            <div className="bg-white p-2 rounded-lg">
-              <img
-                src="https://i.imghippo.com/files/QfED5977I.png"
-                alt="TestPilot"
-                className="h-8"
-              />
-            </div>
+            <img
+              src="/assets/images/testpilot-logo.png"
+              alt="TestPilot"
+              className="h-8"
+            />
           </Link>
         </div>
         {/* Navigation */}
@@ -86,48 +98,44 @@ export default function SideNav() {
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.path}>
-                <Link
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.path)
-                    ? 'bg-[#008F6B] text-white'
-                    : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                {item.inactive ? (
+                  <div className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed">
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                ) : (
+                  <Link
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive(item.path)
+                        ? "bg-[#008F6B] text-white"
+                        : "text-white/90 hover:bg-[#008F6B] hover:text-white"
                     }`}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                )}
               </li>
             ))}
+            <li>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                disabled={loading}
+                className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">
+                  {loading ? "Logging out..." : "Log out"}
+                </span>
+              </button>
+            </li>
           </ul>
         </nav>
-
-        {/* Support */}
-        <div className="p-4 border-t border-[#00C495]">
-          <Link
-            to="/support"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <HelpCircle className="h-5 w-5" />
-            <span className="font-medium">Support</span>
-          </Link>
-        </div>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-[#00C495]">
-          <button
-            onClick={() => {
-              handleLogout();
-              setIsOpen(false);
-            }}
-            disabled={loading}
-            className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="font-medium">{loading ? 'Logging out...' : 'Log out'}</span>
-          </button>
-        </div>
       </div>
     </>
   );
