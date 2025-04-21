@@ -55,7 +55,7 @@ export default function SignupForm() {
               className="inline-block mb-6"
             >
               <img 
-                src="https://i.imghippo.com/files/QfED5977I.png"
+                src="/assets/images/testPilot-black.png"
                 alt="TestPilot"
                 className="h-12 mx-auto"
               />
@@ -168,7 +168,7 @@ export default function SignupForm() {
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <div className="flex items-center space-x-4 mb-8">
                 <img 
-                  src="https://i.imghippo.com/files/QfED5977I.png"
+                  src="/assets/images/testPilot-black.png"
                   alt="TestPilot"
                   className="h-12"
                 />
