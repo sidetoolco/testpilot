@@ -1,5 +1,7 @@
-import React, { useCallback } from 'react';
-import { Upload, X } from 'lucide-react';
+import { useCallback } from "react";
+import { Upload, X } from "lucide-react";
+import { supabase } from "../../../lib/supabase";
+import { v4 as uuidv4 } from 'uuid';
 
 interface ImageUploadProps {
   images: string[];
@@ -7,22 +9,36 @@ interface ImageUploadProps {
   maxImages?: number;
 }
 
-export default function ImageUpload({ images, onChange, maxImages = 4 }: ImageUploadProps) {
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length + images.length > maxImages) {
-      alert(`You can only upload up to ${maxImages} images`);
-      return;
-    }
+export default function ImageUpload({
+  images,
+  onChange,
+  maxImages = 4,
+}: ImageUploadProps) {
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length + images.length > maxImages) {
+        alert(`You can only upload up to ${maxImages} images`);
+        return;
+      }
 
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onChange([...images, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-  }, [images, onChange, maxImages]);
+      for (const file of files) {
+        const fileId = uuidv4();
+        const { error } = await supabase.storage
+          .from("product-images")
+          .upload(fileId, file);
+
+        if (error) console.error(error);
+
+        const imageUrl = supabase.storage
+          .from("product-images")
+          .getPublicUrl(fileId).data.publicUrl;
+
+        onChange([...images, imageUrl]);
+      }
+    },
+    [images, onChange, maxImages]
+  );
 
   const removeImage = (index: number) => {
     const newImages = [...images];
@@ -64,7 +80,8 @@ export default function ImageUpload({ images, onChange, maxImages = 4 }: ImageUp
         )}
       </div>
       <p className="text-sm text-gray-500">
-        Upload up to {maxImages} product images. First image will be used as the main product image.
+        Upload up to {maxImages} product images. First image will be used as the
+        main product image.
       </p>
     </div>
   );
