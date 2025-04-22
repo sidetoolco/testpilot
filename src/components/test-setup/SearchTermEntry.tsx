@@ -48,7 +48,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
               }}
               onFocus={() => setShowSuggestions(true)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
-              placeholder="e.g., 'Fabric Softener', 'Laundry Detergent', 'Dish Soap'"
+              placeholder="e.g., 'Fabric Softener'"
             />
           </div>
 
