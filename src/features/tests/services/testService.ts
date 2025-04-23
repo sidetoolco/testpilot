@@ -95,7 +95,8 @@ export const testService = {
         status: 'draft',
         company_id: companyId,
         user_id: userId,
-        settings: {}
+        settings: {},
+        objective: testData.objective
       })
       .select()
       .single();

@@ -8,6 +8,7 @@ import { TestCreationContent } from '../features/tests/components/TestCreationCo
 import { TestData } from '../features/tests/types';
 
 const steps = [
+  { key: 'objective', label: 'Objective' },
   { key: 'search', label: 'Search Term' },
   { key: 'competitors', label: 'Competitors' },
   { key: 'variations', label: 'Variations' },
@@ -20,6 +21,7 @@ const initialTestData: TestData = {
   name: '',
   searchTerm: '',
   competitors: [],
+  objective: null,
   variations: {
     a: null,
     b: null,

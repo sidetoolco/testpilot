@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search } from 'lucide-react';
 
 interface SearchTermEntryProps {
@@ -7,7 +7,7 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
-export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
+export default function SearchTermEntry({ value, onChange }: SearchTermEntryProps) {
   const [suggestions] = useState([
     'Fabric Softener',
     'Laundry Detergent',
