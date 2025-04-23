@@ -55,7 +55,7 @@ const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) =>
                 <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
                     <div className="bg-white p-1 rounded-lg">
                         <img
-                            src="https://i.imghippo.com/files/QfED5977I.png"
+                            src="/assets/images/testPilot-black.png"
                             alt="TestPilot"
                             className="h-8"
                         />
