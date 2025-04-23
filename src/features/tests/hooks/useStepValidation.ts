@@ -4,7 +4,7 @@ import { TestData } from '../types';
 import { toast } from 'sonner';
 
 export const useStepValidation = (testData: TestData) => {
-  const [currentStep, setCurrentStep] = useState<string>('search');
+  const [currentStep, setCurrentStep] = useState<string>('objective');
 
   const canProceed = useCallback(() => {
     return validateStep(currentStep, testData);
