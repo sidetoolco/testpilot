@@ -33,6 +33,7 @@ export default function MyTests() {
   const user = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
+  const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
 
   useEffect(() => {
@@ -78,6 +79,70 @@ export default function MyTests() {
       toast.error('Failed to publish test. Please try again.');
     } finally {
       setPublishingTests(prev => prev.filter(id => id !== testId));
+    }
+  };
+
+  const handleGetData = async (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setGettingDataTests(prev => [...prev, testId]);
+
+    try {
+      const accessToken = user?.session?.access_token;
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
+      console.log('Making request to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        mode: 'cors'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      // Open new window with the response data
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>Test Data - ${testId}</title>
+              <style>
+                body { 
+                  font-family: monospace;
+                  white-space: pre-wrap;
+                  padding: 20px;
+                  background: #f5f5f5;
+                }
+              </style>
+            </head>
+            <body>
+              ${JSON.stringify(data, null, 2)}
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+      
+      toast.success('Test data retrieved successfully');
+    } catch (error) {
+      console.error('Error getting test data:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to get test data. Please try again.');
+    } finally {
+      setGettingDataTests(prev => prev.filter(id => id !== testId));
     }
   };
 
@@ -197,6 +262,24 @@ export default function MyTests() {
                 </div>
                 {isAdmin && test.status !== 'complete' && (
                   <div className="flex items-center gap-4">
+                    <button
+                      onClick={(e) => handleGetData(test.id, e)}
+                      disabled={gettingDataTests.includes(test.id)}
+                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors ${
+                        gettingDataTests.includes(test.id)
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:bg-blue-600'
+                      }`}
+                    >
+                      {gettingDataTests.includes(test.id) ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Getting Data...
+                        </span>
+                      ) : (
+                        'Get Data'
+                      )}
+                    </button>
                     <button
                       onClick={(e) => handlePublish(test.id, e, test)}
                       disabled={publishingTests.includes(test.id)}
