@@ -177,7 +177,13 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             step="0.01"
             min="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              // Permite escribir números con punto decimal
+              if (/^\d*\.?\d*$/.test(inputValue)) {
+                setFormData({ ...formData, price: inputValue });
+              }
+            }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
@@ -188,9 +194,14 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           </label>
           <input
             type="number"
-            min="0"
             value={formData.reviews_count}
-            onChange={(e) => setFormData({ ...formData, reviews_count: parseInt(e.target.value) || 0 })}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFormData({
+                ...formData,
+                reviews_count: value === '' ? '' : parseInt(value),
+              });
+            }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
