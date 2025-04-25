@@ -1,69 +1,89 @@
-import React, { useState } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
-import { Document, pdf } from '@react-pdf/renderer';
-import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
-import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
-import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSection';
-import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
-import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
-import { CoverPageSection } from './pdf-sections/CoverPageSection';
-import { TestDetails } from './utils/types';
-import { VariantCover } from './sections/VariantCover';
+import React, { useState } from "react";
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from "lucide-react";
+import { Document, pdf } from "@react-pdf/renderer";
+import { TestDetailsPDFSection } from "./pdf-sections/TestDetailsPDFSection";
+import { SummaryPDFSection } from "./pdf-sections/SummaryPDFSection";
+import { PurchaseDriversPDFSection } from "./pdf-sections/PurchaseDriversPDFSection";
+import { CompetitiveInsightsPDFSection } from "./pdf-sections/CompetitiveInsightsPDFSection";
+import { RecommendationsPDFSection } from "./pdf-sections/RecommendationsPDFSection";
+import { CoverPageSection } from "./pdf-sections/CoverPageSection";
+import { TestDetails } from "./utils/types";
+import { VariantCover } from "./sections/VariantCover";
+import apiClient from "../../../../lib/api";
+import { toast } from "sonner";
 
 interface PDFDocumentProps {
-    testDetails: TestDetails;
-    summaryData: any;
-    onPrintStart?: () => void;
-    onPrintEnd?: () => void;
-    insights: {
-        purchase_drivers?: string;
-        recommendations?: string;
-        competitive_insights?: string;
-    };
-    competitiveinsights: any;
-    averagesurveys: any;
-    disabled?: boolean;
+  testDetails: TestDetails;
+  summaryData: any;
+  onPrintStart?: () => void;
+  onPrintEnd?: () => void;
+  insights: {
+    purchase_drivers?: string;
+    recommendations?: string;
+    competitive_insights?: string;
+  };
+  competitiveinsights: any;
+  averagesurveys: any;
+  disabled?: boolean;
 }
 
-const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights, averagesurveys }: {
-    testDetails: PDFDocumentProps['testDetails'];
-    summaryData: PDFDocumentProps['summaryData'];
-    insights: PDFDocumentProps['insights'];
-    competitiveinsights: PDFDocumentProps['competitiveinsights'];
-    averagesurveys: PDFDocumentProps['averagesurveys'];
+const PDFDocument = ({
+  testDetails,
+  summaryData,
+  insights,
+  competitiveinsights,
+  averagesurveys,
+}: {
+  testDetails: PDFDocumentProps["testDetails"];
+  summaryData: PDFDocumentProps["summaryData"];
+  insights: PDFDocumentProps["insights"];
+  competitiveinsights: PDFDocumentProps["competitiveinsights"];
+  averagesurveys: PDFDocumentProps["averagesurveys"];
 }) => {
-    if (!testDetails || !summaryData) {
-        return null;
-    }
+  if (!testDetails || !summaryData) {
+    return null;
+  }
 
-    const variantsArray = [testDetails.variations.a, testDetails.variations.b, testDetails.variations.c].filter(v => v);
+  const variantsArray = [
+    testDetails.variations.a,
+    testDetails.variations.b,
+    testDetails.variations.c,
+  ].filter((v) => v);
 
-    return (
-        <Document>
-            <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} />
-            <TestDetailsPDFSection testDetails={testDetails} />
-            <SummaryPDFSection summaryData={summaryData} insights={insights} />
+  return (
+    <Document>
+      <CoverPageSection
+        testDetails={testDetails}
+        variantsArray={variantsArray}
+      />
+      <TestDetailsPDFSection testDetails={testDetails} />
+      <SummaryPDFSection summaryData={summaryData} insights={insights} />
 
-            {Object.entries(testDetails.variations).map(([key, variation]) =>
-                variation && (
-                    <React.Fragment key={key}>
-                        <VariantCover
-                            variantKey={key}
-                            title={variation.title}
-                            imageUrl={variation.image_url}
-                        />
-                        <PurchaseDriversPDFSection
-                            insights={insights?.purchase_drivers}
-                            averagesurveys={averagesurveys.summaryData.find((item: any) => item.variant_type === key)}
-                        />
-                        <CompetitiveInsightsPDFSection
-                            competitiveinsights={competitiveinsights.summaryData.filter((item: any) => item.variant_type === key)}
-                            insights={insights?.competitive_insights}
-                        />
-                    </React.Fragment>
-                )
-            )}
-            {/* <Page size="A4" orientation="portrait" style={styles.page}>
+      {Object.entries(testDetails.variations).map(
+        ([key, variation]) =>
+          variation && (
+            <React.Fragment key={key}>
+              <VariantCover
+                variantKey={key}
+                title={variation.title}
+                imageUrl={variation.image_url}
+              />
+              <PurchaseDriversPDFSection
+                insights={insights?.purchase_drivers}
+                averagesurveys={averagesurveys.summaryData.find(
+                  (item: any) => item.variant_type === key
+                )}
+              />
+              <CompetitiveInsightsPDFSection
+                competitiveinsights={competitiveinsights.summaryData.filter(
+                  (item: any) => item.variant_type === key
+                )}
+                insights={insights?.competitive_insights}
+              />
+            </React.Fragment>
+          )
+      )}
+      {/* <Page size="A4" orientation="portrait" style={styles.page}>
                 <Image
                     src={logo}
                     style={styles.logo}
@@ -71,134 +91,137 @@ const PDFDocument = ({ testDetails, summaryData, insights, competitiveinsights, 
                 <ShopperCommentsPDFSection />
                 <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
             </Page> */}
-            {insights?.recommendations && (
-                <RecommendationsPDFSection insights={insights.recommendations} />
-            )}
-        </Document>
-    );
+      {insights?.recommendations && (
+        <RecommendationsPDFSection insights={insights.recommendations} />
+      )}
+    </Document>
+  );
 };
 
-const PDFPreviewModal = ({ isOpen, onClose, pdfUrl }: { isOpen: boolean; onClose: () => void; pdfUrl: string }) => {
-    if (!isOpen) return null;
+const PDFPreviewModal = ({
+  isOpen,
+  onClose,
+  pdfUrl,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  pdfUrl: string;
+}) => {
+  if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl h-[90vh] flex flex-col">
-                <div className="p-4 border-b flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">PDF Preview</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                    <iframe
-                        src={pdfUrl}
-                        className="w-full h-full"
-                        title="PDF Preview"
-                    />
-                </div>
-            </div>
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl h-[90vh] flex flex-col">
+        <div className="p-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-semibold">PDF Preview</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-    );
+        <div className="flex-1 overflow-hidden">
+          <iframe src={pdfUrl} className="w-full h-full" title="PDF Preview" />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export const ReportPDF: React.FC<PDFDocumentProps> = ({
-    averagesurveys,
-    testDetails,
-    summaryData,
-    insights,
-    competitiveinsights,
-    disabled
+  averagesurveys,
+  testDetails,
+  summaryData,
+  insights,
+  competitiveinsights,
+  disabled,
 }) => {
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [loadingInsights, setLoadingInsights] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
-    const handleExportPDF = async () => {
-        try {
-            if (!testDetails || !summaryData || !competitiveinsights || !insights) {
-                console.error('Missing required data for PDF generation');
-                return;
-            }
+  const handleExportPDF = async () => {
+    try {
+      if (!testDetails || !summaryData || !competitiveinsights || !insights) {
+        console.error("Missing required data for PDF generation");
+        return;
+      }
 
-            const blob = await pdf(
-                <PDFDocument
-                    testDetails={testDetails}
-                    summaryData={summaryData}
-                    insights={insights}
-                    competitiveinsights={competitiveinsights}
-                    averagesurveys={averagesurveys}
-                />
-            ).toBlob();
-            const url = URL.createObjectURL(blob);
-            setPdfUrl(url);
-            setIsPreviewOpen(true);
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-        }
-    };
-
-    const handleClosePreview = () => {
-        setIsPreviewOpen(false);
-        if (pdfUrl) {
-            URL.revokeObjectURL(pdfUrl);
-            setPdfUrl(null);
-        }
-    };
-
-    const handleRegenerateInsights = () => {
-        setLoadingInsights(true);
-
-        fetch(`https://testpilot.app.n8n.cloud/webhook/af3bf557-b01e-46b7-b74c-6df471231e3d?test_id=${testDetails.id}`, {
-            method: "POST"
-        })
-        .then(() => window.location.reload())
-        .catch(err => {
-            console.error("Failed to regenerate insights: " + err);
-            setLoadingInsights(false);
-        });
+      const blob = await pdf(
+        <PDFDocument
+          testDetails={testDetails}
+          summaryData={summaryData}
+          insights={insights}
+          competitiveinsights={competitiveinsights}
+          averagesurveys={averagesurveys}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setIsPreviewOpen(true);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
     }
+  };
 
-    return (
-        <>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
-                <button
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled
-                >
-                    <FileSpreadsheet size={20} />
-                    Export to Excel
-                </button>
-                <button
-                    disabled={loadingInsights}
-                    onClick={handleRegenerateInsights}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                    <RefreshCcw size={20} />
-                    {loadingInsights ? "Regenerating Insights..." : "Regenerate Insights"}
-                </button>
-                <button
-                    onClick={handleExportPDF}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={disabled || !testDetails || !summaryData}
-                >
-                    <FilePdf size={20} />
-                    Export to PDF
-                </button>
-            </div>
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+  };
 
-            {isPreviewOpen && pdfUrl && (
-                <PDFPreviewModal
-                    isOpen={isPreviewOpen}
-                    onClose={handleClosePreview}
-                    pdfUrl={pdfUrl}
-                />
-            )}
-        </>
-    );
+  const handleRegenerateInsights = () => {
+    setLoadingInsights(true);
+
+    apiClient
+      .post(`/insights/${testDetails.id}`)
+      .then(() => window.location.reload())
+      .catch(() => {
+        toast.error("Failed to regenerate insights");
+        setLoadingInsights(false);
+      });
+  };
+
+  return (
+    <>
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
+        <button
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled
+        >
+          <FileSpreadsheet size={20} />
+          Export to Excel
+        </button>
+        <button
+          disabled={loadingInsights}
+          onClick={handleRegenerateInsights}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          <RefreshCcw size={20} />
+          {loadingInsights ? "Regenerating Insights..." : "Regenerate Insights"}
+        </button>
+        <button
+          onClick={handleExportPDF}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={disabled || !testDetails || !summaryData}
+        >
+          <FilePdf size={20} />
+          Export to PDF
+        </button>
+      </div>
+
+      {isPreviewOpen && pdfUrl && (
+        <PDFPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={handleClosePreview}
+          pdfUrl={pdfUrl}
+        />
+      )}
+    </>
+  );
 };
 
 export default ReportPDF;
