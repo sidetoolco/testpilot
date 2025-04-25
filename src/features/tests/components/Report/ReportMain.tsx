@@ -7,6 +7,7 @@ import { getSummaryData, checkIdInIaInsights, getAveragesurveys, getCompetitiveI
 import { useTestDetail } from '../../hooks/useTestDetail';
 import { useInsightStore } from '../../hooks/useIaInsight';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../auth/hooks/useAuth';
 
 interface ReportProps {
   id: string;
@@ -14,7 +15,7 @@ interface ReportProps {
 
 interface ReportTabsProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: string, userEmail: string) => void;
   variantStatus: string;
 }
 
@@ -27,31 +28,34 @@ const TABS = [
   'recommendations'
 ];
 
-const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => (
-  <div className="border-b border-gray-200 overflow-x-auto">
-    <nav className="flex gap-1 min-w-max pb-1">
-      {TABS.map(tab => {
-        const isDisabled = variantStatus === 'draft' && tab !== 'test-details';
-        return (
-          <button
-            key={tab}
-            className={clsx(
-              'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
-              activeTab === tab
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent hover:border-gray-300',
-              isDisabled && 'opacity-50 cursor-not-allowed'
-            )}
-            onClick={() => !isDisabled && onTabChange(tab)}
-            disabled={isDisabled}
-          >
-            {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-          </button>
-        );
-      })}
-    </nav>
-  </div>
-);
+const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
+  const { user } = useAuth();
+  return (
+    <div className="border-b border-gray-200 overflow-x-auto">
+      <nav className="flex gap-1 min-w-max pb-1">
+        {TABS.map(tab => {
+          const isDisabled = variantStatus === 'draft' && tab !== 'test-details' && user?.email !== "barb@testerson.com";
+          return (
+            <button
+              key={tab}
+              className={clsx(
+                'py-2 px-2 sm:px-3 border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base',
+                activeTab === tab
+                  ? 'border-green-600 text-green-600'
+                  : 'border-transparent hover:border-gray-300',
+                isDisabled && 'opacity-50 cursor-not-allowed'
+              )}
+              onClick={() => !isDisabled && onTabChange(tab, user?.email || "")}
+              disabled={isDisabled}
+            >
+              {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+};
 
 const Report: React.FC<ReportProps> = ({ id }) => {
   const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
@@ -117,8 +121,8 @@ const Report: React.FC<ReportProps> = ({ id }) => {
     }
   }, [isPrinting]); // Add isPrinting to dependencies
 
-  const handleTabChange = (tab: string) => {
-    if (testInfo?.status === 'draft' && tab !== 'test-details') return;
+  const handleTabChange = (tab: string, userEmail: string) => {
+    if (testInfo?.status === 'draft' && tab !== 'test-details' && userEmail !== "barb@testerson.com") return;
     setActiveTab(tab);
     // Find and focus the content
     const element = document.getElementById(`content-${tab}`);
