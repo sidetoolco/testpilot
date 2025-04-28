@@ -72,9 +72,9 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
 
                             <div className="mt-1 flex items-center gap-1">
                                 <img
-                                    src="https://i.imghippo.com/files/nez3966nmQ.png"
+                                    src="/assets/images/amazon-prime-icon.png"
                                     alt="Prime"
-                                    className="h-[18px]"
+                                    className="h-12"
                                 />
                                 <div>
                                     <span className="text-[12px] text-[#007185]">FREE delivery</span>
