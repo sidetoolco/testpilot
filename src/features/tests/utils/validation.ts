@@ -2,6 +2,8 @@ import { TestData } from '../types';
 
 export const validateStep = (step: string, data: TestData): boolean => {
   switch (step) {
+    case 'objective':
+      return true; // The only time this function is called is after the user selects an objective, so its never going to be null.
     case 'search':
       return data.searchTerm.trim().length > 0;
 

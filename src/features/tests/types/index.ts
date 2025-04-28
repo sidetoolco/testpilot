@@ -1,6 +1,9 @@
+import { TestObjective } from "../../../lib/enum";
+
 export interface TestData {
   name: string;
   searchTerm: string;
+  objective: TestObjective | null;
   competitors: Array<{
     id: string;
     name?: string;
