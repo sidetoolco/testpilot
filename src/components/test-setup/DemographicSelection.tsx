@@ -34,14 +34,14 @@ export default function DemographicSelection({
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
 
-  const screeningCriteria = [
-    "Health & Fitness",
-    "Actively Religious",
-    "Environmentally Conscious",
-    "College Graduate",
-    "Military Veteran",
-    "Lower Income"
-  ];
+  // const screeningCriteria = [
+  //   "Health & Fitness",
+  //   "Actively Religious",
+  //   "Environmentally Conscious",
+  //   "College Graduate",
+  //   "Military Veteran",
+  //   "Lower Income"
+  // ];
 
   // Calculate number of active variants
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
@@ -111,12 +111,12 @@ export default function DemographicSelection({
     onChange({ ...demographics, locations: newLocations });
   };
 
-  const handleScreeningSelect = (criterion: string) => {
-    const newScreening = demographics.interests.includes(criterion)
-      ? demographics.interests.filter(i => i !== criterion)
-      : [...demographics.interests, criterion];
-    onChange({ ...demographics, interests: newScreening });
-  };
+  // const handleScreeningSelect = (criterion: string) => {
+  //   const newScreening = demographics.interests.includes(criterion)
+  //     ? demographics.interests.filter(i => i !== criterion)
+  //     : [...demographics.interests, criterion];
+  //   onChange({ ...demographics, interests: newScreening });
+  // };
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value; // Cambiado para permitir valor vacío
@@ -272,7 +272,7 @@ export default function DemographicSelection({
         </div>
 
         {/* Screening Criteria */}
-        <div>
+        {/* <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4">Screening Criteria</h4>
           <div className="grid grid-cols-2 gap-3">
             {screeningCriteria.map((criterion) => (
@@ -288,7 +288,7 @@ export default function DemographicSelection({
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
