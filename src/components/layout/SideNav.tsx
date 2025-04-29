@@ -14,7 +14,7 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 const menuItems = [
   { path: "/my-tests", icon: Beaker, label: "My Tests" },
   { path: "/all-products", icon: Package, label: "My Products" },
-  { path: "/support", icon: HelpCircle, label: "Support" },
+  { path: "/support", icon: HelpCircle, label: "Support Videos" },
   { path: "/", icon: Settings, label: "Settings", inactive: true },
 ];
 
