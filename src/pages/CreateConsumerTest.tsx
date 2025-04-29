@@ -1,58 +1,58 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { useStepValidation } from '../features/tests/hooks/useStepValidation';
-import { testService } from '../features/tests/services/testService';
-import { TestCreationSteps } from '../features/tests/components/TestCreationSteps';
-import { TestCreationContent } from '../features/tests/components/TestCreationContent';
-import { TestData } from '../features/tests/types';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useStepValidation } from "../features/tests/hooks/useStepValidation";
+import { testService } from "../features/tests/services/testService";
+import { TestCreationSteps } from "../features/tests/components/TestCreationSteps";
+import { TestCreationContent } from "../features/tests/components/TestCreationContent";
+import { TestData } from "../features/tests/types";
 
 const steps = [
-  { key: 'objective', label: 'Objective' },
-  { key: 'search', label: 'Search Term' },
-  { key: 'competitors', label: 'Competitors' },
-  { key: 'variations', label: 'Variations' },
-  { key: 'demographics', label: 'Demographics' },
-  { key: 'preview', label: 'Preview' },
-  { key: 'review', label: 'Review' }
+  { key: "objective", label: "Objective" },
+  { key: "search", label: "Search Term" },
+  { key: "competitors", label: "Competitors" },
+  { key: "variations", label: "Variations" },
+  { key: "demographics", label: "Demographics" },
+  { key: "preview", label: "Preview" },
+  { key: "review", label: "Review" },
 ];
 
 const initialTestData: TestData = {
-  name: '',
-  searchTerm: '',
+  name: "",
+  searchTerm: "",
   competitors: [],
   objective: null,
   variations: {
     a: null,
     b: null,
-    c: null
+    c: null,
   },
   demographics: {
     ageRanges: [],
     gender: [],
     locations: [],
     interests: [],
-    testerCount: 25
-  }
+    testerCount: 25,
+  },
 };
 const LoadingMessages = [
   "Creating your test...",
   "Analyzing demographics...",
   "Setting up your project...",
   "Almost there...",
-  "Finalizing details..."
+  "Finalizing details...",
 ];
 
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const [testData, setTestData] = useState<TestData>(initialTestData);
-  const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
+  const { currentStep, setCurrentStep, canProceed, handleNext } =
+    useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
-
   const handleBack = () => {
-    const currentIndex = steps.findIndex(s => s.key === currentStep);
+    const currentIndex = steps.findIndex((s) => s.key === currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
     }
@@ -62,17 +62,17 @@ export default function CreateConsumerTest() {
     try {
       // Validate test data before submission
       if (!testData.name?.trim()) {
-        toast.error('Please enter a test name');
+        toast.error("Please enter a test name");
         return;
       }
 
       if (!testData.variations.a) {
-        toast.error('Variation A is required');
+        toast.error("Variation A is required");
         return;
       }
 
       if (testData.competitors.length === 0) {
-        toast.error('Please select at least one competitor');
+        toast.error("Please select at least one competitor");
         return;
       }
 
@@ -81,11 +81,12 @@ export default function CreateConsumerTest() {
       // Create test
       await testService.createTest(testData);
 
-      toast.success('Test created successfully');
-      navigate('/my-tests');
+      toast.success("Test created successfully");
+      navigate("/my-tests");
     } catch (error: any) {
-      console.error('Test creation error:', error);
-      const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to create test';
+      console.error("Test creation error:", error);
+      const errorMessage =
+        error.details?.errors?.[0] || error.message || "Failed to create test";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -94,7 +95,7 @@ export default function CreateConsumerTest() {
 
   const handleContinue = () => {
     if (handleNext()) {
-      const currentIndex = steps.findIndex(s => s.key === currentStep);
+      const currentIndex = steps.findIndex((s) => s.key === currentStep);
       if (currentIndex < steps.length - 1) {
         setCurrentStep(steps[currentIndex + 1].key);
       }
@@ -116,7 +117,6 @@ export default function CreateConsumerTest() {
     }
   }, [isLoading]);
 
-
   return (
     <div className="min-h-screen bg-white relative w-full">
       {isLoading && (
@@ -130,8 +130,11 @@ export default function CreateConsumerTest() {
               {LoadingMessages.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${index === loadingMessageIndex ? 'bg-blue-500 w-3' : 'bg-gray-300'
-                    }`}
+                  className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
+                    index === loadingMessageIndex
+                      ? "bg-blue-500 w-3"
+                      : "bg-gray-300"
+                  }`}
                 />
               ))}
             </div>
@@ -139,14 +142,16 @@ export default function CreateConsumerTest() {
         </div>
       )}
 
-      <TestCreationSteps
-        steps={steps}
-        currentStep={currentStep}
-        canProceed={canProceed()}
-        onBack={handleBack}
-        onNext={handleContinue}
-        onConfirm={handleConfirm}
-      />
+      {currentStep !== "objective" && (
+        <TestCreationSteps
+          steps={steps.slice(1)}
+          currentStep={currentStep}
+          canProceed={canProceed()}
+          onBack={handleBack}
+          onNext={handleContinue}
+          onConfirm={handleConfirm}
+        />
+      )}
 
       <TestCreationContent
         currentStep={currentStep}
