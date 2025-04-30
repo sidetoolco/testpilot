@@ -67,35 +67,33 @@ export function TestCreationSteps({
         </div>
 
         {/* Navigation Buttons */}
-        {!isFirstStep && (
-          <div className="flex justify-between">
-            <button
-              onClick={onBack}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
-                isFirstStep
-                  ? "opacity-0 cursor-default"
-                  : "border border-gray-200 hover:bg-gray-50"
-              }`}
-              disabled={isFirstStep}
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back</span>
-            </button>
+        <div className="flex justify-between">
+          <button
+            onClick={onBack}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+              isFirstStep
+                ? "opacity-0 cursor-default"
+                : "border border-gray-200 hover:bg-gray-50"
+            }`}
+            disabled={isFirstStep}
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </button>
 
-            <button
-              onClick={isLastStep ? onConfirm : onNext}
-              disabled={!canProceed}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
-                canProceed
-                  ? "bg-primary-400 text-white hover:bg-primary-500"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              <span>{isLastStep ? "Launch Test" : "Continue"}</span>
-              {!isLastStep && <ArrowRight className="h-5 w-5" />}
-            </button>
-          </div>
-        )}
+          <button
+            onClick={isLastStep ? onConfirm : onNext}
+            disabled={!canProceed}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+              canProceed
+                ? "bg-primary-400 text-white hover:bg-primary-500"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            <span>{isLastStep ? "Launch Test" : "Continue"}</span>
+            {!isLastStep && <ArrowRight className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
     </div>
   );
