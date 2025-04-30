@@ -95,7 +95,8 @@ export const getSummaryData = async (id: string): Promise<{
     const { data: summaryData, error: summaryError } = await supabase
       .from('summary')
       .select('*, product:product_id(title)')
-      .eq('test_id', id);
+      .eq('test_id', id)
+      .order('variant_type');
 
     if (summaryError) throw summaryError;
 
