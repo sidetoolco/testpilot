@@ -117,14 +117,14 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         <table className="min-w-full border-collapse max-w-screen-md">
           <thead>
             <tr className="bg-gray-100 border-none">
-              <th colSpan={2} className="p-2 bg-[#fff8f8]"></th>
+              <th colSpan={2} className="p-2 bg-white"></th>
               <th colSpan={5} className="border border-gray-300 p-2">
                 Your Item vs Competitor
               </th>
             </tr>
-            <tr className="bg-gray-200">
+            <tr className="bg-gray-100">
               {[
-                "Picture",
+                "Product",
                 "Share of Buy",
                 "Value",
                 "Aesthetics",
@@ -132,7 +132,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                 "Trust",
                 "Convenience",
               ].map((header) => (
-                <th key={header} className="border border-gray-300 p-2">
+                <th key={header} className="border border-gray-300 p-2 text-left">
                   {header}
                 </th>
               ))}
@@ -140,34 +140,41 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           </thead>
           <tbody>
             {filteredInsights.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-100">
-                <td className="border border-gray-300 p-2">
-                  <a
-                    href={item.competitor_product_id?.product_url ? item.competitor_product_id.product_url : 'x'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="relative group">
+              <tr key={index}>
+                <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
+                  <div className="relative group">
+                    <a
+                      href={item.competitor_product_id?.product_url ? item.competitor_product_id.product_url : 'x'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3"
+                    >
                       <img
                         src={item.competitor_product_id?.image_url ? item.competitor_product_id.image_url : item.product.image_url}
                         alt={item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title}
-                        className="w-10 h-10"
+                        className="w-16 h-16 rounded object-cover shadow-sm"
                       />
-                      <div className="absolute top-0 left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        {item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title}
-                      </div>
-                      <p>
-                        {item.competitor_product_id?.price ? item.competitor_product_id.price : item.product.price}
-                      </p>
+                      <span className="text-xs font-semibold text-gray-700">${item.competitor_product_id?.price ? item.competitor_product_id.price : item.product.price}</span>
+                    </a>
 
-                      {item.count === 1 && (
-                        <span className="absolute -top-1 -right-1 bg-blue-100 text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                          🔍
-                        </span>
-                      )}
+                    {/* Tooltip on hover */}
+                    <div className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
+        whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                      {(item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title).length > 40 
+                        ? `${(item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title).slice(0, 40)}...`
+                        : (item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title)}
                     </div>
-                  </a>
+
+                    {/* Highlight when count is exactly 1 */}
+                    {item.count === 1 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
+        rounded-full flex items-center justify-center text-[10px] shadow">
+                        🔍
+                      </span>
+                    )}
+                  </div>
                 </td>
+
                 <td
                   className={`border border-gray-300 p-2`}
                 >
