@@ -127,7 +127,7 @@ export const getAveragesurveys = async (id: string): Promise<{
   try {
     const { data: summaryData, error: summaryError } = await supabase
       .from('purchase_drivers')
-      .select('*, product:product_id(title)')
+      .select('*, product:product_id(title, image_url, price)')
       .eq('test_id', id);
 
     if (summaryError) throw summaryError;
@@ -160,7 +160,7 @@ export const getCompetitiveInsights = async (id: string): Promise<{
   try {
     const { data: summaryData, error: summaryError } = await supabase
       .from('competitive_insights')
-      .select('*, competitor_product_id: competitor_product_id(title, image_url, product_url)')
+      .select('*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)')
       .eq('test_id', id);
 
     if (summaryError) throw summaryError;

@@ -37,7 +37,7 @@ const getColorForValue = (value: string, columnIndex: number, allRows: string[][
 };
 
 
-const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score', 'Win? (90% Confidence)'];
+const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score',];
 
 const Summary: React.FC<{
     summaryData: any,
@@ -47,8 +47,6 @@ const Summary: React.FC<{
         <p className='text-center text-gray-500'>Not enough variants for analysis.</p>
     );
     const [rows, setRows] = useState<string[][]>([]);
-    const [showFullText, setShowFullText] = useState(false);
-    const maxLength = 250;
 
     useEffect(() => {
         async function loadData() {
@@ -59,46 +57,19 @@ const Summary: React.FC<{
                 `${parseFloat(row.shareOfClicks).toFixed(1)}%`,
                 `${parseFloat(row.shareOfBuy).toFixed(1)}%`,
                 (parseFloat(row.valueScore) || 0).toFixed(1),
-                row.isWinner
             ]));
         }
         loadData();
     }, [summaryData]);
 
-    const toggleText = () => {
-        setShowFullText(!showFullText);
-    };
-
-    const renderText = () => {
-        if (!insights) return '';
-
-        const fullText = insights.comparison_between_variants;
-        if (showFullText || fullText.length <= maxLength) {
-            return <ReactMarkdown>{fullText}</ReactMarkdown>;
-        }
-
-        const truncatedText = fullText.substring(0, maxLength) + '...';
-        return <ReactMarkdown>{truncatedText}</ReactMarkdown>;
-    };
     return (
         <div className="p-3">
             <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
             <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
-                    <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-inner">
-                            <span className="text-2xl transform hover:scale-110 transition-transform duration-200">💡</span>
-                        </div>
-                    </div>
                     <div>
-                        <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
                         <div className="text-gray-700 leading-relaxed">
-                            {renderText()}
-                            {insights.comparison_between_variants && insights.comparison_between_variants.length > maxLength && (
-                                <button onClick={toggleText} className="text-blue-500">
-                                    {showFullText ? 'See Less' : 'See More'}
-                                </button>
-                            )}
+                            {insights.comparison_between_variants}
                         </div>
                     </div>
                 </div>

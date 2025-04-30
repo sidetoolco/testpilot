@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useInsightStore } from "../../../hooks/useIaInsight";
-import ReactMarkdown from "react-markdown";
 
 interface CompetitorProduct {
   product_url: string;
@@ -22,6 +21,8 @@ interface InsightItem {
 
 interface CompetitiveInsightsProps {
   competitiveinsights: InsightItem[];
+  variants: any;
+  sumaryvariations: any;
 }
 
 const getColorClass = (value: number): string => {
@@ -32,19 +33,27 @@ const getColorClass = (value: number): string => {
 
 const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   competitiveinsights,
+  variants,
+  sumaryvariations
 }) => {
   if (!competitiveinsights || competitiveinsights.length === 0) return null;
 
   const [selectedVariant, setSelectedVariant] = useState("a");
   const { insight, loading } = useInsightStore();
 
+  const shareOfBuy = sumaryvariations.find((variation: any) => variation.title.includes("Variant " + selectedVariant.toUpperCase())).shareOfBuy;
+  const filteredVariant = variants.find((variant: any) => variant.variant_type === selectedVariant);
+  filteredVariant.share_of_buy = shareOfBuy;
+  console.log(filteredVariant);
+
   // 🔍 Filtrar datos por variant_type
-  const filteredInsights = useMemo(() => {
+  let filteredInsights = useMemo(() => {
     return competitiveinsights
       .filter((item) => item.variant_type === selectedVariant)
       .sort((a, b) => b.share_of_buy - a.share_of_buy);
   }, [competitiveinsights, selectedVariant]);
 
+  filteredInsights = [filteredVariant, ...filteredInsights];
   // 🎯 Calcular rangos de share_of_buy solo con los filtrados
   const shareOfBuyRanks = useMemo(() => {
     const validValues = filteredInsights
@@ -68,10 +77,10 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   const renderCell = (value: number, count: number) => {
     if (count === 0) return <td className={`border border-gray-300 p-2`}>-</td>;
-    const diff = value - 3;
+    const diff = value;
     return (
       <td className={`border border-gray-300 p-2 ${getColorClass(diff)}`}>
-        {diff.toFixed(1)}
+        {diff}
       </td>
     );
   };
@@ -88,15 +97,18 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             key={`variant-btn-${variant}`}
             onClick={() => setSelectedVariant(variant)}
             className={`px-6 py-2 rounded font-medium transition-colors
-                  ${
-                    selectedVariant === variant
-                      ? "bg-green-500 text-white hover:bg-green-600" // Selected variant in green
-                      : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
-                  }`}
+                  ${selectedVariant === variant
+                ? "bg-green-500 text-white hover:bg-green-600" // Selected variant in green
+                : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
+              }`}
           >
             Variation {variant.toUpperCase()}
           </button>
         ))}
+      </div>
+
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        {insight.competitive_insights}
       </div>
 
       {filteredInsights.length === 0 ? (
@@ -131,16 +143,23 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
               <tr key={index} className="hover:bg-gray-100">
                 <td className="border border-gray-300 p-2">
                   <a
-                    href={item.competitor_product_id.product_url}
+                    href={item.competitor_product_id?.product_url ? item.competitor_product_id.product_url : 'x'}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <div className="relative">
+                    <div className="relative group">
                       <img
-                        src={item.competitor_product_id.image_url}
-                        alt={item.competitor_product_id.title}
+                        src={item.competitor_product_id?.image_url ? item.competitor_product_id.image_url : item.product.image_url}
+                        alt={item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title}
                         className="w-10 h-10"
                       />
+                      <div className="absolute top-0 left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title}
+                      </div>
+                      <p>
+                        {item.competitor_product_id?.price ? item.competitor_product_id.price : item.product.price}
+                      </p>
+
                       {item.count === 1 && (
                         <span className="absolute -top-1 -right-1 bg-blue-100 text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
                           🔍
@@ -150,15 +169,14 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   </a>
                 </td>
                 <td
-                  className={`border border-gray-300 p-2 ${item.count > 0 ? getShareOfBuyColor(item.share_of_buy) : ""
-                    }`}
+                  className={`border border-gray-300 p-2`}
                 >
-                  {item.count > 0 ? `${item.share_of_buy.toFixed(1)}%` : "-"}
+                  {item.count > 0 ? `${item.share_of_buy}%` : "-"}
                 </td>
                 {renderCell(item.value, item.count)}
-                {renderCell(item.aesthetics, item.count)}
-                {renderCell(item.utility, item.count)}
-                {renderCell(item.trust, item.count)}
+                {renderCell(item.aesthetics ? item.aesthetics : item.appearance, item.count)}
+                {renderCell(item.utility ? item.utility : item.confidence, item.count)}
+                {renderCell(item.trust ? item.trust : item.brand, item.count)}
                 {renderCell(item.convenience, item.count)}
               </tr>
             ))}
@@ -177,12 +195,6 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         <p>Click on the product image to see details.</p>
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <strong>In summary...</strong>
-        {insight && !loading && (
-          <ReactMarkdown>{insight.competitive_insights}</ReactMarkdown>
-        )}
-      </div>
     </div>
   );
 };

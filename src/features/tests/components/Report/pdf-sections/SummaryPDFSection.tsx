@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Page } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
-import ReactMarkdown from 'react-markdown';
 
 interface SummaryPDFSectionProps {
     summaryData: any;

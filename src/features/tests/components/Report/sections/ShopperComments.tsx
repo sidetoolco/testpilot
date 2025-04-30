@@ -30,7 +30,7 @@ const CommentSection: React.FC<{
     title: string;
     comments: Comment[];
     isPositive?: boolean;
-}> = ({ title, comments, isPositive = true }) => (
+}> = ({ title, comments }) => (
     <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
         {comments.length > 0 ? (
@@ -38,10 +38,7 @@ const CommentSection: React.FC<{
                 {comments.map((comment, index) => (
                     <div
                         key={index}
-                        className={`p-4 rounded-lg border justify-between flex flex-col ${isPositive
-                            ? "bg-green-50 border-green-200"
-                            : "bg-red-50 border-red-200"
-                            }`}
+                        className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
                     >
                         <p className="text-gray-700">{comment.likes_most || comment.improve_suggestions || comment.choose_reason}</p>
                         <div className="mt-2 text-sm text-gray-500">
@@ -124,20 +121,17 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
                 <div className="mb-8">
 
                     <CommentSection
-                        title="What would make this product even better?"
+                        title={`What would make this product even better? (${currentSurveys.length})`}
                         comments={getComments(currentSurveys, 'improve_suggestions')}
-                        isPositive={false}
                     />
                 </div>
             )}
 
             {hasComparision && (
                 <div>
-
                     <CommentSection
-                        title="What would make you choose our product?"
+                        title={`What would make you choose our product? (${currentComparision.length})`}
                         comments={getComments(currentComparision, 'choose_reason')}
-                        isPositive={true}
                     />
                 </div>
             )}
