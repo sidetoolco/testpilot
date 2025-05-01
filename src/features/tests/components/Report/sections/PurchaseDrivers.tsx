@@ -4,7 +4,7 @@ import { useInsightStore } from "../../../hooks/useIaInsight";
 import ReactMarkdown from "react-markdown";
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
-const COLORS = ["#34A270", "#075532", "#E0D30D"];
+const COLORS = ["#43A8F6", "#708090", "#008080"];
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -63,9 +63,15 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
 
 
     return (
-        <div>
-
-            <h2 className="text-xl font-bold mb-16">Purchase Drivers</h2>
+        <div className="p-3">
+            <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
+                    <div className="text-gray-700 leading-relaxed">
+                        {insight.purchase_drivers}
+                    </div>
+                </div>
+            </div>
+            <h2 className="text-2xl font-bold mb-16">Purchase Drivers</h2>
             <div className="relative h-72 w-full grid" style={{
                 "--marginTop": "0px",
                 "--marginRight": "25px",
@@ -129,21 +135,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
                     </div>
                 </div>
             </div>
-            <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
-                    <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-inner">
-                            <span className="text-2xl transform hover:scale-110 transition-transform duration-200">💡</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-lg mb-2">AI Insight</h3>
-                        <div className="text-gray-700 leading-relaxed">
-                            {insight && !loading && <ReactMarkdown>{insight.purchase_drivers}</ReactMarkdown>}
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             {surveys.map((survey: any) => (
                 <div key={survey.id}>
                     {survey.count === 1 && (

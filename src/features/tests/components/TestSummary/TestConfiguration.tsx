@@ -7,7 +7,7 @@ interface TestConfigurationProps {
 export default function TestConfiguration({ test }: TestConfigurationProps) {
   return (
     <div className="overflow-y-auto pb-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Test Configuration</h3>
           <div className="space-y-6">
@@ -16,30 +16,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
               <div className="text-gray-900 text-lg font-medium bg-gray-50 p-3 rounded-lg">{test.searchTerm}</div>
             </div>
 
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-2">Competitors</div>
-              <div className="flex flex-wrap gap-3">
-                {test.competitors.map((competitor, index) => (
-                  <div key={index} className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors duration-200">
-                    <img src={competitor.image_url} alt={competitor.title} className="w-10 h-10 object-contain rounded-md" />
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-2">Variations</div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {Object.values(test.variations).filter(v => v !== null).map((variation, index) => (
-                  <div key={index} className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors duration-200">
-                    <img src={variation.image_url} alt={variation.title} className="w-10 h-10 object-contain rounded-md" />
-                    <span className="text-sm font-medium text-gray-700" title={variation.title}>
-                      {variation.title.length > 30 ? `${variation.title.substring(0, 30)}...` : variation.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -78,6 +55,78 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Variations</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Image
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {Object.values(test.variations).filter(v => v !== null).map((variation, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <img src={variation.image_url} alt={variation.title} className="w-16 h-16 object-contain rounded-md" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{variation.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${variation.price}</div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Competitors</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Image
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {test.competitors.map((competitor, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <img src={competitor.image_url} alt={competitor.title} className="w-16 h-16 object-contain rounded-md" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{competitor.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${competitor.price}</div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

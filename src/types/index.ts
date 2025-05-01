@@ -26,6 +26,7 @@ export interface Test {
   name: string;
   status: 'draft' | 'active' | 'complete';
   searchTerm: string;
+  objective?: string;
   competitors: Product[];
   variations: {
     a: Product | null;

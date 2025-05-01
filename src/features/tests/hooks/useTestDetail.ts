@@ -49,6 +49,7 @@ export function useTestDetail(id: string) {
             name,
             status,
             search_term,
+            objective,
             created_at,
             competitors:test_competitors(
               product:amazon_products(id, title, image_url, price)
@@ -142,6 +143,7 @@ export function useTestDetail(id: string) {
           status: typedTestData.status as 'draft' | 'active' | 'complete',
           searchTerm: typedTestData.search_term,
           competitors: typedTestData.competitors?.map(c => c.product) || [],
+          objective: typedTestData.objective,
           variations: {
             a: getVariationWithProduct(typedTestData.variations, 'a'),
             b: getVariationWithProduct(typedTestData.variations, 'b'),
