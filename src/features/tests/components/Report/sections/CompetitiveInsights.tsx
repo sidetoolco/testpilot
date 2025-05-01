@@ -39,41 +39,20 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   if (!competitiveinsights || competitiveinsights.length === 0) return null;
 
   const [selectedVariant, setSelectedVariant] = useState("a");
-  const { insight, loading } = useInsightStore();
+  const { insight } = useInsightStore();
 
-  const shareOfBuy = sumaryvariations.find((variation: any) => variation.title.includes("Variant " + selectedVariant.toUpperCase())).shareOfBuy;
+  const shareOfBuy = sumaryvariations.find((variation: any) => variation.title.includes("Variant " + selectedVariant.toUpperCase()))?.shareOfBuy;
   const filteredVariant = variants.find((variant: any) => variant.variant_type === selectedVariant);
   filteredVariant.share_of_buy = shareOfBuy;
-  console.log(filteredVariant);
 
   // 🔍 Filtrar datos por variant_type
-  let filteredInsights = useMemo(() => {
-    return competitiveinsights
+  const filteredInsights = useMemo(() => {
+    const filtered = competitiveinsights
       .filter((item) => item.variant_type === selectedVariant)
       .sort((a, b) => b.share_of_buy - a.share_of_buy);
-  }, [competitiveinsights, selectedVariant]);
-
-  filteredInsights = [filteredVariant, ...filteredInsights];
-  // 🎯 Calcular rangos de share_of_buy solo con los filtrados
-  const shareOfBuyRanks = useMemo(() => {
-    const validValues = filteredInsights
-      .filter((item) => item.count > 0)
-      .map((item) => item.share_of_buy);
-    const uniqueSorted = Array.from(new Set(validValues)).sort((a, b) => a - b);
-
-    const min = uniqueSorted[0];
-    const max = uniqueSorted[uniqueSorted.length - 1];
-
-    return { min, max };
-  }, [filteredInsights]);
-
-  const getShareOfBuyColor = (value: number) => {
-    if (value === shareOfBuyRanks.max) return "bg-green-100";
-    if (value === shareOfBuyRanks.min) return "bg-red-100";
-    if (value > shareOfBuyRanks.min && value < shareOfBuyRanks.max)
-      return "bg-yellow-100";
-    return "";
-  };
+    
+    return [filteredVariant, ...filtered];
+  }, [competitiveinsights, selectedVariant, filteredVariant]);
 
   const renderCell = (value: number, count: number) => {
     if (count === 0) return <td className={`border border-gray-300 p-2`}>-</td>;
@@ -154,7 +133,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                         alt={item.competitor_product_id?.title ? item.competitor_product_id.title : item.product.title}
                         className="w-16 h-16 rounded object-cover shadow-sm"
                       />
-                      <span className="text-xs font-semibold text-gray-700">${item.competitor_product_id?.price ? item.competitor_product_id.price : item.product.price}</span>
+                      <span className="text-xs font-semibold text-gray-700">${item.competitor_product_id?.price ? item.competitor_product_id.price : item.product?.price}</span>
                     </a>
 
                     {/* Tooltip on hover */}
