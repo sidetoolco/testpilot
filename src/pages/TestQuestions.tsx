@@ -6,8 +6,9 @@ import { getTracker } from '../lib/openReplay';
 import { ComparisonView } from '../features/tests/components/TestQuestions/ComparisonView';
 import { SelectedVariation } from '../features/tests/components/TestQuestions/SelectedVariation';
 import { compareTwoStrings } from 'string-similarity';
-const REPEATED_STRING_ERROR_MSG = "Please provide different feedback for each response.";
 import FeedbackModal from '../features/tests/components/TestQuestions/FeedbackModal';
+
+const REPEATED_STRING_ERROR_MSG = "Please provide different feedback for each response.";
 
 const TestDisplay: React.FC = () => {
 
@@ -37,6 +38,7 @@ const TestDisplay: React.FC = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
     const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
@@ -93,7 +95,11 @@ const TestDisplay: React.FC = () => {
         return validationErrors;
     };
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = async () => {
+        if(loading) return;
+
+        setLoading(true);
+
         try {
             const validationErrors = validateFields();
             if (Object.keys(validationErrors).length > 0) {
@@ -156,8 +162,10 @@ const TestDisplay: React.FC = () => {
             setShowFeedbackModal(true);
         } catch (error) {
             console.error('Unexpected error:', error);
+        } finally {
+            setLoading(false);
         }
-    }, [responses, test, shopperId, itemSelectedAtCheckout, navigate, competitorItem]);
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -176,9 +184,9 @@ const TestDisplay: React.FC = () => {
             <h2 className="text-3xl font-bold mb-2 text-center">Last step, quick survey!</h2>
             <p className="text-center"><strong>Search Term:</strong> {test.search_term}</p>
             {isVariationSelected.length > 0 ? (
-                <SelectedVariation responses={responses} item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
+                <SelectedVariation loading={loading} responses={responses} item={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
             ) : (
-                <ComparisonView responses={responses} competitorItem={competitorItem} itemSelected={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
+                <ComparisonView loading={loading} responses={responses} competitorItem={competitorItem} itemSelected={itemSelectedAtCheckout} handleChange={handleChange} handleSubmit={handleSubmit} errors={errors} />
             )}
             <FeedbackModal
                 isOpen={showFeedbackModal}
