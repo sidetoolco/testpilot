@@ -26,8 +26,8 @@ interface CompetitiveInsightsProps {
 }
 
 const getColorClass = (value: number): string => {
-  if (value > 3) return "bg-green-100";
-  if (value < 3) return "bg-red-100";
+  if (value > 0) return "bg-green-100";
+  if (value < 0) return "bg-red-100";
   return "bg-yellow-100";
 };
 
