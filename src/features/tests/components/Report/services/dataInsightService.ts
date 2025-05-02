@@ -129,7 +129,8 @@ export const getAveragesurveys = async (id: string): Promise<{
     const { data: summaryData, error: summaryError } = await supabase
       .from('purchase_drivers')
       .select('*, product:product_id(title, image_url, price)')
-      .eq('test_id', id);
+      .eq('test_id', id)
+      .order("variant_type");
 
     if (summaryError) throw summaryError;
 
