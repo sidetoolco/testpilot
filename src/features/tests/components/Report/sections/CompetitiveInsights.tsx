@@ -59,7 +59,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     const diff = value;
     return (
       <td className={`border border-gray-300 p-2 ${getColorClass(diff)}`}>
-        {diff}
+        {diff > 3 ? (diff / 3).toFixed(1) : diff}
       </td>
     );
   };
@@ -71,19 +71,21 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       </h2>
 
       <div className="mb-6 flex items-center justify-center space-x-3">
-        {[...new Set(competitiveinsights.map((item) => item.variant_type))].map((variant) => (
-          <button
-            key={`variant-btn-${variant}`}
-            onClick={() => setSelectedVariant(variant)}
-            className={`px-6 py-2 rounded font-medium transition-colors
+        {[...new Set(competitiveinsights.map((item) => item.variant_type))]
+          .sort() // Sort variants alphabetically (a, b, c)
+          .map((variant) => (
+            <button
+              key={`variant-btn-${variant}`}
+              onClick={() => setSelectedVariant(variant)}
+              className={`px-6 py-2 rounded font-medium transition-colors
                   ${selectedVariant === variant
-                ? "bg-green-500 text-white hover:bg-green-600" // Selected variant in green
-                : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
-              }`}
-          >
-            Variation {variant.toUpperCase()}
-          </button>
-        ))}
+                  ? "bg-green-500 text-white hover:bg-green-600" // Selected variant in green
+                  : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
+                }`}
+            >
+              Variation {variant.toUpperCase()}
+            </button>
+          ))}
       </div>
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -159,11 +161,11 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                 >
                   {item.count > 0 ? `${item.share_of_buy}%` : "-"}
                 </td>
-                {renderCell(item.value, item.count)}
-                {renderCell(item.aesthetics ? item.aesthetics : item.appearance, item.count)}
-                {renderCell(item.utility ? item.utility : item.confidence, item.count)}
-                {renderCell(item.trust ? item.trust : item.brand, item.count)}
-                {renderCell(item.convenience, item.count)}
+                {renderCell(Number(item.value), item.count)}
+                {renderCell(Number(item.aesthetics ? item.aesthetics : item.appearance ? item.appearance : 0), item.count)}
+                {renderCell(Number(item.utility ? item.utility : item.confidence ? item.confidence : 0), item.count)}
+                {renderCell(Number(item.trust ? item.trust : item.brand ? item.brand : 0), item.count)}
+                {renderCell(Number(item.convenience ? item.convenience : 0), item.count)}
               </tr>
             ))}
           </tbody>
