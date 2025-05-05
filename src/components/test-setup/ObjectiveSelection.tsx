@@ -8,7 +8,6 @@ const objectives = [
     value: TestObjective.PRICE_SENSITIVITY,
     description:
       "Test how pricing affects interest and purchase. Identifies the best price point based on perceived value and conversion.",
-    enabled: true,
   },
   {
     icon: <Package />,
@@ -16,7 +15,6 @@ const objectives = [
     value: TestObjective.PACKAGE_DESIGN,
     description:
       "Measure how packaging design influences appeal, trust, and purchase intent. Useful for validating or optimizing visual presentation.",
-    enabled: false,
   },
   {
     icon: <Target />,
@@ -24,7 +22,6 @@ const objectives = [
     value: TestObjective.POSITIONING,
     description:
       "Evaluate which product claims build trust and drive clicks or buys. Helps to refine messaging clarity and impact.",
-    enabled: false,
   },
   {
     icon: <Lightbulb />,
@@ -32,7 +29,6 @@ const objectives = [
     value: TestObjective.IDEA_SCREENING,
     description:
       "Test completely new product ideas, flavors and benefits. Identify which concepts excite consumers and which face confusion.",
-    enabled: false,
   },
 ];
 
@@ -58,10 +54,7 @@ export default function ObjectiveSelection({
         {objectives.map((objective) => (
           <div
             key={objective.title}
-            className={`flex flex-col items-start p-6 rounded-xl border-2 transition-all text-left h-full 
-            ${objective.enabled 
-              ? "border-gray-200 hover:border-[#00A67E]/30" 
-              : "border-gray-100 opacity-50 cursor-not-allowed"}`}
+            className="flex flex-col items-start p-6 rounded-xl border-2 transition-all text-left h-full border-gray-200 hover:border-[#00A67E]/30"
           >
             <div className="flex items-center space-x-3 mb-4 text-primary">
               {objective.icon}
@@ -73,18 +66,12 @@ export default function ObjectiveSelection({
               {objective.description}
             </p>
             <div className="mt-auto w-full flex justify-end pt-4">
-              {objective.enabled ? (
-                <button
-                  onClick={() => onSelect(objective.value)}
-                  className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90"
-                >
-                  Select
-                </button>
-              ) : (
-                <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400">
-                  Coming Soon
-                </span>
-              )}
+              <button
+                onClick={() => onSelect(objective.value)}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90"
+              >
+                Select
+              </button>
             </div>
           </div>
         ))}
