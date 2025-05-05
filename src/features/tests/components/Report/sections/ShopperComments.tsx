@@ -117,7 +117,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
             {hasSurveys && (
                 <div className="mb-8">
                     <CommentSection
-                        title={`What would make this product even better? (${currentSurveys.length})`}
+                        title={`Suggested improvement for your buyers (${currentSurveys.length})`}
                         comments={currentSurveys}
                         field="improve_suggestions"
                     />
@@ -127,7 +127,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
             {hasComparision && (
                 <div>
                     <CommentSection
-                        title={`What would make you choose our product? (${currentComparision.length})`}
+                        title={`Suggested improvements from competitive buyers (${currentComparision.length})`}
                         comments={currentComparision}
                         field="choose_reason"
                     />
