@@ -131,7 +131,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
                 <div>
                     <CommentSection
                         title={`What would make you choose our product? (${currentComparision.length})`}
-                        comments={getComments(currentComparision, 'choose_reason')}
+                        comments={getComments(currentComparision, 'improve_suggestions')}
                     />
                 </div>
             )}
