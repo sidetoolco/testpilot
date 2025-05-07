@@ -59,7 +59,7 @@ const Summary: React.FC<{
           row.title,
           `${parseFloat(row.shareOfClicks).toFixed(1)}%`,
           `${parseFloat(row.shareOfBuy).toFixed(1)}%`,
-          (parseFloat(row.valueScore) || 0).toFixed(1),
+          (parseFloat(row.valueScore) + 3 || 0).toFixed(1),
         ])
       );
     }
