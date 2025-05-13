@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Page } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
-import { TestDetails, DatasetType } from '../utils/types';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
 
