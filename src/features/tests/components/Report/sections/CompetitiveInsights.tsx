@@ -94,7 +94,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                       : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
                   }`}
             >
-              Variation {variant.toUpperCase()}
+              Variant {variant.toUpperCase()}
             </button>
           ))}
       </div>
