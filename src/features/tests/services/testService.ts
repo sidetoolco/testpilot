@@ -201,7 +201,6 @@ export const testService = {
       }
     }
   },
-
   async getAllTests(): Promise<TestResponse[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
