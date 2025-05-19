@@ -217,7 +217,7 @@ export const testService = {
   async addCompetitorsBulletsDescriptions(competitors: any) {
 
     try {
-      await fetch('https://testpilot.app.n8n.cloud/webhook/publish-prolific', {
+      await fetch('https://testpilot.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
