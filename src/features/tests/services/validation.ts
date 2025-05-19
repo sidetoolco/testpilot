@@ -70,7 +70,7 @@ export function validateTestData(testData: TestData): void {
     errors.push('Competitors must be an array');
   } else if (testData.competitors.length === 0) {
     errors.push('At least one competitor is required');
-  } else if (testData.competitors.some(c => !c?.id)) {
+  } else if (testData.competitors.some(c => !c?.asin)) {
     errors.push('All competitors must have valid IDs');
   }
 

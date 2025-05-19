@@ -8,6 +8,7 @@ export interface AmazonProduct {
   product_url: string;
   search_term: string;
   company_id: string;
+  asin: string;
 }
 
 export interface SearchProductsResponse {

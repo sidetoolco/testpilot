@@ -29,8 +29,8 @@ export default function CompetitorSelection({
   const { products, loading, error } = useProductFetch(searchTerm, user?.id);
 
   const handleProductSelect = (product: AmazonProduct) => {
-    if (selectedCompetitors.find(p => p.id === product.id)) {
-      onChange(selectedCompetitors.filter(p => p.id !== product.id));
+    if (selectedCompetitors.find(p => p.asin === product.asin)) {
+      onChange(selectedCompetitors.filter(p => p.asin !== product.asin));
     } else if (selectedCompetitors.length < MAX_COMPETITORS) {
       onChange([...selectedCompetitors, product]);
     } else {
