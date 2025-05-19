@@ -1,5 +1,4 @@
 import { TestData } from '../../types';
-import { ValidationError } from '../errors';
 
 interface ValidationResult {
   isValid: boolean;
@@ -25,9 +24,10 @@ export function validateTestData(testData: TestData): ValidationResult {
     } else if (testData.competitors.length === 0) {
       errors.push('At least one competitor is required');
     } else {
-      const invalidCompetitors = testData.competitors.filter(c => !c?.id);
+      const invalidCompetitors = testData.competitors.filter(c => !c?.asin);
+      console.log({ competitors: testData.competitors });
       if (invalidCompetitors.length > 0) {
-        errors.push('All competitors must have valid IDs');
+        errors.push('All competitors must have valid IDs 1');
       }
     }
 

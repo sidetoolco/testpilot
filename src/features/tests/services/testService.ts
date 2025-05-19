@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { validateProducts } from '../utils/validators/productValidator';
 import { validateTestData } from '../utils/validators/testDataValidator';
 import { TestCreationError } from '../utils/errors';
+import apiClient from '../../../lib/api';
 
 interface Profile {
   role?: string;
@@ -56,9 +57,7 @@ export const testService = {
       const test = await this.insertTest(testData, user.id, profile.company_id);
 
       // Step 3: Insertar competidores
-      await this.insertCompetitors(test.id, testData.competitors);
-      //change for n8n endpoint
-      await this.addCompetitorsBulletsDescriptions(testData.competitors);
+      await this.saveAmazonProducts(test.id, testData.competitors);
 
       // Step 4: Insertar variaciones
       await this.insertVariations(test.id, testData.variations);
@@ -108,21 +107,11 @@ export const testService = {
     return test;
   },
 
-  // Función para insertar competidores
-  async insertCompetitors(testId: string, competitors: TestData['competitors']) {
-    // Preparar todos los registros para una inserción masiva
-    const competitorsData = competitors.map(competitor => ({
-      test_id: testId,
-      product_id: competitor.id
-    }));
-
-    const { error } = await supabase
-      .from('test_competitors')
-      .insert(competitorsData as any);
-
-    if (error) {
-      await supabase.from('tests').delete().eq('id', testId);
-      throw new TestCreationError('Failed to add competitors', { error });
+  async saveAmazonProducts(testId: string, products: any[])  {
+    try {
+      await apiClient.post(`/amazon/products/${testId}`, { products })
+    } catch(error) {
+      throw new TestCreationError('Failed to save competitors', { error });
     }
   },
 
@@ -212,26 +201,6 @@ export const testService = {
       }
     }
   },
-
-  // Función addbulletdescriptions
-  async addCompetitorsBulletsDescriptions(competitors: any) {
-
-    try {
-      await fetch('https://testpilot.app.n8n.cloud/webhook/details/f54493cb-3297-4d51-a765-f19ca4ba3d9d', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(competitors),
-        mode: 'no-cors'
-      });
-    } catch (error) {
-      console.error('Bullets descriptions failed:', error);
-    } finally {
-      console.log('Bullets descriptions added');
-    }
-  },
-
   async getAllTests(): Promise<TestResponse[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
