@@ -10,11 +10,11 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ onSubmit, onClose, initialData }: ProductFormProps) {
-  const [formData, setFormData] = useState<Product>({
+  const [formData, setFormData] = useState({
     title: initialData?.title || '',
     description: initialData?.description || '',
     bullet_points: initialData?.bullet_points || [],
-    price: initialData?.price || 0,
+    price: initialData?.price,
     brand: initialData?.brand || '',
     image_url: initialData?.image_url || '',
     images: initialData?.images || [],
@@ -22,7 +22,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     loads: initialData?.loads || undefined,
     product_url: initialData?.product_url || '',
     rating: initialData?.rating || 5,
-    reviews_count: initialData?.reviews_count || 0,
+    reviews_count: initialData?.reviews_count,
     id: initialData?.id || undefined
   });
 
@@ -59,8 +59,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     }
 
     // Convert numeric values
-    const numericPrice = parseFloat(formData.price.toString());
-    const numericReviewCount = parseInt(formData.reviews_count.toString());
+    const numericPrice = parseFloat((formData.price || 0).toString());
+    const numericReviewCount = parseInt((formData.reviews_count || 0).toString());
 
     if (isNaN(numericPrice) || numericPrice <= 0) {
       alert('Please enter a valid price');
@@ -176,12 +176,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             type="number"
             step="0.01"
             min="0.01"
-            value={formData.price}
+            value={formData.price === undefined ? '' : formData.price}
             onChange={(e) => {
               const inputValue = e.target.value;
-              // Permite escribir números con punto decimal
-              if (/^\d*\.?\d*$/.test(inputValue)) {
-                setFormData({ ...formData, price: inputValue });
+              // Allow empty string or valid numbers
+              if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+                setFormData({ ...formData, price: inputValue === '' ? 0 : parseFloat(inputValue) });
               }
             }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
@@ -194,12 +194,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           </label>
           <input
             type="number"
-            value={formData.reviews_count}
+            value={formData.reviews_count === undefined ? '' : formData.reviews_count}
             onChange={(e) => {
               const value = e.target.value;
               setFormData({
                 ...formData,
-                reviews_count: value === '' ? '' : parseInt(value),
+                reviews_count: value === '' ? 0 : parseInt(value),
               });
             }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
