@@ -37,12 +37,14 @@ TestPilot is a modern web application built for conducting and analyzing product
 ## 🔧 Installation
 
 1. Clone the repository:
+
 ```bash
 git clone [repository-url]
 cd testpilot-platform
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 # or
@@ -50,7 +52,8 @@ yarn install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory with the following variables:
+   Create a `.env` file in the root directory with the following variables:
+
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -58,6 +61,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 4. Start the development server:
+
 ```bash
 npm run dev
 # or
@@ -96,6 +100,7 @@ src/
 ## 📱 Responsive Design
 
 The application is fully responsive and optimized for:
+
 - Desktop
 - Tablet
 - Mobile devices
@@ -108,11 +113,11 @@ The application is fully responsive and optimized for:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-
 - Product Owner: [Name]
 - Tech Lead: [Name]
 - Frontend Developers: [Names]
 - Backend Developers: [Names]
+
 ---
 
 Built with ❤️ by the TestPilot/Sidetool

@@ -2,7 +2,10 @@ import { supabase } from '../../../../lib/supabase';
 import { ValidationError } from '../errors';
 import { Product } from '../../../../types';
 
-export async function validateProducts(companyId: string, productIds: string[]): Promise<Product[]> {
+export async function validateProducts(
+  companyId: string,
+  productIds: string[]
+): Promise<Product[]> {
   if (!productIds?.length) {
     throw new ValidationError('No products selected');
   }
@@ -35,7 +38,7 @@ export async function validateProducts(companyId: string, productIds: string[]):
     if (missingIds.length > 0) {
       throw new ValidationError('Some products not found', {
         missingIds,
-        foundProducts: products.map(p => ({ id: p.id, name: p.name }))
+        foundProducts: products.map(p => ({ id: p.id, name: p.name })),
       });
     }
 

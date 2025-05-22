@@ -9,10 +9,10 @@ export const authService = {
       options: {
         data: {
           full_name: fullName,
-          company_name: companyName
+          company_name: companyName,
         },
-        emailRedirectTo: `${window.location.origin}/auth/confirm`
-      }
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
     });
 
     if (error) {
@@ -30,7 +30,7 @@ export const authService = {
   async signIn({ email, password }: AuthFormData) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) {
@@ -54,7 +54,7 @@ export const authService = {
   },
 
   async resetPassword(email: string) {
-    console.log(window.location.origin, 'window.location.origin')
+    console.log(window.location.origin, 'window.location.origin');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       // redirectTo: `${window.location.origin}/reset-password`,
       redirectTo: `https://testpilot-1.vercel.app/reset-password`,
@@ -68,7 +68,7 @@ export const authService = {
 
   async updatePassword(newPassword: string) {
     const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     });
 
     if (updateError) {
@@ -80,7 +80,7 @@ export const authService = {
   async verifyEmail(token: string) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type: 'email'
+      type: 'email',
     });
 
     if (error) {

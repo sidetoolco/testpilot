@@ -16,16 +16,11 @@ export function ProductLibrary({ products, onUpload }: ProductLibraryProps) {
         <label className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer">
           <Upload className="h-4 w-4" />
           <span>Upload Product</span>
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={onUpload}
-          />
+          <input type="file" className="hidden" accept="image/*" onChange={onUpload} />
         </label>
       </div>
       <div className="grid grid-cols-1 gap-4">
-        {products.map((product) => (
+        {products.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

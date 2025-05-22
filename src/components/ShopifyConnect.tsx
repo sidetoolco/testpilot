@@ -46,9 +46,7 @@ export function ShopifyConnect({ onClose, onConnect }: ShopifyConnectProps) {
               </p>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Store URL
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Store URL</label>
                   <div className="flex items-center">
                     <span className="bg-gray-50 px-4 py-3 rounded-l-xl text-gray-500 border border-r-0 border-gray-200">
                       https://
@@ -56,7 +54,7 @@ export function ShopifyConnect({ onClose, onConnect }: ShopifyConnectProps) {
                     <input
                       type="text"
                       value={store}
-                      onChange={(e) => setStore(e.target.value)}
+                      onChange={e => setStore(e.target.value)}
                       placeholder="your-store.myshopify.com"
                       className="flex-1 px-4 py-3 rounded-r-xl border border-gray-200 focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
                       required
@@ -78,9 +76,7 @@ export function ShopifyConnect({ onClose, onConnect }: ShopifyConnectProps) {
               <div className="w-16 h-16 bg-[#96BF47] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag className="h-8 w-8 text-[#96BF47]" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Authorize TestPilot
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Authorize TestPilot</h3>
               <p className="text-gray-600 mb-6">
                 You'll be redirected to Shopify to authorize TestPilot to access your store data.
               </p>

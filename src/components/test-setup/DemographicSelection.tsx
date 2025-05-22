@@ -142,24 +142,20 @@ export default function DemographicSelection({
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-semibold text-gray-900 mb-3">
-          Select Target Demographics
-        </h3>
+        <h3 className="text-3xl font-semibold text-gray-900 mb-3">Select Target Demographics</h3>
         <p className="text-lg text-gray-500">
           Choose the demographic criteria for your test participants.
         </p>
-
       </div>
 
       <div className="space-y-8">
         {/* Price Calculator */}
-        <PriceCalculator
-          testerCount={testerCount}
-          variantCount={activeVariantCount}
-        />
+        <PriceCalculator testerCount={testerCount} variantCount={activeVariantCount} />
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            ⚠️ Warning: Applying too many filters may limit the number of available shoppers and increase the time needed to complete your study. Consider selecting only the most essential criteria.
+            ⚠️ Warning: Applying too many filters may limit the number of available shoppers and
+            increase the time needed to complete your study. Consider selecting only the most
+            essential criteria.
           </p>
         </div>
         {/* Number of Testers per Variant */}
@@ -175,22 +171,17 @@ export default function DemographicSelection({
                 max="500"
                 value={testerCount || ''}
                 onChange={handleTesterCountChange}
-                className={`w-full pl-10 pr-4 py-3 border ${error
-                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
-                  } rounded-xl transition-all`}
+                className={`w-full pl-10 pr-4 py-3 border ${
+                  error
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                } rounded-xl transition-all`}
                 placeholder="Number of testers"
               />
             </div>
-            <span className="text-sm text-gray-500">
-              Min: 25, Max: 500 testers
-            </span>
+            <span className="text-sm text-gray-500">Min: 25, Max: 500 testers</span>
           </div>
-          {error && (
-            <p className="text-red-500 text-sm mt-1 sm:mt-2 md:mt-3 lg:mt-1">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-500 text-sm mt-1 sm:mt-2 md:mt-3 lg:mt-1">{error}</p>}
         </div>
 
         {/* Age Range Inputs */}
@@ -204,11 +195,12 @@ export default function DemographicSelection({
                 min="18"
                 max="100"
                 value={minAge}
-                onChange={(e) => handleAgeChange('min', e.target.value)}
-                className={`w-full px-4 py-3 border ${ageError
-                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
-                  } rounded-xl transition-all`}
+                onChange={e => handleAgeChange('min', e.target.value)}
+                className={`w-full px-4 py-3 border ${
+                  ageError
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                } rounded-xl transition-all`}
               />
             </div>
             <div className="flex-1">
@@ -218,33 +210,31 @@ export default function DemographicSelection({
                 min="18"
                 max="100"
                 value={maxAge}
-                onChange={(e) => handleAgeChange('max', e.target.value)}
-                className={`w-full px-4 py-3 border ${ageError
-                  ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
-                  } rounded-xl transition-all`}
+                onChange={e => handleAgeChange('max', e.target.value)}
+                className={`w-full px-4 py-3 border ${
+                  ageError
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
+                } rounded-xl transition-all`}
               />
             </div>
           </div>
-          {ageError && (
-            <p className="text-red-500 text-sm mt-1">
-              {ageError}
-            </p>
-          )}
+          {ageError && <p className="text-red-500 text-sm mt-1">{ageError}</p>}
         </div>
 
         {/* Gender */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4">Gender</h4>
           <div className="grid grid-cols-2 gap-3">
-            {genders.map((gender) => (
+            {genders.map(gender => (
               <button
                 key={gender}
                 onClick={() => handleGenderSelect(gender)}
-                className={`p-4 rounded-xl border-2 transition-all ${demographics.gender.includes(gender)
-                  ? 'border-[#00A67E] bg-[#00A67E]/5'
-                  : 'border-gray-200 hover:border-[#00A67E]/30'
-                  }`}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  demographics.gender.includes(gender)
+                    ? 'border-[#00A67E] bg-[#00A67E]/5'
+                    : 'border-gray-200 hover:border-[#00A67E]/30'
+                }`}
               >
                 {gender}
               </button>
@@ -256,14 +246,15 @@ export default function DemographicSelection({
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4">Country</h4>
           <div className="grid grid-cols-2 gap-3">
-            {countries.map((country) => (
+            {countries.map(country => (
               <button
                 key={country}
                 onClick={() => handleCountrySelect(country)}
-                className={`p-4 rounded-xl border-2 transition-all ${demographics.locations.includes(country)
-                  ? 'border-[#00A67E] bg-[#00A67E]/5'
-                  : 'border-gray-200 hover:border-[#00A67E]/30'
-                  }`}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  demographics.locations.includes(country)
+                    ? 'border-[#00A67E] bg-[#00A67E]/5'
+                    : 'border-gray-200 hover:border-[#00A67E]/30'
+                }`}
               >
                 {country}
               </button>

@@ -11,7 +11,7 @@ interface UserStore {
   clearProfile: () => void;
 }
 
-export const useUserStore = create<UserStore>((set) => ({
+export const useUserStore = create<UserStore>(set => ({
   profile: null,
   loading: false,
   error: null,
@@ -38,5 +38,5 @@ export const useUserStore = create<UserStore>((set) => ({
     }
   },
 
-  clearProfile: () => set({ profile: null, error: null })
+  clearProfile: () => set({ profile: null, error: null }),
 }));

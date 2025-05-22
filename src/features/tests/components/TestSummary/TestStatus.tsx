@@ -11,19 +11,19 @@ export default function TestStatus({ status }: TestStatusProps) {
         return {
           icon: <PlayCircle className="h-5 w-5" />,
           text: 'Active',
-          color: 'bg-blue-50 text-blue-600'
+          color: 'bg-blue-50 text-blue-600',
         };
       case 'complete':
         return {
           icon: <CheckCircle className="h-5 w-5" />,
           text: 'Completed',
-          color: 'bg-green-50 text-green-600'
+          color: 'bg-green-50 text-green-600',
         };
       default:
         return {
           icon: <Clock className="h-5 w-5" />,
           text: 'Draft',
-          color: 'bg-gray-50 text-gray-600'
+          color: 'bg-gray-50 text-gray-600',
         };
     }
   };

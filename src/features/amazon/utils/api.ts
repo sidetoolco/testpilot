@@ -7,7 +7,9 @@ import { retryWithBackoff } from './retry';
 const API_URL = '/api/search-amazon';
 const MAX_RETRIES = 3;
 
-export async function fetchAmazonProducts(request: SearchProductsRequest): Promise<SearchProductsResponse> {
+export async function fetchAmazonProducts(
+  request: SearchProductsRequest
+): Promise<SearchProductsResponse> {
   return retryWithBackoff(async () => {
     try {
       // Validate request
@@ -23,8 +25,8 @@ export async function fetchAmazonProducts(request: SearchProductsRequest): Promi
       const { data, error } = await supabase.functions.invoke('search-amazon', {
         body: {
           searchTerm: request.searchTerm.trim(),
-          companyId: request.companyId
-        }
+          companyId: request.companyId,
+        },
       });
 
       if (error) {
@@ -36,19 +38,17 @@ export async function fetchAmazonProducts(request: SearchProductsRequest): Promi
       }
 
       // Validate and transform products
-      const products = data.products
-        .filter(validateProduct)
-        .map(product => ({
-          id: product.id || crypto.randomUUID(),
-          title: product.title.trim(),
-          price: Number(product.price),
-          rating: Number(product.rating) || 0,
-          reviews_count: Number(product.reviews_count) || 0,
-          image_url: product.image_url,
-          product_url: product.product_url || '',
-          search_term: request.searchTerm,
-          company_id: request.companyId
-        }));
+      const products = data.products.filter(validateProduct).map(product => ({
+        id: product.id || crypto.randomUUID(),
+        title: product.title.trim(),
+        price: Number(product.price),
+        rating: Number(product.rating) || 0,
+        reviews_count: Number(product.reviews_count) || 0,
+        image_url: product.image_url,
+        product_url: product.product_url || '',
+        search_term: request.searchTerm,
+        company_id: request.companyId,
+      }));
 
       if (!products.length) {
         throw new Error('No valid products found in API response');

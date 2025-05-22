@@ -17,7 +17,7 @@ export function ShelfGrid({ layout, onDrop }: ShelfGridProps) {
             <ShelfSlot
               key={`${row}-${col}`}
               product={layout.products[row]?.[col] || null}
-              onDrop={(product) => onDrop(row, col, product)}
+              onDrop={product => onDrop(row, col, product)}
             />
           ))
         )}

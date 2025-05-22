@@ -22,9 +22,9 @@ export default {
         },
       },
       screens: {
-        'custom-hide': { 'max': '1099px' }, // Define un punto de quiebre personalizado
+        'custom-hide': { max: '1099px' }, // Define un punto de quiebre personalizado
       },
     },
   },
   plugins: [],
-}
+};

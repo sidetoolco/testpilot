@@ -11,7 +11,9 @@ export default function TesterInfo({ session }: TesterInfoProps) {
     <div className="w-80 bg-[#1B1B31] text-white p-6 flex flex-col">
       <div className="mb-6">
         <div className="flex items-center space-x-3 mb-4">
-          <div className={`w-12 h-12 ${session.tester.color} rounded-full flex items-center justify-center text-gray-700 font-medium`}>
+          <div
+            className={`w-12 h-12 ${session.tester.color} rounded-full flex items-center justify-center text-gray-700 font-medium`}
+          >
             {session.tester.initials}
           </div>
           <div>

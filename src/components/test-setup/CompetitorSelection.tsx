@@ -48,7 +48,7 @@ export default function CompetitorSelection({
     }
   }, [products, selectedCompetitors.length, onChange]);
 
-  const filteredProducts = products.filter(product => 
+  const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
@@ -70,13 +70,15 @@ export default function CompetitorSelection({
               type="text"
               placeholder="Filter products..."
               value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+              onChange={e => setSearchFilter(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00A67E]"
             />
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <Info className="h-5 w-5 text-gray-400" />
-            <span className={`text-sm ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-600' : 'text-gray-500'}`}>
+            <span
+              className={`text-sm ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-600' : 'text-gray-500'}`}
+            >
               Selected: {selectedCompetitors.length} of {MAX_COMPETITORS}
             </span>
           </div>

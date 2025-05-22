@@ -12,7 +12,7 @@ export default function TestDetail() {
   const { id } = useParams();
   const { sessions } = useStore();
   const session = sessions.find(s => s.id === Number(id));
-  
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [shoppingStarted, setShoppingStarted] = useState(false);
@@ -35,7 +35,7 @@ export default function TestDetail() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <TestHeader 
+      <TestHeader
         session={session}
         onBack={() => navigate('/my-tests')}
         shoppingStarted={shoppingStarted}
@@ -46,11 +46,14 @@ export default function TestDetail() {
         <div className="flex-1 bg-[#E3E6E6] overflow-y-auto">
           {!shoppingStarted ? (
             <div className="max-w-2xl mx-auto mt-12 p-8 bg-white rounded-lg shadow-sm">
-              <h2 className="text-2xl font-medium text-gray-900 mb-4">Welcome to the Shopping Experience!</h2>
+              <h2 className="text-2xl font-medium text-gray-900 mb-4">
+                Welcome to the Shopping Experience!
+              </h2>
               <p className="text-gray-600 mb-6">
-                We'd like you to shop for {session.category} as you normally would on Amazon. 
-                Browse through the products, read descriptions, and select the one you'd purchase. 
-                There are no right or wrong choices - we want to understand your natural shopping behavior.
+                We'd like you to shop for {session.category} as you normally would on Amazon. Browse
+                through the products, read descriptions, and select the one you'd purchase. There
+                are no right or wrong choices - we want to understand your natural shopping
+                behavior.
               </p>
               <button
                 onClick={() => setShoppingStarted(true)}
@@ -60,7 +63,7 @@ export default function TestDetail() {
               </button>
             </div>
           ) : (
-            <ShoppingExperience 
+            <ShoppingExperience
               products={session.products}
               onProductSelected={setSelectedProduct}
               setShowQuestionnaire={setShowQuestionnaire}
@@ -73,7 +76,7 @@ export default function TestDetail() {
       </div>
 
       {selectedProduct && showQuestionnaire && (
-        <ProductQuestionnaire 
+        <ProductQuestionnaire
           product={selectedProduct}
           onClose={() => {
             setSelectedProduct(null);

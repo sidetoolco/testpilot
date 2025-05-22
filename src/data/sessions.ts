@@ -10,14 +10,14 @@ export const sessions = [
       country: 'US',
       age: 38,
       gender: 'Male',
-      color: 'bg-orange-200'
+      color: 'bg-orange-200',
     },
     device: 'Computer',
     date: 'Nov 21, 2024',
     comments: 11,
     duration: '12:16',
     category: 'fabric-softener',
-    products: []
+    products: [],
   },
   {
     id: 2,
@@ -30,14 +30,14 @@ export const sessions = [
       country: 'US',
       age: 42,
       gender: 'Male',
-      color: 'bg-blue-200'
+      color: 'bg-blue-200',
     },
     device: 'Computer',
     date: 'Nov 20, 2024',
     comments: 8,
     duration: '10:45',
     category: 'laundry-detergent',
-    products: []
+    products: [],
   },
   {
     id: 3,
@@ -50,13 +50,13 @@ export const sessions = [
       country: 'US',
       age: 35,
       gender: 'Male',
-      color: 'bg-green-200'
+      color: 'bg-green-200',
     },
     device: 'Computer',
     date: 'Nov 19, 2024',
     comments: 15,
     duration: '14:22',
     category: 'all-purpose-cleaner',
-    products: []
-  }
+    products: [],
+  },
 ];

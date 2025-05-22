@@ -5,7 +5,7 @@ const Support: React.FC = () => {
         <h1 className="text-3xl font-bold text-center mb-12 text-gray-800">
           TestPilot Support Center
         </h1>
-        
+
         <div className="space-y-12">
           <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.02] transition-transform">
             <h2 className="text-2xl font-semibold mb-4 text-green-800">TestPilot Overview</h2>
@@ -32,7 +32,9 @@ const Support: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.02] transition-transform">
-            <h2 className="text-2xl font-semibold mb-4 text-green-800">Interpreting Your Results</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-green-800">
+              Interpreting Your Results
+            </h2>
             <div className="w-full aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
               <iframe
                 src="https://www.youtube.com/embed/6OHXDrahB68?modestbranding=1&showinfo=0"

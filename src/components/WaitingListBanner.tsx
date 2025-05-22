@@ -17,11 +17,11 @@ export default function WaitingListBanner() {
               <Clock className="h-5 w-5 text-[#00A67E]" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Welcome to TestPilot! 🎉
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">Welcome to TestPilot! 🎉</h3>
               <p className="text-gray-600">
-                You've been added to our waiting list. We're currently reviewing your application and will notify you as soon as your account is activated. This usually takes 1-2 business days.
+                You've been added to our waiting list. We're currently reviewing your application
+                and will notify you as soon as your account is activated. This usually takes 1-2
+                business days.
               </p>
             </div>
           </div>

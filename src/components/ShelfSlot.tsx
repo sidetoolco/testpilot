@@ -11,7 +11,7 @@ export function ShelfSlot({ onDrop, product }: ShelfSlotProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'PRODUCT',
     drop: (item: Product) => onDrop(item),
-    collect: (monitor) => ({
+    collect: monitor => ({
       isOver: monitor.isOver(),
     }),
   }));
@@ -20,17 +20,11 @@ export function ShelfSlot({ onDrop, product }: ShelfSlotProps) {
     <div
       ref={drop}
       className={`aspect-square border-2 rounded-lg ${
-        isOver
-          ? 'border-indigo-400 bg-indigo-50'
-          : 'border-dashed border-gray-200'
+        isOver ? 'border-indigo-400 bg-indigo-50' : 'border-dashed border-gray-200'
       }`}
     >
       {product && (
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-contain p-2"
-        />
+        <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" />
       )}
     </div>
   );

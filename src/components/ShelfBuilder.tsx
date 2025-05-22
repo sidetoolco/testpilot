@@ -7,7 +7,7 @@ import { ProductLibrary } from './ProductLibrary';
 export function ShelfBuilder({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { currentLayout, updateLayout } = useStore();
   const [shelfName, setShelfName] = useState('');
-  
+
   if (!isOpen) return null;
 
   return (
@@ -19,7 +19,9 @@ export function ShelfBuilder({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               <LayoutGrid className="h-6 w-6 text-primary-400" />
               <h2 className="text-xl font-semibold">Create New Shelf Layout</h2>
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">×</button>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              ×
+            </button>
           </div>
         </div>
 
@@ -30,16 +32,13 @@ export function ShelfBuilder({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               placeholder="Enter shelf name..."
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               value={shelfName}
-              onChange={(e) => setShelfName(e.target.value)}
+              onChange={e => setShelfName(e.target.value)}
             />
           </div>
 
           <div className="flex-1 overflow-hidden flex gap-6">
             <div className="w-1/4 overflow-auto">
-              <ProductLibrary
-                products={[]}
-                onUpload={() => {}}
-              />
+              <ProductLibrary products={[]} onUpload={() => {}} />
             </div>
             <div className="flex-1 overflow-auto">
               <ShelfGrid

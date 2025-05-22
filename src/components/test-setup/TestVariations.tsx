@@ -20,10 +20,7 @@ interface TestVariationsProps {
 
 type Variations = 'a' | 'b' | 'c';
 
-export default function TestVariations({
-  variations,
-  onChange,
-}: TestVariationsProps) {
+export default function TestVariations({ variations, onChange }: TestVariationsProps) {
   const [showProductSelector, setShowProductSelector] = useState<Variations | null>(null);
   const [showProductForm, setShowProductForm] = useState<Variations | null>(null);
   const { products, loading, error } = useProducts();
@@ -34,8 +31,8 @@ export default function TestVariations({
       ...variations,
       [variation]: {
         ...product,
-        isExisting: true
-      }
+        isExisting: true,
+      },
     });
     setShowProductSelector(null);
   };
@@ -43,11 +40,14 @@ export default function TestVariations({
   const handleRemoveProduct = (key: Variations) => {
     onChange({
       ...variations,
-      [key]: null
-    })
-  }
+      [key]: null,
+    });
+  };
 
-  const handleProductSubmit = async (variation: Variations, productData: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => {
+  const handleProductSubmit = async (
+    variation: Variations,
+    productData: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
     let idProduct: any;
     try {
       if (productData.id) {
@@ -63,8 +63,8 @@ export default function TestVariations({
       [variation]: {
         ...productData,
         id: idProduct,
-        isExisting: false
-      }
+        isExisting: false,
+      },
     });
     setShowProductForm(null);
   };
@@ -100,8 +100,11 @@ export default function TestVariations({
             <button
               onClick={() => setShowProductSelector(key)}
               disabled={products.length === 0}
-              className={`flex items-center justify-center space-x-2 ${products.length === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-primary-400 hover:text-primary-500'
-                }`}
+              className={`flex items-center justify-center space-x-2 ${
+                products.length === 0
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-primary-400 hover:text-primary-500'
+              }`}
             >
               <Package className="h-4 w-4" />
               <span>Select Existing Product</span>
@@ -177,12 +180,10 @@ export default function TestVariations({
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-semibold text-gray-900 mb-3">
-          Create Product Variations
-        </h3>
+        <h3 className="text-3xl font-semibold text-gray-900 mb-3">Create Product Variations</h3>
         <p className="text-lg text-gray-500">
-          Set up to three variations (A/B/C) of your product to test different versions.
-          Variation A is required.
+          Set up to three variations (A/B/C) of your product to test different versions. Variation A
+          is required.
         </p>
       </div>
 
@@ -210,7 +211,7 @@ export default function TestVariations({
 
             {!loading && !error && products.length > 0 && (
               <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-                {products.map((product) => (
+                {products.map(product => (
                   <div
                     key={product.id}
                     onClick={() => handleSelectProduct(showProductSelector, product)}
@@ -237,7 +238,7 @@ export default function TestVariations({
         <ProductModal
           isOpen={showProductForm ? true : false}
           onClose={() => setShowProductForm(null)}
-          onSubmit={(data) => handleProductSubmit(showProductForm, data)}
+          onSubmit={data => handleProductSubmit(showProductForm, data)}
           initialData={showProductForm ? variations[showProductForm] : undefined}
         />
       )}

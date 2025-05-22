@@ -16,7 +16,9 @@ export function useTests() {
         setError(null);
 
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
         // Check if user is admin
@@ -34,7 +36,8 @@ export function useTests() {
           // If not admin, fetch only user's company tests
           const { data: userTests, error } = await supabase
             .from('tests')
-            .select(`
+            .select(
+              `
               *,
               competitors:test_competitors(
                 product:amazon_products(
@@ -50,7 +53,8 @@ export function useTests() {
                 variation_type
               ),
               demographics:test_demographics(*)
-            `)
+            `
+            )
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
@@ -68,17 +72,17 @@ export function useTests() {
           variations: {
             a: test.variations?.find((v: any) => v.variation_type === 'a')?.product || null,
             b: test.variations?.find((v: any) => v.variation_type === 'b')?.product || null,
-            c: test.variations?.find((v: any) => v.variation_type === 'c')?.product || null
+            c: test.variations?.find((v: any) => v.variation_type === 'c')?.product || null,
           },
           demographics: {
             ageRanges: test.demographics?.[0]?.age_ranges || [],
             gender: test.demographics?.[0]?.genders || [],
             locations: test.demographics?.[0]?.locations || [],
             interests: test.demographics?.[0]?.interests || [],
-            testerCount: test.demographics?.[0]?.tester_count || 0
+            testerCount: test.demographics?.[0]?.tester_count || 0,
           },
           createdAt: test.created_at,
-          updatedAt: test.updated_at
+          updatedAt: test.updated_at,
         }));
 
         setTests(transformedTests);

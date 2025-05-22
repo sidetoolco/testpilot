@@ -1,5 +1,5 @@
-import { TestObjective } from "../../../lib/enum";
-import { AmazonProduct } from "../../amazon/types";
+import { TestObjective } from '../../../lib/enum';
+import { AmazonProduct } from '../../amazon/types';
 
 export interface TestData {
   name: string;
@@ -7,9 +7,9 @@ export interface TestData {
   objective: TestObjective | null;
   competitors: AmazonProduct[];
   variations: {
-    a: { id: string; name?: string; } | null;
-    b: { id: string; name?: string; } | null;
-    c: { id: string; name?: string; } | null;
+    a: { id: string; name?: string } | null;
+    b: { id: string; name?: string } | null;
+    c: { id: string; name?: string } | null;
   };
   demographics: {
     ageRanges: string[];
@@ -27,6 +27,6 @@ export interface ValidationResult {
 
 export interface ProductValidationResult {
   valid: boolean;
-  products: Array<{ id: string; name: string; }>;
+  products: Array<{ id: string; name: string }>;
   missingIds: string[];
 }

@@ -30,9 +30,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-semibold text-gray-900 mb-3">
-          Review Your Test
-        </h3>
+        <h3 className="text-3xl font-semibold text-gray-900 mb-3">Review Your Test</h3>
         <p className="text-lg text-gray-500">
           Review and confirm your test configuration before launching.
         </p>
@@ -67,7 +65,9 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
               </div>
               <div>
                 <h4 className="text-xl font-medium">Total Cost</h4>
-                <p className="text-sm text-gray-400">Based on {totalTesters} testers at ${costPerTester} per tester</p>
+                <p className="text-sm text-gray-400">
+                  Based on {totalTesters} testers at ${costPerTester} per tester
+                </p>
               </div>
             </div>
             <div className="text-3xl font-semibold">${totalCost.toLocaleString()}</div>
@@ -89,7 +89,9 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-500 mb-1">Variations</div>
-                <div className="text-gray-900">{activeVariants} variation{activeVariants !== 1 ? 's' : ''} configured</div>
+                <div className="text-gray-900">
+                  {activeVariants} variation{activeVariants !== 1 ? 's' : ''} configured
+                </div>
               </div>
             </div>
           </div>
@@ -100,8 +102,11 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
               <div>
                 <div className="text-sm font-medium text-gray-500 mb-1">Age Ranges</div>
                 <div className="flex flex-wrap gap-2">
-                  {testData.demographics.ageRanges.map((age) => (
-                    <span key={age} className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                  {testData.demographics.ageRanges.map(age => (
+                    <span
+                      key={age}
+                      className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700"
+                    >
                       {age}
                     </span>
                   ))}
@@ -110,8 +115,11 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
               <div>
                 <div className="text-sm font-medium text-gray-500 mb-1">Gender</div>
                 <div className="flex flex-wrap gap-2">
-                  {testData.demographics.gender.map((gender) => (
-                    <span key={gender} className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                  {testData.demographics.gender.map(gender => (
+                    <span
+                      key={gender}
+                      className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700"
+                    >
                       {gender}
                     </span>
                   ))}
@@ -120,8 +128,11 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
               <div>
                 <div className="text-sm font-medium text-gray-500 mb-1">Locations</div>
                 <div className="flex flex-wrap gap-2">
-                  {testData.demographics.locations.map((location) => (
-                    <span key={location} className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                  {testData.demographics.locations.map(location => (
+                    <span
+                      key={location}
+                      className="px-2 py-1 bg-gray-100 rounded-full text-sm text-gray-700"
+                    >
                       {location}
                     </span>
                   ))}

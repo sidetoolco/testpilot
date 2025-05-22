@@ -1,20 +1,90 @@
+# Este workflow se encarga de desplegar la aplicación a Vercel en el entorno de staging
 name: Deploy to Vercel (Staging)
 
+# El workflow se ejecuta cuando:
+# 1. Se hace push a la rama main
+# 2. Se dispara manualmente (workflow_dispatch)
 on:
   push:
     branches:
-      - main # Se ejecuta solo push en la rama
+      - main
+  workflow_dispatch: # Permite ejecución manual
+
+# Variables de entorno globales
+env:
+  NODE_VERSION: '20.x'
 
 jobs:
-  deploy-staging:
+  # Job 1: Validación de variables de entorno
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Verifica que todas las variables de entorno necesarias estén configuradas
+      - name: Validate Environment Variables
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "Error: VERCEL_TOKEN is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            echo "Error: VERCEL_ORG_ID is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "Error: VERCEL_PROJECT_ID is not set"
+            exit 1
+          fi
+
+  # Job 2: Construcción de la aplicación
+  build:
+    needs: validate # Se ejecuta después de la validación
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Configura Node.js con la versión especificada
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # Instala las dependencias del proyecto
+      - name: Install Dependencies
+        run: npm ci
+
+      # Construye la aplicación
+      - name: Build
+        run: npm run build
+
+      # Guarda en caché los archivos de construcción para futuras ejecuciones
+      - name: Cache build output
+        uses: actions/cache@v3
+        with:
+          path: |
+            .next
+            node_modules
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+  # Job 3: Despliegue a Vercel
+  deploy:
+    needs: build # Se ejecuta después de la construcción
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Instala la CLI de Vercel
       - name: Install Vercel CLI
         run: npm install -g vercel
 
+      # Realiza el despliegue a Vercel usando las credenciales configuradas
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
@@ -22,3 +92,13 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: "--prod"
+        id: deploy
+
+      # Verifica que el despliegue fue exitoso y muestra la URL
+      - name: Check Deployment Status
+        run: |
+          if [ "${{ steps.deploy.outputs.vercel-deployment-url }}" == "" ]; then
+            echo "Deployment failed - no URL returned"
+            exit 1
+          fi
+          echo "Deployment successful! URL: ${{ steps.deploy.outputs.vercel-deployment-url }}"
