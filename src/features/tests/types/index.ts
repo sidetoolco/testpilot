@@ -7,9 +7,9 @@ export interface TestData {
   objective: TestObjective | null;
   competitors: AmazonProduct[];
   variations: {
-    a: { id: string; name?: string; } | null;
-    b: { id: string; name?: string; } | null;
-    c: { id: string; name?: string; } | null;
+    a: { id: string; name?: string } | null;
+    b: { id: string; name?: string } | null;
+    c: { id: string; name?: string } | null;
   };
   demographics: {
     ageRanges: string[];
@@ -17,6 +17,7 @@ export interface TestData {
     locations: string[];
     interests: string[];
     testerCount: number;
+    customScreening: CustomScreening;
   };
 }
 
@@ -27,6 +28,12 @@ export interface ValidationResult {
 
 export interface ProductValidationResult {
   valid: boolean;
-  products: Array<{ id: string; name: string; }>;
+  products: Array<{ id: string; name: string }>;
   missingIds: string[];
+}
+
+export interface CustomScreening {
+  enabled: boolean;
+  question?: string;
+  validAnswer?: "Yes" | "No";
 }
