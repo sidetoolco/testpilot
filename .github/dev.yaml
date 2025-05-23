@@ -13,6 +13,7 @@ on:
 # Variables de entorno globales
 env:
   NODE_VERSION: '20.x'
+  VERCEL_ENV: 'preview'
 
 jobs:
   # Job 1: Validación de variables de entorno
@@ -103,22 +104,30 @@ jobs:
   deploy:
     needs: build # Se ejecuta después de la construcción
     runs-on: ubuntu-latest
+    environment: development
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       # Instala la CLI de Vercel
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@latest
+
+      # Configura las variables de entorno de Vercel
+      - name: Setup Vercel Environment
+        run: |
+          echo "VERCEL_ORG_ID=${{ secrets.VERCEL_ORG_ID }}" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
 
       # Realiza el despliegue a Vercel usando las credenciales configuradas
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: "--preview"
+          vercel-args: '--preview'
+          working-directory: ./
         id: deploy
 
       # Verifica que el despliegue fue exitoso y muestra la URL
