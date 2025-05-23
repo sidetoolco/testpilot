@@ -8,12 +8,17 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   body {
     @apply bg-[#FFF8F8];
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-medium tracking-tight;
   }
 }
@@ -64,4 +69,6 @@
   @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
 }
 
-svg.star-svg { display: inline; }
+svg.star-svg {
+  display: inline;
+}

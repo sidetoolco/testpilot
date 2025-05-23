@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import { PriceCalculator } from './PriceCalculator';
+import CustomScreening from './CustomScreening';
+import { CustomScreening as CustomScreeningType } from '../../features/tests/types';
 
 interface DemographicSelectionProps {
   demographics: {
@@ -9,6 +11,7 @@ interface DemographicSelectionProps {
     locations: string[];
     interests: string[];
     testerCount: number;
+    customScreening: CustomScreeningType;
   };
   variations: {
     a: any;
@@ -280,6 +283,16 @@ export default function DemographicSelection({
             ))}
           </div>
         </div> */}
+
+        <CustomScreening
+          value={demographics.customScreening}
+          onChange={customScreeningPayload =>
+            onChange({
+              ...demographics,
+              customScreening: customScreeningPayload,
+            })
+          }
+        />
       </div>
     </div>
   );

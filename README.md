@@ -104,6 +104,7 @@ The application is fully responsive and optimized for:
 - Desktop
 - Tablet
 - Mobile devices
+
 ---
 
 Built with ❤️ by the TestPilot/Sidetool

@@ -55,6 +55,16 @@ export function validateTestData(testData: TestData): ValidationResult {
       if (!testerCount || testerCount < 10) {
         errors.push('Minimum 10 testers required');
       }
+
+      if (testData.demographics.customScreening.enabled) {
+        if (!testData.demographics.customScreening.question?.trim()) {
+          errors.push('Please enter a screening question to filter testers');
+        }
+
+        if (!testData.demographics.customScreening.validAnswer) {
+          errors.push('Please enter the custom screening question valid answer');
+        }
+      }
     } else {
       errors.push('Demographics configuration is required');
     }

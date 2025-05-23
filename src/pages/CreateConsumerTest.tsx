@@ -33,6 +33,9 @@ const initialTestData: TestData = {
     locations: [],
     interests: [],
     testerCount: 25,
+    customScreening: {
+      enabled: false,
+    },
   },
 };
 const LoadingMessages = [

@@ -22,9 +22,9 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
-      'prettier': prettierPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
       'prettier/prettier': 'error',

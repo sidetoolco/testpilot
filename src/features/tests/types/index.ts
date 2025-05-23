@@ -17,6 +17,7 @@ export interface TestData {
     locations: string[];
     interests: string[];
     testerCount: number;
+    customScreening: CustomScreening;
   };
 }
 
@@ -29,4 +30,10 @@ export interface ProductValidationResult {
   valid: boolean;
   products: Array<{ id: string; name: string }>;
   missingIds: string[];
+}
+
+export interface CustomScreening {
+  enabled: boolean;
+  question?: string;
+  validAnswer?: 'Yes' | 'No';
 }

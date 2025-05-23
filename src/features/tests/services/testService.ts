@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import { TestData } from '../types';
+import { CustomScreening, TestData } from '../types';
 import { toast } from 'sonner';
 import { validateProducts } from '../utils/validators/productValidator';
 import { validateTestData } from '../utils/validators/testDataValidator';
@@ -67,7 +67,12 @@ export const testService = {
       // Step 5: Insertar datos demográficos
       await this.insertDemographics(test.id, testData.demographics);
 
-      // Step 6: Crear proyecto en Respondent
+      // Step 6: Guardar custom screening questions (if applicable)
+      if (testData.demographics.customScreening.enabled) {
+        await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
+      }
+
+      // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);
 
       return test;
@@ -112,6 +117,7 @@ export const testService = {
     try {
       await apiClient.post(`/amazon/products/${testId}`, { products });
     } catch (error) {
+      console.error(error);
       throw new TestCreationError('Failed to save competitors', { error });
     }
   },
@@ -131,6 +137,20 @@ export const testService = {
           throw new TestCreationError('Failed to add variation', { error });
         }
       }
+    }
+  },
+
+  async saveCustomScreeningQuestion(testId: string, customScreening: CustomScreening) {
+    const { error } = await supabase.from('custom_screening').insert({
+      test_id: testId,
+      question: customScreening.question,
+      valid_option: customScreening.validAnswer,
+      invalid_option: customScreening.validAnswer === 'Yes' ? 'No' : 'Yes',
+    } as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to save custom screening question', { error });
     }
   },
 
