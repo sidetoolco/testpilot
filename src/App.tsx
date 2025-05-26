@@ -23,6 +23,7 @@ import TestQuestions from './pages/TestQuestions';
 import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
+import SentryTest from './pages/SentryTest';
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ function App() {
               <Route path="/thanks" element={
                 <ThankYou />
               } />
+              <Route path="/sentry-test" element={<SentryTest />} />
               {/* detalle testing */}
               <Route path="/tests/:id" element={
                 <ProtectedRoute>
