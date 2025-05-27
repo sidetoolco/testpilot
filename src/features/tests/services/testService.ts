@@ -198,23 +198,16 @@ export const testService = {
             genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
             locations: testData.demographics.locations,
             interests: testData.demographics.interests
-          }
+          },
+          testId: test.id,
+          variationType,
         };
 
         try {
-          const response = await fetch('https://testpilot.app.n8n.cloud/webhook/prolific-create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(respondentProjectData),
-            mode: 'no-cors'
-          });
+          const response = await apiClient.post('/tests', respondentProjectData);
 
           console.log(`Response status for variation ${variationType}:`, response.status);
-
-          const responseData = await response.json();
-          console.log(`Response data for variation ${variationType}:`, responseData);
+          console.log(`Response data for variation ${variationType}:`, response.data);
 
         } catch (error) {
           console.error(`Prolific integration failed for variation ${variationType}:`, error);
