@@ -20,6 +20,7 @@ import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
+import QuestionDetail from './pages/QuestionDetail';
 import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
@@ -60,33 +61,39 @@ function App() {
             <Routes>
               {/* Unprotected Route */}
 
-              <Route path="/test/:id" element={<TestUserPage />} />
+              <Route path="/test/:id" element={
+                <TestUserPage />
+              } />
 
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Adminpanel />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Adminpanel />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
 
-              <Route
-                path="/support"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Support />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/support" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Support />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
 
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/questions" element={<TestQuestions />} />
-              <Route path="/thanks" element={<ThankYou />} />
+              <Route path="/product/:id" element={
+                <ProductDetail />
+              } />
+              <Route path="/questions" element={
+                <TestQuestions />
+              } />
+              <Route path="/questions/:id" element={
+                <QuestionDetail />
+              } />
+              <Route path="/thanks" element={
+                <ThankYou />
+              } />
+              
               {/* detalle testing */}
               <Route
                 path="/tests/:id"

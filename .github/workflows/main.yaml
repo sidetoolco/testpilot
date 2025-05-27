@@ -1,5 +1,5 @@
 # Este workflow se encarga de desplegar la aplicación a Vercel en el entorno de staging
-name: Deploy to Vercel (Staging)
+name: Deploy to Vercel Main
 
 # El workflow se ejecuta cuando:
 # 1. Se hace push a la rama main
