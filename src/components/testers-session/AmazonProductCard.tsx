@@ -1,8 +1,8 @@
-import { Star, ShoppingCart } from "lucide-react";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useSessionStore } from "../../store/useSessionStore";
-import { recordTimeSpent } from "../../features/tests/services/testersSessionService";
+import { Star, ShoppingCart } from 'lucide-react';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useSessionStore } from '../../store/useSessionStore';
+import { recordTimeSpent } from '../../features/tests/services/testersSessionService';
 
 interface AmazonProductCardProps {
   product: any;
@@ -15,17 +15,7 @@ export default function AmazonProductCard({
 }: AmazonProductCardProps) {
   const { shopperId } = useSessionStore();
 
-  const {
-    id,
-    image_url,
-    image,
-    title,
-    name,
-    rating,
-    reviews_count,
-    price,
-    images,
-  } = product;
+  const { id, image_url, image, title, name, rating, reviews_count, price, images } = product;
 
   console.log({ product });
 
@@ -37,9 +27,7 @@ export default function AmazonProductCard({
       const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
-        console.log(
-          `Tiempo gastado en el producto: ${timeSpent / 1000} segundos`
-        );
+        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
         if (product.asin) {
           recordTimeSpent(shopperId, product.id, startTime, endTime, true);
         } else {
@@ -75,15 +63,13 @@ export default function AmazonProductCard({
                 key={i}
                 className={`h-4 w-4 ${
                   isFullStar
-                    ? "text-[#dd8433] fill-[#dd8433]"
+                    ? 'text-[#dd8433] fill-[#dd8433]'
                     : isHalfStar
-                    ? "text-[#dd8433] fill-current"
-                    : "text-gray-200 fill-gray-200"
+                      ? 'text-[#dd8433] fill-current'
+                      : 'text-gray-200 fill-gray-200'
                 }`}
                 style={{
-                  clipPath: isHalfStar
-                    ? "polygon(0 0, 50% 0, 50% 100%, 0 100%)"
-                    : "none",
+                  clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
                 }}
               />
             );
@@ -97,17 +83,11 @@ export default function AmazonProductCard({
       <div className="flex items-baseline gap-[2px] text-[#0F1111]">
         <span className="text-xs align-top mt-[1px]">US$</span>
         <span className="text-[21px] font-medium">{Math.floor(price)}</span>
-        <span className="text-[13px]">
-          {(price % 1).toFixed(2).substring(1)}
-        </span>
+        <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
       </div>
 
       <div className="mt-1 flex items-center gap-1">
-        <img
-          src="/assets/images/amazon-prime-icon.png"
-          alt="Prime"
-          className="h-12"
-        />
+        <img src="/assets/images/amazon-prime-icon.png" alt="Prime" className="h-12" />
         <div>
           <span className="text-[12px] text-[#007185]">FREE delivery</span>
           <span className="text-[12px] text-[#0F1111] ml-1">Tomorrow</span>

@@ -30,10 +30,7 @@ export const checkIdInIaInsights = async (id: string) => {
 // Returns: true if the test status is 'complete', otherwise false.
 export const checkTestStatus = async (id: string) => {
   try {
-    const { data, error } = await supabase
-      .from('tests')
-      .select('status')
-      .eq('id', id);
+    const { data, error } = await supabase.from('tests').select('status').eq('id', id);
 
     if (error) {
       console.error('Error fetching data:', error);
@@ -47,8 +44,6 @@ export const checkTestStatus = async (id: string) => {
   }
 };
 
-
-
 interface Survey {
   product_id: string;
   products: { title: string };
@@ -59,7 +54,6 @@ interface Survey {
   convenience: number;
   tester_id: { variation_type: string };
 }
-
 
 interface SummaryRow {
   title: string;
@@ -77,17 +71,18 @@ export const transformDataToSummaryRow = (data: any): SummaryRow => {
     valueScore: data.value_score.toString(),
     isWinner: data.win ? 'Yes' : 'No', // Ajusta según la lógica de tu aplicación
   };
-}
+};
 
-export const getSummaryData = async (id: string): Promise<{
+export const getSummaryData = async (
+  id: string
+): Promise<{
   rows: SummaryRow[];
   error: string | null;
 }> => {
-
   if (!id) {
     return {
       rows: [],
-      error: 'Not enough data for analysis.'
+      error: 'Not enough data for analysis.',
     };
   }
 
@@ -102,26 +97,27 @@ export const getSummaryData = async (id: string): Promise<{
 
     return {
       rows: summaryData.map(transformDataToSummaryRow),
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error('Error loading summary data:', error);
     return {
       rows: [],
-      error: 'Failed to load summary data. Please try again.'
+      error: 'Failed to load summary data. Please try again.',
     };
   }
 };
 
-export const getAveragesurveys = async (id: string): Promise<{
+export const getAveragesurveys = async (
+  id: string
+): Promise<{
   summaryData: any;
   error: string | null;
 }> => {
-
   if (!id) {
     return {
       summaryData: [],
-      error: 'Not enough data for analysis.'
+      error: 'Not enough data for analysis.',
     };
   }
 
@@ -130,52 +126,55 @@ export const getAveragesurveys = async (id: string): Promise<{
       .from('purchase_drivers')
       .select('*, product:product_id(title, image_url, price)')
       .eq('test_id', id)
-      .order("variant_type");
+      .order('variant_type');
 
     if (summaryError) throw summaryError;
 
     return {
       summaryData,
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error('Error loading summary data:', error);
     return {
       summaryData: [],
-      error: 'Failed to load summary data. Please try again.'
+      error: 'Failed to load summary data. Please try again.',
     };
   }
 };
 
-export const getCompetitiveInsights = async (id: string): Promise<{
+export const getCompetitiveInsights = async (
+  id: string
+): Promise<{
   summaryData: any;
   error: string | null;
 }> => {
-
   if (!id) {
     return {
       summaryData: [],
-      error: 'Not enough data for analysis.'
+      error: 'Not enough data for analysis.',
     };
   }
 
   try {
     const { data: summaryData, error: summaryError } = await supabase
       .from('competitive_insights')
-      .select('*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)')
+      .select(
+        '*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)'
+      )
       .eq('test_id', id);
 
     if (summaryError) throw summaryError;
 
     return {
       summaryData,
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error('Error loading summary data:', error);
     return {
       summaryData: [],
-      error: 'Failed to load summary data. Please try again.'
+      error: 'Failed to load summary data. Please try again.',
     };
   }
 };

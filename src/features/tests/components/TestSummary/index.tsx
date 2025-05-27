@@ -13,23 +13,23 @@ const objectiveMap = {
   [TestObjective.PRICE_SENSITIVITY]: {
     icon: <DollarSign className="h-5 w-5" />,
     text: 'Price Sensitivity',
-    color: 'text-blue-600'
+    color: 'text-blue-600',
   },
   [TestObjective.PACKAGE_DESIGN]: {
     icon: <Package className="h-5 w-5" />,
     text: 'Package Design',
-    color: 'text-green-600'
+    color: 'text-green-600',
   },
   [TestObjective.POSITIONING]: {
     icon: <Target className="h-5 w-5" />,
     text: 'Positioning',
-    color: 'text-purple-600'
+    color: 'text-purple-600',
   },
   [TestObjective.IDEA_SCREENING]: {
     icon: <Lightbulb className="h-5 w-5" />,
     text: 'Idea Screening',
-    color: 'text-yellow-600'
-  }
+    color: 'text-yellow-600',
+  },
 };
 
 const getObjectiveConfig = (objective: string | undefined) => {

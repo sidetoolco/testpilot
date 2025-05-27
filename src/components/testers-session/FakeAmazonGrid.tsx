@@ -1,20 +1,17 @@
-import { CheckCircle, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { updateSession } from "../../features/tests/services/testersSessionService";
-import { useSessionStore } from "../../store/useSessionStore";
-import RedirectModal from "../test-setup/RedirectQuestionModal";
-import AmazonProductCard from "./AmazonProductCard";
+import { CheckCircle, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { updateSession } from '../../features/tests/services/testersSessionService';
+import { useSessionStore } from '../../store/useSessionStore';
+import RedirectModal from '../test-setup/RedirectQuestionModal';
+import AmazonProductCard from './AmazonProductCard';
 
 interface PreviewGridProps {
   products: any[];
   addToCart: (item: any) => void;
 }
 
-export default function FakeAmazonGrid({
-  products,
-  addToCart,
-}: PreviewGridProps) {
+export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const navigate = useNavigate();
@@ -37,7 +34,7 @@ export default function FakeAmazonGrid({
 
   const handleRedirectClose = () => {
     setIsRedirectModalOpen(false);
-    navigate("/questions");
+    navigate('/questions');
   };
 
   return (
@@ -75,9 +72,8 @@ export default function FakeAmazonGrid({
               </div>
             </div>
             <p className="mt-2 text-center text-gray-700">
-              You have added{" "}
-              <strong>{currentProduct.title || currentProduct.name}</strong> to
-              your cart.
+              You have added <strong>{currentProduct.title || currentProduct.name}</strong> to your
+              cart.
             </p>
             <div className="mt-4 flex justify-around">
               <button
@@ -97,10 +93,7 @@ export default function FakeAmazonGrid({
         </div>
       )}
 
-      <RedirectModal
-        isOpen={isRedirectModalOpen}
-        onClose={handleRedirectClose}
-      />
+      <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
     </>
   );
 }

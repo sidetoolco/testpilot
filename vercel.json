@@ -1,12 +1,12 @@
 {
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        },
-        {
-            "source": "/webhook-test/:path*",
-            "destination": "https://sidetool.app.n8n.cloud/:path*"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/webhook-test/:path*",
+      "destination": "https://sidetool.app.n8n.cloud/:path*"
+    }
+  ]
 }

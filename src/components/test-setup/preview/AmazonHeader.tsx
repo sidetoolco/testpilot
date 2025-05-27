@@ -9,7 +9,7 @@ interface AmazonHeaderProps {
 }
 
 export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
-  const { itemSelectedAtCheckout, clearItemSelectedAtCheckout } = useSessionStore((state) => state);
+  const { itemSelectedAtCheckout, clearItemSelectedAtCheckout } = useSessionStore(state => state);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  
+
   const handleRedirect = () => {
     setIsRedirectModalOpen(true);
   };
@@ -39,7 +39,6 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
     setIsRedirectModalOpen(false);
     navigate('/questions');
   };
-
 
   return (
     <div className="bg-[#131921] text-white">
@@ -57,7 +56,10 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
             </div>
 
             {/* Deliver To */}
-            <div className="flex items-center space-x-1 cursor-not-allowed" onClick={handleNotAllowedClick}>
+            <div
+              className="flex items-center space-x-1 cursor-not-allowed"
+              onClick={handleNotAllowedClick}
+            >
               <MapPin className="h-4 w-4" />
               <div className="hidden md:block">
                 <div className="text-[11px] text-gray-300">Deliver to</div>
@@ -73,7 +75,10 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
                     <option>All</option>
                   </select>
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <div className="border-4 border-transparent border-t-gray-400" style={{ marginTop: "2px" }}></div>
+                    <div
+                      className="border-4 border-transparent border-t-gray-400"
+                      style={{ marginTop: '2px' }}
+                    ></div>
                   </div>
                 </div>
                 <input
@@ -102,9 +107,7 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
             <div className="flex items-center cursor-pointer" onClick={handleCartClick}>
               <ShoppingCart className="h-7 w-7" />
               <span className="text-sm font-bold ml-1">Cart</span>
-              <span className="text-sm font-bold ml-1">
-                ({itemSelectedAtCheckout ? 1 : 0})
-              </span>
+              <span className="text-sm font-bold ml-1">({itemSelectedAtCheckout ? 1 : 0})</span>
             </div>
           </div>
         </div>
@@ -112,22 +115,38 @@ export default function AmazonHeader({ searchTerm }: AmazonHeaderProps) {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end items-start text-black z-50">
           <div className="bg-white w-full sm:w-2/3 md:w-1/3 h-full p-6 rounded-l-lg shadow-lg overflow-y-auto relative">
-            <button onClick={handleCloseModal} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
               <span className="sr-only">Close</span>
               <X className="h-6 w-6" />
             </button>
             <div className="flex justify-center flex-col items-center mb-4">
               <h2 className="text-xl font-bold">Subtotal</h2>
-              <span className="text-xl font-bold text-red-600">US${itemSelectedAtCheckout?.price || '0.00'}</span>
+              <span className="text-xl font-bold text-red-600">
+                US${itemSelectedAtCheckout?.price || '0.00'}
+              </span>
             </div>
             <p className="mb-4 text-sm text-gray-700 text-center">
-              Your order qualifies for <span className="font-bold">FREE Shipping</span>. Choose this option at checkout. <a href="#" className="text-blue-500 hover:underline">See details</a>
+              Your order qualifies for <span className="font-bold">FREE Shipping</span>. Choose this
+              option at checkout.{' '}
+              <a href="#" className="text-blue-500 hover:underline">
+                See details
+              </a>
             </p>
-            <button onClick={handleRedirect} disabled={!itemSelectedAtCheckout} className="w-full mb-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              onClick={handleRedirect}
+              disabled={!itemSelectedAtCheckout}
+              className="w-full mb-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Go to Checkout
             </button>
 
-            <button onClick={handleCloseModal} className="w-full mb-4 px-4 py-2 bg-white text-blue-700 border border-blue-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              onClick={handleCloseModal}
+              className="w-full mb-4 px-4 py-2 bg-white text-blue-700 border border-blue-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Keep Shopping
             </button>
 

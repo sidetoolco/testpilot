@@ -16,9 +16,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <div className="lg:min-h-screen">
         <SideNav />
       </div>
-      <div className="flex-1 h-screen overflow-auto">
-        {children}
-      </div>
+      <div className="flex-1 h-screen overflow-auto">{children}</div>
     </div>
   );
 }

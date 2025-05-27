@@ -35,20 +35,18 @@ export const productService = {
         title: product.title.trim(),
         price: Number(product.price),
         rating: Number(product.rating) || 0,
-        reviews_count: Number(product.reviews_count) || 0
+        reviews_count: Number(product.reviews_count) || 0,
       }));
 
-      const { error } = await supabase
-        .from('amazon_products')
-        .upsert(normalizedProducts, {
-          onConflict: 'id',
-          ignoreDuplicates: false
-        });
+      const { error } = await supabase.from('amazon_products').upsert(normalizedProducts, {
+        onConflict: 'id',
+        ignoreDuplicates: false,
+      });
 
       if (error) throw error;
     } catch (error) {
       console.error('Cache insert error:', error);
       toast.error('Failed to cache product data');
     }
-  }
+  },
 };

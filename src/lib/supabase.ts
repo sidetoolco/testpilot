@@ -13,15 +13,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce',
   },
   global: {
     headers: {
-      'x-application-name': 'testpilot'
-    }
+      'x-application-name': 'testpilot',
+    },
   },
   db: {
-    schema: 'public'
+    schema: 'public',
   },
   // Add retryable fetch with exponential backoff
   fetch: (url, options = {}) => {
@@ -34,44 +34,43 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
           ...options,
           headers: {
             ...options.headers,
-            'Cache-Control': 'no-cache'
-          }
+            'Cache-Control': 'no-cache',
+          },
         });
-        
+
         if (!response.ok && attempt < retries) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response;
       } catch (error) {
         if (attempt >= retries) throw error;
-        
+
         // Exponential backoff with jitter
-        const delay = Math.min(baseDelay * Math.pow(2, attempt), 5000) + 
-                     Math.random() * 1000;
+        const delay = Math.min(baseDelay * Math.pow(2, attempt), 5000) + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
-        
+
         return fetchWithRetry(attempt + 1);
       }
     };
 
     return fetchWithRetry();
-  }
+  },
 });
 
 // Add error handler
 supabase.handleError = (error: any) => {
   console.error('Supabase error:', error);
-  
+
   // Check if it's a network error
   if (error.message === 'Failed to fetch') {
     return new Error('Network error - please check your connection');
   }
-  
+
   // Check if it's an auth error
   if (error.status === 401) {
     supabase.auth.signOut();
     return new Error('Your session has expired - please sign in again');
   }
-  
+
   return error;
 };

@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useInsightStore } from "../../../hooks/useIaInsight";
+import { useState, useMemo } from 'react';
+import { useInsightStore } from '../../../hooks/useIaInsight';
 
 interface CompetitorProduct {
   product_url: string;
@@ -26,21 +26,17 @@ interface CompetitiveInsightsProps {
 }
 
 const getColorClass = (value: number): string => {
-  if (value > 0) return "bg-green-100";
-  if (value < 0) return "bg-red-100";
-  return "bg-yellow-100";
+  if (value > 0) return 'bg-green-100';
+  if (value < 0) return 'bg-red-100';
+  return 'bg-yellow-100';
 };
 
 const renderCell = (value: number, count: number, isProductCell: boolean) => {
   if (count === 0) return <td className={`border border-gray-300 p-2`}>-</td>;
   const diff = value;
   return (
-    <td
-      className={`border border-gray-300 p-2 ${
-        isProductCell ? "" : getColorClass(diff)
-      }`}
-    >
-      {isProductCell ? "—" : diff > 3 ? (diff / 3).toFixed(1) : diff}
+    <td className={`border border-gray-300 p-2 ${isProductCell ? '' : getColorClass(diff)}`}>
+      {isProductCell ? '—' : diff > 3 ? (diff / 3).toFixed(1) : diff}
     </td>
   );
 };
@@ -52,21 +48,19 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 }) => {
   if (!competitiveinsights || competitiveinsights.length === 0) return null;
 
-  const [selectedVariant, setSelectedVariant] = useState("a");
+  const [selectedVariant, setSelectedVariant] = useState('a');
   const { insight } = useInsightStore();
 
   const shareOfBuy = sumaryvariations.find((variation: any) =>
-    variation.title.includes("Variant " + selectedVariant.toUpperCase())
+    variation.title.includes('Variant ' + selectedVariant.toUpperCase())
   )?.shareOfBuy;
-  const filteredVariant = variants.find(
-    (variant: any) => variant.variant_type === selectedVariant
-  );
+  const filteredVariant = variants.find((variant: any) => variant.variant_type === selectedVariant);
   filteredVariant.share_of_buy = shareOfBuy;
 
   // 🔍 Filtrar datos por variant_type
   const filteredInsights = useMemo(() => {
     const filtered = competitiveinsights
-      .filter((item) => item.variant_type === selectedVariant)
+      .filter(item => item.variant_type === selectedVariant)
       .sort((a, b) => b.share_of_buy - a.share_of_buy);
 
     return [filteredVariant, ...filtered];
@@ -76,22 +70,20 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
-      <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">
-        Competitive Insights
-      </h2>
+      <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>
 
       <div className="mb-6 flex items-center justify-center space-x-3">
-        {[...new Set(competitiveinsights.map((item) => item.variant_type))]
+        {[...new Set(competitiveinsights.map(item => item.variant_type))]
           .sort() // Sort variants alphabetically (a, b, c)
-          .map((variant) => (
+          .map(variant => (
             <button
               key={`variant-btn-${variant}`}
               onClick={() => setSelectedVariant(variant)}
               className={`px-6 py-2 rounded font-medium transition-colors
                   ${
                     selectedVariant === variant
-                      ? "bg-green-500 text-white hover:bg-green-600" // Selected variant in green
-                      : "bg-green-200 text-black hover:bg-gray-400" // Other available variants in light gray
+                      ? 'bg-green-500 text-white hover:bg-green-600' // Selected variant in green
+                      : 'bg-green-200 text-black hover:bg-gray-400' // Other available variants in light gray
                   }`}
             >
               Variant {variant.toUpperCase()}
@@ -99,9 +91,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           ))}
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        {insight.competitive_insights}
-      </div>
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">{insight.competitive_insights}</div>
 
       {filteredInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
@@ -116,18 +106,15 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             </tr>
             <tr className="bg-gray-100">
               {[
-                "Product",
-                "Share of Buy",
-                "Value",
-                "Aesthetics",
-                "Utility",
-                "Trust",
-                "Convenience",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="border border-gray-300 p-2 text-left"
-                >
+                'Product',
+                'Share of Buy',
+                'Value',
+                'Aesthetics',
+                'Utility',
+                'Trust',
+                'Convenience',
+              ].map(header => (
+                <th key={header} className="border border-gray-300 p-2 text-left">
                   {header}
                 </th>
               ))}
@@ -142,7 +129,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                       href={
                         item.competitor_product_id?.product_url
                           ? item.competitor_product_id.product_url
-                          : "x"
+                          : 'x'
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -183,8 +170,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                             : item.product.title
                           ).slice(0, 40)}...`
                         : item.competitor_product_id?.title
-                        ? item.competitor_product_id.title
-                        : item.product.title}
+                          ? item.competitor_product_id.title
+                          : item.product.title}
                     </div>
 
                     {/* Highlight when count is exactly 1 */}
@@ -200,7 +187,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                 </td>
 
                 <td className={`border border-gray-300 p-2`}>
-                  {item.count > 0 ? `${item.share_of_buy}%` : "-"}
+                  {item.count > 0 ? `${item.share_of_buy}%` : '-'}
                 </td>
                 {renderCell(Number(item.value), item.count, !!item.product)}
                 {renderCell(
@@ -213,16 +200,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   item.count,
                   !!item.product
                 )}
-                {renderCell(
-                  Number(item.trust || item.brand || 0),
-                  item.count,
-                  !!item.product
-                )}
-                {renderCell(
-                  Number(item.convenience || 0),
-                  item.count,
-                  !!item.product
-                )}
+                {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
+                {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
               </tr>
             ))}
           </tbody>

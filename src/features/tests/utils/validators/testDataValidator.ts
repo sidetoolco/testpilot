@@ -39,19 +39,19 @@ export function validateTestData(testData: TestData): ValidationResult {
     // Validate demographics
     if (testData?.demographics) {
       const { ageRanges, gender, locations, testerCount } = testData.demographics;
-      
+
       if (!Array.isArray(ageRanges) || ageRanges.length === 0) {
         errors.push('At least one age range is required');
       }
-      
+
       if (!Array.isArray(gender) || gender.length === 0) {
         errors.push('At least one gender selection is required');
       }
-      
+
       if (!Array.isArray(locations) || locations.length === 0) {
         errors.push('At least one location is required');
       }
-      
+
       if (!testerCount || testerCount < 10) {
         errors.push('Minimum 10 testers required');
       }
@@ -71,13 +71,13 @@ export function validateTestData(testData: TestData): ValidationResult {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   } catch (error) {
     console.error('Test validation error:', error);
     return {
       isValid: false,
-      errors: ['An unexpected error occurred during validation']
+      errors: ['An unexpected error occurred during validation'],
     };
   }
 }

@@ -9,14 +9,16 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
     <div className="overflow-y-auto pb-10">
       <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Test Configuration</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">
+            Test Configuration
+          </h3>
           <div className="space-y-6">
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Search Term</div>
-              <div className="text-gray-900 text-lg font-medium bg-gray-50 p-3 rounded-lg">{test.searchTerm}</div>
+              <div className="text-gray-900 text-lg font-medium bg-gray-50 p-3 rounded-lg">
+                {test.searchTerm}
+              </div>
             </div>
-
-
           </div>
         </div>
 
@@ -27,7 +29,10 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
               <div className="text-sm font-medium text-gray-600 mb-2">Age Ranges</div>
               <div className="flex flex-wrap gap-2">
                 {test.demographics.ageRanges.map((age, index) => (
-                  <span key={index} className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200">
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200"
+                  >
                     {age}
                   </span>
                 ))}
@@ -38,7 +43,10 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
               <div className="text-sm font-medium text-gray-600 mb-2">Gender</div>
               <div className="flex flex-wrap gap-2">
                 {test.demographics.gender.map((g, index) => (
-                  <span key={index} className="px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-100 transition-colors duration-200">
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-100 transition-colors duration-200"
+                  >
                     {g}
                   </span>
                 ))}
@@ -49,7 +57,10 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
               <div className="text-sm font-medium text-gray-600 mb-2">Locations</div>
               <div className="flex flex-wrap gap-2">
                 {test.demographics.locations.map((location, index) => (
-                  <span key={index} className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium hover:bg-green-100 transition-colors duration-200">
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium hover:bg-green-100 transition-colors duration-200"
+                  >
                     {location}
                   </span>
                 ))}
@@ -64,31 +75,46 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Image
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Name
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Price
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {Object.values(test.variations).filter(v => v !== null).map((variation, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <img src={variation.image_url} alt={variation.title} className="w-16 h-16 object-contain rounded-md" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{variation.title}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${variation.price}</div>
-                    </td>
-                  </tr>
-                ))}
+                {Object.values(test.variations)
+                  .filter(v => v !== null)
+                  .map((variation, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <img
+                          src={variation.image_url}
+                          alt={variation.title}
+                          className="w-16 h-16 object-contain rounded-md"
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{variation.title}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">${variation.price}</div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -100,13 +126,22 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Image
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Name
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Price
                   </th>
                 </tr>
@@ -115,7 +150,11 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                 {test.competitors.map((competitor, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <img src={competitor.image_url} alt={competitor.title} className="w-16 h-16 object-contain rounded-md" />
+                      <img
+                        src={competitor.image_url}
+                        alt={competitor.title}
+                        className="w-16 h-16 object-contain rounded-md"
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{competitor.title}</div>

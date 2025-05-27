@@ -9,17 +9,13 @@ interface ProductGridProps {
 export default function ProductGrid({ products }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {products.map((product) => (
+      {products.map(product => (
         <div
           key={product.id}
           className="bg-white p-4 border border-gray-200 rounded hover:shadow-lg transition-shadow"
         >
           <div className="aspect-square mb-4 relative">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full object-contain"
-            />
+            <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
             {product.bestSeller && (
               <div className="absolute top-2 left-2 bg-[#e67a00] text-white text-xs px-2 py-1 rounded">
                 #1 Best Seller
@@ -39,14 +35,15 @@ export default function ProductGrid({ products }: ProductGridProps) {
                 return (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${isFullStar
-                      ? 'text-[#dd8433] fill-[#dd8433]'
-                      : isHalfStar
-                        ? 'text-[#dd8433] fill-current'
-                        : 'text-gray-200 fill-gray-200'
-                      }`}
+                    className={`h-4 w-4 ${
+                      isFullStar
+                        ? 'text-[#dd8433] fill-[#dd8433]'
+                        : isHalfStar
+                          ? 'text-[#dd8433] fill-current'
+                          : 'text-gray-200 fill-gray-200'
+                    }`}
                     style={{
-                      clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                      clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
                     }}
                   />
                 );
@@ -60,9 +57,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           <div className="flex items-baseline mb-2">
             <span className="text-sm">US$</span>
             <span className="text-lg font-medium">{Math.floor(product.price)}</span>
-            <span className="text-sm">
-              {(product.price % 1).toFixed(2).substring(1)}
-            </span>
+            <span className="text-sm">{(product.price % 1).toFixed(2).substring(1)}</span>
           </div>
 
           <div className="flex items-center text-xs text-[#007185] space-x-1">

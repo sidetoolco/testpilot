@@ -11,7 +11,7 @@ interface ProductGridProps {
 export default function ProductGrid({ products, onEdit, onDelete }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {products.map((product) => (
+      {products.map(product => (
         <motion.div
           key={product.id}
           whileHover={{ y: -4 }}
@@ -49,28 +49,27 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
-                  const fullStars = Math.round(product.rating || 5)
+                  const fullStars = Math.round(product.rating || 5);
                   const isFullStar = i < fullStars;
                   const isHalfStar = !isFullStar && i < product.rating;
                   return (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${isFullStar
-                        ? 'text-[#dd8433] fill-[#dd8433]'
-                        : isHalfStar
-                          ? 'text-[#dd8433] fill-current'
-                          : 'text-gray-200 fill-gray-200'
-                        }`}
+                      className={`h-4 w-4 ${
+                        isFullStar
+                          ? 'text-[#dd8433] fill-[#dd8433]'
+                          : isHalfStar
+                            ? 'text-[#dd8433] fill-current'
+                            : 'text-gray-200 fill-gray-200'
+                      }`}
                       style={{
-                        clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
+                        clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
                       }}
                     />
                   );
                 })}
               </div>
-              <span className="text-sm text-gray-500">
-                ({product.reviews_count})
-              </span>
+              <span className="text-sm text-gray-500">({product.reviews_count})</span>
             </div>
 
             <div className="flex items-center justify-between">

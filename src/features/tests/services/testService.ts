@@ -31,7 +31,9 @@ export const testService = {
         throw new TestCreationError('Validation failed', { errors: validation.errors });
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new TestCreationError('Not authenticated');
       }
@@ -66,7 +68,7 @@ export const testService = {
       await this.insertDemographics(test.id, testData.demographics);
 
       // Step 6: Guardar custom screening questions (if applicable)
-      if(testData.demographics.customScreening.enabled) {
+      if (testData.demographics.customScreening.enabled) {
         await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
       }
 
@@ -74,7 +76,6 @@ export const testService = {
       await this.createProlificProjectsForVariations(test, testData);
 
       return test;
-
     } catch (error) {
       console.error('Test creation error:', error);
 
@@ -100,7 +101,7 @@ export const testService = {
         company_id: companyId,
         user_id: userId,
         settings: {},
-        objective: testData.objective
+        objective: testData.objective,
       })
       .select()
       .single();
@@ -112,10 +113,10 @@ export const testService = {
     return test;
   },
 
-  async saveAmazonProducts(testId: string, products: any[])  {
+  async saveAmazonProducts(testId: string, products: any[]) {
     try {
-      await apiClient.post(`/amazon/products/${testId}`, { products })
-    } catch(error) {
+      await apiClient.post(`/amazon/products/${testId}`, { products });
+    } catch (error) {
       console.error(error);
       throw new TestCreationError('Failed to save competitors', { error });
     }
@@ -125,13 +126,11 @@ export const testService = {
   async insertVariations(testId: string, variations: TestData['variations']) {
     for (const [type, variation] of Object.entries(variations)) {
       if (variation) {
-        const { error } = await supabase
-          .from('test_variations')
-          .insert({
-            test_id: testId,
-            product_id: variation.id,
-            variation_type: type
-          } as any);
+        const { error } = await supabase.from('test_variations').insert({
+          test_id: testId,
+          product_id: variation.id,
+          variation_type: type,
+        } as any);
 
         if (error) {
           await supabase.from('tests').delete().eq('id', testId);
@@ -141,18 +140,15 @@ export const testService = {
     }
   },
 
-  async saveCustomScreeningQuestion(
-    testId: string,
-    customScreening: CustomScreening
-  ) {
+  async saveCustomScreeningQuestion(testId: string, customScreening: CustomScreening) {
     const { error } = await supabase.from('custom_screening').insert({
       test_id: testId,
       question: customScreening.question,
       valid_option: customScreening.validAnswer,
-      invalid_option: customScreening.validAnswer === 'Yes' ? 'No' : 'Yes'
+      invalid_option: customScreening.validAnswer === 'Yes' ? 'No' : 'Yes',
     } as any);
 
-    if(error) {
+    if (error) {
       await supabase.from('tests').delete().eq('id', testId);
       throw new TestCreationError('Failed to save custom screening question', { error });
     }
@@ -160,16 +156,14 @@ export const testService = {
 
   // Función para insertar datos demográficos
   async insertDemographics(testId: string, demographics: TestData['demographics']) {
-    const { error } = await supabase
-      .from('test_demographics')
-      .insert({
-        test_id: testId,
-        age_ranges: demographics.ageRanges,
-        genders: demographics.gender,
-        locations: demographics.locations,
-        interests: demographics.interests,
-        tester_count: demographics.testerCount
-      } as any);
+    const { error } = await supabase.from('test_demographics').insert({
+      test_id: testId,
+      age_ranges: demographics.ageRanges,
+      genders: demographics.gender,
+      locations: demographics.locations,
+      interests: demographics.interests,
+      tester_count: demographics.testerCount,
+    } as any);
 
     if (error) {
       await supabase.from('tests').delete().eq('id', testId);
@@ -191,31 +185,32 @@ export const testService = {
           targetNumberOfParticipants: testData.demographics.testerCount,
           externalResearcher: {
             researcherId: test.company_id,
-            researcherName: 'Company Researcher'
+            researcherName: 'Company Researcher',
           },
           demographics: {
             ageRanges: testData.demographics.ageRanges,
-            genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
+            genders: Array.isArray(testData.demographics.gender)
+              ? testData.demographics.gender[0]
+              : testData.demographics.gender,
             locations: testData.demographics.locations,
-            interests: testData.demographics.interests
-          }
+            interests: testData.demographics.interests,
+          },
         };
 
         try {
           const response = await fetch('https://testpilot.app.n8n.cloud/webhook/prolific-create', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(respondentProjectData),
-            mode: 'no-cors'
+            mode: 'no-cors',
           });
 
           console.log(`Response status for variation ${variationType}:`, response.status);
 
           const responseData = await response.json();
           console.log(`Response data for variation ${variationType}:`, responseData);
-
         } catch (error) {
           console.error(`Prolific integration failed for variation ${variationType}:`, error);
         } finally {
@@ -226,7 +221,9 @@ export const testService = {
   },
   async getAllTests(): Promise<TestResponse[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new TestCreationError('Not authenticated');
       }
@@ -250,7 +247,8 @@ export const testService = {
       // Fetch all tests with their relationships
       const { data: tests, error: testsError } = await supabase
         .from('tests')
-        .select(`
+        .select(
+          `
          *,
           competitors:test_competitors(
           product:amazon_products(
@@ -264,7 +262,8 @@ export const testService = {
           variation_type
               ),
               demographics:test_demographics(*)
-        `)
+        `
+        )
         .order('created_at', { ascending: false });
 
       if (testsError) {
@@ -281,5 +280,5 @@ export const testService = {
       }
       throw error;
     }
-  }
+  },
 };

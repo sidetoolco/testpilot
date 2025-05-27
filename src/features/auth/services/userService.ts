@@ -3,11 +3,7 @@ import { UserProfile } from '../types';
 
 export const userService = {
   async getProfile(userId: string): Promise<UserProfile> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
 
     if (error) throw error;
     return data;
@@ -18,7 +14,7 @@ export const userService = {
       .from('users')
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
       .select()
@@ -26,5 +22,5 @@ export const userService = {
 
     if (error) throw error;
     return data;
-  }
+  },
 };

@@ -1,6 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 // Validation schemas
 const productSchema = z.object({
@@ -9,19 +9,19 @@ const productSchema = z.object({
   rating: z.number().min(0).max(5).optional(),
   reviews_count: z.number().min(0).optional(),
   image_url: z.string().url(),
-  product_url: z.string().url().optional()
+  product_url: z.string().url().optional(),
 });
 
 const requestSchema = z.object({
   searchTerm: z.string().min(1).max(200),
-  companyId: z.string().uuid()
+  companyId: z.string().uuid(),
 });
 
-serve(async (req) => {
+serve(async req => {
   try {
     // Parse and validate request
     const { searchTerm, companyId } = requestSchema.parse(await req.json());
-    
+
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -38,10 +38,9 @@ serve(async (req) => {
       .limit(20);
 
     if (cachedProducts?.length) {
-      return new Response(
-        JSON.stringify({ products: cachedProducts }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ products: cachedProducts }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // If no cache, fetch from Scraper API
@@ -52,7 +51,7 @@ serve(async (req) => {
       api_key: SCRAPER_API_KEY ?? '',
       search_term: searchTerm,
       country: 'US',
-      max_page: '2'
+      max_page: '2',
     });
 
     const response = await fetch(`${SCRAPER_API_URL}?${params}`);
@@ -61,7 +60,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
+
     // Validate and transform products
     const products = data.results
       .slice(0, 20)
@@ -73,7 +72,7 @@ serve(async (req) => {
         image_url: product.image,
         product_url: product.url,
         search_term: searchTerm,
-        company_id: companyId
+        company_id: companyId,
       }))
       .filter(product => {
         try {
@@ -90,29 +89,25 @@ serve(async (req) => {
     }
 
     // Cache the results
-    await supabaseClient
-      .from('amazon_products')
-      .upsert(products, {
-        onConflict: 'id',
-        ignoreDuplicates: false
-      });
+    await supabaseClient.from('amazon_products').upsert(products, {
+      onConflict: 'id',
+      ignoreDuplicates: false,
+    });
 
-    return new Response(
-      JSON.stringify({ products }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-
+    return new Response(JSON.stringify({ products }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Search function error:', error);
-    
+
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : 'An unexpected error occurred',
-        status: 500
-      }),
-      { 
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

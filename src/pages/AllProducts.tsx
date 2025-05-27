@@ -13,13 +13,16 @@ export default function AllProducts() {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { products, loading, fetchProducts, addProduct, updateProduct, deleteProduct } = useProductStore();
+  const { products, loading, fetchProducts, addProduct, updateProduct, deleteProduct } =
+    useProductStore();
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleSubmit = async (productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+  const handleSubmit = async (
+    productData: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
     try {
       if (editProduct) {
         await updateProduct(editProduct.id!, productData);
@@ -43,9 +46,10 @@ export default function AllProducts() {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(
+    product =>
+      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -55,10 +59,7 @@ export default function AllProducts() {
         onConnectShopify={() => setShowComingSoon(true)}
       />
 
-      <ProductSearch
-        value={searchTerm}
-        onChange={setSearchTerm}
-      />
+      <ProductSearch value={searchTerm} onChange={setSearchTerm} />
 
       {loading ? (
         <div className="-mx-8 text-center py-12">
@@ -66,11 +67,7 @@ export default function AllProducts() {
           <p className="mt-4 text-gray-600">Loading products...</p>
         </div>
       ) : (
-        <ProductGrid
-          products={filteredProducts}
-          onEdit={setEditProduct}
-          onDelete={handleDelete}
-        />
+        <ProductGrid products={filteredProducts} onEdit={setEditProduct} onDelete={handleDelete} />
       )}
 
       <ProductModal

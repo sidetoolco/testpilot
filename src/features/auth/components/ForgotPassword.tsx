@@ -40,10 +40,7 @@ export default function ForgotPassword() {
           <div className="mb-4 text-sm text-green-600 bg-green-50 p-4 rounded-xl">
             Check your email for password reset instructions.
           </div>
-          <Link
-            to="/login"
-            className="text-[#00A67E] hover:text-[#008F6B] font-medium"
-          >
+          <Link to="/login" className="text-[#00A67E] hover:text-[#008F6B] font-medium">
             Return to login
           </Link>
         </div>
@@ -68,17 +65,10 @@ export default function ForgotPassword() {
             </div>
           </div>
 
-          <AuthButton
-            loading={loading}
-            label="Send reset instructions"
-            loadingLabel="Sending..."
-          />
+          <AuthButton loading={loading} label="Send reset instructions" loadingLabel="Sending..." />
 
           <div className="text-center">
-            <Link
-              to="/login"
-              className="text-sm text-[#00A67E] hover:text-[#008F6B] font-medium"
-            >
+            <Link to="/login" className="text-sm text-[#00A67E] hover:text-[#008F6B] font-medium">
               Back to login
             </Link>
           </div>

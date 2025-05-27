@@ -37,9 +37,7 @@ export function PriceCalculator({ testerCount, variantCount }: PriceCalculatorPr
             <DollarSign className="h-5 w-5 text-[#00A67E]" />
             <span className="text-2xl font-semibold">{totalPrice.toLocaleString()}</span>
           </div>
-          <div className="text-sm text-gray-500 mt-1">
-            ${PRICE_PER_TESTER} per tester
-          </div>
+          <div className="text-sm text-gray-500 mt-1">${PRICE_PER_TESTER} per tester</div>
         </div>
       </div>
     </div>

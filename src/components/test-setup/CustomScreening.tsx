@@ -1,14 +1,11 @@
-import { CustomScreening as CustomScreeningInterface } from "../../features/tests/types";
+import { CustomScreening as CustomScreeningInterface } from '../../features/tests/types';
 
 interface CustomScreeningProps {
   onChange: (payload: CustomScreeningInterface) => void;
   value: CustomScreeningInterface;
 }
 
-export default function CustomScreening({
-  onChange,
-  value,
-}: CustomScreeningProps) {
+export default function CustomScreening({ onChange, value }: CustomScreeningProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -16,12 +13,12 @@ export default function CustomScreening({
         <button
           onClick={() => onChange({ ...value, enabled: !value.enabled })}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:ring-offset-2 ${
-            value.enabled ? "bg-[#00A67E]" : "bg-gray-200"
+            value.enabled ? 'bg-[#00A67E]' : 'bg-gray-200'
           }`}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              value.enabled ? "translate-x-6" : "translate-x-1"
+              value.enabled ? 'translate-x-6' : 'translate-x-1'
             }`}
           />
         </button>
@@ -46,17 +43,12 @@ export default function CustomScreening({
             <div>
               <h5 className="font-medium text-green-800 mb-2">Tips</h5>
               <ul className="text-sm text-green-800 space-y-1 list-disc pl-4">
+                <li>Keep questions simple and factual (pet ownership, diet, product use).</li>
                 <li>
-                  Keep questions simple and factual (pet ownership, diet,
-                  product use).
+                  Avoid questions so narrow that fewer than about 5% of testers qualify — your study
+                  may stall.
                 </li>
-                <li>
-                  Avoid questions so narrow that fewer than about 5% of testers
-                  qualify — your study may stall.
-                </li>
-                <li>
-                  When unsure, start broad ("pet owners") and narrow later.
-                </li>
+                <li>When unsure, start broad ("pet owners") and narrow later.</li>
               </ul>
             </div>
 
@@ -74,10 +66,8 @@ export default function CustomScreening({
               </label>
               <input
                 type="text"
-                value={value.question || ""}
-                onChange={(e) =>
-                  onChange({ ...value, question: e.target.value })
-                }
+                value={value.question || ''}
+                onChange={e => onChange({ ...value, question: e.target.value })}
                 placeholder="e.g., Do you use cleaning products regularly?"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-all"
               />
@@ -88,19 +78,19 @@ export default function CustomScreening({
                 Keep testers who answer
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {["Yes", "No"].map((option) => (
+                {['Yes', 'No'].map(option => (
                   <button
                     key={option}
                     onClick={() =>
                       onChange({
                         ...value,
-                        validAnswer: option as "Yes" | "No",
+                        validAnswer: option as 'Yes' | 'No',
                       })
                     }
                     className={`p-4 rounded-xl border-2 transition-all ${
                       value.validAnswer === option
-                        ? "border-[#00A67E] bg-[#00A67E]/5"
-                        : "border-gray-200 hover:border-[#00A67E]/30"
+                        ? 'border-[#00A67E] bg-[#00A67E]/5'
+                        : 'border-gray-200 hover:border-[#00A67E]/30'
                     }`}
                   >
                     {option}

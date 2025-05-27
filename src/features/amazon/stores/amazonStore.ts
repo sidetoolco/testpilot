@@ -9,7 +9,7 @@ interface AmazonStore {
   searchProducts: (searchTerm: string, companyId: string) => Promise<void>;
 }
 
-export const useAmazonStore = create<AmazonStore>((set) => ({
+export const useAmazonStore = create<AmazonStore>(set => ({
   products: [],
   loading: false,
   error: null,
@@ -25,5 +25,5 @@ export const useAmazonStore = create<AmazonStore>((set) => ({
       toast.error(errorMessage);
       throw error;
     }
-  }
+  },
 }));

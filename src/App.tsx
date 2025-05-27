@@ -36,12 +36,12 @@ function App() {
       setUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -93,14 +93,18 @@ function App() {
               <Route path="/thanks" element={
                 <ThankYou />
               } />
+              
               {/* detalle testing */}
-              <Route path="/tests/:id" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <TestDetail />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/tests/:id"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TestDetail />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Auth Routes */}
               <Route path="/login" element={<LoginForm />} />
@@ -111,29 +115,38 @@ function App() {
               {/* Protected Routes */}
               <Route path="/" element={<Navigate to="/my-tests" replace />} />
 
-              <Route path="/my-tests" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <MyTests />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/my-tests"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <MyTests />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-              <Route path="/all-products" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <AllProducts />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/all-products"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AllProducts />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-              <Route path="/create-test" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <CreateConsumerTest />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/create-test"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <CreateConsumerTest />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
             </Routes>

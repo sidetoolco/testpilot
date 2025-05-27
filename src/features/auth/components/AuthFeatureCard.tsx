@@ -17,7 +17,7 @@ export default function AuthFeatureCard({ title, subtitle, features }: AuthFeatu
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 text-white">
       <div className="mb-8">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -25,7 +25,7 @@ export default function AuthFeatureCard({ title, subtitle, features }: AuthFeatu
         >
           {title}
         </motion.h2>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
@@ -34,14 +34,14 @@ export default function AuthFeatureCard({ title, subtitle, features }: AuthFeatu
           {subtitle}
         </motion.p>
       </div>
-      
+
       <div className="space-y-6">
         {features.map((feature, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 + (index * 0.1) }}
+            transition={{ delay: 0.2 + index * 0.1 }}
             className="flex items-start space-x-4 bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors"
           >
             <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">

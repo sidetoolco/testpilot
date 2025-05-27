@@ -24,7 +24,7 @@ export default function AuthLayout({ children, title, subtitle, rightPanel }: Au
       </div>
 
       {/* Right Panel */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
@@ -32,14 +32,12 @@ export default function AuthLayout({ children, title, subtitle, rightPanel }: Au
         style={{
           backgroundImage: 'url(/assets/signup_background.png)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
         }}
       >
         <div className="absolute inset-0 bg-[#00A67E] bg-opacity-75" />
         <div className="relative h-full flex items-center justify-center p-12">
-          <div className="max-w-lg text-white">
-            {rightPanel}
-          </div>
+          <div className="max-w-lg text-white">{rightPanel}</div>
         </div>
       </motion.div>
     </div>

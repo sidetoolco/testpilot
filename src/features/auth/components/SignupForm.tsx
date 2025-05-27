@@ -41,7 +41,7 @@ export default function SignupForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
-            <img 
+            <img
               src="/assets/images/testPilot-black.png"
               alt="TestPilot"
               className="h-12 mx-auto"
@@ -120,26 +120,18 @@ export default function SignupForm() {
                 placeholder="••••••••"
               />
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">
-              Must be at least 8 characters
-            </p>
+            <p className="mt-1.5 text-xs text-gray-500">Must be at least 8 characters</p>
           </div>
         </div>
 
-        <AuthButton
-          loading={loading}
-          label="Create account"
-          loadingLabel="Creating account..."
-        />
+        <AuthButton loading={loading} label="Create account" loadingLabel="Creating account..." />
 
         <div className="relative text-center">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative">
-            <span className="px-2 text-sm text-gray-500 bg-white">
-              Already have an account?
-            </span>
+            <span className="px-2 text-sm text-gray-500 bg-white">Already have an account?</span>
           </div>
         </div>
 
