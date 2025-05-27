@@ -20,6 +20,7 @@ import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
 import TestQuestions from './pages/TestQuestions';
+import QuestionDetail from './pages/QuestionDetail';
 import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
@@ -85,6 +86,9 @@ function App() {
               } />
               <Route path="/questions" element={
                 <TestQuestions />
+              } />
+              <Route path="/questions/:id" element={
+                <QuestionDetail />
               } />
               <Route path="/thanks" element={
                 <ThankYou />
