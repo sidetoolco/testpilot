@@ -19,12 +19,8 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         {/* Results Count */}
         <div className="bg-white p-4 mb-4 rounded-sm">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-[#565959]">
-              {products.length} results for
-            </span>
-            <span className="text-sm font-bold text-[#0F1111]">
-              "{searchTerm}"
-            </span>
+            <span className="text-sm text-[#565959]">{products.length} results for</span>
+            <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
         </div>
 

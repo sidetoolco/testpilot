@@ -1,5 +1,5 @@
-import { RangeInput } from "../RangeInputWithText";
-import { ProductCard } from "./ProductCard";
+import { RangeInput } from '../RangeInputWithText';
+import { ProductCard } from './ProductCard';
 
 interface ComparisonViewProps {
   responses: any;
@@ -18,7 +18,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   handleChange,
   handleSubmit,
   errors,
-  loading
+  loading,
 }) => (
   <div className="flex flex-col items-center justify-center w-full p-6">
     <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-2xl">
@@ -36,61 +36,37 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       </div>
     </div>
     <div className="questions space-y-4 w-full max-w-2xl mt-4">
-      <p className="font-medium">
-        Compared to Item B, how would you rate the value of Item A?
-      </p>
-      <RangeInput
-        name="value"
-        value={responses.value}
-        onChange={handleChange}
-      />
+      <p className="font-medium">Compared to Item B, how would you rate the value of Item A?</p>
+      <RangeInput name="value" value={responses.value} onChange={handleChange} />
 
       <p className="font-medium">
-        Compared to Item B, how would you rate the design and appearance of Item
-        A?
+        Compared to Item B, how would you rate the design and appearance of Item A?
       </p>
-      <RangeInput
-        name="appearence"
-        value={responses.appearence}
-        onChange={handleChange}
-      />
+      <RangeInput name="appearence" value={responses.appearence} onChange={handleChange} />
 
       <p className="font-medium">
-        Compared to Item B, how would you rate your confidence that Item A will
-        deliver the promised results?
+        Compared to Item B, how would you rate your confidence that Item A will deliver the promised
+        results?
       </p>
-      <RangeInput
-        name="confidence"
-        value={responses.confidence}
-        onChange={handleChange}
-      />
+      <RangeInput name="confidence" value={responses.confidence} onChange={handleChange} />
 
       <p className="font-medium">
         Compared to Item B, how would you rate the convenience of Item A?
       </p>
-      <RangeInput
-        name="convenience"
-        value={responses.convenience}
-        onChange={handleChange}
-      />
+      <RangeInput name="convenience" value={responses.convenience} onChange={handleChange} />
 
       <p className="font-medium">
-        Compared to Item B, how would you rate your trust in the brand of Item
-        A?
+        Compared to Item B, how would you rate your trust in the brand of Item A?
       </p>
-      <RangeInput
-        name="brand"
-        value={responses.brand}
-        onChange={handleChange}
-      />
+      <RangeInput name="brand" value={responses.brand} onChange={handleChange} />
 
       <div>
         <p className="font-medium">What do you like most about Item B?</p>
         <textarea
           className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${
             errors.likes_most
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:ring-gray-500"
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="likes_most"
           onChange={handleChange}
@@ -98,9 +74,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
           required
         ></textarea>
         <div className="min-h-[20px]">
-          {errors.likes_most && (
-            <div className="text-red-500 text-sm">{errors.likes_most}</div>
-          )}
+          {errors.likes_most && <div className="text-red-500 text-sm">{errors.likes_most}</div>}
         </div>
       </div>
       <div>
@@ -108,8 +82,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         <textarea
           className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${
             errors.improve_suggestions
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:ring-gray-500"
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="improve_suggestions"
           onChange={handleChange}
@@ -118,9 +92,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         ></textarea>
         <div className="min-h-[20px]">
           {errors.improve_suggestions && (
-            <div className="text-red-500 text-sm">
-              {errors.improve_suggestions}
-            </div>
+            <div className="text-red-500 text-sm">{errors.improve_suggestions}</div>
           )}
         </div>
       </div>
@@ -129,8 +101,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         <textarea
           className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${
             errors.choose_reason
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:ring-gray-500"
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="choose_reason"
           onChange={handleChange}

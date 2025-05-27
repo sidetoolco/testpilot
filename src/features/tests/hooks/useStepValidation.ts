@@ -39,6 +39,6 @@ export const useStepValidation = (testData: TestData) => {
     currentStep,
     setCurrentStep,
     canProceed,
-    handleNext
+    handleNext,
   };
 };

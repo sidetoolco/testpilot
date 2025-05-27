@@ -1,13 +1,8 @@
-import React, { useCallback } from "react";
-import { Upload, X } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
-import { v4 as uuidv4 } from "uuid";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import React, { useCallback } from 'react';
+import { Upload, X } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface ImageUploadProps {
   images: string[];
@@ -15,11 +10,7 @@ interface ImageUploadProps {
   maxImages?: number;
 }
 
-export default function ImageUpload({
-  images,
-  onChange,
-  maxImages = 4,
-}: ImageUploadProps) {
+export default function ImageUpload({ images, onChange, maxImages = 4 }: ImageUploadProps) {
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files || []);
@@ -29,28 +20,23 @@ export default function ImageUpload({
         return;
       }
 
-      const uploadPromises = files.map(async (file) => {
+      const uploadPromises = files.map(async file => {
         const fileId = uuidv4();
 
-        const { error } = await supabase.storage
-          .from("product-images")
-          .upload(fileId, file);
+        const { error } = await supabase.storage.from('product-images').upload(fileId, file);
 
         if (error) {
           console.error(error);
           return null;
         }
 
-        const imageUrl = supabase.storage
-          .from("product-images")
-          .getPublicUrl(fileId).data.publicUrl;
+        const imageUrl = supabase.storage.from('product-images').getPublicUrl(fileId)
+          .data.publicUrl;
 
         return imageUrl;
       });
 
-      const uploadedUrls = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as string[];
+      const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
       onChange([...images, ...uploadedUrls]);
     },
     [images, onChange, maxImages]
@@ -76,7 +62,7 @@ export default function ImageUpload({
     <div className="space-y-4">
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="images" direction="horizontal">
-          {(provided) => (
+          {provided => (
             <div
               className="grid grid-cols-4 gap-4"
               ref={provided.innerRef}
@@ -84,7 +70,7 @@ export default function ImageUpload({
             >
               {images.map((image, index) => (
                 <Draggable key={image} draggableId={image} index={index}>
-                  {(provided) => (
+                  {provided => (
                     <div
                       className="relative aspect-square"
                       ref={provided.innerRef}
@@ -126,8 +112,7 @@ export default function ImageUpload({
         </Droppable>
       </DragDropContext>
       <p className="text-sm text-gray-500">
-        Upload up to {maxImages} product images. First image will be used as the
-        main product image.
+        Upload up to {maxImages} product images. First image will be used as the main product image.
       </p>
     </div>
   );

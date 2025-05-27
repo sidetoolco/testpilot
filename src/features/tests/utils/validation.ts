@@ -19,8 +19,8 @@ export const validateStep = (step: string, data: TestData): boolean => {
         data.demographics.gender.length > 0 &&
         data.demographics.locations.length > 0 &&
         data.demographics.testerCount >= 10 &&
-        data.demographics.testerCount <= 500 
-        // && data.demographics.interests.length > 0 
+        data.demographics.testerCount <= 500
+        // && data.demographics.interests.length > 0
       );
 
     case 'preview':

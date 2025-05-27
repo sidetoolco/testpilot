@@ -1,5 +1,5 @@
-import { TestObjective } from "../../../lib/enum";
-import { AmazonProduct } from "../../amazon/types";
+import { TestObjective } from '../../../lib/enum';
+import { AmazonProduct } from '../../amazon/types';
 
 export interface TestData {
   name: string;
@@ -35,5 +35,5 @@ export interface ProductValidationResult {
 export interface CustomScreening {
   enabled: boolean;
   question?: string;
-  validAnswer?: "Yes" | "No";
+  validAnswer?: 'Yes' | 'No';
 }

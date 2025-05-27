@@ -14,7 +14,9 @@ export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const { loading: authLoading } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'authenticating' | 'updating' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'authenticating' | 'updating' | 'success' | 'error'
+  >('idle');
   const [email, setEmail] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -48,7 +50,7 @@ export default function ResetPassword() {
       try {
         const { data, error } = await supabase.auth.setSession({
           access_token: tokens.access_token as string,
-          refresh_token: tokens.refresh_token as string
+          refresh_token: tokens.refresh_token as string,
         });
         if (error) {
           throw error;
@@ -106,10 +108,7 @@ export default function ResetPassword() {
 
   if (status === 'authenticating' || authLoading) {
     return (
-      <AuthLayout
-        title="Verifying link"
-        subtitle="Please wait while we verify your link"
-      >
+      <AuthLayout title="Verifying link" subtitle="Please wait while we verify your link">
         <div className="flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A67E]"></div>
         </div>
@@ -119,10 +118,7 @@ export default function ResetPassword() {
 
   if (status === 'error') {
     return (
-      <AuthLayout
-        title="Reset Password Failed"
-        subtitle="The link is invalid or has expired"
-      >
+      <AuthLayout title="Reset Password Failed" subtitle="The link is invalid or has expired">
         <div className="text-center">
           <p className="text-red-500 mb-4">{formError}</p>
           <button
@@ -138,10 +134,7 @@ export default function ResetPassword() {
 
   if (status === 'success') {
     return (
-      <AuthLayout
-        title="Password Updated"
-        subtitle="Your password has been successfully updated"
-      >
+      <AuthLayout title="Password Updated" subtitle="Your password has been successfully updated">
         <div className="text-center">
           <p className="text-green-500 mb-4">Redirecting to login...</p>
         </div>
@@ -150,15 +143,8 @@ export default function ResetPassword() {
   }
 
   return (
-    <AuthLayout
-      title="Reset Password"
-      subtitle="Enter your new password"
-    >
-      {email && (
-        <p className="text-center text-gray-600 mb-4">
-          Email: {email}
-        </p>
-      )}
+    <AuthLayout title="Reset Password" subtitle="Enter your new password">
+      {email && <p className="text-center text-gray-600 mb-4">Email: {email}</p>}
       <form onSubmit={handleSubmit} className="space-y-6">
         <AuthError error={formError} />
 
@@ -171,7 +157,7 @@ export default function ResetPassword() {
             <input
               id="password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               required
               minLength={8}
               disabled={isSubmitting}
@@ -190,7 +176,10 @@ export default function ResetPassword() {
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
             Confirm New Password
           </label>
           <div className="relative">
@@ -198,7 +187,7 @@ export default function ResetPassword() {
             <input
               id="confirmPassword"
               name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
+              type={showConfirmPassword ? 'text' : 'password'}
               required
               minLength={8}
               disabled={isSubmitting}
@@ -216,11 +205,7 @@ export default function ResetPassword() {
           </div>
         </div>
 
-        <AuthButton
-          loading={isSubmitting}
-          label="Update Password"
-          loadingLabel="Updating..."
-        />
+        <AuthButton loading={isSubmitting} label="Update Password" loadingLabel="Updating..." />
       </form>
     </AuthLayout>
   );

@@ -3,7 +3,12 @@ import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
-import { getSummaryData, checkIdInIaInsights, getAveragesurveys, getCompetitiveInsights } from './services/dataInsightService';
+import {
+  getSummaryData,
+  checkIdInIaInsights,
+  getAveragesurveys,
+  getCompetitiveInsights,
+} from './services/dataInsightService';
 import { useTestDetail } from '../../hooks/useTestDetail';
 import { useInsightStore } from '../../hooks/useIaInsight';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +30,7 @@ const TABS = [
   'purchase-drivers',
   'competitive-insights',
   'shopper-comments',
-  'recommendations'
+  'recommendations',
 ];
 
 const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
@@ -34,7 +39,10 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
     <div className="border-b border-gray-200 overflow-x-auto">
       <nav className="flex gap-1 min-w-max pb-1">
         {TABS.map(tab => {
-          const isDisabled = variantStatus === 'draft' && tab !== 'test-details' && user?.email !== "barb@testerson.com";
+          const isDisabled =
+            variantStatus === 'draft' &&
+            tab !== 'test-details' &&
+            user?.email !== 'barb@testerson.com';
           return (
             <button
               key={tab}
@@ -45,7 +53,7 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
                   : 'border-transparent hover:border-gray-300',
                 isDisabled && 'opacity-50 cursor-not-allowed'
               )}
-              onClick={() => !isDisabled && onTabChange(tab, user?.email || "")}
+              onClick={() => !isDisabled && onTabChange(tab, user?.email || '')}
               disabled={isDisabled}
             >
               {tab.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
@@ -93,7 +101,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
     const observerOptions = {
       root: document.getElementById('report-content'),
       rootMargin: '0px',
-      threshold: 0.5
+      threshold: 0.5,
     };
 
     const handleIntersect = (entries: IntersectionObserverEntry[]) => {
@@ -122,7 +130,12 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   }, [isPrinting]); // Add isPrinting to dependencies
 
   const handleTabChange = (tab: string, userEmail: string) => {
-    if (testInfo?.status === 'draft' && tab !== 'test-details' && userEmail !== "barb@testerson.com") return;
+    if (
+      testInfo?.status === 'draft' &&
+      tab !== 'test-details' &&
+      userEmail !== 'barb@testerson.com'
+    )
+      return;
     setActiveTab(tab);
     // Find and focus the content
     const element = document.getElementById(`content-${tab}`);
@@ -165,9 +178,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
                   Turning data into insights...
                 </p>
               ) : (
-                <p className="text-primary-500/50 text-sm font-medium">
-                  Loading test data...
-                </p>
+                <p className="text-primary-500/50 text-sm font-medium">Loading test data...</p>
               )}
             </div>
           </div>
@@ -229,4 +240,3 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 };
 
 export default Report;
-

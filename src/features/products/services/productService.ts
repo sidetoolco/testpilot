@@ -2,9 +2,11 @@ import { supabase } from '../../../lib/supabase';
 import { Product } from '../../../types';
 
 export const productService = {
-
   async getAuthenticatedUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) throw new Error('Not authenticated');
     return user;
   },
@@ -29,12 +31,14 @@ export const productService = {
 
     const { data, error } = await supabase
       .from('products')
-      .select(`
+      .select(
+        `
       *,
       companies (
         name
       )
-    `)
+    `
+      )
       .eq('company_id', companyId)
       .order('created_at', { ascending: false });
 
@@ -45,11 +49,10 @@ export const productService = {
       const { companies, ...rest } = product;
       return {
         ...rest,
-        brand: companies?.name || null
+        brand: companies?.name || null,
       };
     });
   },
-
 
   async addProduct(product: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
     const user = await this.getAuthenticatedUser();
@@ -70,7 +73,7 @@ export const productService = {
         is_competitor: product.isCompetitor || false,
         loads: product.loads || null,
         product_url: product.product_url || null,
-        company_id: companyId
+        company_id: companyId,
       } as any)
       .select()
       .single();
@@ -83,10 +86,12 @@ export const productService = {
     // Fetch the current product along with the company name
     const { data: productData, error: productError } = await supabase
       .from('products')
-      .select(`
+      .select(
+        `
         *,
         company:companies(name)
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -107,7 +112,7 @@ export const productService = {
         bullet_points: updates.bullet_points,
         loads: updates.loads,
         product_url: updates.product_url,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       } as any)
       .eq('id', id)
       .select()
@@ -121,16 +126,13 @@ export const productService = {
     // Add the brand to the returned data
     return {
       ...dataObject,
-      brand: productData.company?.name || null
+      brand: productData.company?.name || null,
     };
   },
 
   async deleteProduct(id: string) {
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('products').delete().eq('id', id);
 
     if (error) throw error;
-  }
+  },
 };

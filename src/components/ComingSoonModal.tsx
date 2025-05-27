@@ -9,7 +9,12 @@ interface ComingSoonModalProps {
   description?: string;
 }
 
-export default function ComingSoonModal({ isOpen, onClose, title, description }: ComingSoonModalProps) {
+export default function ComingSoonModal({
+  isOpen,
+  onClose,
+  title,
+  description,
+}: ComingSoonModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -25,11 +30,9 @@ export default function ComingSoonModal({ isOpen, onClose, title, description }:
             <Clock className="h-6 w-6 text-blue-500" />
           </div>
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900">
-              {title}
-            </h3>
+            <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -37,11 +40,7 @@ export default function ComingSoonModal({ isOpen, onClose, title, description }:
           </button>
         </div>
 
-        {description && (
-          <p className="text-gray-600 text-lg leading-relaxed mb-6">
-            {description}
-          </p>
-        )}
+        {description && <p className="text-gray-600 text-lg leading-relaxed mb-6">{description}</p>}
 
         <div className="bg-blue-50 rounded-xl p-4">
           <p className="text-blue-600 text-sm">

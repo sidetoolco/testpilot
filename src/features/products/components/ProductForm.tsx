@@ -23,7 +23,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     product_url: initialData?.product_url || '',
     rating: initialData?.rating || 5,
     reviews_count: initialData?.reviews_count,
-    id: initialData?.id || undefined
+    id: initialData?.id || undefined,
   });
 
   const [errors, setErrors] = useState({
@@ -37,7 +37,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     e.preventDefault();
 
     const newErrors = {
-      bulletPoints: formData.bullet_points.length < 5 || formData.bullet_points.some(point => !point?.trim()),
+      bulletPoints:
+        formData.bullet_points.length < 5 || formData.bullet_points.some(point => !point?.trim()),
       description: formData.description.length < 50,
     };
 
@@ -73,7 +74,10 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     }
 
     // Split bullet points on submit
-    const bulletPointsArray = formData.bullet_points.join('\n').split('\n').filter(point => point.trim() !== '');
+    const bulletPointsArray = formData.bullet_points
+      .join('\n')
+      .split('\n')
+      .filter(point => point.trim() !== '');
 
     const productData = {
       title: formData.title,
@@ -88,38 +92,33 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       product_url: formData.product_url,
       rating: formData.rating,
       reviews_count: numericReviewCount,
-      id: initialData?.id || undefined
+      id: initialData?.id || undefined,
     };
 
     setLoading(true);
 
     onSubmit(productData);
-
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Image Upload */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Images
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
         <ImageUpload
           images={formData.images}
-          onChange={(images) => setFormData({ ...formData, images })}
+          onChange={images => setFormData({ ...formData, images })}
           maxImages={4}
         />
       </div>
 
       {/* Product Name */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Name
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
         <input
           type="text"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          onChange={e => setFormData({ ...formData, title: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
           required
         />
@@ -127,12 +126,10 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <textarea
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
           className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
           rows={3}
         />
@@ -144,12 +141,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           About the product ( Enter 5 key points)
         </label>
         <div className="space-y-2">
-          {[0, 1, 2, 3, 4].map((index) => (
+          {[0, 1, 2, 3, 4].map(index => (
             <input
               key={index}
               type="text"
               value={formData.bullet_points[index] || ''}
-              onChange={(e) => {
+              onChange={e => {
                 const newBulletPoints = [...formData.bullet_points];
                 newBulletPoints[index] = e.target.value;
                 setFormData({ ...formData, bullet_points: newBulletPoints });
@@ -169,15 +166,13 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       {/* Price and Brand */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Price
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
           <input
             type="number"
             step="0.01"
             min="0.01"
             value={formData.price === undefined ? '' : formData.price}
-            onChange={(e) => {
+            onChange={e => {
               const inputValue = e.target.value;
               // Allow empty string or valid numbers
               if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
@@ -189,13 +184,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Number of Reviews
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
           <input
             type="number"
             value={formData.reviews_count === undefined ? '' : formData.reviews_count}
-            onChange={(e) => {
+            onChange={e => {
               const value = e.target.value;
               setFormData({
                 ...formData,
@@ -223,22 +216,22 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 min="0"
                 max="5"
                 value={formData.rating}
-                onChange={(e) => {
+                onChange={e => {
                   const newRating = parseFloat(e.target.value);
                   setFormData(prev => ({ ...prev, rating: newRating }));
                 }}
                 style={{
-                  background: `linear-gradient(to right, #22c55e ${(formData.rating/5)*100}%, #e5e7eb ${(formData.rating/5)*100}%)`
+                  background: `linear-gradient(to right, #22c55e ${(formData.rating / 5) * 100}%, #e5e7eb ${(formData.rating / 5) * 100}%)`,
                 }}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-green-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
                 required
               />
             </div>
-            <span className="ml-2 text-sm text-gray-700 min-w-[2.5rem]">{formData.rating.toFixed(1)}</span>
+            <span className="ml-2 text-sm text-gray-700 min-w-[2.5rem]">
+              {formData.rating.toFixed(1)}
+            </span>
           </div>
         </div>
-
-
       </div>
 
       {/* Form Actions */}
@@ -258,13 +251,33 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         >
           {loading ? (
             <>
-              <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-5 w-5 text-white mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Saving...
             </>
-          ) : initialData ? 'Update Product' : 'Add Product'}
+          ) : initialData ? (
+            'Update Product'
+          ) : (
+            'Add Product'
+          )}
         </button>
       </div>
     </form>

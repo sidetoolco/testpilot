@@ -7,7 +7,11 @@ interface TestTitleInputProps {
   onChange: (value: string) => void;
 }
 
-export default function TestTitleInput({ testId, initialValue = '', onChange }: TestTitleInputProps) {
+export default function TestTitleInput({
+  testId,
+  initialValue = '',
+  onChange,
+}: TestTitleInputProps) {
   const [title, setTitle] = useState(initialValue);
 
   useEffect(() => {
@@ -37,10 +41,7 @@ export default function TestTitleInput({ testId, initialValue = '', onChange }: 
 
     if (testId) {
       // Update test title in database if testId is provided
-      await supabase
-        .from('test_sessions')
-        .update({ name: newTitle })
-        .eq('id', testId);
+      await supabase.from('test_sessions').update({ name: newTitle }).eq('id', testId);
     }
   };
 

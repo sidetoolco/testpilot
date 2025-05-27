@@ -3,7 +3,7 @@ import { SearchProductsRequest } from '../types';
 
 export async function invokeSearchFunction(request: SearchProductsRequest) {
   const { data, error } = await supabase.functions.invoke('search-amazon', {
-    body: request
+    body: request,
   });
 
   if (error) {

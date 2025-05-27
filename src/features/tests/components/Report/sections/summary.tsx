@@ -1,39 +1,33 @@
-import React, { useEffect, useState } from "react";
-import clsx from "clsx";
+import React, { useEffect, useState } from 'react';
+import clsx from 'clsx';
 
 const COLORS = {
   success: {
-    bg: "bg-[#ebfff7]",
-    text: "text-green-600",
+    bg: 'bg-[#ebfff7]',
+    text: 'text-green-600',
   },
   error: {
-    bg: "bg-[#fff5f5]",
-    text: "text-red-500",
+    bg: 'bg-[#fff5f5]',
+    text: 'text-red-500',
   },
   warning: {
-    bg: "bg-[#fffbeb]",
-    text: "text-yellow-600",
+    bg: 'bg-[#fffbeb]',
+    text: 'text-yellow-600',
   },
 } as const;
 
-const getColorForValue = (
-  value: string,
-  columnIndex: number,
-  allRows: string[][]
-) => {
-  if (value === "Yes") return `${COLORS.success.bg} ${COLORS.success.text}`;
-  if (value === "No") return `${COLORS.error.bg} ${COLORS.error.text}`;
+const getColorForValue = (value: string, columnIndex: number, allRows: string[][]) => {
+  if (value === 'Yes') return `${COLORS.success.bg} ${COLORS.success.text}`;
+  if (value === 'No') return `${COLORS.error.bg} ${COLORS.error.text}`;
 
   // Skip first column (Variant names)
-  if (columnIndex === 0) return "";
+  if (columnIndex === 0) return '';
 
   // Convert percentage strings to numbers
-  const numValue = parseFloat(value.replace("%", ""));
-  if (isNaN(numValue)) return "";
+  const numValue = parseFloat(value.replace('%', ''));
+  if (isNaN(numValue)) return '';
 
-  const columnValues = allRows.map((row) =>
-    parseFloat(row[columnIndex].replace("%", ""))
-  );
+  const columnValues = allRows.map(row => parseFloat(row[columnIndex].replace('%', '')));
   const max = Math.max(...columnValues);
   const min = Math.min(...columnValues);
 
@@ -42,7 +36,7 @@ const getColorForValue = (
   return COLORS.warning.bg;
 };
 
-const headers = ["Variant", "Share of Clicks", "Share of Buy", "Value Score"];
+const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score'];
 
 const Summary: React.FC<{
   summaryData: any;
@@ -70,20 +64,13 @@ const Summary: React.FC<{
   }, [summaryData]);
 
   if (!summaryData)
-    return (
-      <p className="text-center text-gray-500">
-        Not enough variants for analysis.
-      </p>
-    );
+    return <p className="text-center text-gray-500">Not enough variants for analysis.</p>;
 
   return (
     <div className="p-3">
       <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
       <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div
-          id="insightPanel"
-          className="flex items-start gap-4 transition-opacity duration-300"
-        >
+        <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
           <div>
             <div className="text-gray-700 leading-relaxed">
               {insights.comparison_between_variants}
@@ -117,9 +104,9 @@ const Summary: React.FC<{
                   <td
                     key={cellIndex}
                     className={clsx(
-                      "p-4 border border-gray-100",
+                      'p-4 border border-gray-100',
                       getColorForValue(cell, cellIndex, rows),
-                      "transition-colors duration-200"
+                      'transition-colors duration-200'
                     )}
                     title={`${headers[cellIndex]}: ${cell}`}
                   >

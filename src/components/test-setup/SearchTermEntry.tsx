@@ -14,7 +14,7 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
     'Dish Soap',
     'All-Purpose Cleaner',
     'Air Freshener',
-    'Bathroom Cleaner'
+    'Bathroom Cleaner',
   ]);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -31,7 +31,8 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
           Which search term defines your competitive set?
         </h3>
         <p className="text-lg text-gray-500">
-          Enter the search term that shoppers would use to find your product category. This helps us identify the right competitive set for your test.
+          Enter the search term that shoppers would use to find your product category. This helps us
+          identify the right competitive set for your test.
         </p>
       </div>
 
@@ -42,7 +43,7 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
             <input
               type="text"
               value={value}
-              onChange={(e) => {
+              onChange={e => {
                 onChange(e.target.value);
                 setShowSuggestions(true);
               }}
@@ -55,9 +56,7 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
           {showSuggestions && value && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg">
               {suggestions
-                .filter(suggestion => 
-                  suggestion.toLowerCase().includes(value.toLowerCase())
-                )
+                .filter(suggestion => suggestion.toLowerCase().includes(value.toLowerCase()))
                 .map((suggestion, index) => (
                   <button
                     key={index}
@@ -73,7 +72,8 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
 
         <div className="bg-[#00A67E] bg-opacity-5 rounded-xl p-4">
           <p className="text-sm text-gray-600">
-            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than specific features or benefits. This ensures we capture all relevant competitors.
+            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than
+            specific features or benefits. This ensures we capture all relevant competitors.
           </p>
         </div>
       </div>
