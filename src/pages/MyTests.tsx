@@ -57,7 +57,7 @@ export default function MyTests() {
   const handlePublishConfirm = async () => {
     if (!confirmationModal) return;
 
-    const { testId, test } = confirmationModal;
+    const { testId } = confirmationModal;
     setPublishingTests(prev => [...prev, testId]);
     setConfirmationModal(null);
 
@@ -237,19 +237,19 @@ export default function MyTests() {
               onClick={() => navigate(`/tests/${test.id}`)}
               whileHover={{ y: -2 }}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0`}>
                     {test.status === 'complete' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (
                       <Clock className="h-6 w-6 text-blue-500" />
                     )}
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-[#1B1B1B]">{test.name}</h3>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-                      <span>Search term: {test.searchTerm}</span>
+                      <span className="truncate">Search term: {test.searchTerm}</span>
                       <span className="hidden sm:inline">•</span>
                       <span className={`${test.status === 'complete' ? 'text-[#00A67E]' : 'text-blue-500'}`}>
                         {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
@@ -257,15 +257,15 @@ export default function MyTests() {
                     </div>
                   </div>
                 </div>
-                <div className="text-gray-500">
+                <div className="text-gray-500 sm:text-center">
                   {new Date(test.createdAt).toLocaleDateString()}
                 </div>
                 {isAdmin && (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 sm:justify-end">
                     <button
                       onClick={(e) => handleGetData(test.id, e)}
                       disabled={gettingDataTests.includes(test.id)}
-                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors ${
+                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
                         gettingDataTests.includes(test.id)
                           ? 'opacity-50 cursor-not-allowed'
                           : 'hover:bg-blue-600'
@@ -284,9 +284,10 @@ export default function MyTests() {
                       <button
                         onClick={(e) => handlePublish(test.id, e, test)}
                         disabled={publishingTests.includes(test.id)}
-                        className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${publishingTests.includes(test.id)
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:bg-green-600'
+                        className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
+                          publishingTests.includes(test.id)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:bg-green-600'
                         }`}
                       >
                         {publishingTests.includes(test.id) ? (
