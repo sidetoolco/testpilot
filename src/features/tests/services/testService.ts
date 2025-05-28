@@ -201,6 +201,7 @@ export const testService = {
           },
           testId: test.id,
           variationType,
+          customScreeningEnabled: testData.demographics.customScreening?.enabled || false
         };
 
         try {
