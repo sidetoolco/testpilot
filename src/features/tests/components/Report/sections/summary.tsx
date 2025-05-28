@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 
 const COLORS = {
@@ -31,6 +31,14 @@ const getColorForValue = (
   const numValue = parseFloat(value.replace("%", ""));
   if (isNaN(numValue)) return "";
 
+  // Only apply the new color scheme to Share of Clicks (index 1) and Share of Buy (index 2)
+  if (columnIndex === 1 || columnIndex === 2) {
+    if (numValue >= 8.5) return COLORS.success.bg;
+    if (numValue >= 8.1) return COLORS.warning.bg;
+    return COLORS.error.bg;
+  }
+
+  // For Value Score (index 3), keep the original max/min logic
   const columnValues = allRows.map((row) =>
     parseFloat(row[columnIndex].replace("%", ""))
   );
