@@ -1,7 +1,8 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import apiClient from '../lib/api';
 
 interface CustomScreening {
   id: string;
@@ -13,8 +14,12 @@ interface CustomScreening {
 }
 
 const QuestionDetail: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const prolificPid = searchParams.get('PROLIFIC_PID');
+  const prolificStudyId = searchParams.get('STUDY_ID');
 
   const { data: screening, isLoading, error } = useQuery({
     queryKey: ['customScreening', id],
@@ -46,7 +51,9 @@ const QuestionDetail: React.FC = () => {
     if (option === screening?.valid_option) {
       navigate(`/test/${id}`);
     } else if (option === screening?.invalid_option) {
-      window.location.href = 'https://prolific.com';
+      apiClient.post('/prolific/submission/screen-out', { studyId: prolificStudyId, participantId: prolificPid })
+        .then(() => window.location.href = 'https://prolific.com')
+        .catch(err => console.error(`Failed to screen out submission`, err));
     }
   };
 
