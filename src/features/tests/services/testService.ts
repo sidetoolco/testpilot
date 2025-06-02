@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import { TestData } from '../types';
+import { CustomScreening, TestData } from '../types';
 import { toast } from 'sonner';
 import { validateProducts } from '../utils/validators/productValidator';
 import { validateTestData } from '../utils/validators/testDataValidator';
@@ -65,7 +65,12 @@ export const testService = {
       // Step 5: Insertar datos demográficos
       await this.insertDemographics(test.id, testData.demographics);
 
-      // Step 6: Crear proyecto en Respondent
+      // Step 6: Guardar custom screening questions (if applicable)
+      if(testData.demographics.customScreening.enabled) {
+        await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
+      }
+
+      // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);
 
       return test;
@@ -111,6 +116,7 @@ export const testService = {
     try {
       await apiClient.post(`/amazon/products/${testId}`, { products })
     } catch(error) {
+      console.error(error);
       throw new TestCreationError('Failed to save competitors', { error });
     }
   },
@@ -132,6 +138,23 @@ export const testService = {
           throw new TestCreationError('Failed to add variation', { error });
         }
       }
+    }
+  },
+
+  async saveCustomScreeningQuestion(
+    testId: string,
+    customScreening: CustomScreening
+  ) {
+    const { error } = await supabase.from('custom_screening').insert({
+      test_id: testId,
+      question: customScreening.question,
+      valid_option: customScreening.validAnswer,
+      invalid_option: customScreening.validAnswer === 'Yes' ? 'No' : 'Yes'
+    } as any);
+
+    if(error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to save custom screening question', { error });
     }
   },
 
@@ -175,23 +198,17 @@ export const testService = {
             genders: Array.isArray(testData.demographics.gender) ? testData.demographics.gender[0] : testData.demographics.gender,
             locations: testData.demographics.locations,
             interests: testData.demographics.interests
-          }
+          },
+          testId: test.id,
+          variationType,
+          customScreeningEnabled: testData.demographics.customScreening?.enabled || false
         };
 
         try {
-          const response = await fetch('https://testpilot.app.n8n.cloud/webhook/prolific-create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(respondentProjectData),
-            mode: 'no-cors'
-          });
+          const response = await apiClient.post('/tests', respondentProjectData);
 
           console.log(`Response status for variation ${variationType}:`, response.status);
-
-          const responseData = await response.json();
-          console.log(`Response data for variation ${variationType}:`, responseData);
+          console.log(`Response data for variation ${variationType}:`, response.data);
 
         } catch (error) {
           console.error(`Prolific integration failed for variation ${variationType}:`, error);

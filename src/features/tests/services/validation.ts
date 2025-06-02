@@ -36,7 +36,7 @@ export async function validateProducts(companyId: string, productIds: string[]) 
     if (missingIds.length > 0) {
       throw new ValidationError('Some products are missing or invalid', {
         missingIds,
-        foundProducts: products.map(p => ({ id: p.id, name: p.name }))
+        foundProducts: products.map(p => ({ id: p.id, name: p.name })),
       });
     }
 

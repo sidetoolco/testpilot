@@ -11,7 +11,7 @@ export const useAmazonProducts = (searchTerm: string) => {
   useEffect(() => {
     const fetchProducts = async () => {
       if (!searchTerm) return;
-      
+
       setLoading(true);
       setError(null);
 

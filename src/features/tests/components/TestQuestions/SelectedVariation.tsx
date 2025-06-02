@@ -1,5 +1,5 @@
-import { RangeInput } from "../RangeInputWithText";
-import { ProductCard } from "./ProductCard";
+import { RangeInput } from '../RangeInputWithText';
+import { ProductCard } from './ProductCard';
 
 interface SelectedVariationProps {
   responses: any;
@@ -26,58 +26,31 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
       <p className="font-medium text-green-800">
         How appealing do you find the design and appearance of this product?
       </p>
-      <RangeInput
-        name="appearence"
-        value={responses.appearence}
-        onChange={handleChange}
-      />
+      <RangeInput name="appearence" value={responses.appearence} onChange={handleChange} />
 
       <p className="font-medium text-green-800">
-        How confident are you that this product will deliver its promised
-        results?
+        How confident are you that this product will deliver its promised results?
       </p>
-      <RangeInput
-        name="confidence"
-        value={responses.confidence}
-        onChange={handleChange}
-      />
+      <RangeInput name="confidence" value={responses.confidence} onChange={handleChange} />
 
-      <p className="font-medium text-green-800">
-        How convenient does this product seem to use?
-      </p>
-      <RangeInput
-        name="convenience"
-        value={responses.convenience}
-        onChange={handleChange}
-      />
+      <p className="font-medium text-green-800">How convenient does this product seem to use?</p>
+      <RangeInput name="convenience" value={responses.convenience} onChange={handleChange} />
 
       <p className="font-medium text-green-800">
         How much do you trust this brand to meet your expectations?
       </p>
-      <RangeInput
-        name="brand"
-        value={responses.brand}
-        onChange={handleChange}
-      />
+      <RangeInput name="brand" value={responses.brand} onChange={handleChange} />
 
-      <p className="font-medium text-green-800">
-        How would you rate the value of this product?
-      </p>
-      <RangeInput
-        name="value"
-        value={responses.value}
-        onChange={handleChange}
-      />
+      <p className="font-medium text-green-800">How would you rate the value of this product?</p>
+      <RangeInput name="value" value={responses.value} onChange={handleChange} />
 
       <div>
-        <p className="font-medium text-green-800">
-          What do you like most about this product?
-        </p>
+        <p className="font-medium text-green-800">What do you like most about this product?</p>
         <textarea
           className={`w-full p-3 border rounded focus:outline-none focus:ring-2 ${
             errors.likes_most
-              ? "border-red-500 focus:ring-red-500"
-              : "border-green-300 focus:ring-green-500"
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-green-300 focus:ring-green-500'
           }`}
           name="likes_most"
           value={responses.likes_most}
@@ -86,9 +59,7 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
           required
         ></textarea>
         <div className="min-h-[20px]">
-          {errors.likes_most && (
-            <div className="text-red-500 text-sm">{errors.likes_most}</div>
-          )}
+          {errors.likes_most && <div className="text-red-500 text-sm">{errors.likes_most}</div>}
         </div>
       </div>
       <div>
@@ -98,8 +69,8 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
         <textarea
           className={`w-full p-3 border rounded focus:outline-none focus:ring-2 ${
             errors.improve_suggestions
-              ? "border-red-500 focus:ring-red-500"
-              : "border-green-300 focus:ring-green-500"
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-green-300 focus:ring-green-500'
           }`}
           name="improve_suggestions"
           value={responses.improve_suggestions}
@@ -109,9 +80,7 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
         ></textarea>
         <div className="min-h-[20px]">
           {errors.improve_suggestions && (
-            <div className="text-red-500 text-sm mt-0">
-              {errors.improve_suggestions}
-            </div>
+            <div className="text-red-500 text-sm mt-0">{errors.improve_suggestions}</div>
           )}
         </div>
       </div>

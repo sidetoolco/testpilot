@@ -16,16 +16,22 @@ interface SessionState {
   prolificPid: string | null;
   clearItemSelectedAtCheckout: () => void; // Nuevo método
 
-  startSession: (shopperId: string, idTest: string, test: Record<string, any>, sessionBeginTime: Date, itemSelectedAtCheckout?: Product | null, prolificPid?: string | null) => void;
+  startSession: (
+    shopperId: string,
+    idTest: string,
+    test: Record<string, any>,
+    sessionBeginTime: Date,
+    itemSelectedAtCheckout?: Product | null,
+    prolificPid?: string | null
+  ) => void;
   clickItem: (itemId: string) => void;
   selectItemAtCheckout: (itemId: Product) => void;
   answerQuestion: (questionId: string, answer: string) => void;
   endSession: () => void;
 }
 
-
-export const useSessionStore = create<SessionState, [["zustand/devtools", never]]>(
-  devtools((set) => ({
+export const useSessionStore = create<SessionState, [['zustand/devtools', never]]>(
+  devtools(set => ({
     sessionBeginTime: null,
     shopperId: null,
     itemsClicked: [],
@@ -37,38 +43,50 @@ export const useSessionStore = create<SessionState, [["zustand/devtools", never]
     test: null, // Inicialización del campo test
     prolificPid: null,
 
-    startSession: (shopperId, idTest, test, sessionBeginTime, itemSelectedAtCheckout?: Product | null, prolificPid?: string | null) => set({
-      sessionBeginTime: sessionBeginTime,
+    startSession: (
       shopperId,
-      itemsClicked: [],
-      totalTimeElapsed: 0,
-      itemSelectedAtCheckout: itemSelectedAtCheckout || null,
-      answersToQuestions: {},
-      status: 'shopping', // Cambia el estado a shopping al iniciar la sesión
-      idTest: idTest, // Reinicia el idTest al iniciar la sesión
-      test: test, // Reinicia el test al iniciar la sesión
-      prolificPid: prolificPid || null,
-    }),
+      idTest,
+      test,
+      sessionBeginTime,
+      itemSelectedAtCheckout?: Product | null,
+      prolificPid?: string | null
+    ) =>
+      set({
+        sessionBeginTime: sessionBeginTime,
+        shopperId,
+        itemsClicked: [],
+        totalTimeElapsed: 0,
+        itemSelectedAtCheckout: itemSelectedAtCheckout || null,
+        answersToQuestions: {},
+        status: 'shopping', // Cambia el estado a shopping al iniciar la sesión
+        idTest: idTest, // Reinicia el idTest al iniciar la sesión
+        test: test, // Reinicia el test al iniciar la sesión
+        prolificPid: prolificPid || null,
+      }),
 
-    clickItem: (itemId) => set((state) => ({
-      itemsClicked: [...state.itemsClicked, itemId],
-    })),
+    clickItem: itemId =>
+      set(state => ({
+        itemsClicked: [...state.itemsClicked, itemId],
+      })),
 
-    selectItemAtCheckout: (itemId: Product) => set({
-      itemSelectedAtCheckout: itemId,
-    }),
+    selectItemAtCheckout: (itemId: Product) =>
+      set({
+        itemSelectedAtCheckout: itemId,
+      }),
 
-    answerQuestion: (questionId, answer) => set((state) => ({
-      answersToQuestions: {
-        ...state.answersToQuestions,
-        [questionId]: answer,
-      },
-      status: 'questions', // Cambia el estado a questions al responder una pregunta
-    })),
+    answerQuestion: (questionId, answer) =>
+      set(state => ({
+        answersToQuestions: {
+          ...state.answersToQuestions,
+          [questionId]: answer,
+        },
+        status: 'questions', // Cambia el estado a questions al responder una pregunta
+      })),
 
-    endSession: () => set((state) => ({
-      totalTimeElapsed: (new Date().getTime() - (state.sessionBeginTime?.getTime() || 0)) / 1000,
-    })),
+    endSession: () =>
+      set(state => ({
+        totalTimeElapsed: (new Date().getTime() - (state.sessionBeginTime?.getTime() || 0)) / 1000,
+      })),
 
     clearItemSelectedAtCheckout: () => set({ itemSelectedAtCheckout: null }), // Implementación del método
   }))

@@ -15,14 +15,13 @@ export default function WaitingListModal() {
             <Clock className="h-6 w-6 text-[#00A67E]" />
           </div>
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900">
-              Welcome to TestPilot! 🎉
-            </h3>
+            <h3 className="text-2xl font-semibold text-gray-900">Welcome to TestPilot! 🎉</h3>
           </div>
         </div>
 
         <p className="text-gray-600 text-lg leading-relaxed mb-8">
-          You've been added to our waiting list. We're currently reviewing your application and will notify you as soon as your account is activated.
+          You've been added to our waiting list. We're currently reviewing your application and will
+          notify you as soon as your account is activated.
         </p>
 
         <div className="bg-[#00A67E] bg-opacity-5 rounded-xl p-4">

@@ -1,11 +1,10 @@
-import React, { CSSProperties } from "react";
-import { scaleBand, scaleLinear } from "d3";
-import { useInsightStore } from "../../../hooks/useIaInsight";
-import ReactMarkdown from "react-markdown";
-import { MarkdownContent } from "../utils/MarkdownContent";
+import React, { CSSProperties } from 'react';
+import { scaleBand, scaleLinear } from 'd3';
+import { useInsightStore } from '../../../hooks/useIaInsight';
+import { MarkdownContent } from '../utils/MarkdownContent';
 
-const LABELS = ["Value", "Aesthetics", "Utility", "Trust", "Convenience"];
-const COLORS = ["#43A8F6", "#708090", "#008080"];
+const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
+const COLORS = ['#43A8F6', '#708090', '#008080'];
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -26,8 +25,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
   const { insight, loading } = useInsightStore();
 
   if (loading) return <p>Loading insights...</p>;
-  if (!surveys || surveys.length === 0)
-    return <p>Your product was not chosen for this test</p>;
+  if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
   const datasets = surveys.map((product, productIndex) => {
     if (!product || !product.product) {
@@ -40,9 +38,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
       };
     }
     return {
-      label: `Variant ${
-        product.variant_type
-      } : ${product.product.title.substring(0, 30)}`,
+      label: `Variant ${product.variant_type} : ${product.product.title.substring(0, 30)}`,
       productId: product.id,
       backgroundColor: COLORS[productIndex % COLORS.length],
       borderRadius: 5,
@@ -68,10 +64,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
   return (
     <div className="p-3">
       <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div
-          id="insightPanel"
-          className="flex items-start gap-4 transition-opacity duration-300"
-        >
+        <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
           <div className="text-gray-700 leading-relaxed">
             <MarkdownContent content={insight.purchase_drivers} />
           </div>
@@ -82,10 +75,10 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
         className="relative h-72 w-full grid"
         style={
           {
-            "--marginTop": "0px",
-            "--marginRight": "25px",
-            "--marginBottom": "55px",
-            "--marginLeft": "25px",
+            '--marginTop': '0px',
+            '--marginRight': '25px',
+            '--marginBottom': '55px',
+            '--marginLeft': '25px',
           } as CSSProperties
         }
       >
@@ -124,19 +117,15 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
                 className="absolute text-xs text-gray-600"
                 style={{
                   left: `${xScale(label)! + xScale.bandwidth() / 2}%`,
-                  top: "100%",
-                  transform: "translateX(-50%) translateY(8px)",
+                  top: '100%',
+                  transform: 'translateX(-50%) translateY(8px)',
                 }}
               >
                 {label}
               </div>
             ))}
 
-            <svg
-              className="h-full w-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
+            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {yScale.ticks(8).map((value, i) => (
                 <g
                   key={i}
@@ -161,9 +150,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
                   key={`${dataset.productId}-${index}`}
                   className="absolute bottom-0 rounded-t"
                   style={{
-                    left: `${
-                      xScale(LABELS[index])! + subXScale(dataset.productId)!
-                    }%`,
+                    left: `${xScale(LABELS[index])! + subXScale(dataset.productId)!}%`,
                     width: `${subXScale.bandwidth()}%`,
                     height: `${100 - yScale(value)}%`,
                     backgroundColor: dataset.backgroundColor,
@@ -186,11 +173,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-yellow-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
                       d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -211,11 +194,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
               <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-red-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                       <path
                         fillRule="evenodd"
                         d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"

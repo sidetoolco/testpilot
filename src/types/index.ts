@@ -1,4 +1,4 @@
-import { Survey } from "../features/tests/components/Report/utils/types";
+import { Survey } from '../features/tests/components/Report/utils/types';
 export interface Product {
   id: string | undefined;
   title: string; // Cambiado de 'name' a 'title'

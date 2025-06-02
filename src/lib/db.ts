@@ -77,13 +77,13 @@ export class TestPilotDB extends Dexie {
 
   constructor() {
     super('TestPilotDB');
-    
+
     this.version(1).stores({
       users: 'id, email',
       products: 'id, userId, category',
       tests: 'id, userId, status',
       sessions: 'id, userId, testId, productId',
-      insights: 'id, userId, testId, sessionId'
+      insights: 'id, userId, testId, sessionId',
     });
   }
 
@@ -97,7 +97,7 @@ export class TestPilotDB extends Dexie {
       id: uuidv4(),
       ...userData,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
     await this.users.add(user);
     return user;
@@ -107,13 +107,15 @@ export class TestPilotDB extends Dexie {
     return this.products.where('userId').equals(userId).toArray();
   }
 
-  async createProduct(productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
+  async createProduct(
+    productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<Product> {
     const now = new Date();
     const product: Product = {
       id: uuidv4(),
       ...productData,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
     await this.products.add(product);
     return product;

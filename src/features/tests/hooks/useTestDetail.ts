@@ -23,7 +23,10 @@ type TestResponse = {
   completed_sessions: number;
 };
 
-const getVariationWithProduct = (variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>, type: 'a' | 'b' | 'c') => {
+const getVariationWithProduct = (
+  variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>,
+  type: 'a' | 'b' | 'c'
+) => {
   const variation = variations?.find(v => v.variation_type === type);
   return variation ? { ...variation.product, prolificStatus: variation.prolific_status } : null;
 };
@@ -44,7 +47,8 @@ export function useTestDetail(id: string) {
 
         const { data: testData, error: testError } = await supabase
           .from('tests')
-          .select(`
+          .select(
+            `
             id,
             name,
             status,
@@ -62,10 +66,11 @@ export function useTestDetail(id: string) {
             demographics:test_demographics(
               age_ranges, genders, locations, interests, tester_count
             )
-          `)
+          `
+          )
           .eq('id', id)
           .single();
-          // .eq('user_id', userId)
+        // .eq('user_id', userId)
 
         if (testError) throw testError;
         if (!testData) throw new Error('Test not found');
@@ -75,7 +80,8 @@ export function useTestDetail(id: string) {
         // Fetch survey responses for the test
         const { data: surveysData, error: surveysError } = await supabase
           .from('responses_surveys')
-          .select(` 
+          .select(
+            ` 
             improve_suggestions,
             likes_most,
             products(id, title, image_url, price),
@@ -85,7 +91,8 @@ export function useTestDetail(id: string) {
               prolific_pid,
               shopper_demographic(id_prolific, age, sex, country_residence)
             )
-          `)
+          `
+          )
           .eq('test_id', id);
 
         if (surveysError) throw surveysError;
@@ -103,7 +110,8 @@ export function useTestDetail(id: string) {
         // Fetch comparison responses for the test
         const { data: comparisonsData, error: comparisonsError } = await supabase
           .from('responses_comparisons')
-          .select(`
+          .select(
+            `
           improve_suggestions,
           likes_most,
           choose_reason,
@@ -120,9 +128,9 @@ export function useTestDetail(id: string) {
               country_residence
             )
           )
-        `)
+        `
+          )
           .eq('test_id', id);
-
 
         if (comparisonsError) throw comparisonsError;
 
@@ -154,15 +162,15 @@ export function useTestDetail(id: string) {
             gender: typedTestData.demographics?.[0]?.genders || [],
             locations: typedTestData.demographics?.[0]?.locations || [],
             interests: typedTestData.demographics?.[0]?.interests || [],
-            testerCount: typedTestData.demographics?.[0]?.tester_count || 0
+            testerCount: typedTestData.demographics?.[0]?.tester_count || 0,
           },
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           responses: {
             surveys: surveysByType,
-            comparisons: comparisonsByType
+            comparisons: comparisonsByType,
           },
           createdAt: typedTestData.created_at,
-          updatedAt: typedTestData.updated_at
+          updatedAt: typedTestData.updated_at,
         };
 
         setTest(transformedTest);

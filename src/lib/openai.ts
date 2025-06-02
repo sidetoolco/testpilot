@@ -1,7 +1,8 @@
 import { Configuration, OpenAIApi } from 'openai';
 
 const configuration = new Configuration({
-  apiKey: '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'
+  apiKey:
+    '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',
 });
 
 const openai = new OpenAIApi(configuration);
@@ -24,24 +25,25 @@ Suggest target demographics in this JSON format:
 Only include relevant age ranges, genders, and interests that best match this product. Keep the response concise and focused on the most likely demographics.`;
 
     const response = await openai.createChatCompletion({
-      model: "gpt-4",
+      model: 'gpt-4',
       messages: [
         {
-          role: "system",
-          content: "You are a market research expert who specializes in consumer product demographics."
+          role: 'system',
+          content:
+            'You are a market research expert who specializes in consumer product demographics.',
         },
         {
-          role: "user",
-          content: prompt
-        }
-      ]
+          role: 'user',
+          content: prompt,
+        },
+      ],
     });
 
     const suggestion = JSON.parse(response.data.choices[0].message?.content || '{}');
     return {
       ...suggestion,
       locations: ['United States'], // Default location
-      testerCount: 10 // Default tester count
+      testerCount: 10, // Default tester count
     };
   } catch (error) {
     console.error('Error suggesting demographics:', error);

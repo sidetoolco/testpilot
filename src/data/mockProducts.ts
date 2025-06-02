@@ -15,7 +15,7 @@ const productImages = [
   'https://m.media-amazon.com/images/I/71VSaspFGhL.AC_UL320.jpg',
   'https://m.media-amazon.com/images/I/71x4L7+8zEL.AC_UL320.jpg',
   'https://m.media-amazon.com/images/I/81edBxfG+7L.AC_UL320.jpg',
-  'https://m.media-amazon.com/images/I/71peBi4LONL.AC_UL320.jpg'
+  'https://m.media-amazon.com/images/I/71peBi4LONL.AC_UL320.jpg',
 ];
 
 // Generate 40 products with real images
@@ -28,12 +28,12 @@ export const mockProducts: Product[] = Array.from({ length: 40 }, (_, i) => ({
   image: productImages[i % productImages.length],
   category: 'Fabric Softener',
   brand: `Brand ${String.fromCharCode(65 + (i % 26))}`,
-  rating: 4 + (Math.random() * 1),
+  rating: 4 + Math.random() * 1,
   reviews: 1000 + Math.floor(Math.random() * 10000),
   isCompetitor: true,
-  loads: 50 + (i * 10),
+  loads: 50 + i * 10,
   bestSeller: i === 0,
   userId: 'demo',
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 }));

@@ -1,21 +1,13 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  Beaker,
-  Package,
-  LogOut,
-  Menu,
-  X,
-  HelpCircle,
-  Settings,
-} from "lucide-react";
-import { useAuth } from "../../features/auth/hooks/useAuth";
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings } from 'lucide-react';
+import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const menuItems = [
-  { path: "/my-tests", icon: Beaker, label: "My Tests" },
-  { path: "/all-products", icon: Package, label: "My Products" },
-  { path: "/support", icon: HelpCircle, label: "Support Videos" },
-  { path: "/", icon: Settings, label: "Settings", inactive: true },
+  { path: '/my-tests', icon: Beaker, label: 'My Tests' },
+  { path: '/all-products', icon: Package, label: 'My Products' },
+  { path: '/support', icon: HelpCircle, label: 'Support Videos' },
+  { path: '/', icon: Settings, label: 'Settings', inactive: true },
 ];
 
 export default function SideNav() {
@@ -29,7 +21,7 @@ export default function SideNav() {
     try {
       await signOut();
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error('Error logging out:', error);
     }
   };
 
@@ -54,11 +46,7 @@ export default function SideNav() {
           onClick={() => setIsOpen(false)}
         >
           <div className="bg-[#00A67E] p-2 rounded-lg">
-            <img
-              src="/assets/images/testpilot-logo.png"
-              alt="TestPilot"
-              className="h-8"
-            />
+            <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
           </div>
         </Link>
       </div>
@@ -81,22 +69,18 @@ export default function SideNav() {
         flex flex-col
         transition-transform duration-300 ease-in-out
         z-40
-        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
       >
         <div className="p-6 border-b border-[#00C495]">
           <Link to="/my-tests" className="flex items-center space-x-2">
-            <img
-              src="/assets/images/testpilot-logo.png"
-              alt="TestPilot"
-              className="h-8"
-            />
+            <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
           </Link>
         </div>
         {/* Navigation */}
         <nav className="flex-1 p-4 lg:mt-2 mt-20">
           <ul className="space-y-2">
-            {menuItems.map((item) => (
+            {menuItems.map(item => (
               <li key={item.path}>
                 {item.inactive ? (
                   <div className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed">
@@ -107,10 +91,11 @@ export default function SideNav() {
                   <Link
                     to={item.path}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.path)
-                        ? "bg-[#008F6B] text-white"
-                        : "text-white/90 hover:bg-[#008F6B] hover:text-white"
-                      }`}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-[#008F6B] text-white'
+                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                    }`}
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
@@ -128,9 +113,7 @@ export default function SideNav() {
                 className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="h-5 w-5" />
-                <span className="font-medium">
-                  {loading ? "Logging out..." : "Log out"}
-                </span>
+                <span className="font-medium">{loading ? 'Logging out...' : 'Log out'}</span>
               </button>
             </li>
           </ul>

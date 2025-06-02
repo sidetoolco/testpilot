@@ -8,9 +8,9 @@ export const mockRecordings: Recording[] = [
       name: 'David R.',
       age: '38',
       initials: 'DR',
-      color: 'bg-orange-200'
+      color: 'bg-orange-200',
     },
-    date: 'Nov 21, 2024'
+    date: 'Nov 21, 2024',
   },
   {
     id: '2',
@@ -19,9 +19,9 @@ export const mockRecordings: Recording[] = [
       name: 'Jeff G.',
       age: '42',
       initials: 'JG',
-      color: 'bg-blue-200'
+      color: 'bg-blue-200',
     },
-    date: 'Nov 20, 2024'
+    date: 'Nov 20, 2024',
   },
   {
     id: '3',
@@ -30,8 +30,8 @@ export const mockRecordings: Recording[] = [
       name: 'Mike K.',
       age: '35',
       initials: 'MK',
-      color: 'bg-green-200'
+      color: 'bg-green-200',
     },
-    date: 'Nov 20, 2024'
-  }
+    date: 'Nov 20, 2024',
+  },
 ];

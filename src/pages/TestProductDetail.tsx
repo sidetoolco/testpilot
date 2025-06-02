@@ -1,22 +1,11 @@
-import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  Star,
-  Share2,
-  Heart,
-  ChevronDown,
-  CheckCircle,
-  X,
-} from "lucide-react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useSessionStore } from "../store/useSessionStore"; // Asegúrate de importar el hook
-import HeaderTesterSessionLayout from "../components/testers-session/HeaderLayout";
-import {
-  recordTimeSpent,
-  updateSession,
-} from "../features/tests/services/testersSessionService";
-import RedirectModal from "../components/test-setup/RedirectQuestionModal";
-import { trackEvent } from "../lib/events";
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
+import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
+import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
+import RedirectModal from '../components/test-setup/RedirectQuestionModal';
+import { trackEvent } from '../lib/events';
 
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
@@ -31,15 +20,13 @@ const RatingStars = ({ rating }: { rating: number }) => (
             key={i}
             className={`h-4 w-4 ${
               isFullStar
-                ? "text-[#dd8433] fill-[#dd8433]"
+                ? 'text-[#dd8433] fill-[#dd8433]'
                 : isHalfStar
-                ? "text-[#dd8433] fill-current"
-                : "text-gray-200 fill-gray-200"
+                  ? 'text-[#dd8433] fill-current'
+                  : 'text-gray-200 fill-gray-200'
             }`}
             style={{
-              clipPath: isHalfStar
-                ? "polygon(0 0, 50% 0, 50% 100%, 0 100%)"
-                : "none",
+              clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
             }}
           />
         );
@@ -51,16 +38,14 @@ export default function ProductDetail() {
   const location = useLocation();
   const navigate = useNavigate();
   const product = location.state?.product;
-  const addToCart = useSessionStore((state) => state.selectItemAtCheckout); // Usa el hook
+  const addToCart = useSessionStore(state => state.selectItemAtCheckout); // Usa el hook
   const { shopperId } = useSessionStore(); // Obtén la sesión actual
   const [searchParams] = useSearchParams();
 
-  const testId = searchParams.get("test");
-  const variationType = searchParams.get("variant");
+  const testId = searchParams.get('test');
+  const variationType = searchParams.get('variant');
 
-  const itemSelectedAtCheckout = useSessionStore(
-    (state) => state.itemSelectedAtCheckout
-  );
+  const itemSelectedAtCheckout = useSessionStore(state => state.itemSelectedAtCheckout);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -68,16 +53,16 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) {
-      console.error("No product available to add to cart");
+      console.error('No product available to add to cart');
       return;
     }
 
     trackEvent(
-      "click",
+      'click',
       {
-        test_id: testId || "",
+        test_id: testId || '',
         product_id: product.id,
-        variation_type: variationType || "",
+        variation_type: variationType || '',
       },
       location.pathname
     );
@@ -106,9 +91,7 @@ export default function ProductDetail() {
       const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
-        console.log(
-          `Tiempo gastado en el producto: ${timeSpent / 1000} segundos`
-        );
+        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
         if (product.asin) {
           recordTimeSpent(shopperId, product.id, startTime, endTime, true);
         } else {
@@ -118,7 +101,7 @@ export default function ProductDetail() {
     };
   }, [product]); // Dependencia en el producto para recalcular si cambia
 
-  const closeModal = (navigateTo: string = "") => {
+  const closeModal = (navigateTo: string = '') => {
     setIsModalOpen(false);
     if (navigateTo) {
       navigate(navigateTo);
@@ -128,11 +111,11 @@ export default function ProductDetail() {
 
   const handleRedirectClose = () => {
     setIsRedirectModalOpen(false);
-    navigate("/questions");
+    navigate('/questions');
   };
 
   if (!product) {
-    console.error("No product found");
+    console.error('No product found');
     return <div>Product not found</div>;
   }
 
@@ -157,9 +140,7 @@ export default function ProductDetail() {
               >
                 Visit the {product?.brand} Store
               </a>
-              <small className="text-[14px] text-[#0F1111] px-1">
-                {product.rating}
-              </small>
+              <small className="text-[14px] text-[#0F1111] px-1">{product.rating}</small>
               <div className="flex items-center p-1">
                 <RatingStars rating={product.rating} />
               </div>
@@ -198,11 +179,7 @@ export default function ProductDetail() {
             </div>
             <div className="w-full aspect-square mb-4 rounded-lg max-w-[450px] max-h-[450px]">
               <img
-                src={
-                  currentIndex === 0
-                    ? product.image_url
-                    : product.images[currentIndex]
-                }
+                src={currentIndex === 0 ? product.image_url : product.images[currentIndex]}
                 alt={`Product image ${currentIndex + 1}`}
                 className="w-full h-auto object-contain"
               />
@@ -235,9 +212,7 @@ export default function ProductDetail() {
                 Visit the {product?.brand} Store
               </a>
               <div className="items-center flex pb-2">
-                <small className="text-[14px] text-[#0F1111] pr-2">
-                  {product.rating}
-                </small>
+                <small className="text-[14px] text-[#0F1111] pr-2">{product.rating}</small>
                 <div className="flex items-center p-1">
                   <RatingStars rating={product.rating} />
                 </div>
@@ -250,9 +225,7 @@ export default function ProductDetail() {
                 </a>
               </div>
               <div className="border-t border-[#DDD] py-4">
-                <p className="text-[14px] text-[#0F1111] font-bold">
-                  About this product:
-                </p>
+                <p className="text-[14px] text-[#0F1111] font-bold">About this product:</p>
                 <ul className="list-disc pl-5 py-2">
                   {product.bullet_points &&
                     product.bullet_points.map((bullet: string) => (
@@ -276,9 +249,7 @@ export default function ProductDetail() {
           </div>
 
           <div className="col-span-1 md:col-span-2 space-y-2 border border-[#DDD] rounded-lg p-4 m-1">
-            <strong className="text-[14px] text-[#0F1111]">
-              Buy for first time
-            </strong>
+            <strong className="text-[14px] text-[#0F1111]">Buy for first time</strong>
             <div className="border-b border-[#DDD] ">
               <div className="flex items-start gap-[2px]">
                 <span className="text-[13px] text-[#0F1111] mt-1">US$</span>
@@ -299,15 +270,13 @@ export default function ProductDetail() {
               FREE delivery
               <span className="text-[#0F1111]"> Tomorrow</span>
             </div>
-            <div className="text-[12px] text-[#007185]">
-              Order within 12 hrs 34 mins
-            </div>
+            <div className="text-[12px] text-[#007185]">Order within 12 hrs 34 mins</div>
             <span className="text-[18px] text-[#007600]">In Stock</span>
 
             <p className="text-[14px] text-[#0F1111]">Quantity:</p>
             <div className="flex space-x-2 text-[#0F1111] text-[14px] flex-col">
               <select className="border border-[#DDD] rounded-lg px-2 py-1 bg-[#F0F2F2]">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                   <option key={num} value={num}>
                     {num}
                   </option>
@@ -332,18 +301,12 @@ export default function ProductDetail() {
           </div>
         </div>
         <div className="text-[14px] text-[#0F1111] space-y-4 p-4 mt-2 ">
-          <strong className="block text-lg font-semibold">
-            Description about the product
-          </strong>
+          <strong className="block text-lg font-semibold">Description about the product</strong>
           <p className="mb-4  pb-4">
-            {product?.description
-              ? product.description
-              : "No description available"}
+            {product?.description ? product.description : 'No description available'}
           </p>
           <div className="border-t border-[#DDD] py-2 block md:hidden">
-            <strong className="block text-lg font-semibold">
-              Details about the product
-            </strong>
+            <strong className="block text-lg font-semibold">Details about the product</strong>
 
             <ul className="list-disc pl-5">
               {product.bullet_points &&
@@ -358,25 +321,20 @@ export default function ProductDetail() {
             <tbody>
               <tr className="border-b border-[#DDD] border-t">
                 <td className="py-2 font-semibold">Brand</td>
-                <td className="py-2">
-                  {product.brand || "No brand available"}
-                </td>
+                <td className="py-2">{product.brand || 'No brand available'}</td>
               </tr>
             </tbody>
           </table>
           <div className="border-t border-[#DDD] py-6">
-            <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">
-              Customer reviews
-            </h2>
+            <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
             <div className="bg-[#F3F3F3] p-6 rounded-lg">
               <div className="flex items-center justify-center flex-col text-center">
                 <p className="text-[#565959] text-[14px] mb-2">
                   Reviews are not included in this test
                 </p>
                 <p className="text-[#565959] text-[12px]">
-                  This is a test environment where reviews are not available. In
-                  a real shopping experience, you would see customer reviews
-                  here.
+                  This is a test environment where reviews are not available. In a real shopping
+                  experience, you would see customer reviews here.
                 </p>
               </div>
             </div>
@@ -385,10 +343,10 @@ export default function ProductDetail() {
 
         {isModalOpen && (
           <ProductModal
-            testId={testId || ""}
+            testId={testId || ''}
             product={product}
             closeModal={closeModal}
-            variationType={variationType || ""}
+            variationType={variationType || ''}
           />
         )}
         {isWarningModalOpen && (
@@ -398,10 +356,7 @@ export default function ProductDetail() {
             selectedProduct={itemSelectedAtCheckout}
           />
         )}
-        <RedirectModal
-          isOpen={isRedirectModalOpen}
-          onClose={handleRedirectClose}
-        />
+        <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
       </div>
     </HeaderTesterSessionLayout>
   );
@@ -441,15 +396,14 @@ const ProductModal = ({
         </div>
       </div>
       <p className="mt-2 text-center text-gray-700">
-        You have added <strong>{product.title || product.name}</strong> to your
-        cart.
+        You have added <strong>{product.title || product.name}</strong> to your cart.
       </p>
       <div className="mt-4 flex justify-around">
         <button
           className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
           onClick={() => {
             trackEvent(
-              "click",
+              'click',
               {
                 product_id: product.id,
                 test_id: testId,
@@ -457,7 +411,7 @@ const ProductModal = ({
               },
               location.pathname
             );
-            closeModal("/questions");
+            closeModal('/questions');
           }}
         >
           Go to Checkout
@@ -492,13 +446,9 @@ const WarningModal = ({
         <X className="h-6 w-6" />
       </button>
       <div className="flex items-center justify-center">
-        <h2 className="text-xl font-bold">
-          You can only have 1 item in the cart
-        </h2>
+        <h2 className="text-xl font-bold">You can only have 1 item in the cart</h2>
       </div>
-      <p className="mt-2 text-center text-gray-700">
-        Would you like to replace this item?
-      </p>
+      <p className="mt-2 text-center text-gray-700">Would you like to replace this item?</p>
       {selectedProduct && (
         <div className="flex justify-center mt-4">
           <img

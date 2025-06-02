@@ -7,7 +7,11 @@ interface MarketingFeatureProps {
   description: string;
 }
 
-export default function MarketingFeature({ icon: Icon, title, description }: MarketingFeatureProps) {
+export default function MarketingFeature({
+  icon: Icon,
+  title,
+  description,
+}: MarketingFeatureProps) {
   return (
     <div className="flex items-start space-x-4">
       <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">

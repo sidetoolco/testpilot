@@ -6,16 +6,19 @@ interface TestMetricsProps {
 }
 
 export default function TestMetrics({ test }: TestMetricsProps) {
-
-  const variationCount = Object.values(test.variations).filter(variation => variation !== null).length;
+  const variationCount = Object.values(test.variations).filter(
+    variation => variation !== null
+  ).length;
   const metrics = [
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
-      title: "Completions",
-      value: test.completed_sessions > test.demographics.testerCount * variationCount ?
-        `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}` : `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
-      subtitle: "Completed Sessions / Total Testers"
-    }
+      title: 'Completions',
+      value:
+        test.completed_sessions > test.demographics.testerCount * variationCount
+          ? `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}`
+          : `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
+      subtitle: 'Completed Sessions / Total Testers',
+    },
     // {
     //   icon: <Target className="h-6 w-6 text-[#00A67E]" />,
     //   title: "Competitors",
@@ -43,7 +46,6 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     // }
   ];
 
-
   return (
     <div className="grid grid-cols-2 gap-6 mb-4">
       {metrics.map((metric, index) => (
@@ -60,7 +62,7 @@ export default function TestMetrics({ test }: TestMetricsProps) {
           <div className="text-sm text-gray-500">{metric.subtitle}</div>
         </div>
       ))}
-      {test.status !== "complete" && (
+      {test.status !== 'complete' && (
         <div className="bg-white rounded-xl p-6">
           <div className="flex flex-col items-center space-x-3 mb-2">
             <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4 w-full">
@@ -76,8 +78,7 @@ export default function TestMetrics({ test }: TestMetricsProps) {
                 >
                   <div className="w-2 h-2 rounded-full bg-[#00A67E]" />
                   <p>
-                    <b>Variant {variationName.toUpperCase()}</b>:{" "}
-                    {value.prolificStatus || "-"}
+                    <b>Variant {variationName.toUpperCase()}</b>: {value.prolificStatus || '-'}
                   </p>
                 </div>
               );

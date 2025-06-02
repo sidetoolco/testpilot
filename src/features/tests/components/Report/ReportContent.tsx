@@ -16,65 +16,60 @@ interface ReportContentProps {
   insights: any;
 }
 
-const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summaryData, averagesurveys, competitiveinsights, insights }) => {
+const ReportContent: React.FC<ReportContentProps> = ({
+  activeTab,
+  variant,
+  summaryData,
+  averagesurveys,
+  competitiveinsights,
+  insights,
+}) => {
   return (
     <div className="flex-1 overflow-hidden">
       <div
         tabIndex={0}
         className={clsx(
           'h-full overflow-y-auto',
-          'focus:outline-none focus:ring-2 focus:ring-green-600',
+          'focus:outline-none focus:ring-2 focus:ring-green-600'
         )}
         id="report-content"
       >
         <div className="max-w-screen-2xl mx-auto flex flex-col gap-4 h-full">
-          <div
-            id="content-summary"
-            className={clsx(
-              activeTab !== 'summary' && 'hidden'
-            )}
-          >
+          <div id="content-summary" className={clsx(activeTab !== 'summary' && 'hidden')}>
             <Summary summaryData={summaryData} insights={insights} />
           </div>
           <div
             id="content-purchase-drivers"
-            className={clsx(
-              activeTab !== 'purchase-drivers' && 'hidden'
-            )}
+            className={clsx(activeTab !== 'purchase-drivers' && 'hidden')}
           >
             <PurchaseDrivers surveys={averagesurveys} />
           </div>
           <div
             id="content-competitive-insights"
-            className={clsx(
-              activeTab !== 'competitive-insights' && 'hidden'
-            )}
+            className={clsx(activeTab !== 'competitive-insights' && 'hidden')}
           >
-            <CompetitiveInsights competitiveinsights={competitiveinsights} variants={averagesurveys} sumaryvariations={summaryData?.rows} />
+            <CompetitiveInsights
+              competitiveinsights={competitiveinsights}
+              variants={averagesurveys}
+              sumaryvariations={summaryData?.rows}
+            />
           </div>
           <div
             id="content-shopper-comments"
-            className={clsx(
-              'p-4',
-              activeTab !== 'shopper-comments' && 'hidden'
-            )}
+            className={clsx('p-4', activeTab !== 'shopper-comments' && 'hidden')}
           >
-            <ShopperComments comparision={variant.responses.comparisons} surveys={variant.responses.surveys} />
+            <ShopperComments
+              comparision={variant.responses.comparisons}
+              surveys={variant.responses.surveys}
+            />
           </div>
           <div
             id="content-recommendations"
-            className={clsx(
-              activeTab !== 'recommendations' && 'hidden'
-            )}
+            className={clsx(activeTab !== 'recommendations' && 'hidden')}
           >
             <Recommendations />
           </div>
-          <div
-            id="content-test-details"
-            className={clsx(
-              activeTab !== 'test-details' && 'hidden'
-            )}
-          >
+          <div id="content-test-details" className={clsx(activeTab !== 'test-details' && 'hidden')}>
             <TestSummary test={variant} />
           </div>
         </div>
@@ -83,4 +78,4 @@ const ReportContent: React.FC<ReportContentProps> = ({ activeTab, variant, summa
   );
 };
 
-export default ReportContent; 
+export default ReportContent;

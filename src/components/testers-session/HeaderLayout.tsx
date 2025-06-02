@@ -4,103 +4,97 @@ import AmazonHeader from '../test-setup/preview/AmazonHeader';
 import AmazonNavigation from '../test-setup/preview/AmazonNavigation';
 
 interface HeaderLayoutProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const HeaderTesterSessionLayout: React.FC<HeaderLayoutProps> = ({ children }) => {
-    const sessionBeginTime = useSessionStore(state => state.sessionBeginTime);
-    const status = useSessionStore(state => state.status);
-    const test = useSessionStore(state => state.test);
-    const [elapsedTime, setElapsedTime] = useState(0);
-    const [error, setError] = useState<string | null>(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+  const sessionBeginTime = useSessionStore(state => state.sessionBeginTime);
+  const status = useSessionStore(state => state.status);
+  const test = useSessionStore(state => state.test);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const capitalizeFirstLetter = (string: string) => {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  useEffect(() => {
+    const calculateElapsedTime = () => {
+      if (sessionBeginTime) {
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - sessionBeginTime.getTime()) / 1000);
+        setElapsedTime(elapsed);
+        setError(null); // Clear any previous error
+      } else {
+        setError('Session has not started.');
+      }
     };
 
-    useEffect(() => {
-        const calculateElapsedTime = () => {
-            if (sessionBeginTime) {
-                const now = new Date();
-                const elapsed = Math.floor((now.getTime() - sessionBeginTime.getTime()) / 1000);
-                setElapsedTime(elapsed);
-                setError(null); // Clear any previous error
-            } else {
-                setError("Session has not started.");
-            }
-        };
+    calculateElapsedTime();
+    const timer = setInterval(calculateElapsedTime, 1000);
 
-        calculateElapsedTime();
-        const timer = setInterval(calculateElapsedTime, 1000);
+    return () => clearInterval(timer);
+  }, [sessionBeginTime]);
 
-        return () => clearInterval(timer);
-    }, [sessionBeginTime]);
+  useEffect(() => {
+    document.title = `Shopping Simulator - ${capitalizeFirstLetter(status)}`;
+  }, [status]);
 
-    useEffect(() => {
-        document.title = `Shopping Simulator - ${capitalizeFirstLetter(status)}`;
-    }, [status]);
+  const handleClick = () => {
+    setIsModalVisible(true);
+  };
 
-    const handleClick = () => {
-        setIsModalVisible(true);
-    };
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
 
-    const closeModal = () => {
-        setIsModalVisible(false);
-    };
-
-    return (
-        <div>
-            <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex flex-wrap justify-between items-center z-50">
-                <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
-                    <div className="bg-white p-1 rounded-lg">
-                        <img
-                            src="/assets/images/testPilot-black.png"
-                            alt="TestPilot"
-                            className="h-8"
-                        />
-                    </div>
-                    <span className="text-lg font-bold ml-2">Shopping Simulator</span>
-                </div>
-                <div className="text-sm flex-grow sm:flex-grow-0 text-center sm:text-right p-4">
-                    {error ? (
-                        <span className="text-red-800">{error}</span>
-                    ) : (
-                        `${capitalizeFirstLetter(status)} - ${Math.floor(elapsedTime / 60)}:${String(elapsedTime % 60).padStart(2, '0')}`
-                    )}
-                </div>
-            </div>
-            <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }} >
-                <div className='mt-3'>
-                    <AmazonHeader searchTerm={test ? test.search_term : ''} />
-                </div>
-                <div onClick={handleClick}>
-                    <AmazonNavigation />
-                </div>
-            </div>
-
-            {isModalVisible && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white rounded-lg shadow-lg relative max-w-sm w-full">
-                        <button
-                            onClick={closeModal}
-                            className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl"
-                        >
-                            &times;
-                        </button>
-                        <div className="p-6">
-                            <p className="text-center">
-                                Navigation is disabled on these pages, please focus on our products.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-            <div className="content">
-                {children}
-            </div>
+  return (
+    <div>
+      <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex flex-wrap justify-between items-center z-50">
+        <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
+          <div className="bg-white p-1 rounded-lg">
+            <img src="/assets/images/testPilot-black.png" alt="TestPilot" className="h-8" />
+          </div>
+          <span className="text-lg font-bold ml-2">Shopping Simulator</span>
         </div>
-    );
+        <div className="text-sm flex-grow sm:flex-grow-0 text-center sm:text-right p-4">
+          {error ? (
+            <span className="text-red-800">{error}</span>
+          ) : (
+            `${capitalizeFirstLetter(status)} - ${Math.floor(elapsedTime / 60)}:${String(elapsedTime % 60).padStart(2, '0')}`
+          )}
+        </div>
+      </div>
+      <div className="flex-grow sm:flex-grow-0 w-full " style={{ paddingTop: '60px' }}>
+        <div className="mt-3">
+          <AmazonHeader searchTerm={test ? test.search_term : ''} />
+        </div>
+        <div onClick={handleClick}>
+          <AmazonNavigation />
+        </div>
+      </div>
+
+      {isModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg relative max-w-sm w-full">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl"
+            >
+              &times;
+            </button>
+            <div className="p-6">
+              <p className="text-center">
+                Navigation is disabled on these pages, please focus on our products.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="content">{children}</div>
+    </div>
+  );
 };
 
-export default HeaderTesterSessionLayout; 
+export default HeaderTesterSessionLayout;

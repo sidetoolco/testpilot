@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle, X } from 'lucide-react';
+import { Plus, PlayCircle, Users2, Clock, CheckCircle } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useState, useEffect } from 'react';
@@ -62,13 +62,16 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
-      const response = await fetch('https://testpilot.app.n8n.cloud/webhook-test/publish-prolific', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ testId }),
-      });
+      const response = await fetch(
+        'https://testpilot.app.n8n.cloud/webhook-test/publish-prolific',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ testId }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to publish test');
@@ -98,11 +101,11 @@ export default function MyTests() {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        mode: 'cors'
+        mode: 'cors',
       });
 
       if (!response.ok) {
@@ -112,7 +115,7 @@ export default function MyTests() {
 
       const data = await response.json();
       console.log('Response data:', data);
-      
+
       // Open new window with the response data
       const newWindow = window.open('', '_blank');
       if (newWindow) {
@@ -136,11 +139,13 @@ export default function MyTests() {
         `);
         newWindow.document.close();
       }
-      
+
       toast.success('Test data retrieved successfully');
     } catch (error) {
       console.error('Error getting test data:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to get test data. Please try again.');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to get test data. Please try again.'
+      );
     } finally {
       setGettingDataTests(prev => prev.filter(id => id !== testId));
     }
@@ -230,7 +235,7 @@ export default function MyTests() {
             </button>
           </div>
         ) : (
-          tests.map((test) => (
+          tests.map(test => (
             <motion.div
               key={test.id}
               className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
@@ -251,7 +256,9 @@ export default function MyTests() {
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                       <span className="truncate">Search term: {test.searchTerm}</span>
                       <span className="hidden sm:inline">•</span>
-                      <span className={`${test.status === 'complete' ? 'text-[#00A67E]' : 'text-blue-500'}`}>
+                      <span
+                        className={`${test.status === 'complete' ? 'text-[#00A67E]' : 'text-blue-500'}`}
+                      >
                         {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                       </span>
                     </div>
@@ -263,7 +270,7 @@ export default function MyTests() {
                 {isAdmin && (
                   <div className="flex items-center gap-4 sm:justify-end">
                     <button
-                      onClick={(e) => handleGetData(test.id, e)}
+                      onClick={e => handleGetData(test.id, e)}
                       disabled={gettingDataTests.includes(test.id)}
                       className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
                         gettingDataTests.includes(test.id)
@@ -282,7 +289,7 @@ export default function MyTests() {
                     </button>
                     {test.status !== 'complete' && (
                       <button
-                        onClick={(e) => handlePublish(test.id, e, test)}
+                        onClick={e => handlePublish(test.id, e, test)}
                         disabled={publishingTests.includes(test.id)}
                         className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
                           publishingTests.includes(test.id)
@@ -320,7 +327,9 @@ export default function MyTests() {
               Are you sure you want to publish the test "{confirmationModal.test.name}"?
             </p>
             <p className="text-gray-600">
-              {confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length} testers will be invited to participate in the test.
+              {confirmationModal.test.demographics.testerCount *
+                confirmationModal.variantsArray.length}{' '}
+              testers will be invited to participate in the test.
             </p>
 
             <div className="mt-4">
@@ -331,7 +340,9 @@ export default function MyTests() {
                       {index + 1}
                     </div>
                     <div>
-                      <p className="text-gray-700 font-medium">{variation.title || `Variation ${index + 1}`}</p>
+                      <p className="text-gray-700 font-medium">
+                        {variation.title || `Variation ${index + 1}`}
+                      </p>
                     </div>
                   </div>
                 ))}

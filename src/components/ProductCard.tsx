@@ -10,7 +10,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'PRODUCT',
     item: product,
-    collect: (monitor) => ({
+    collect: monitor => ({
       isDragging: monitor.isDragging(),
     }),
   }));
@@ -18,9 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div
       ref={drag}
-      className={`p-3 border rounded-lg shadow-sm cursor-move ${
-        isDragging ? 'opacity-50' : ''
-      }`}
+      className={`p-3 border rounded-lg shadow-sm cursor-move ${isDragging ? 'opacity-50' : ''}`}
     >
       <img
         src={product.image_url}

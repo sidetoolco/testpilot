@@ -12,7 +12,7 @@ export function useProducts() {
   useEffect(() => {
     async function fetchProducts() {
       if (!user?.id) return;
-      
+
       setLoading(true);
       setError(null);
 

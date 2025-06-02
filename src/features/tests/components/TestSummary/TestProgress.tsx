@@ -8,7 +8,7 @@ interface TestProgressProps {
 
 export default function TestProgress({ totalTesters, completedTesters }: TestProgressProps) {
   const progress = (completedTesters / totalTesters) * 100;
-  
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -23,12 +23,10 @@ export default function TestProgress({ totalTesters, completedTesters }: TestPro
             </p>
           </div>
         </div>
-        <span className="text-2xl font-semibold text-blue-600">
-          {Math.round(progress)}%
-        </span>
+        <span className="text-2xl font-semibold text-blue-600">{Math.round(progress)}%</span>
       </div>
       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-blue-600 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />

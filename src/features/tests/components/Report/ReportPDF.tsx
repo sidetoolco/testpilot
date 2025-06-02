@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from "lucide-react";
-import { Document, pdf } from "@react-pdf/renderer";
-import { TestDetailsPDFSection } from "./pdf-sections/TestDetailsPDFSection";
-import { SummaryPDFSection } from "./pdf-sections/SummaryPDFSection";
-import { PurchaseDriversPDFSection } from "./pdf-sections/PurchaseDriversPDFSection";
-import { CompetitiveInsightsPDFSection } from "./pdf-sections/CompetitiveInsightsPDFSection";
-import { RecommendationsPDFSection } from "./pdf-sections/RecommendationsPDFSection";
-import { CoverPageSection } from "./pdf-sections/CoverPageSection";
-import { TestDetails } from "./utils/types";
-import { VariantCover } from "./sections/VariantCover";
-import apiClient from "../../../../lib/api";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
+import { Document, pdf } from '@react-pdf/renderer';
+import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
+import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
+import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSection';
+import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
+import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
+import { CoverPageSection } from './pdf-sections/CoverPageSection';
+import { TestDetails } from './utils/types';
+import { VariantCover } from './sections/VariantCover';
+import apiClient from '../../../../lib/api';
+import { toast } from 'sonner';
 
 interface PDFDocumentProps {
   testDetails: TestDetails;
@@ -34,11 +34,11 @@ const PDFDocument = ({
   competitiveinsights,
   averagesurveys,
 }: {
-  testDetails: PDFDocumentProps["testDetails"];
-  summaryData: PDFDocumentProps["summaryData"];
-  insights: PDFDocumentProps["insights"];
-  competitiveinsights: PDFDocumentProps["competitiveinsights"];
-  averagesurveys: PDFDocumentProps["averagesurveys"];
+  testDetails: PDFDocumentProps['testDetails'];
+  summaryData: PDFDocumentProps['summaryData'];
+  insights: PDFDocumentProps['insights'];
+  competitiveinsights: PDFDocumentProps['competitiveinsights'];
+  averagesurveys: PDFDocumentProps['averagesurveys'];
 }) => {
   if (!testDetails || !summaryData) {
     return null;
@@ -48,14 +48,11 @@ const PDFDocument = ({
     testDetails.variations.a,
     testDetails.variations.b,
     testDetails.variations.c,
-  ].filter((v) => v);
+  ].filter(v => v);
 
   return (
     <Document>
-      <CoverPageSection
-        testDetails={testDetails}
-        variantsArray={variantsArray}
-      />
+      <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} />
       <TestDetailsPDFSection testDetails={testDetails} />
       <SummaryPDFSection summaryData={summaryData} insights={insights} />
 
@@ -114,10 +111,7 @@ const PDFPreviewModal = ({
       <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl h-[90vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">PDF Preview</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -144,7 +138,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const handleExportPDF = async () => {
     try {
       if (!testDetails || !summaryData || !competitiveinsights || !insights) {
-        console.error("Missing required data for PDF generation");
+        console.error('Missing required data for PDF generation');
         return;
       }
 
@@ -161,7 +155,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       setPdfUrl(url);
       setIsPreviewOpen(true);
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error('Error generating PDF:', error);
     }
   };
 
@@ -180,7 +174,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       .post(`/insights/${testDetails.id}`)
       .then(() => window.location.reload())
       .catch(() => {
-        toast.error("Failed to regenerate insights");
+        toast.error('Failed to regenerate insights');
         setLoadingInsights(false);
       });
   };
@@ -201,7 +195,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <RefreshCcw size={20} />
-          {loadingInsights ? "Regenerating Insights..." : "Regenerate Insights"}
+          {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
         </button>
         <button
           onClick={handleExportPDF}
@@ -214,11 +208,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       </div>
 
       {isPreviewOpen && pdfUrl && (
-        <PDFPreviewModal
-          isOpen={isPreviewOpen}
-          onClose={handleClosePreview}
-          pdfUrl={pdfUrl}
-        />
+        <PDFPreviewModal isOpen={isPreviewOpen} onClose={handleClosePreview} pdfUrl={pdfUrl} />
       )}
     </>
   );

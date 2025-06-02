@@ -36,7 +36,7 @@ export default function LoginForm() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-6">
-              <img 
+              <img
                 src="/assets/images/testPilot-black.png"
                 alt="TestPilot"
                 className="h-12 mx-auto"
@@ -93,20 +93,14 @@ export default function LoginForm() {
               </div>
             </div>
 
-            <AuthButton
-              loading={loading}
-              label="Sign in"
-              loadingLabel="Signing in..."
-            />
+            <AuthButton loading={loading} label="Sign in" loadingLabel="Signing in..." />
 
             <div className="relative text-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative">
-                <span className="px-2 text-sm text-gray-500 bg-white">
-                  Don't have an account?
-                </span>
+                <span className="px-2 text-sm text-gray-500 bg-white">Don't have an account?</span>
               </div>
             </div>
 

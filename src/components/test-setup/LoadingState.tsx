@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 interface LoadingStateProps {
   message?: string;
   showProgress?: boolean;
 }
 
-export function LoadingState({
-  message = "Loading...",
-  showProgress = false,
-}: LoadingStateProps) {
+export function LoadingState({ message = 'Loading...', showProgress = false }: LoadingStateProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (showProgress) {
       const interval = setInterval(() => {
-        setProgress((prev) => {
+        setProgress(prev => {
           // Increment by a random amount between 1 and 10
           const increment = Math.floor(Math.random() * 10) + 1;
           // Never reach 100
