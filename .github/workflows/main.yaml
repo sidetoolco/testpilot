@@ -86,7 +86,7 @@ jobs:
 
       # Realiza el despliegue a Vercel usando las credenciales configuradas
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -97,8 +97,9 @@ jobs:
       # Verifica que el despliegue fue exitoso y muestra la URL
       - name: Check Deployment Status
         run: |
-          if [ "${{ steps.deploy.outputs.vercel-deployment-url }}" == "" ]; then
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.preview-url }}"
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "Deployment failed - no URL returned"
             exit 1
           fi
-          echo "Deployment successful! URL: ${{ steps.deploy.outputs.vercel-deployment-url }}"
+          echo "Deployment successful! URL: $DEPLOYMENT_URL"
