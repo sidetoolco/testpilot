@@ -52,7 +52,7 @@ const QuestionDetail: React.FC = () => {
       navigate(`/test/${id}`);
     } else if (option === screening?.invalid_option) {
       apiClient.post('/prolific/submission/screen-out', { studyId: prolificStudyId, participantId: prolificPid })
-        .then(() => window.location.href = 'https://prolific.com')
+        .then(() => window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
         .catch(err => console.error(`Failed to screen out submission`, err));
     }
   };
