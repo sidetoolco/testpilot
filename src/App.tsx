@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
@@ -24,6 +24,7 @@ import QuestionDetail from './pages/QuestionDetail';
 import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
+import SentryErrorTest from './pages/SentryErrorTest';
 
 const queryClient = new QueryClient();
 
@@ -93,7 +94,7 @@ function App() {
               <Route path="/thanks" element={
                 <ThankYou />
               } />
-              
+              <Route path="/sentry-error-test" element={<SentryErrorTest />} />
               {/* detalle testing */}
               <Route
                 path="/tests/:id"

@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
 import { useInsightStore } from '../../../hooks/useIaInsight';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownContent } from '../utils/MarkdownContent';
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
 const COLORS = ['#43A8F6', '#708090', '#008080'];
@@ -65,7 +65,9 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
     <div className="p-3">
       <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
-          <div className="text-gray-700 leading-relaxed">{insight.purchase_drivers}</div>
+          <div className="text-gray-700 leading-relaxed">
+            <MarkdownContent content={insight.purchase_drivers} />
+          </div>
         </div>
       </div>
       <h2 className="text-2xl font-bold mb-16">Purchase Drivers</h2>

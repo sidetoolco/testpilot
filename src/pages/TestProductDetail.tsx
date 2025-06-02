@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
 import RedirectModal from '../components/test-setup/RedirectQuestionModal';
+import { trackEvent } from '../lib/events';
 
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
@@ -39,6 +40,10 @@ export default function ProductDetail() {
   const product = location.state?.product;
   const addToCart = useSessionStore(state => state.selectItemAtCheckout); // Usa el hook
   const { shopperId } = useSessionStore(); // Obtén la sesión actual
+  const [searchParams] = useSearchParams();
+
+  const testId = searchParams.get('test');
+  const variationType = searchParams.get('variant');
 
   const itemSelectedAtCheckout = useSessionStore(state => state.itemSelectedAtCheckout);
 
@@ -51,6 +56,17 @@ export default function ProductDetail() {
       console.error('No product available to add to cart');
       return;
     }
+
+    trackEvent(
+      'click',
+      {
+        test_id: testId || '',
+        product_id: product.id,
+        variation_type: variationType || '',
+      },
+      location.pathname
+    );
+
     if (itemSelectedAtCheckout) {
       setIsWarningModalOpen(true);
     } else {
@@ -100,7 +116,7 @@ export default function ProductDetail() {
 
   if (!product) {
     console.error('No product found');
-    return <div>Producto no encontrado</div>;
+    return <div>Product not found</div>;
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -325,7 +341,14 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+        {isModalOpen && (
+          <ProductModal
+            testId={testId || ''}
+            product={product}
+            closeModal={closeModal}
+            variationType={variationType || ''}
+          />
+        )}
         {isWarningModalOpen && (
           <WarningModal
             closeModal={() => setIsWarningModalOpen(false)}
@@ -343,9 +366,13 @@ export default function ProductDetail() {
 const ProductModal = ({
   product,
   closeModal,
+  testId,
+  variationType,
 }: {
   product: any;
   closeModal: (navigateTo?: string) => void;
+  testId: string;
+  variationType: string;
 }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
@@ -375,6 +402,15 @@ const ProductModal = ({
         <button
           className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
           onClick={() => {
+            trackEvent(
+              'click',
+              {
+                product_id: product.id,
+                test_id: testId,
+                variation_type: variationType,
+              },
+              location.pathname
+            );
             closeModal('/questions');
           }}
         >

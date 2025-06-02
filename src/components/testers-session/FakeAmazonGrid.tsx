@@ -9,9 +9,16 @@ import AmazonProductCard from './AmazonProductCard';
 interface PreviewGridProps {
   products: any[];
   addToCart: (item: any) => void;
+  variantType: string;
+  testId: string;
 }
 
-export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps) {
+export default function FakeAmazonGrid({
+  products,
+  addToCart,
+  variantType,
+  testId
+}: PreviewGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const navigate = useNavigate();
@@ -46,6 +53,8 @@ export default function FakeAmazonGrid({ products, addToCart }: PreviewGridProps
               key={`amazon-product-card-${product.id}`}
               product={product}
               onAddToCart={handleAddToCart}
+              variantType={variantType}
+              testId={testId}
             />
           ))}
         </div>
