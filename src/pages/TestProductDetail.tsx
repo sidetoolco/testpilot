@@ -1,32 +1,49 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
-import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
-import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
-import RedirectModal from '../components/test-setup/RedirectQuestionModal';
+import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Star,
+  Share2,
+  Heart,
+  ChevronDown,
+  CheckCircle,
+  X,
+} from "lucide-react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useSessionStore } from "../store/useSessionStore"; // Asegúrate de importar el hook
+import HeaderTesterSessionLayout from "../components/testers-session/HeaderLayout";
+import {
+  recordTimeSpent,
+  updateSession,
+} from "../features/tests/services/testersSessionService";
+import RedirectModal from "../components/test-setup/RedirectQuestionModal";
+import { trackEvent } from "../lib/events";
 
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
-    {rating && rating > 0 && [...Array(5)].map((_, i) => {
-      const fullStars = Math.round(rating || 5)
-      const isFullStar = i < fullStars;
-      const isHalfStar = !isFullStar && i < rating;
-      return (
-        <Star
-          key={i}
-          className={`h-4 w-4 ${isFullStar
-            ? 'text-[#dd8433] fill-[#dd8433]'
-            : isHalfStar
-              ? 'text-[#dd8433] fill-current'
-              : 'text-gray-200 fill-gray-200'
+    {rating &&
+      rating > 0 &&
+      [...Array(5)].map((_, i) => {
+        const fullStars = Math.round(rating || 5);
+        const isFullStar = i < fullStars;
+        const isHalfStar = !isFullStar && i < rating;
+        return (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${
+              isFullStar
+                ? "text-[#dd8433] fill-[#dd8433]"
+                : isHalfStar
+                ? "text-[#dd8433] fill-current"
+                : "text-gray-200 fill-gray-200"
             }`}
-          style={{
-            clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none'
-          }}
-        />
-      );
-    })}
+            style={{
+              clipPath: isHalfStar
+                ? "polygon(0 0, 50% 0, 50% 100%, 0 100%)"
+                : "none",
+            }}
+          />
+        );
+      })}
   </>
 );
 
@@ -36,8 +53,14 @@ export default function ProductDetail() {
   const product = location.state?.product;
   const addToCart = useSessionStore((state) => state.selectItemAtCheckout); // Usa el hook
   const { shopperId } = useSessionStore(); // Obtén la sesión actual
+  const [searchParams] = useSearchParams();
 
-  const itemSelectedAtCheckout = useSessionStore((state) => state.itemSelectedAtCheckout);
+  const testId = searchParams.get("test");
+  const variationType = searchParams.get("variant");
+
+  const itemSelectedAtCheckout = useSessionStore(
+    (state) => state.itemSelectedAtCheckout
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -45,9 +68,20 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) {
-      console.error('No product available to add to cart');
+      console.error("No product available to add to cart");
       return;
     }
+
+    trackEvent(
+      "click",
+      {
+        test_id: testId || "",
+        product_id: product.id,
+        variation_type: variationType || "",
+      },
+      location.pathname
+    );
+
     if (itemSelectedAtCheckout) {
       setIsWarningModalOpen(true);
     } else {
@@ -72,7 +106,9 @@ export default function ProductDetail() {
       const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
-        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
+        console.log(
+          `Tiempo gastado en el producto: ${timeSpent / 1000} segundos`
+        );
         if (product.asin) {
           recordTimeSpent(shopperId, product.id, startTime, endTime, true);
         } else {
@@ -82,7 +118,7 @@ export default function ProductDetail() {
     };
   }, [product]); // Dependencia en el producto para recalcular si cambia
 
-  const closeModal = (navigateTo: string = '') => {
+  const closeModal = (navigateTo: string = "") => {
     setIsModalOpen(false);
     if (navigateTo) {
       navigate(navigateTo);
@@ -92,19 +128,19 @@ export default function ProductDetail() {
 
   const handleRedirectClose = () => {
     setIsRedirectModalOpen(false);
-    navigate('/questions');
+    navigate("/questions");
   };
 
   if (!product) {
-    console.error('No product found');
-    return <div>Producto no encontrado</div>;
+    console.error("No product found");
+    return <div>Product not found</div>;
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
     <HeaderTesterSessionLayout>
-      <div className='max-w-screen-xl mx-auto'>
+      <div className="max-w-screen-xl mx-auto">
         <button
           className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] my-4 transition-colors duration-200"
           onClick={() => navigate(-1)}
@@ -113,29 +149,33 @@ export default function ProductDetail() {
           <span>Go Back</span>
         </button>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-2 ">
-          <div className='block md:hidden p-2'>
+          <div className="block md:hidden p-2">
             <div className="items-center flex">
-              <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
+              <a
+                href="#"
+                className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200"
+              >
                 Visit the {product?.brand} Store
               </a>
-              <small className='text-[14px] text-[#0F1111] px-1'>
+              <small className="text-[14px] text-[#0F1111] px-1">
                 {product.rating}
               </small>
-              <div className='flex items-center p-1'>
+              <div className="flex items-center p-1">
                 <RatingStars rating={product.rating} />
               </div>
               <ChevronDown className="h-4 w-4" />
-              <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
+              <a
+                href="#"
+                className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2"
+              >
                 {product.reviews_count} reviews
               </a>
             </div>
             <h1 className="text-[14px] font-medium text-[#565959] py-1 leading-tight">
               {product.title}
             </h1>
-            <span className='text-[14px] text-[#0F1111]'>
-              <strong>
-                500 + Sold &nbsp;
-              </strong>
+            <span className="text-[14px] text-[#0F1111]">
+              <strong>500 + Sold &nbsp;</strong>
               last month
             </span>
           </div>
@@ -143,7 +183,11 @@ export default function ProductDetail() {
           <div className="col-span-1 md:col-span-5 flex md:flex-row flex-col">
             <div className="flex-col gap-2 p-2 hidden custom-hide:hidden md:flex">
               {product.images.map((image: string, index: number) => (
-                <div key={index} className="w-10 h-10 bg-black rounded-lg" onClick={() => setCurrentIndex(index)}>
+                <div
+                  key={index}
+                  className="w-10 h-10 bg-black rounded-lg"
+                  onClick={() => setCurrentIndex(index)}
+                >
                   <img
                     src={image}
                     alt={`Product image ${index + 1}`}
@@ -154,7 +198,11 @@ export default function ProductDetail() {
             </div>
             <div className="w-full aspect-square mb-4 rounded-lg max-w-[450px] max-h-[450px]">
               <img
-                src={currentIndex === 0 ? product.image_url : product.images[currentIndex]}
+                src={
+                  currentIndex === 0
+                    ? product.image_url
+                    : product.images[currentIndex]
+                }
                 alt={`Product image ${currentIndex + 1}`}
                 className="w-full h-auto object-contain"
               />
@@ -176,40 +224,44 @@ export default function ProductDetail() {
             </div>
           </div>
           <div className="md:col-span-5 hidden md:grid">
-            <div className='flex items-start flex-col gap-2'>
-
+            <div className="flex items-start flex-col gap-2">
               <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight pt-2 ">
                 {product.title}
               </h1>
-              <a href="#" className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200">
+              <a
+                href="#"
+                className=" text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200"
+              >
                 Visit the {product?.brand} Store
               </a>
               <div className="items-center flex pb-2">
-                <small className='text-[14px] text-[#0F1111] pr-2'>
+                <small className="text-[14px] text-[#0F1111] pr-2">
                   {product.rating}
                 </small>
-                <div className='flex items-center p-1'>
+                <div className="flex items-center p-1">
                   <RatingStars rating={product.rating} />
                 </div>
                 <ChevronDown className="h-4 w-4" />
-                <a href="#" className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2">
+                <a
+                  href="#"
+                  className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 ml-2"
+                >
                   {product.reviews_count} reviews
                 </a>
-
               </div>
               <div className="border-t border-[#DDD] py-4">
                 <p className="text-[14px] text-[#0F1111] font-bold">
                   About this product:
                 </p>
                 <ul className="list-disc pl-5 py-2">
-                  {product.bullet_points && product.bullet_points.map((bullet: string) => (
-                    <li key={bullet} className="text-[14px] text-[#0F1111]">
-                      {bullet}
-                    </li>
-                  ))}
+                  {product.bullet_points &&
+                    product.bullet_points.map((bullet: string) => (
+                      <li key={bullet} className="text-[14px] text-[#0F1111]">
+                        {bullet}
+                      </li>
+                    ))}
                 </ul>
               </div>
-
             </div>
             <div className="flex items-start justify-between border-t border-[#DDD] w-full pt-4 mt-4">
               <button className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200">
@@ -230,7 +282,9 @@ export default function ProductDetail() {
             <div className="border-b border-[#DDD] ">
               <div className="flex items-start gap-[2px]">
                 <span className="text-[13px] text-[#0F1111] mt-1">US$</span>
-                <span className="md:text-[28px] text-[#0F1111] text-6xl">{Math.floor(product.price)}</span>
+                <span className="md:text-[28px] text-[#0F1111] text-6xl">
+                  {Math.floor(product.price)}
+                </span>
                 <span className="text-[13px] text-[#0F1111] mt-1">
                   {(product.price % 1).toFixed(2).substring(1)}
                 </span>
@@ -252,10 +306,11 @@ export default function ProductDetail() {
 
             <p className="text-[14px] text-[#0F1111]">Quantity:</p>
             <div className="flex space-x-2 text-[#0F1111] text-[14px] flex-col">
-
               <select className="border border-[#DDD] rounded-lg px-2 py-1 bg-[#F0F2F2]">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                  <option key={num} value={num}>{num}</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
                 ))}
               </select>
             </div>
@@ -281,7 +336,9 @@ export default function ProductDetail() {
             Description about the product
           </strong>
           <p className="mb-4  pb-4">
-            {product?.description ? product.description : 'No description available'}
+            {product?.description
+              ? product.description
+              : "No description available"}
           </p>
           <div className="border-t border-[#DDD] py-2 block md:hidden">
             <strong className="block text-lg font-semibold">
@@ -289,11 +346,12 @@ export default function ProductDetail() {
             </strong>
 
             <ul className="list-disc pl-5">
-              {product.bullet_points && product.bullet_points.map((bullet: string) => (
-                <li key={bullet} className="text-[14px] text-[#0F1111]">
-                  {bullet}
-                </li>
-              ))}
+              {product.bullet_points &&
+                product.bullet_points.map((bullet: string) => (
+                  <li key={bullet} className="text-[14px] text-[#0F1111]">
+                    {bullet}
+                  </li>
+                ))}
             </ul>
           </div>
           <table className="w-full text-left border-collapse">
@@ -301,22 +359,38 @@ export default function ProductDetail() {
               <tr className="border-b border-[#DDD] border-t">
                 <td className="py-2 font-semibold">Brand</td>
                 <td className="py-2">
-                  {product.brand || 'No brand available'}
-                </td></tr>
+                  {product.brand || "No brand available"}
+                </td>
+              </tr>
             </tbody>
           </table>
           <div className="border-t border-[#DDD] py-6">
-            <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
+            <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">
+              Customer reviews
+            </h2>
             <div className="bg-[#F3F3F3] p-6 rounded-lg">
               <div className="flex items-center justify-center flex-col text-center">
-                <p className="text-[#565959] text-[14px] mb-2">Reviews are not included in this test</p>
-                <p className="text-[#565959] text-[12px]">This is a test environment where reviews are not available. In a real shopping experience, you would see customer reviews here.</p>
+                <p className="text-[#565959] text-[14px] mb-2">
+                  Reviews are not included in this test
+                </p>
+                <p className="text-[#565959] text-[12px]">
+                  This is a test environment where reviews are not available. In
+                  a real shopping experience, you would see customer reviews
+                  here.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {isModalOpen && <ProductModal product={product} closeModal={closeModal} />}
+        {isModalOpen && (
+          <ProductModal
+            testId={testId || ""}
+            product={product}
+            closeModal={closeModal}
+            variationType={variationType || ""}
+          />
+        )}
         {isWarningModalOpen && (
           <WarningModal
             closeModal={() => setIsWarningModalOpen(false)}
@@ -324,17 +398,27 @@ export default function ProductDetail() {
             selectedProduct={itemSelectedAtCheckout}
           />
         )}
-        <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
+        <RedirectModal
+          isOpen={isRedirectModalOpen}
+          onClose={handleRedirectClose}
+        />
       </div>
     </HeaderTesterSessionLayout>
   );
-
 }
 
-
 // Componente para mostrar el modal
-const ProductModal = ({ product, closeModal }: { product: any, closeModal: (navigateTo?: string) => void }) => (
-
+const ProductModal = ({
+  product,
+  closeModal,
+  testId,
+  variationType,
+}: {
+  product: any;
+  closeModal: (navigateTo?: string) => void;
+  testId: string;
+  variationType: string;
+}) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
       <button
@@ -357,13 +441,23 @@ const ProductModal = ({ product, closeModal }: { product: any, closeModal: (navi
         </div>
       </div>
       <p className="mt-2 text-center text-gray-700">
-        You have added <strong>{product.title || product.name}</strong> to your cart.
+        You have added <strong>{product.title || product.name}</strong> to your
+        cart.
       </p>
       <div className="mt-4 flex justify-around">
         <button
           className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
           onClick={() => {
-            closeModal('/questions');
+            trackEvent(
+              "click",
+              {
+                product_id: product.id,
+                test_id: testId,
+                variation_type: variationType,
+              },
+              location.pathname
+            );
+            closeModal("/questions");
           }}
         >
           Go to Checkout
@@ -380,7 +474,15 @@ const ProductModal = ({ product, closeModal }: { product: any, closeModal: (navi
 );
 
 // Componente para mostrar el modal de advertencia
-const WarningModal = ({ closeModal, replaceProduct, selectedProduct }: { closeModal: () => void, replaceProduct: () => void, selectedProduct: any }) => (
+const WarningModal = ({
+  closeModal,
+  replaceProduct,
+  selectedProduct,
+}: {
+  closeModal: () => void;
+  replaceProduct: () => void;
+  selectedProduct: any;
+}) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div className="bg-white p-3 md:p-6 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
       <button
@@ -390,7 +492,9 @@ const WarningModal = ({ closeModal, replaceProduct, selectedProduct }: { closeMo
         <X className="h-6 w-6" />
       </button>
       <div className="flex items-center justify-center">
-        <h2 className="text-xl font-bold">You can only have 1 item in the cart</h2>
+        <h2 className="text-xl font-bold">
+          You can only have 1 item in the cart
+        </h2>
       </div>
       <p className="mt-2 text-center text-gray-700">
         Would you like to replace this item?

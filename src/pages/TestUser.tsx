@@ -217,7 +217,7 @@ const TestUserPage = () => {
                                 </div>
                                 <div className="flex gap-4">
                                     <div className="flex-1">
-                                        <FakeAmazonGrid products={combinedData.competitors} addToCart={addToCart} />
+                                        <FakeAmazonGrid products={combinedData.competitors} addToCart={addToCart} variantType={id ? id[id?.length - 1] : ''} testId={id ? id.slice(0, -2) : ''} />
                                     </div>
                                 </div>
                             </div>
