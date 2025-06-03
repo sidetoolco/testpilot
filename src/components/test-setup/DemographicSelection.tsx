@@ -28,7 +28,7 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  const [testerCount, setTesterCount] = useState<number>(25);
+  const [testerCount, setTesterCount] = useState<number>(10);
   const [error, setError] = useState<string | null>(null);
   const [minAge, setMinAge] = useState<number>(18);
   const [maxAge, setMaxAge] = useState<number>(55);
@@ -122,7 +122,7 @@ export default function DemographicSelection({
   // };
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value; // Cambiado para permitir valor vacío
+    const value = e.target.value;
 
     if (value === '') {
       setTesterCount(0);
@@ -130,8 +130,8 @@ export default function DemographicSelection({
     }
     const parsedValue = parseInt(value);
 
-    if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
-      setError('Please enter a number between 25 and 500.');
+    if (isNaN(parsedValue) || parsedValue < 10 || parsedValue > 500) {
+      setError('Please enter a number between 10 and 500.');
     } else {
       setError(null);
     }
@@ -170,7 +170,7 @@ export default function DemographicSelection({
               <input
                 id="testerCount"
                 type="number"
-                min="25"
+                min="10"
                 max="500"
                 value={testerCount || ''}
                 onChange={handleTesterCountChange}
@@ -182,7 +182,7 @@ export default function DemographicSelection({
                 placeholder="Number of testers"
               />
             </div>
-            <span className="text-sm text-gray-500">Min: 25, Max: 500 testers</span>
+            <span className="text-sm text-gray-500">Min: 10, Max: 500 testers</span>
           </div>
           {error && <p className="text-red-500 text-sm mt-1 sm:mt-2 md:mt-3 lg:mt-1">{error}</p>}
         </div>
