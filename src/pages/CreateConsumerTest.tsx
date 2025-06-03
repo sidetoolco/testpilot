@@ -78,6 +78,14 @@ export default function CreateConsumerTest() {
         return;
       }
 
+      if (
+        testData.demographics.customScreening.enabled &&
+        !testData.demographics.customScreening.valid
+      ) {
+        toast.error('Please enter and validate your screening question before proceeding');
+        return;
+      }
+
       setIsLoading(true);
 
       // Create test

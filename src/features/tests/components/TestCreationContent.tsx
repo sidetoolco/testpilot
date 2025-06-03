@@ -10,7 +10,7 @@ import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelectio
 interface TestCreationContentProps {
   currentStep: string;
   testData: TestData;
-  onUpdateTestData: (updates: Partial<TestData>) => void;
+  onUpdateTestData: React.Dispatch<React.SetStateAction<TestData>>;
   onNext: () => void;
   onBack: () => void;
 }
@@ -23,7 +23,7 @@ export function TestCreationContent({
   onBack,
 }: TestCreationContentProps) {
   const handleUpdateData = (key: keyof TestData, value: any) => {
-    onUpdateTestData({ ...testData, [key]: value });
+    onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
   };
 
   return (

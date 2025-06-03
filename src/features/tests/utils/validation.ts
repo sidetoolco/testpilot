@@ -14,14 +14,23 @@ export const validateStep = (step: string, data: TestData): boolean => {
       return data.variations.a !== null; // At least variation A is required
 
     case 'demographics':
-      return (
+      const isValidDemographics =
         data.demographics.ageRanges.length === 2 &&
         data.demographics.gender.length > 0 &&
         data.demographics.locations.length > 0 &&
         data.demographics.testerCount >= 10 &&
-        data.demographics.testerCount <= 500
-        // && data.demographics.interests.length > 0
-      );
+        data.demographics.testerCount <= 500;
+      // && data.demographics.interests.length > 0
+
+      if (data.demographics.customScreening.enabled) {
+        return (
+          isValidDemographics &&
+          !!data.demographics.customScreening.question?.trim().length &&
+          !data.demographics.customScreening.isValidating
+        );
+      } else {
+        return isValidDemographics;
+      }
 
     case 'preview':
       return true; // Preview can always proceed

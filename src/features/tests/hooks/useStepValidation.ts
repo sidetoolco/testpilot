@@ -19,7 +19,9 @@ export const useStepValidation = (testData: TestData) => {
       case 'variations':
         return 'Please select at least Variation A';
       case 'demographics':
-        return 'Please complete all demographic selections';
+        return testData.demographics.customScreening.enabled
+          ? 'Please wait until your screening question is validated before proceeding'
+          : 'Please complete all demographic selections';
       case 'review':
         return 'Please enter a test name';
       default:

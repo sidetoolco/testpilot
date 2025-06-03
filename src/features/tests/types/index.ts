@@ -34,6 +34,8 @@ export interface ProductValidationResult {
 
 export interface CustomScreening {
   enabled: boolean;
+  valid?: boolean;
+  isValidating?: boolean;
   question?: string;
   validAnswer?: 'Yes' | 'No';
 }

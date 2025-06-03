@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { testService } from '../../features/tests/services/testService';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 import { TestData } from '../../features/tests/types';
 
 interface TestReviewProps {
   testData: TestData;
-  onUpdateTestData: (updates: Partial<TestData>) => void;
+  onUpdateTestData: React.Dispatch<React.SetStateAction<TestData>>;
 }
 
 export default function TestReview({ testData, onUpdateTestData }: TestReviewProps) {
   const [testName, setTestName] = useState(testData.name);
-  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     setTestName(testData.name);
