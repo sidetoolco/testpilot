@@ -4,7 +4,7 @@ import { CustomScreening as CustomScreeningInterface } from '../../features/test
 import apiClient from '../../lib/api';
 
 interface CustomScreeningProps {
-  onChange: (payload: CustomScreeningInterface) => void;
+  onChange: (field: keyof CustomScreeningInterface, value: any) => void;
   value: CustomScreeningInterface;
 }
 
@@ -17,7 +17,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
       return false;
     }
 
-    onChange({ ...value, isValidating: true });
+    onChange('isValidating', true);
 
     apiClient
       .post<{ isValid: boolean; error?: string }>('/screening/validate-question', {
@@ -29,9 +29,9 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
             data.error ||
               'This question may be too narrow and could limit participant availability.'
           );
-          onChange({ ...value, valid: false });
+          onChange('valid', false);
         } else {
-          onChange({ ...value, valid: true });
+          onChange('valid', true);
           setError(null);
         }
       })
@@ -40,12 +40,12 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
           err.response?.data?.message || 'Something unexpected happened. Please, try again later'
         );
       })
-      .finally(() => onChange({ ...value, isValidating: false }));
+      .finally(() => onChange('isValidating', false));
   };
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuestion = e.target.value;
-    onChange({ ...value, question: newQuestion });
+    onChange('question', newQuestion);
     setError(null); // Clear error on new input
   };
 
@@ -54,7 +54,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-medium text-gray-900">Custom Screening</h4>
         <button
-          onClick={() => onChange({ ...value, enabled: !value.enabled })}
+          onClick={() => onChange('enabled', !value.enabled)}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:ring-offset-2 ${
             value.enabled ? 'bg-[#00A67E]' : 'bg-gray-200'
           }`}
@@ -149,12 +149,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                 {['Yes', 'No'].map(option => (
                   <button
                     key={option}
-                    onClick={() =>
-                      onChange({
-                        ...value,
-                        validAnswer: option as 'Yes' | 'No',
-                      })
-                    }
+                    onClick={() => onChange('validAnswer', option as 'Yes' | 'No')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       value.validAnswer === option
                         ? 'border-[#00A67E] bg-[#00A67E]/5'

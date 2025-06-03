@@ -68,7 +68,12 @@ export function TestCreationContent({
         <DemographicSelection
           demographics={testData.demographics}
           variations={testData.variations}
-          onChange={updatedDemographics => handleUpdateData('demographics', updatedDemographics)}
+          onChange={updater => 
+            onUpdateTestData(prevTestData => ({
+              ...prevTestData,
+              demographics: updater(prevTestData.demographics)
+            }))
+          }
           onNext={onNext}
           onBack={onBack}
         />

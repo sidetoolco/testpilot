@@ -4,21 +4,23 @@ import { PriceCalculator } from './PriceCalculator';
 import CustomScreening from './CustomScreening';
 import { CustomScreening as CustomScreeningType } from '../../features/tests/types';
 
+type Demographics = {
+  ageRanges: string[];
+  gender: string[];
+  locations: string[];
+  interests: string[];
+  testerCount: number;
+  customScreening: CustomScreeningType;
+};
+
 interface DemographicSelectionProps {
-  demographics: {
-    ageRanges: string[];
-    gender: string[];
-    locations: string[];
-    interests: string[];
-    testerCount: number;
-    customScreening: CustomScreeningType;
-  };
+  demographics: Demographics;
   variations: {
     a: any;
     b: any;
     c: any;
   };
-  onChange: (demographics: any) => void;
+  onChange: (updater: (prev: Demographics) => Demographics) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -66,7 +68,7 @@ export default function DemographicSelection({
     }
 
     if (Object.keys(updates).length > 0) {
-      onChange({ ...demographics, ...updates });
+      onChange(prev => ({ ...prev, ...updates }));
     }
   }, []);
 
@@ -97,21 +99,21 @@ export default function DemographicSelection({
     setMaxAge(newMaxAge);
 
     // Update the ageRanges array with the new range
-    onChange({ ...demographics, ageRanges: [newMinAge, newMaxAge] });
+    onChange(prev => ({ ...prev, ageRanges: [newMinAge.toString(), newMaxAge.toString()] }));
   };
 
   const handleGenderSelect = (gender: string) => {
     const newGenders = demographics.gender.includes(gender)
       ? demographics.gender.filter(g => g !== gender)
       : [...demographics.gender, gender];
-    onChange({ ...demographics, gender: newGenders });
+    onChange(prev => ({ ...prev, gender: newGenders }));
   };
 
   const handleCountrySelect = (country: string) => {
     const newLocations = demographics.locations.includes(country)
       ? demographics.locations.filter(l => l !== country)
       : [...demographics.locations, country];
-    onChange({ ...demographics, locations: newLocations });
+    onChange(prev => ({ ...prev, locations: newLocations }));
   };
 
   // const handleScreeningSelect = (criterion: string) => {
@@ -137,7 +139,7 @@ export default function DemographicSelection({
     }
     if (!isNaN(parsedValue)) {
       const updatedDemographics = { ...demographics, testerCount: parsedValue };
-      onChange(updatedDemographics);
+      onChange(prev => ({ ...prev, ...updatedDemographics }));
       setTesterCount(parsedValue);
     }
   };
@@ -286,11 +288,14 @@ export default function DemographicSelection({
 
         <CustomScreening
           value={demographics.customScreening}
-          onChange={customScreeningPayload =>
-            onChange({
-              ...demographics,
-              customScreening: customScreeningPayload,
-            })
+          onChange={(field, value) =>
+            onChange(prevDemographics => ({
+              ...prevDemographics,
+              customScreening: {
+                ...prevDemographics.customScreening,
+                [field]: value,
+              },
+            }))
           }
         />
       </div>
