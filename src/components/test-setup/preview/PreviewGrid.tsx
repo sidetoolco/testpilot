@@ -25,11 +25,7 @@ export default function PreviewGrid({ products, variations }: PreviewGridProps) 
     // Luego abrimos la nueva pestaña
     const newWindow = window.open('/preview-product', '_blank');
     
-    // Si la ventana se bloquea, mostramos un mensaje
-    if (!newWindow) {
-      console.error('La ventana emergente fue bloqueada');
-      alert('Por favor, permite las ventanas emergentes para ver el detalle del producto');
-    }
+   
   };
 
   return (
