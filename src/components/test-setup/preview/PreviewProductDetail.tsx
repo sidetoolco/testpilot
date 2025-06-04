@@ -45,7 +45,7 @@ export default function PreviewProductDetail() {
           setProduct(JSON.parse(storedProduct));
         }
       } catch (error) {
-        console.error('Error al cargar el producto:', error);
+        console.error('Error loading product:', error);
       } finally {
         setIsLoading(false);
       }
@@ -69,16 +69,16 @@ export default function PreviewProductDetail() {
       <HeaderTesterSessionLayout>
         <div className="bg-[#EAEDED] min-h-[600px] flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">No se encontró el producto</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Product not found</h2>
             <p className="text-gray-600 mb-4">
-              Por favor, regresa a la página anterior y selecciona un producto nuevamente.
+              Please go back to the previous page and select a product again.
             </p>
             <button
               onClick={() => navigate(-1)}
               className="flex items-center space-x-2 text-[#0F1111] text-[14px] hover:text-[#C7511F] transition-colors duration-200 mx-auto"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Volver</span>
+              <span>Go Back</span>
             </button>
           </div>
         </div>
