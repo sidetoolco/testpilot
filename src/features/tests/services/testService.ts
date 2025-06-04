@@ -211,9 +211,8 @@ export const testService = {
           console.log(`Response data for variation ${variationType}:`, response.data);
 
         } catch (error) {
-          console.error(`Prolific integration failed for variation ${variationType}:`, error);
-        } finally {
-          console.log(`Prolific project being created for variation ${variationType}`);
+          await supabase.from('tests').delete().eq('id', test.id);
+          throw new TestCreationError('Failed to create Prolific project', { error });
         }
       }
     }
