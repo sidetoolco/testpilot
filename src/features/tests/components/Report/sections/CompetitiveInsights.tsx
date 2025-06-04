@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
+import { MarkdownContent } from '../utils/MarkdownContent';
 
 interface CompetitorProduct {
   product_url: string;
@@ -91,7 +92,9 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           ))}
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">{insight.competitive_insights}</div>
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <MarkdownContent content={insight.competitive_insights} />
+      </div>
 
       {filteredInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
