@@ -30,7 +30,8 @@ export function ProductCard({ product, isSelected, onSelect, renderTooltip }: Pr
       <div className="flex items-center space-x-1 mb-2">
         <div className="flex">
           {[...Array(5)].map((_, i) => {
-            const isFullStar = i < Math.floor(product.rating || 0);
+            const fullStars = Math.round(product.rating || 5);
+            const isFullStar = i < fullStars;
             const isHalfStar = !isFullStar && i < product.rating;
             return (
               <Star
