@@ -55,7 +55,10 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     variation.title.includes('Variant ' + selectedVariant.toUpperCase())
   )?.shareOfBuy;
   const filteredVariant = variants.find((variant: any) => variant.variant_type === selectedVariant);
-  filteredVariant.share_of_buy = shareOfBuy;
+
+  if (filteredVariant) {
+    filteredVariant.share_of_buy = shareOfBuy;
+  }
 
   // 🔍 Filtrar datos por variant_type
   const filteredInsights = useMemo(() => {
@@ -63,10 +66,9 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       .filter(item => item.variant_type === selectedVariant)
       .sort((a, b) => b.share_of_buy - a.share_of_buy);
 
-    return [filteredVariant, ...filtered];
+    return filteredVariant ? [filteredVariant, ...filtered] : filtered;
   }, [competitiveinsights, selectedVariant, filteredVariant]);
 
-  console.log(filteredInsights);
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
