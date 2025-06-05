@@ -64,21 +64,21 @@ const QuestionDetail: React.FC = () => {
   });
 
   const handleOptionClick = (option: string) => {
-    // if (option === screening?.valid_option) {
-    //   const queryString = searchParams.toString();
-    //   navigate(`/test/${id}${queryString ? `?${queryString}` : ''}`);
-    // } else if (option === screening?.invalid_option) {
-    apiClient
-      .post('/prolific/submission/screen-out', {
-        studyId: prolificStudyId,
-        participantId: prolificPid,
-      })
-      .catch(err => console.error(`Failed to screen out submission`, err))
-      .finally(
-        () =>
-          (window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
-      );
-    // }
+    if (option === screening?.valid_option) {
+      const queryString = searchParams.toString();
+      navigate(`/test/${id}${queryString ? `?${queryString}` : ''}`);
+    } else if (option === screening?.invalid_option) {
+      apiClient
+        .post('/prolific/submission/screen-out', {
+          studyId: prolificStudyId,
+          participantId: prolificPid,
+        })
+        .catch(err => console.error(`Failed to screen out submission`, err))
+        .finally(
+          () =>
+            (window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
+        );
+    }
   };
 
   if (isLoading) {
