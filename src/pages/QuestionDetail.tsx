@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import apiClient from '../lib/api';
+import { getTracker } from '../lib/openReplay';
 
 interface CustomScreening {
   id: string;
@@ -21,41 +22,63 @@ const QuestionDetail: React.FC = () => {
   const prolificPid = searchParams.get('PROLIFIC_PID');
   const prolificStudyId = searchParams.get('STUDY_ID');
 
-  const { data: screening, isLoading, error } = useQuery({
+  useEffect(() => {
+    if (id && prolificPid) {
+      const tracker = getTracker(`screeningID:${id}-prolificPID:${prolificPid}`);
+      tracker.trackWs('PageEvents')?.(
+        'Screening Page Loaded',
+        JSON.stringify({ screeningId: id, prolificPid }),
+        'down'
+      );
+    }
+  }, [id, prolificPid]);
+
+  const {
+    data: screening,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['customScreening', id],
     queryFn: async () => {
       if (!id) throw new Error('No ID provided');
-      
+
       const { data, error } = await supabase
         .from('custom_screening')
         .select('*')
-        .eq('test_id', id.slice(0,-2))
+        .eq('test_id', id.slice(0, -2))
         .single();
 
       if (error) throw error;
       if (!data) throw new Error('No data found');
-      
+
       return {
         id: data.id,
         question: data.question,
         options: data.options || [],
         created_at: data.created_at,
         valid_option: data.valid_option,
-        invalid_option: data.invalid_option
+        invalid_option: data.invalid_option,
       } as CustomScreening;
     },
-    enabled: !!id
+    enabled: !!id,
   });
 
   const handleOptionClick = (option: string) => {
-    if (option === screening?.valid_option) {
-      const queryString = searchParams.toString();
-      navigate(`/test/${id}${queryString ? `?${queryString}` : ''}`);
-    } else if (option === screening?.invalid_option) {
-      apiClient.post('/prolific/submission/screen-out', { studyId: prolificStudyId, participantId: prolificPid })
-        .then(() => window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
-        .catch(err => console.error(`Failed to screen out submission`, err));
-    }
+    // if (option === screening?.valid_option) {
+    //   const queryString = searchParams.toString();
+    //   navigate(`/test/${id}${queryString ? `?${queryString}` : ''}`);
+    // } else if (option === screening?.invalid_option) {
+    apiClient
+      .post('/prolific/submission/screen-out', {
+        studyId: prolificStudyId,
+        participantId: prolificPid,
+      })
+      .then(
+        () =>
+          (window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
+      )
+      .catch(err => console.error(`Failed to screen out submission`, err));
+    // }
   };
 
   if (isLoading) {
@@ -88,7 +111,7 @@ const QuestionDetail: React.FC = () => {
               <h2 className="text-xl font-semibold mb-2">Question</h2>
               <p className="text-gray-700">{screening.question}</p>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Options</h3>
               <div className="grid gap-4">
@@ -117,4 +140,4 @@ const QuestionDetail: React.FC = () => {
   );
 };
 
-export default QuestionDetail; 
+export default QuestionDetail;
