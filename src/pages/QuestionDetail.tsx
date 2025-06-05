@@ -73,11 +73,11 @@ const QuestionDetail: React.FC = () => {
         studyId: prolificStudyId,
         participantId: prolificPid,
       })
-      .then(
+      .catch(err => console.error(`Failed to screen out submission`, err))
+      .finally(
         () =>
           (window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
-      )
-      .catch(err => console.error(`Failed to screen out submission`, err));
+      );
     // }
   };
 
