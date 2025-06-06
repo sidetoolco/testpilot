@@ -126,15 +126,15 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod=false'
           working-directory: ./
         id: deploy
 
       # Verifica que el despliegue fue exitoso y muestra la URL
       - name: Check Deployment Status
         run: |
-          if [ "${{ steps.deploy.outputs.vercel-deployment-url }}" == "" ]; then
-            echo "Deployment failed - no URL returned"
-            exit 1
+          if [ -z "${{ steps.deploy.outputs.vercel-deployment-url }}" ]; then
+           echo "❌ Deployment failed - no URL returned"
+           exit 1
+          else
+           echo "✅ Deployment successful! URL: ${{ steps.deploy.outputs.vercel-deployment-url }}"
           fi
-          echo "Deployment successful! URL: ${{ steps.deploy.outputs.vercel-deployment-url }}"
