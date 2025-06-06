@@ -85,9 +85,9 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                 <div className="text-gray-900">{testData.competitors.length} products selected</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500 mb-1">Variations</div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Variants</div>
                 <div className="text-gray-900">
-                  {activeVariants} variation{activeVariants !== 1 ? 's' : ''} configured
+                  {activeVariants} variant{activeVariants !== 1 ? 's' : ''} configured
                 </div>
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500 mb-1">Testers per Variation</div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Testers per Variant</div>
                 <div className="text-gray-900">{testData.demographics.testerCount} testers</div>
               </div>
             </div>

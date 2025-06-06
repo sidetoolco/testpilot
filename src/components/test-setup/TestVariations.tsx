@@ -78,7 +78,7 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
         <div className="bg-white p-6 rounded-xl border border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-lg font-medium">
-              Variation {key.toUpperCase()}
+              Variant {key.toUpperCase()}
               {isRequired && <span className="text-red-500 ml-1">*</span>}
             </h4>
           </div>
@@ -118,7 +118,7 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       <div className="bg-white p-6 rounded-xl border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h4 className="text-lg font-medium">
-            Variation {key.toUpperCase()}
+            Variant {key.toUpperCase()}
             {isRequired && <span className="text-red-500 ml-1">*</span>}
           </h4>
           {!variation.isExisting && (
@@ -180,9 +180,9 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-semibold text-gray-900 mb-3">Create Product Variations</h3>
+        <h3 className="text-3xl font-semibold text-gray-900 mb-3">Create Product Variants</h3>
         <p className="text-lg text-gray-500">
-          Set up to three variations (A/B/C) of your product to test different versions. Variation A
+          Set up to three variants (A/B/C) of your product to test different versions. Variant A
           is required.
         </p>
       </div>

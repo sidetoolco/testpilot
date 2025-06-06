@@ -19,6 +19,7 @@ import CreateConsumerTest from './pages/CreateConsumerTest';
 import TestUserPage from './pages/TestUser';
 import TestDetail from './pages/TestDetail';
 import ProductDetail from './pages/TestProductDetail';
+import PreviewProductDetail from './components/test-setup/preview/PreviewProductDetail';
 import TestQuestions from './pages/TestQuestions';
 import QuestionDetail from './pages/QuestionDetail';
 import ThankYou from './pages/ThankYou';
@@ -84,6 +85,9 @@ function App() {
 
               <Route path="/product/:id" element={
                 <ProductDetail />
+              } />
+              <Route path="/preview-product" element={
+                <PreviewProductDetail />
               } />
               <Route path="/questions" element={
                 <TestQuestions />

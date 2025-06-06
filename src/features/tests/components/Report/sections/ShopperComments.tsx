@@ -90,7 +90,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
                                     : 'bg-green-200 text-black hover:bg-gray-400'
                                 }`}
             >
-              Variation {v.toUpperCase()}
+              Variant {v.toUpperCase()}
             </button>
           ))}
         </div>
@@ -120,7 +120,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
                                     : 'bg-green-200 text-black hover:bg-gray-400'
                                 }`}
             >
-              Variation {v.toUpperCase()}
+              Variant {v.toUpperCase()}
             </button>
           ))}
         </div>

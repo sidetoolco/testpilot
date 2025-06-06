@@ -75,7 +75,7 @@ export default function TestPreview({ searchTerm, competitors, variations }: Tes
                   }`}
                 disabled={!variant}
               >
-                Variation {key.toUpperCase()}
+                Variant {key.toUpperCase()}
               </button>
             ))}
           </div>
