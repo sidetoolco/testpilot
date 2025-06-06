@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import apiClient from '../lib/api';
+import { getTracker } from '../lib/openReplay';
 
 interface CustomScreening {
   id: string;
@@ -20,6 +21,17 @@ const QuestionDetail: React.FC = () => {
 
   const prolificPid = searchParams.get('PROLIFIC_PID');
   const prolificStudyId = searchParams.get('STUDY_ID');
+
+  useEffect(() => {
+    if (id && prolificPid) {
+      const tracker = getTracker(`screeningID:${id}-prolificPID:${prolificPid}`);
+      tracker.trackWs('PageEvents')?.(
+        'Screening Page Loaded',
+        JSON.stringify({ screeningId: id, prolificPid }),
+        'down'
+      );
+    }
+  }, [id, prolificPid]);
 
   const {
     data: screening,
@@ -61,11 +73,11 @@ const QuestionDetail: React.FC = () => {
           studyId: prolificStudyId,
           participantId: prolificPid,
         })
-        .then(
+        .catch(err => console.error(`Failed to screen out submission`, err))
+        .finally(
           () =>
             (window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENED-OUT')
-        )
-        .catch(err => console.error(`Failed to screen out submission`, err));
+        );
     }
   };
 

@@ -14,12 +14,12 @@ apiClient.interceptors.request.use(
       error,
     } = await supabase.auth.getSession();
 
-    if (error || !session) {
+    if (error) {
       console.error('Error getting session: ', error);
       return Promise.reject(error);
     }
 
-    if (session.access_token) {
+    if (session?.access_token) {
       config.headers.Authorization = `Bearer ${session.access_token}`;
     }
 
