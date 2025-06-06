@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Info, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../../features/auth/stores/authStore';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
@@ -27,6 +27,7 @@ export default function CompetitorSelection({
   const [searchFilter, setSearchFilter] = useState('');
   const { user } = useAuthStore();
   const { products, loading, error } = useProductFetch(searchTerm, user?.id);
+  const isInitialLoad = useRef(true);
 
   const handleProductSelect = (product: AmazonProduct) => {
     if (selectedCompetitors.find(p => p.asin === product.asin)) {
@@ -38,15 +39,13 @@ export default function CompetitorSelection({
     }
   };
 
-  // Pre-select top 10 products by review count if none selected
+  // Reiniciar la selección solo cuando cambia el término de búsqueda
   React.useEffect(() => {
-    if (products.length && !selectedCompetitors.length) {
-      const topProducts = [...products]
-        .sort((a, b) => (b.reviews_count || 0) - (a.reviews_count || 0))
-        .slice(0, MAX_COMPETITORS);
-      onChange(topProducts);
+    if (products.length && isInitialLoad.current) {
+      onChange([]);
+      isInitialLoad.current = false;
     }
-  }, [products, selectedCompetitors.length, onChange]);
+  }, [searchTerm, products.length]);
 
   const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
