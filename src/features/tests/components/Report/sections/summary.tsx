@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import clsx from "clsx";
+import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 
 const COLORS = {
   success: {
@@ -35,9 +35,7 @@ const getColorForValue = (value: string, columnIndex: number, allRows: string[][
   }
 
   // For Value Score (index 3), keep the original max/min logic
-  const columnValues = allRows.map((row) =>
-    parseFloat(row[columnIndex].replace("%", ""))
-  );
+  const columnValues = allRows.map(row => parseFloat(row[columnIndex].replace('%', '')));
   const max = Math.max(...columnValues);
   const min = Math.min(...columnValues);
 

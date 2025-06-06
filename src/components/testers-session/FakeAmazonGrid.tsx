@@ -17,7 +17,7 @@ export default function FakeAmazonGrid({
   products,
   addToCart,
   variantType,
-  testId
+  testId,
 }: PreviewGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);

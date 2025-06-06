@@ -8,7 +8,12 @@ interface ProductGridProps {
   renderTooltip?: (product: AmazonProduct) => React.ReactNode;
 }
 
-export function ProductGrid({ products, selectedProducts, onProductSelect, renderTooltip }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  selectedProducts,
+  onProductSelect,
+  renderTooltip,
+}: ProductGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {products.map((product, i) => (
