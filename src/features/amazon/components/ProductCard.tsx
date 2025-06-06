@@ -20,11 +20,7 @@ export function ProductCard({ product, isSelected, onSelect, renderTooltip }: Pr
     >
       {renderTooltip && renderTooltip(product)}
       <div className="aspect-square mb-3">
-        <img
-          src={product.image_url}
-          alt={product.title}
-          className="w-full h-full object-contain"
-        />
+        <img src={product.image_url} alt={product.title} className="w-full h-full object-contain" />
       </div>
       <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">{product.title}</h3>
       <div className="flex items-center space-x-1 mb-2">
@@ -50,9 +46,7 @@ export function ProductCard({ product, isSelected, onSelect, renderTooltip }: Pr
             );
           })}
         </div>
-        <span className="text-xs text-gray-500">
-          {formatNumber(product.reviews_count)}
-        </span>
+        <span className="text-xs text-gray-500">{formatNumber(product.reviews_count)}</span>
       </div>
       <div className="flex items-baseline">
         <span className="text-sm">US$</span>

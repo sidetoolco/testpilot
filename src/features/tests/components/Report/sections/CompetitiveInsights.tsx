@@ -70,7 +70,6 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     return filteredVariant ? [filteredVariant, ...filtered] : filtered;
   }, [competitiveinsights, selectedVariant, filteredVariant]);
 
-
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
       <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>

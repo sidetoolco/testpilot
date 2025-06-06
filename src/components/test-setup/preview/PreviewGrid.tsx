@@ -18,19 +18,17 @@ export default function PreviewGrid({ products, variations }: PreviewGridProps) 
     console.log('Product clicked:', product);
     const identifier = product.id || product.asin;
     console.log('Product identifier:', identifier);
-    
+
     // Primero guardamos el producto en sessionStorage
     sessionStorage.setItem('previewProduct', JSON.stringify(product));
-    
+
     // Luego abrimos la nueva pestaña
     const newWindow = window.open('/preview-product', '_blank');
-    
-   
   };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {products.map((product) => (
+      {products.map(product => (
         <div
           key={product.id || product.asin}
           className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"

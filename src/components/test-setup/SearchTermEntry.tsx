@@ -7,7 +7,7 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
-export default function SearchTermEntry({ value, onChange }: SearchTermEntryProps) {
+export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const [suggestions] = useState([
     'Fabric Softener',
     'Laundry Detergent',
@@ -46,6 +46,11 @@ export default function SearchTermEntry({ value, onChange }: SearchTermEntryProp
               onChange={e => {
                 onChange(e.target.value);
                 setShowSuggestions(true);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  onNext();
+                }
               }}
               onFocus={() => setShowSuggestions(true)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"

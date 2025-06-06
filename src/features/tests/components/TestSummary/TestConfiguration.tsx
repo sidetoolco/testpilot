@@ -70,7 +70,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Variations</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Variants</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">

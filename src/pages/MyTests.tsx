@@ -244,7 +244,9 @@ export default function MyTests() {
             >
               <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0`}>
+                  <div
+                    className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0`}
+                  >
                     {test.status === 'complete' ? (
                       <CheckCircle className="h-6 w-6 text-[#00A67E]" />
                     ) : (

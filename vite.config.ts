@@ -1,18 +1,21 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react(), sentryVitePlugin({
-    org: "sidetool-4o",
-    project: "testpilot"
-  })],
+  plugins: [
+    react(),
+    sentryVitePlugin({
+      org: 'sidetool-4o',
+      project: 'testpilot',
+    }),
+  ],
 
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
 
   build: {
-    sourcemap: true
-  }
+    sourcemap: true,
+  },
 });
