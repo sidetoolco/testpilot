@@ -47,7 +47,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
                 onChange(e.target.value);
                 setShowSuggestions(true);
               }}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter') {
                   onNext();
                 }

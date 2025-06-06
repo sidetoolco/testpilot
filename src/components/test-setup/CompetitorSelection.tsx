@@ -87,7 +87,9 @@ export default function CompetitorSelection({
       {/* Floating counter */}
       <div className="fixed bottom-8 right-8 bg-white rounded-lg shadow-lg p-4 z-50 border border-gray-200">
         <div className="flex items-center space-x-2">
-          <CheckCircle2 className={`h-5 w-5 ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-500' : 'text-gray-400'}`} />
+          <CheckCircle2
+            className={`h-5 w-5 ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-500' : 'text-gray-400'}`}
+          />
           <span className="text-sm font-medium">
             {selectedCompetitors.length} of {MAX_COMPETITORS} selected
           </span>
@@ -98,14 +100,14 @@ export default function CompetitorSelection({
         products={filteredProducts}
         selectedProducts={selectedCompetitors}
         onProductSelect={handleProductSelect}
-        renderTooltip={(product) => (
+        renderTooltip={product => (
           <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="bg-white p-2 rounded-lg shadow-lg">
               <span className="text-sm font-medium">
-                {selectedCompetitors.find(p => p.asin === product.asin) 
-                  ? 'Click to deselect' 
-                  : selectedCompetitors.length < MAX_COMPETITORS 
-                    ? 'Click to select' 
+                {selectedCompetitors.find(p => p.asin === product.asin)
+                  ? 'Click to deselect'
+                  : selectedCompetitors.length < MAX_COMPETITORS
+                    ? 'Click to select'
                     : 'Maximum competitors reached'}
               </span>
             </div>

@@ -7,11 +7,11 @@ import './index.css';
 
 if (import.meta.env.PROD) {
   Sentry.init({
-    dsn: "https://765ff27999bc8f1f5fb1e9d570aa7b2a@o4509390953316352.ingest.us.sentry.io/4509390963277824",
+    dsn: 'https://765ff27999bc8f1f5fb1e9d570aa7b2a@o4509390953316352.ingest.us.sentry.io/4509390963277824',
     integrations: [browserTracingIntegration()],
     tracesSampleRate: 1.0,
     environment: import.meta.env.MODE,
-    sendDefaultPii: true
+    sendDefaultPii: true,
   });
 }
 

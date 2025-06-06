@@ -63,41 +63,35 @@ function App() {
             <Routes>
               {/* Unprotected Route */}
 
-              <Route path="/test/:id" element={
-                <TestUserPage />
-              } />
+              <Route path="/test/:id" element={<TestUserPage />} />
 
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Adminpanel />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Adminpanel />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-              <Route path="/support" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Support />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/support"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Support />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-              <Route path="/product/:id" element={
-                <ProductDetail />
-              } />
-              <Route path="/preview-product" element={
-                <PreviewProductDetail />
-              } />
-              <Route path="/questions" element={
-                <TestQuestions />
-              } />
-              <Route path="/questions/:id" element={
-                <QuestionDetail />
-              } />
-              <Route path="/thanks" element={
-                <ThankYou />
-              } />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/preview-product" element={<PreviewProductDetail />} />
+              <Route path="/questions" element={<TestQuestions />} />
+              <Route path="/questions/:id" element={<QuestionDetail />} />
+              <Route path="/thanks" element={<ThankYou />} />
               <Route path="/sentry-error-test" element={<SentryErrorTest />} />
               {/* detalle testing */}
               <Route

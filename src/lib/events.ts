@@ -1,6 +1,6 @@
-import { supabase } from "./supabase";
+import { supabase } from './supabase';
 
-type EventType = "click";
+type EventType = 'click';
 
 interface EventMetadata {
   test_id?: string;
@@ -8,22 +8,18 @@ interface EventMetadata {
   product_id?: string;
 }
 
-export const trackEvent = async (
-  type: EventType,
-  metadata: EventMetadata = {},
-  path: string
-) => {
+export const trackEvent = async (type: EventType, metadata: EventMetadata = {}, path: string) => {
   try {
-    const { error } = await supabase.from("events").insert({
+    const { error } = await supabase.from('events').insert({
       type,
       metadata,
-      path
+      path,
     } as any);
 
     if (error) {
-      console.error("Error tracking event:", error);
+      console.error('Error tracking event:', error);
     }
   } catch (error) {
-    console.error("Error in trackEvent:", error);
+    console.error('Error in trackEvent:', error);
   }
 };

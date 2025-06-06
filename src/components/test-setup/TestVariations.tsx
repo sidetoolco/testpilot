@@ -182,8 +182,8 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       <div className="text-center mb-12">
         <h3 className="text-3xl font-semibold text-gray-900 mb-3">Create Product Variants</h3>
         <p className="text-lg text-gray-500">
-          Set up to three variants (A/B/C) of your product to test different versions. Variant A
-          is required.
+          Set up to three variants (A/B/C) of your product to test different versions. Variant A is
+          required.
         </p>
       </div>
 
