@@ -132,9 +132,9 @@ jobs:
       # Verifica que el despliegue fue exitoso y muestra la URL
       - name: Check Deployment Status
         run: |
-          if [ -z "${{ steps.deploy.outputs.vercel-deployment-url }}" ]; then
-           echo "❌ Deployment failed - no URL returned"
-           exit 1
-          else
-           echo "✅ Deployment successful! URL: ${{ steps.deploy.outputs.vercel-deployment-url }}"
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.preview-url }}"
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Deployment failed - no URL returned"
+            exit 1
           fi
+          echo "Deployment successful! URL: $DEPLOYMENT_URL"
