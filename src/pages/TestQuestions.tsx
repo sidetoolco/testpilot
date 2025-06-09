@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSessionStore } from '../store/useSessionStore';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -7,11 +7,14 @@ import { ComparisonView } from '../features/tests/components/TestQuestions/Compa
 import { SelectedVariation } from '../features/tests/components/TestQuestions/SelectedVariation';
 import { compareTwoStrings } from 'string-similarity';
 import FeedbackModal from '../features/tests/components/TestQuestions/FeedbackModal';
+import { ProlificCompletionCode } from '../lib/enum';
 
 const REPEATED_STRING_ERROR_MSG = 'Please provide different feedback for each response.';
 
 const TestDisplay: React.FC = () => {
-  const { test, itemSelectedAtCheckout, shopperId } = useSessionStore(state => state);
+  const { test, itemSelectedAtCheckout, shopperId, sessionBeginTime } = useSessionStore(
+    state => state
+  );
   const competitorItem = test?.variations?.[0]?.product;
   const navigate = useNavigate();
 
@@ -40,7 +43,7 @@ const TestDisplay: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
-  const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
+  // const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
 
   const handleChange = useCallback(
     (e: any) => {
@@ -166,7 +169,7 @@ const TestDisplay: React.FC = () => {
       const { error: updateError } = await supabase
         .from('testers_session')
         .update({ ended_at: new Date() } as any)
-        .eq('id', shopperId);
+        .eq('id', shopperId as any);
 
       if (updateError) {
         console.error('Error updating testers session:', updateError);
@@ -180,6 +183,25 @@ const TestDisplay: React.FC = () => {
       console.error('Unexpected error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleModalSubmit = () => {
+    if (!test) return;
+
+    // Calculate session duration in minutes
+    const sessionDuration = sessionBeginTime
+      ? (new Date().getTime() - new Date(sessionBeginTime).getTime()) / (1000 * 60)
+      : null;
+
+    if (sessionDuration !== null && sessionDuration < 2) {
+      window.location.href = `https://app.prolific.com/submissions/complete?cc=${ProlificCompletionCode.REJECTED_BY_TIME}`;
+    } else {
+      navigate('/thanks', {
+        state: {
+          testId: test.id + '-' + test.variations[0].variation_type,
+        },
+      });
     }
   };
 
@@ -225,13 +247,7 @@ const TestDisplay: React.FC = () => {
         isOpen={showFeedbackModal}
         handleModalClose={() => setShowFeedbackModal(false)}
         isSelectedVariation={isVariationSelected.length}
-        handleSubmit={() =>
-          navigate('/thanks', {
-            state: {
-              testId: test.id + '-' + test.variations[0].variation_type,
-            },
-          })
-        }
+        handleSubmit={handleModalSubmit}
       />
     </div>
   );
