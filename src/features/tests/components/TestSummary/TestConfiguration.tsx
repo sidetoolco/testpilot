@@ -70,6 +70,30 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Custom Screening</h3>
+          <div className="space-y-6">
+            {test.demographics.customScreening?.question ? (
+              <>
+                <div>
+                  <div className="text-sm font-medium text-gray-600 mb-2">Question</div>
+                  <div className="text-gray-900 text-lg font-medium bg-gray-50 p-3 rounded-lg">
+                    {test.demographics.customScreening.question}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-600 mb-2">Expected Answer</div>
+                  <div className="text-gray-900 text-lg font-medium bg-gray-50 p-3 rounded-lg">
+                    {test.demographics.customScreening.validAnswer}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-gray-500 italic">No questions.</div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <h3 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-4">Variants</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

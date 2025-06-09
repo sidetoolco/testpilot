@@ -93,7 +93,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           ))}
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg" style={{ marginBottom: '1.5rem' }}>
         <MarkdownContent content={insight.competitive_insights} />
       </div>
 

@@ -1,4 +1,5 @@
 import { Survey } from '../features/tests/components/Report/utils/types';
+
 export interface Product {
   id: string | undefined;
   title: string; // Cambiado de 'name' a 'title'
@@ -39,6 +40,10 @@ export interface Test {
     locations: string[];
     interests: string[];
     testerCount: number;
+    customScreening: {
+      question?: string;
+      validAnswer?: 'Yes' | 'No';
+    };
   };
   responses: {
     surveys: Survey[];
