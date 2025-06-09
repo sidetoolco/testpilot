@@ -173,8 +173,9 @@ export function useTestDetail(id: string) {
             customScreening: {
               enabled: !!typedTestData.custom_screening?.[0],
               question: typedTestData.custom_screening?.[0]?.question || '',
-              validAnswer: typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No' || undefined
-            }
+              validAnswer:
+                (typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No') || undefined,
+            },
           },
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           responses: {
