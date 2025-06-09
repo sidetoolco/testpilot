@@ -13,7 +13,6 @@ interface PreviewGridProps {
 }
 
 export default function PreviewGrid({ products, variations, onProductClick }: PreviewGridProps) {
-
   const handleClick = (product: AmazonProduct) => {
     console.log('Product clicked:', product);
     if (onProductClick) {

@@ -37,7 +37,10 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                     />
                   </div>
                   {product.images.slice(0, 4).map((image, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-1 hover:border-[#C7511F] cursor-pointer">
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-lg p-1 hover:border-[#C7511F] cursor-pointer"
+                    >
                       <img
                         src={image}
                         alt={`${product.title} - Image ${index + 1}`}
@@ -97,9 +100,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                       );
                     })}
                   </div>
-                  <span className="text-[#0F1111]">
-                    {product.rating} rating
-                  </span>
+                  <span className="text-[#0F1111]">{product.rating} rating</span>
                 </div>
                 <span className="text-[#0F1111]">
                   {product.reviews_count?.toLocaleString()} reviews
@@ -112,9 +113,10 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   <img src="/assets/images/amazon-prime-icon.png" alt="Prime" className="h-8" />
                   <span className="text-[#007185] font-medium">FREE delivery</span>
                 </div>
-                <p className="text-sm text-[#0F1111]">Get it by <span className="font-medium">Tomorrow</span></p>
+                <p className="text-sm text-[#0F1111]">
+                  Get it by <span className="font-medium">Tomorrow</span>
+                </p>
               </div>
-
 
               {/* Actions */}
               <div className="space-y-3">
@@ -135,4 +137,4 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
       </div>
     </div>
   );
-} 
+}
