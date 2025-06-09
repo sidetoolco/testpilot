@@ -4,3 +4,7 @@ export enum TestObjective {
   POSITIONING = 'positioning',
   IDEA_SCREENING = 'idea_screening',
 }
+
+export enum ProlificCompletionCode {
+  REJECTED_BY_TIME = 'SPEEDER',
+}
