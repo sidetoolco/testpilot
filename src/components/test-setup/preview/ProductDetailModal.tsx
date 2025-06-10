@@ -1,13 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { Star, X } from 'lucide-react';
+import apiClient from '../../../lib/api';
 
 interface ProductDetailModalProps {
   product: AmazonProduct;
   onClose: () => void;
 }
 
+interface ProductDetails {
+  images: string[];
+  feature_bullets: string[];
+}
+
 export default function ProductDetailModal({ product, onClose }: ProductDetailModalProps) {
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string>(product.image_url);
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await apiClient.get(`/amazon/products/${product.asin}`);
+        setProductDetails(response.data);
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (product.asin) {
+      fetchProductDetails();
+    }
+  }, [product.asin]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -19,26 +46,22 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
               {/* Main Image */}
               <div className="bg-white p-4 rounded-lg border border-gray-200">
                 <img
-                  src={product.image_url}
+                  src={selectedImage}
                   alt={product.title}
                   className="w-full h-[400px] object-contain"
                 />
               </div>
 
               {/* Thumbnails */}
-              {product.images && product.images.length > 0 && (
+              {productDetails?.images && productDetails.images.length > 0 && (
                 <div className="grid grid-cols-5 gap-2">
-                  <div className="border-2 border-[#C7511F] rounded-lg p-1">
-                    <img
-                      src={product.image_url}
-                      alt={product.title}
-                      className="w-full h-20 object-contain"
-                    />
-                  </div>
-                  {product.images.slice(0, 4).map((image, index) => (
+                  {productDetails.images.slice(0, 5).map((image, index) => (
                     <div
                       key={index}
-                      className="border border-gray-200 rounded-lg p-1 hover:border-[#C7511F] cursor-pointer"
+                      className={`border rounded-lg p-1 cursor-pointer ${
+                        selectedImage === image ? 'border-2 border-[#C7511F]' : 'border-gray-200 hover:border-[#C7511F]'
+                      }`}
+                      onClick={() => setSelectedImage(image)}
                     >
                       <img
                         src={image}
@@ -116,6 +139,20 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   Get it by <span className="font-medium">Tomorrow</span>
                 </p>
               </div>
+
+              {/* About this item */}
+              {productDetails?.feature_bullets && productDetails.feature_bullets.length > 0 && (
+                <div className="border-t border-b py-4">
+                  <h3 className="text-lg font-semibold mb-3">About this item</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {productDetails.feature_bullets.map((bullet, index) => (
+                      <li key={index} className="text-sm text-[#0F1111]">
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="space-y-3">
