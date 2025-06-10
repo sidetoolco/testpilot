@@ -4,7 +4,7 @@ import AmazonNavigation from './AmazonNavigation';
 import PreviewGrid from './PreviewGrid';
 import ProductDetailModal from './ProductDetailModal';
 import { AmazonProduct } from '../../../features/amazon/types';
-import apiClient from '../../../lib/api';
+import { supabase } from '../../../lib/supabase';
 
 interface ProductDetails {
   images: string[];
@@ -24,11 +24,48 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
   const handleProductClick = async (product: AmazonProduct) => {
     setIsLoading(true);
     try {
-      const response = await apiClient.get(`/amazon/products/${product.asin}`);
-      setProductDetails(response.data);
+      // Si el producto no tiene ASIN o está vacío, usamos sus datos directamente
+      if (!product.asin || product.asin.trim() === '') {
+        setProductDetails({
+          images: product.images || [product.image_url],
+          feature_bullets: product.bullet_points || []
+        });
+        setSelectedProduct(product);
+        setIsLoading(false);
+        return;
+      }
+
+      // Si tiene ASIN, buscamos en la base de datos
+      const { data, error } = await supabase
+        .from('amazon_products')
+        .select('*')
+        .eq('asin', product.asin)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product details:', error);
+        // Si hay error, usamos los datos del producto
+        setProductDetails({
+          images: product.images || [product.image_url],
+          feature_bullets: product.bullet_points || []
+        });
+      } else if (data) {
+        setProductDetails({
+          images: data.images || product.images || [product.image_url],
+          feature_bullets: data.bullet_points || product.bullet_points || []
+        });
+      }
       setSelectedProduct(product);
     } catch (error) {
       console.error('Error fetching product details:', error);
+      // En caso de error, usamos los datos del producto
+      setProductDetails({
+        images: product.images || [product.image_url],
+        feature_bullets: product.bullet_points || []
+      });
+      setSelectedProduct(product);
     } finally {
       setIsLoading(false);
     }

@@ -8,6 +8,7 @@ import { SearchHeader } from './SearchHeader';
 import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
 import { toast } from 'sonner';
+import apiClient from '../../lib/api';
 
 interface CompetitorSelectionProps {
   searchTerm: string;
@@ -23,17 +24,32 @@ export default function CompetitorSelection({
   searchTerm,
   selectedCompetitors,
   onChange,
+  onNext,
 }: CompetitorSelectionProps) {
   const [searchFilter, setSearchFilter] = useState('');
   const { user } = useAuthStore();
   const { products, loading, error } = useProductFetch(searchTerm, user?.id);
   const isInitialLoad = useRef(true);
 
-  const handleProductSelect = (product: AmazonProduct) => {
+  const handleProductSelect = async (product: AmazonProduct) => {
     if (selectedCompetitors.find(p => p.asin === product.asin)) {
       onChange(selectedCompetitors.filter(p => p.asin !== product.asin));
     } else if (selectedCompetitors.length < MAX_COMPETITORS) {
-      onChange([...selectedCompetitors, product]);
+      const newCompetitors = [...selectedCompetitors, product];
+      onChange(newCompetitors);
+      
+      // Si llegamos a 11 productos, guardamos automáticamente
+      if (newCompetitors.length === MAX_COMPETITORS) {
+        try {
+          await apiClient.post('/amazon/products', { 
+            products: newCompetitors,
+            userId: user?.id 
+          });
+        } catch (error) {
+          console.error('Error saving competitors:', error);
+          toast.error('Failed to save competitors, but continuing with the process');
+        }
+      }
     } else {
       toast.error(`Please select exactly ${MAX_COMPETITORS} competitors`);
     }
