@@ -20,6 +20,10 @@ type TestResponse = {
     interests: string[];
     tester_count: number;
   }>;
+  custom_screening: Array<{
+    question: string;
+    valid_option: 'Yes' | 'No';
+  }>;
   completed_sessions: number;
 };
 
@@ -65,6 +69,9 @@ export function useTestDetail(id: string) {
             ),
             demographics:test_demographics(
               age_ranges, genders, locations, interests, tester_count
+            ),
+            custom_screening:custom_screening(
+              question, valid_option
             )
           `
           )
@@ -163,6 +170,12 @@ export function useTestDetail(id: string) {
             locations: typedTestData.demographics?.[0]?.locations || [],
             interests: typedTestData.demographics?.[0]?.interests || [],
             testerCount: typedTestData.demographics?.[0]?.tester_count || 0,
+            customScreening: {
+              enabled: !!typedTestData.custom_screening?.[0],
+              question: typedTestData.custom_screening?.[0]?.question || '',
+              validAnswer:
+                (typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No') || undefined,
+            },
           },
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           responses: {
