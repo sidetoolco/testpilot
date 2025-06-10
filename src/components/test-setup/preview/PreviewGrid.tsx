@@ -9,21 +9,19 @@ interface PreviewGridProps {
     b: AmazonProduct | null;
     c: AmazonProduct | null;
   };
+  onProductClick?: (product: AmazonProduct) => void;
 }
 
-export default function PreviewGrid({ products, variations }: PreviewGridProps) {
-  const navigate = useNavigate();
-
+export default function PreviewGrid({ products, variations, onProductClick }: PreviewGridProps) {
   const handleClick = (product: AmazonProduct) => {
     console.log('Product clicked:', product);
-    const identifier = product.id || product.asin;
-    console.log('Product identifier:', identifier);
-
-    // Primero guardamos el producto en sessionStorage
-    sessionStorage.setItem('previewProduct', JSON.stringify(product));
-
-    // Luego abrimos la nueva pestaña
-    const newWindow = window.open('/preview-product', '_blank');
+    if (onProductClick) {
+      onProductClick(product);
+    } else {
+      const identifier = product.id || product.asin;
+      console.log('Product identifier:', identifier);
+      sessionStorage.setItem('previewProduct', JSON.stringify(product));
+    }
   };
 
   return (

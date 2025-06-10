@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AmazonHeader from './AmazonHeader';
 import AmazonNavigation from './AmazonNavigation';
 import PreviewGrid from './PreviewGrid';
+import ProductDetailModal from './ProductDetailModal';
 import { AmazonProduct } from '../../../features/amazon/types';
 
 interface AmazonPreviewProps {
@@ -10,6 +11,16 @@ interface AmazonPreviewProps {
 }
 
 export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
+  const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+
+  const handleProductClick = (product: AmazonProduct) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProduct(null);
+  };
+
   return (
     <div className="bg-[#EAEDED] min-h-[600px]">
       <AmazonHeader searchTerm={searchTerm} />
@@ -28,10 +39,15 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         <div className="flex gap-4">
           {/* Product Grid */}
           <div className="flex-1">
-            <PreviewGrid products={products} />
+            <PreviewGrid products={products} onProductClick={handleProductClick} />
           </div>
         </div>
       </div>
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <ProductDetailModal product={selectedProduct} onClose={handleCloseModal} />
+      )}
     </div>
   );
 }

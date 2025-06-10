@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import ReactMarkdown from 'react-markdown';
 
 const COLORS = {
   success: {
@@ -80,8 +81,8 @@ const Summary: React.FC<{
       <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
           <div>
-            <div className="text-gray-700 leading-relaxed">
-              {insights.comparison_between_variants}
+            <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+              <ReactMarkdown>{insights.comparison_between_variants}</ReactMarkdown>
             </div>
           </div>
         </div>
