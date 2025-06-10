@@ -4,6 +4,12 @@ import AmazonNavigation from './AmazonNavigation';
 import PreviewGrid from './PreviewGrid';
 import ProductDetailModal from './ProductDetailModal';
 import { AmazonProduct } from '../../../features/amazon/types';
+import apiClient from '../../../lib/api';
+
+interface ProductDetails {
+  images: string[];
+  feature_bullets: string[];
+}
 
 interface AmazonPreviewProps {
   searchTerm: string;
@@ -12,13 +18,25 @@ interface AmazonPreviewProps {
 
 export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleProductClick = (product: AmazonProduct) => {
-    setSelectedProduct(product);
+  const handleProductClick = async (product: AmazonProduct) => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.get(`/amazon/products/${product.asin}`);
+      setProductDetails(response.data);
+      setSelectedProduct(product);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedProduct(null);
+    setProductDetails(null);
   };
 
   return (
@@ -44,9 +62,22 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         </div>
       </div>
 
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-xl">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFA41C]"></div>
+          </div>
+        </div>
+      )}
+
       {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductDetailModal product={selectedProduct} onClose={handleCloseModal} />
+      {selectedProduct && productDetails && (
+        <ProductDetailModal 
+          product={selectedProduct} 
+          onClose={handleCloseModal} 
+          productDetails={productDetails}
+        />
       )}
     </div>
   );
