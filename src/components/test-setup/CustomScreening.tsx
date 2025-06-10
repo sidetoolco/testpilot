@@ -3,12 +3,6 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import { CustomScreening as CustomScreeningInterface } from '../../features/tests/types';
 import apiClient from '../../lib/api';
 
-interface ValidateQuestionResponse {
-  isValid: boolean;
-  error?: string;
-  suggestedQuestion?: string;
-}
-
 interface CustomScreeningProps {
   onChange: (field: keyof CustomScreeningInterface, value: any) => void;
   value: CustomScreeningInterface;
@@ -16,7 +10,6 @@ interface CustomScreeningProps {
 
 export default function CustomScreening({ onChange, value }: CustomScreeningProps) {
   const [error, setError] = useState<string | null>(null);
-  const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null);
 
   const validateQuestion = (question: string) => {
     if (!question.trim()) {
@@ -25,10 +18,9 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     }
 
     onChange('isValidating', true);
-    setSuggestedQuestion(null);
 
     apiClient
-      .post<ValidateQuestionResponse>('/screening/validate-question', {
+      .post<{ isValid: boolean; error?: string }>('/screening/validate-question', {
         question,
       })
       .then(({ data }) => {
@@ -38,9 +30,6 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
               'This question may be too narrow and could limit participant availability.'
           );
           onChange('valid', false);
-          if (data.suggestedQuestion) {
-            setSuggestedQuestion(data.suggestedQuestion);
-          }
         } else {
           onChange('valid', true);
           setError(null);
@@ -57,15 +46,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuestion = e.target.value;
     onChange('question', newQuestion);
-    setError(null);
-    setSuggestedQuestion(null);
-  };
-
-  const useSuggestedQuestion = () => {
-    if (suggestedQuestion) {
-      onChange('question', suggestedQuestion);
-      validateQuestion(suggestedQuestion);
-    }
+    setError(null); // Clear error on new input
   };
 
   return (
@@ -153,25 +134,9 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                 )}
               </div>
               {error && (
-                <div className="flex items-start space-x-2 mt-2 text-sm text-red-600">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0 mt-px" />
-                  <p>
-                    {error}
-                    {suggestedQuestion && (
-                      <>
-                        {' '}
-                        <span className='text-black italic'>
-                          <br />Try: "{suggestedQuestion}"
-                          <button
-                            onClick={useSuggestedQuestion}
-                            className="font-medium underline ml-1"
-                          >
-                            Use
-                          </button>
-                        </span>
-                      </>
-                    )}
-                  </p>
+                <div className="flex items-center space-x-2 mt-2 text-sm text-red-600">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <p>{error}</p>
                 </div>
               )}
             </div>
