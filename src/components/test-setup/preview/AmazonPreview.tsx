@@ -28,7 +28,7 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
       if (!product.asin || product.asin.trim() === '') {
         setProductDetails({
           images: product.images || [product.image_url],
-          feature_bullets: product.bullet_points || []
+          feature_bullets: product.bullet_points || [],
         });
         setSelectedProduct(product);
         setIsLoading(false);
@@ -49,12 +49,12 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         // Si hay error, usamos los datos del producto
         setProductDetails({
           images: product.images || [product.image_url],
-          feature_bullets: product.bullet_points || []
+          feature_bullets: product.bullet_points || [],
         });
       } else if (data) {
         setProductDetails({
           images: data.images || product.images || [product.image_url],
-          feature_bullets: data.bullet_points || product.bullet_points || []
+          feature_bullets: data.bullet_points || product.bullet_points || [],
         });
       }
       setSelectedProduct(product);
@@ -63,7 +63,7 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
       // En caso de error, usamos los datos del producto
       setProductDetails({
         images: product.images || [product.image_url],
-        feature_bullets: product.bullet_points || []
+        feature_bullets: product.bullet_points || [],
       });
       setSelectedProduct(product);
     } finally {
@@ -110,9 +110,9 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
 
       {/* Product Detail Modal */}
       {selectedProduct && productDetails && (
-        <ProductDetailModal 
-          product={selectedProduct} 
-          onClose={handleCloseModal} 
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={handleCloseModal}
           productDetails={productDetails}
         />
       )}

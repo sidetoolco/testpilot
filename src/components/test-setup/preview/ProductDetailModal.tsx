@@ -13,7 +13,11 @@ interface ProductDetailModalProps {
   productDetails: ProductDetails | null;
 }
 
-export default function ProductDetailModal({ product, onClose, productDetails }: ProductDetailModalProps) {
+export default function ProductDetailModal({
+  product,
+  onClose,
+  productDetails,
+}: ProductDetailModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
@@ -56,7 +60,11 @@ export default function ProductDetailModal({ product, onClose, productDetails }:
                 <div className="flex-1">
                   <div className="w-full aspect-square rounded-lg max-w-[450px] max-h-[450px] bg-white border border-gray-200">
                     <img
-                      src={currentIndex === 0 ? product.image_url : productDetails?.images?.[currentIndex]}
+                      src={
+                        currentIndex === 0
+                          ? product.image_url
+                          : productDetails?.images?.[currentIndex]
+                      }
                       alt={`Product image ${currentIndex + 1}`}
                       className="w-full h-full object-contain p-4"
                     />
@@ -118,7 +126,9 @@ export default function ProductDetailModal({ product, onClose, productDetails }:
                                   : 'text-gray-200 fill-gray-200'
                             }`}
                             style={{
-                              clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
+                              clipPath: isHalfStar
+                                ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)'
+                                : 'none',
                             }}
                           />
                         );

@@ -37,13 +37,13 @@ export default function CompetitorSelection({
     } else if (selectedCompetitors.length < MAX_COMPETITORS) {
       const newCompetitors = [...selectedCompetitors, product];
       onChange(newCompetitors);
-      
+
       // Si llegamos a 11 productos, guardamos automáticamente
       if (newCompetitors.length === MAX_COMPETITORS) {
         try {
-          await apiClient.post('/amazon/products', { 
+          await apiClient.post('/amazon/products', {
             products: newCompetitors,
-            userId: user?.id 
+            userId: user?.id,
           });
         } catch (error) {
           console.error('Error saving competitors:', error);
