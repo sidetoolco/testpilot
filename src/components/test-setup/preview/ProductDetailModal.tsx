@@ -1,7 +1,6 @@
 import React from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Star } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 
 interface ProductDetailModalProps {
   product: AmazonProduct;
@@ -61,7 +60,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   onClick={onClose}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <X className="h-6 w-6" />
                 </button>
               </div>
 
