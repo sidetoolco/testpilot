@@ -73,9 +73,9 @@ export default function ProductDetailModal({
                   {/* Mobile Image Indicators */}
                   <div className="relative md:hidden py-2">
                     <div className="flex items-center justify-center gap-2">
-                      {productDetails?.images?.map((_, index) => (
+                      {productDetails?.images?.map((image, index) => (
                         <div
-                          key={index}
+                          key={image}
                           className={`w-2.5 h-2.5 rounded-full ${
                             currentIndex === index ? 'bg-black' : 'bg-white border border-black'
                           }`}
