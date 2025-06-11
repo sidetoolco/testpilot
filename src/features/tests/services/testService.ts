@@ -190,8 +190,8 @@ export const testService = {
           demographics: {
             ageRanges: testData.demographics.ageRanges,
             genders: Array.isArray(testData.demographics.gender)
-              ? testData.demographics.gender[0]
-              : testData.demographics.gender,
+              ? testData.demographics.gender
+              : [testData.demographics.gender],
             locations: testData.demographics.locations,
             interests: testData.demographics.interests,
           },
