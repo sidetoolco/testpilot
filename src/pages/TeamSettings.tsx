@@ -12,6 +12,7 @@ export default function TeamSettings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchTeamMembers() {
@@ -32,6 +33,7 @@ export default function TeamSettings() {
 
         if (userError) throw userError;
 
+        setCompanyId(userProfile.company_id);
         // Then get all profiles for that company
         const { data: profiles, error: teamError } = await supabase
           .from('profiles')
@@ -81,7 +83,13 @@ export default function TeamSettings() {
 
       <TeamMembersTable profiles={profiles} />
 
-      <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
+      {companyId && (
+        <InviteModal
+          companyId={companyId}
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
