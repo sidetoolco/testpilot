@@ -109,7 +109,9 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-500 mb-1">Keep testers who answer</div>
+                        <div className="text-sm font-medium text-gray-500 mb-1">
+                          Keep testers who answer
+                        </div>
                         <div className="text-gray-900">
                           {testData.demographics.customScreening.validAnswer}
                         </div>
