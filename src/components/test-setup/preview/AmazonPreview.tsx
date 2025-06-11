@@ -4,6 +4,12 @@ import AmazonNavigation from './AmazonNavigation';
 import PreviewGrid from './PreviewGrid';
 import ProductDetailModal from './ProductDetailModal';
 import { AmazonProduct } from '../../../features/amazon/types';
+import { supabase } from '../../../lib/supabase';
+
+interface ProductDetails {
+  images: string[];
+  feature_bullets: string[];
+}
 
 interface AmazonPreviewProps {
   searchTerm: string;
@@ -12,13 +18,62 @@ interface AmazonPreviewProps {
 
 export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleProductClick = (product: AmazonProduct) => {
-    setSelectedProduct(product);
+  const handleProductClick = async (product: AmazonProduct) => {
+    setIsLoading(true);
+    try {
+      // Si el producto no tiene ASIN o está vacío, usamos sus datos directamente
+      if (!product.asin || product.asin.trim() === '') {
+        setProductDetails({
+          images: product.images || [product.image_url],
+          feature_bullets: product.bullet_points || [],
+        });
+        setSelectedProduct(product);
+        setIsLoading(false);
+        return;
+      }
+
+      // Si tiene ASIN, buscamos en la base de datos
+      const { data, error } = await supabase
+        .from('amazon_products')
+        .select('*')
+        .eq('asin', product.asin)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product details:', error);
+        // Si hay error, usamos los datos del producto
+        setProductDetails({
+          images: product.images || [product.image_url],
+          feature_bullets: product.bullet_points || [],
+        });
+      } else if (data) {
+        setProductDetails({
+          images: data.images || product.images || [product.image_url],
+          feature_bullets: data.bullet_points || product.bullet_points || [],
+        });
+      }
+      setSelectedProduct(product);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      // En caso de error, usamos los datos del producto
+      setProductDetails({
+        images: product.images || [product.image_url],
+        feature_bullets: product.bullet_points || [],
+      });
+      setSelectedProduct(product);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedProduct(null);
+    setProductDetails(null);
   };
 
   return (
@@ -44,9 +99,22 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         </div>
       </div>
 
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-xl">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFA41C]"></div>
+          </div>
+        </div>
+      )}
+
       {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductDetailModal product={selectedProduct} onClose={handleCloseModal} />
+      {selectedProduct && productDetails && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={handleCloseModal}
+          productDetails={productDetails}
+        />
       )}
     </div>
   );
