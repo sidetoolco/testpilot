@@ -81,6 +81,14 @@ export interface Profile {
   email_confirmed: boolean;
 }
 
+export interface Invite {
+  id: string;
+  email: string;
+  company_id: string;
+  expires_at: string;
+  token: string;
+}
+
 export class TestPilotDB extends Dexie {
   users!: Table<User>;
   products!: Table<Product>;

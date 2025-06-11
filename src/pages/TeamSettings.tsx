@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { UserPlus } from 'lucide-react';
-import { Profile } from '../lib/db';
+import { Invite, Profile } from '../lib/db';
 import { TeamMembersTable } from '../components/settings/team/TeamMembersTable';
 import { InviteModal } from '../components/settings/team/InviteTeamMemberModal';
 
 export default function TeamSettings() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchTeamMembers() {
@@ -32,6 +34,8 @@ export default function TeamSettings() {
 
         if (userError) throw userError;
 
+        setCompanyId(userProfile.company_id);
+
         // Then get all profiles for that company
         const { data: profiles, error: teamError } = await supabase
           .from('profiles')
@@ -42,7 +46,23 @@ export default function TeamSettings() {
 
         const teamProfiles: Profile[] = (profiles as any) || [];
 
+        // Get all invites for that company
+        const { data: invitesData, error: invitesError } = await supabase
+          .from('invites')
+          .select('id,email')
+          .eq('company_id', userProfile.company_id as any);
+
+        const allInvites: Invite[] = invitesData as any;
+
+        if (invitesError) throw invitesError;
+
+        // Filter out invites that already have profiles
+        const activeInvites = (allInvites || []).filter(
+          invite => !teamProfiles.some(profile => profile.email === invite.email)
+        );
+
         setProfiles(teamProfiles);
+        setInvites(activeInvites);
       } catch (err) {
         console.error('Error fetching team members:', err);
         setError('Failed to load team members');
@@ -79,9 +99,18 @@ export default function TeamSettings() {
         </button>
       </div>
 
-      <TeamMembersTable profiles={profiles} />
+      <TeamMembersTable profiles={profiles} invites={invites} />
 
-      <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
+      {companyId && (
+        <InviteModal
+          companyId={companyId}
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          onSuccess={(inviteeEmail: string) =>
+            setInvites(prevInvites => [...prevInvites, { email: inviteeEmail } as Invite])
+          }
+        />
+      )}
     </div>
   );
 }
