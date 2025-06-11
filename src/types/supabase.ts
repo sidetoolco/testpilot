@@ -27,6 +27,29 @@ export interface Database {
           updated_at?: string;
         };
       };
+      invites: {
+        Row: {
+          id: number;
+          email: string;
+          company_id: string;
+          token: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: number;
+          email: string;
+          company_id: string;
+          token: string;
+          expires_at: string;
+        };
+        Update: {
+          id?: number;
+          email?: string;
+          company_id?: string;
+          token?: string;
+          expires_at?: string;
+        };
+      };
     };
   };
 }

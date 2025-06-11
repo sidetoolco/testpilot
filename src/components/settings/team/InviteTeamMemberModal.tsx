@@ -8,9 +8,10 @@ interface InviteModalProps {
   companyId: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: (inviteeEmail: string) => void;
 }
 
-export const InviteModal = ({ isOpen, onClose, companyId }: InviteModalProps) => {
+export const InviteModal = ({ isOpen, onClose, companyId, onSuccess }: InviteModalProps) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,8 +23,11 @@ export const InviteModal = ({ isOpen, onClose, companyId }: InviteModalProps) =>
 
     try {
       await apiClient.post(`/companies/${companyId}/invite`, { email });
+
+      onSuccess(email);
       onClose();
     } catch (err: any) {
+      console.error(err);
       setError(err.response?.data?.message || DEFAULT_ERROR_MSG);
     } finally {
       setLoading(false);
