@@ -4,12 +4,14 @@ import { supabase } from '../lib/supabase';
 import { UserPlus } from 'lucide-react';
 import { Profile } from '../lib/db';
 import { TeamMembersTable } from '../components/settings/team/TeamMembersTable';
+import { InviteModal } from '../components/settings/team/InviteTeamMemberModal';
 
 export default function TeamSettings() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchTeamMembers() {
@@ -70,10 +72,7 @@ export default function TeamSettings() {
         <h2 className="text-xl font-semibold">Team Members</h2>
         <button
           className="flex items-center space-x-2 px-4 py-2 bg-[#00A67E] text-white rounded-lg hover:bg-[#008F6B] transition-colors"
-          onClick={() => {
-            // TODO: Implement invite functionality
-            console.log('Invite button clicked');
-          }}
+          onClick={() => setIsInviteModalOpen(true)}
         >
           <UserPlus className="h-5 w-5" />
           <span>Invite Team Member</span>
@@ -81,6 +80,8 @@ export default function TeamSettings() {
       </div>
 
       <TeamMembersTable profiles={profiles} />
+
+      <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
     </div>
   );
 }

@@ -160,7 +160,6 @@ function App() {
                 }
               />
 
-
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
             </Routes>
             <Toast />

@@ -74,7 +74,7 @@ export interface Profile {
   full_name: string;
   avatar_url?: string;
   company_id: string;
-  role: "owner" | "admin";
+  role: 'owner' | 'admin';
   company_joined_at: string;
   created_at: string;
   updated_at: string;

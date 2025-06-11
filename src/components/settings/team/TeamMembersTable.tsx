@@ -74,4 +74,4 @@ export function TeamMembersTable({ profiles }: TeamMembersTableProps) {
       </table>
     </div>
   );
-} 
+}

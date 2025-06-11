@@ -1,15 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Beaker,
-  Package,
-  LogOut,
-  Menu,
-  X,
-  HelpCircle,
-  Settings,
-  Users,
-} from 'lucide-react';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const menuItems = [
