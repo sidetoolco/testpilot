@@ -90,6 +90,34 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                   {activeVariants} variant{activeVariants !== 1 ? 's' : ''} configured
                 </div>
               </div>
+              {/* Custom Screening Section */}
+              <div>
+                <h4 className="text-xl font-semibold mb-6">Custom Screening</h4>
+                <div className="space-y-2">
+                  <div>
+                    <div className="text-sm font-medium text-gray-500 mb-1">Used</div>
+                    <div className="text-gray-900">
+                      {testData.demographics.customScreening.question ? 'Yes' : 'No'}
+                    </div>
+                  </div>
+                  {testData.demographics.customScreening.question && (
+                    <>
+                      <div>
+                        <div className="text-sm font-medium text-gray-500 mb-1">Question</div>
+                        <div className="text-gray-900">
+                          {testData.demographics.customScreening.question}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-500 mb-1">Keep testers who answer</div>
+                        <div className="text-gray-900">
+                          {testData.demographics.customScreening.validAnswer}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
