@@ -26,6 +26,7 @@ import ThankYou from './pages/ThankYou';
 import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
 import SentryErrorTest from './pages/SentryErrorTest';
+import TeamSettings from './pages/TeamSettings';
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,19 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Settings routes */}
+              <Route
+                path="/settings/team"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TeamSettings />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
             </Routes>
