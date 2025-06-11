@@ -16,7 +16,6 @@ export function useTests() {
 
         const data = await testService.getAllTests();
 
-
         // Transform the data to match our Test type
         const transformedTests: Test[] = (data || []).map(test => ({
           id: test.id,
