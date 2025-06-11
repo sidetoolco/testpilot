@@ -40,6 +40,8 @@ export default function AllProducts() {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await deleteProduct(productId);
+        setShowAddProduct(false);
+        setEditProduct(null);
       } catch (err) {
         console.error('Failed to delete product:', err);
       }
@@ -78,6 +80,7 @@ export default function AllProducts() {
         }}
         onSubmit={handleSubmit}
         initialData={editProduct || undefined}
+        onDelete={editProduct ? () => handleDelete(editProduct.id!) : undefined}
       />
 
       <ComingSoonModal
