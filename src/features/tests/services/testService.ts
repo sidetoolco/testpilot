@@ -5,10 +5,7 @@ import { validateProducts } from '../utils/validators/productValidator';
 import { validateTestData } from '../utils/validators/testDataValidator';
 import { TestCreationError } from '../utils/errors';
 import apiClient from '../../../lib/api';
-
-interface Profile {
-  role?: string;
-}
+import { Profile } from '../../../lib/db';
 
 interface TestResponse {
   id: string;
@@ -41,10 +38,12 @@ export const testService = {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('company_id')
-        .eq('id', user.id)
+        .eq('id', user.id as any)
         .single();
 
-      if (profileError || !profile?.company_id) {
+      const typedProfile = profile as Profile;
+
+      if (profileError || !typedProfile?.company_id) {
         throw new TestCreationError('Company profile not found');
       }
 
@@ -53,10 +52,10 @@ export const testService = {
         .filter((v): v is NonNullable<typeof v> => v !== null)
         .map(v => v.id);
 
-      await validateProducts(profile.company_id, productIds);
+      await validateProducts(typedProfile.company_id, productIds);
 
       // Step 2: Crear test principal
-      const test = await this.insertTest(testData, user.id, profile.company_id);
+      const test = await this.insertTest(testData, user.id, typedProfile.company_id);
 
       // Step 3: Insertar competidores
       await this.saveAmazonProducts(test.id, testData.competitors);
@@ -224,8 +223,8 @@ export const testService = {
       // Check if user is admin
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
-        .eq('id', user.id)
+        .select('company_id, role')
+        .eq('id', user.id as any)
         .single();
 
       if (profileError) {
@@ -234,10 +233,37 @@ export const testService = {
 
       const typedProfile = profile as Profile;
       if (typedProfile?.role !== 'admin') {
-        throw new TestCreationError('Unauthorized: Admin access required');
+        // For non-admin users, only fetch tests from their company
+        const { data: tests, error: testsError } = await supabase
+          .from('tests')
+          .select(
+            `
+           *,
+            competitors:test_competitors(
+            product:amazon_products(
+            *,
+            company:companies(name)
+            )),
+            variations:test_variations(
+            product:products(
+            *,
+            company:companies(name)),
+            variation_type
+                ),
+                demographics:test_demographics(*)
+          `
+          )
+          .eq('company_id', typedProfile.company_id as any)
+          .order('created_at', { ascending: false });
+
+        if (testsError) {
+          throw new TestCreationError('Error fetching tests');
+        }
+
+        return tests as unknown as TestResponse[];
       }
 
-      // Fetch all tests with their relationships
+      // For admin users, fetch all tests
       const { data: tests, error: testsError } = await supabase
         .from('tests')
         .select(
