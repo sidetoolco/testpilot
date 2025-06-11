@@ -17,7 +17,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
           whileHover={{ y: -4 }}
           className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group"
         >
-          <div 
+          <div
             className="aspect-square mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer"
             onClick={() => onEdit(product)}
           >
@@ -29,7 +29,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
           </div>
 
           <div className="space-y-2">
-            <h3 
+            <h3
               className="font-medium text-gray-900 line-clamp-2 min-h-[48px] cursor-pointer hover:text-primary-400"
               onClick={() => onEdit(product)}
             >

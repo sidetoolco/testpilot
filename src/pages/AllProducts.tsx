@@ -6,12 +6,15 @@ import ProductSearch from '../features/products/components/ProductSearch';
 import ProductGrid from '../features/products/components/ProductGrid';
 import ProductModal from '../features/products/components/ProductModal';
 import ComingSoonModal from '../components/ComingSoonModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 export default function AllProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   const { products, loading, fetchProducts, addProduct, updateProduct, deleteProduct } =
     useProductStore();
@@ -37,14 +40,12 @@ export default function AllProducts() {
   };
 
   const handleDelete = async (productId: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await deleteProduct(productId);
-        setShowAddProduct(false);
-        setEditProduct(null);
-      } catch (err) {
-        console.error('Failed to delete product:', err);
-      }
+    try {
+      await deleteProduct(productId);
+      setShowAddProduct(false);
+      setEditProduct(null);
+    } catch (err) {
+      console.error('Failed to delete product:', err);
     }
   };
 
@@ -80,7 +81,25 @@ export default function AllProducts() {
         }}
         onSubmit={handleSubmit}
         initialData={editProduct || undefined}
-        onDelete={editProduct ? () => handleDelete(editProduct.id!) : undefined}
+        onDelete={
+          editProduct
+            ? () => {
+                setProductToDelete(editProduct.id!);
+                setShowDeleteConfirm(true);
+              }
+            : undefined
+        }
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setProductToDelete(null);
+        }}
+        onConfirm={() => productToDelete && handleDelete(productToDelete)}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
       />
 
       <ComingSoonModal
