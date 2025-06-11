@@ -23,7 +23,7 @@ export function TeamMembersTable({ profiles }: TeamMembersTableProps) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {profiles.map(profile => (
-            <tr key={profile.id}>
+            <tr key={`profile-${profile.id}`}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
