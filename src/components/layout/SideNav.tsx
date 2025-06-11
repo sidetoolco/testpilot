@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings } from 'lucide-react';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const menuItems = [
   { path: '/my-tests', icon: Beaker, label: 'My Tests' },
   { path: '/all-products', icon: Package, label: 'My Products' },
   { path: '/support', icon: HelpCircle, label: 'Support Videos' },
-  { path: '/', icon: Settings, label: 'Settings', inactive: true },
 ];
 
 export default function SideNav() {
   const location = useLocation();
   const { signOut, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -82,27 +82,56 @@ export default function SideNav() {
           <ul className="space-y-2">
             {menuItems.map(item => (
               <li key={item.path}>
-                {item.inactive ? (
-                  <div className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed">
-                    <item.icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </div>
-                ) : (
-                  <Link
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-[#008F6B] text-white'
-                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                )}
+                <Link
+                  to={item.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive(item.path)
+                      ? 'bg-[#008F6B] text-white'
+                      : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
               </li>
             ))}
+
+            {/* Settings with dropdown */}
+            <li>
+              <button
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
+                  isActive('/settings') || isActive('/settings/team')
+                    ? 'bg-[#008F6B] text-white'
+                    : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Settings className="h-5 w-5" />
+                  <span className="font-medium">Settings</span>
+                </div>
+              </button>
+              {isSettingsOpen && (
+                <ul className="mt-2 ml-4 space-y-1">
+                  <li>
+                    <Link
+                      to="/settings/team"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                        isActive('/settings/team')
+                          ? 'bg-[#008F6B] text-white'
+                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                      }`}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="font-medium">Team</span>
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+
             <li>
               <button
                 onClick={() => {

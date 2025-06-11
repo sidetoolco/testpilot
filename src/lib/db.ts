@@ -68,6 +68,19 @@ export interface Insight {
   updatedAt: Date;
 }
 
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string;
+  company_id: string;
+  role: 'owner' | 'admin';
+  company_joined_at: string;
+  created_at: string;
+  updated_at: string;
+  email_confirmed: boolean;
+}
+
 export class TestPilotDB extends Dexie {
   users!: Table<User>;
   products!: Table<Product>;
