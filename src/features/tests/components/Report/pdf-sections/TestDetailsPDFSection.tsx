@@ -41,7 +41,7 @@ const COLORS = {
   border: '#E5E7EB',
 };
 
-const DonutChart: React.FC<DonutChartProps> = ({ data, size = 100 }) => {
+const DonutChart: React.FC<DonutChartProps> = ({ data, size = 70 }) => {
   const total = data.reduce((sum: number, item: ChartDataItem) => sum + item.value, 0);
   let currentAngle = 0;
 
@@ -78,16 +78,12 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 100 }) => {
           alignItems: 'center',
         }}
       >
-        <Text style={{ fontSize: 12, fontWeight: 'bold', color: COLORS.text }}>
-          {total}
-        </Text>
-        <Text style={{ fontSize: 8, color: COLORS.lightText }}>Total</Text>
       </View>
     </View>
   );
 };
 
-const BarChart: React.FC<BarChartProps> = ({ data, height = 100 }) => {
+const BarChart: React.FC<BarChartProps> = ({ data, height = 70 }) => {
   const maxValue = Math.max(...data.map(item => item.value));
 
   return (
@@ -229,7 +225,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
 
             {/* Age Distribution */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Age Ranges</Text>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 16 }}>Age Ranges</Text>
               {ageData.length > 0 ? (
                 <BarChart data={ageData} />
               ) : (
@@ -239,7 +235,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
 
             {/* Location Distribution */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Locations</Text>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 16 }}>Locations</Text>
               {locationData.length > 0 ? (
                 <BarChart data={locationData} />
               ) : (
