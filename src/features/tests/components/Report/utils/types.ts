@@ -17,23 +17,52 @@ export interface TestDetails {
   id: string;
   name: string;
   status: 'draft' | 'active' | 'complete';
-  updatedAt: string;
+  updatedAt?: string;
   createdAt: string;
   searchTerm: string;
+  completed_sessions: number;
+  objective: string;
   demographics: {
     testerCount: number;
     gender?: string[];
     ageRanges?: string[];
     locations?: string[];
+    interests?: string[];
+    customScreening?: {
+      enabled: boolean;
+      question: string;
+      validAnswer?: string;
+    };
   };
   competitors: {
     image_url: string;
   }[];
-
   variations: {
-    a: { image_url: string; title: string } | null;
-    b: { image_url: string; title: string } | null;
-    c: { image_url: string; title: string } | null;
+    a: { 
+      id: string;
+      price: number;
+      title: string;
+      image_url: string;
+      prolificStatus: string;
+    } | null;
+    b: { 
+      id: string;
+      price: number;
+      title: string;
+      image_url: string;
+      prolificStatus: string;
+    } | null;
+    c: { 
+      id: string;
+      price: number;
+      title: string;
+      image_url: string;
+      prolificStatus: string;
+    } | null;
+  };
+  responses?: {
+    surveys: any;
+    comparisons: any;
   };
 }
 

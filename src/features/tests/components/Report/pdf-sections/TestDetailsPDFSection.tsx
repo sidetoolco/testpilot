@@ -33,7 +33,7 @@ interface BarChartProps {
 interface MetricCardProps {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: string | number;
   color: string;
 }
 
@@ -150,6 +150,13 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
   console.log('Created At:', testDetails.createdAt);
   console.log('Date Object:', new Date(testDetails.createdAt));
 
+  // Calcular el número de variaciones
+  const variationCount = Object.values(testDetails.variations).filter(v => v !== null).length;
+  
+  // Calcular la fracción de sesiones completadas
+  const totalPossibleSessions = testDetails.demographics.testerCount * variationCount;
+  const completedSessionsFraction = `${testDetails.completed_sessions} / ${totalPossibleSessions}`;
+
   // Procesar datos de género
   const genderData = testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
     const existingGender = acc.find(item => item.label === gender);
@@ -208,7 +215,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
           <MetricCard
             icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf091'}</Text>}
             label="Winning Sessions"
-            value={testDetails.demographics.testerCount}
+            value={completedSessionsFraction}
             color={COLORS.secondary}
           />
         </View>

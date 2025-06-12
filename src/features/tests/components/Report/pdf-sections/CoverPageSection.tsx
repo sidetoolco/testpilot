@@ -43,8 +43,8 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
           display: 'flex',
           alignItems: 'center',
           padding: '20px 0',
-          borderTop: '1px solid #2A2D31',
-          borderBottom: '1px solid #2A2D31',
+          borderTop: '1px solid #00A67E',
+          borderBottom: '1px solid #00A67E',
         }}
       >
         <View>
