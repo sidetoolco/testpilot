@@ -27,6 +27,7 @@ import Support from './pages/Support';
 import { Adminpanel } from './pages/Adminpanel';
 import SentryErrorTest from './pages/SentryErrorTest';
 import TeamSettings from './pages/TeamSettings';
+import TeamInviteForm from './pages/TeamInviteForm';
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,8 @@ function App() {
               {/* Unprotected Route */}
 
               <Route path="/test/:id" element={<TestUserPage />} />
+
+              <Route path="/invite/:token" element={<TeamInviteForm />} />
 
               <Route
                 path="/admin"

@@ -2,15 +2,21 @@ import { supabase } from '../../../lib/supabase';
 import { AuthFormData } from '../types';
 
 export const authService = {
-  async signUp({ email, password, fullName, companyName }: AuthFormData) {
+  async signUp({ email, password, fullName, companyName, companyId }: AuthFormData) {
+    const optionsData: Record<string, string | undefined> = {
+      full_name: fullName,
+      company_name: companyName,
+    };
+
+    if (companyId) {
+      optionsData.company_id = companyId;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-          company_name: companyName,
-        },
+        data: optionsData,
         emailRedirectTo: `${window.location.origin}/auth/confirm`,
       },
     });

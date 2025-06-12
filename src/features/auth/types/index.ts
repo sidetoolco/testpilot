@@ -12,6 +12,7 @@ export interface AuthFormData {
   password: string;
   fullName?: string;
   companyName?: string;
+  companyId?: string;
 }
 
 export interface UserProfile {

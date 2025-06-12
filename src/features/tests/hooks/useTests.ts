@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Test } from '../../../types';
-import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
 import { testService } from '../services/testService';
 
@@ -15,52 +14,7 @@ export function useTests() {
         setLoading(true);
         setError(null);
 
-        // Get current user
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
-
-        // Check if user is admin
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        let data;
-        if (profile?.role === 'admin') {
-          // If admin, fetch all tests
-          data = await testService.getAllTests();
-        } else {
-          // If not admin, fetch only user's company tests
-          const { data: userTests, error } = await supabase
-            .from('tests')
-            .select(
-              `
-              *,
-              competitors:test_competitors(
-                product:amazon_products(
-                  *,
-                  company:companies(name)
-                )
-              ),
-              variations:test_variations(
-                product:products(
-                  *,
-                  company:companies(name)
-                ),
-                variation_type
-              ),
-              demographics:test_demographics(*)
-            `
-            )
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-
-          if (error) throw error;
-          data = userTests;
-        }
+        const data = await testService.getAllTests();
 
         // Transform the data to match our Test type
         const transformedTests: Test[] = (data || []).map(test => ({

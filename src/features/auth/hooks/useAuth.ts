@@ -85,7 +85,7 @@ export const useAuth = () => {
   const updatePassword = useCallback(
     async (password: string, token: string) => {
       await handleAuthAction(async () => {
-        await authService.updatePassword(password, token);
+        await authService.updatePassword(password);
       });
     },
     [handleAuthAction]
