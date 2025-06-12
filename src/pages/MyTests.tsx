@@ -266,7 +266,7 @@ export default function MyTests() {
                     </div>
                   </div>
                 </div>
-                <div className="text-gray-500 sm:text-center">
+                <div className="flex items-center text-gray-500 sm:text-center">
                   {new Date(test.createdAt).toLocaleDateString()}
                 </div>
                 {isAdmin && (
