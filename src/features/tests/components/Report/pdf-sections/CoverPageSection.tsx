@@ -224,7 +224,7 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
               <Text
                 style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 'bold', textAlign: 'left' }}
               >
-                {new Date(testDetails.updatedAt).toLocaleDateString('en-US', {
+                {new Date(testDetails.createdAt).toLocaleDateString('en-US', {
                   month: 'long',
                   day: 'numeric',
                   year: 'numeric',

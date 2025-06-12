@@ -144,6 +144,10 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
 );
 
 export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ testDetails }) => {
+  console.log('Test Details:', testDetails);
+  console.log('Created At:', testDetails.createdAt);
+  console.log('Date Object:', new Date(testDetails.createdAt));
+
   // Procesar datos de género
   const genderData = testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
     const existingGender = acc.find(item => item.label === gender);
@@ -183,7 +187,11 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
             {testDetails.name}
           </Text>
           <Text style={{ fontSize: 10, color: COLORS.lightText }}>
-            Created on {new Date(testDetails.updatedAt).toLocaleDateString()}
+            Created on {new Date(testDetails.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </Text>
         </View>
 

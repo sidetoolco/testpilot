@@ -18,6 +18,7 @@ export interface TestDetails {
   name: string;
   status: 'draft' | 'active' | 'complete';
   updatedAt: string;
+  createdAt: string;
   searchTerm: string;
   demographics: {
     testerCount: number;
