@@ -8,148 +8,286 @@ interface TestDetailsPDFSectionProps {
   testDetails: TestDetails;
 }
 
-export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ testDetails }) => (
-  <Page size="A4" orientation="portrait" style={{ padding: 20, backgroundColor: 'white' }}>
-    <Header title="Test Design" />
-    <View
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '90%',
-        justifyContent: 'space-between',
-      }}
-    >
+interface ChartDataItem {
+  value: number;
+  color: string;
+  label?: string;
+}
+
+interface DonutChartProps {
+  data: ChartDataItem[];
+  size?: number;
+}
+
+interface BarChartProps {
+  data: ChartDataItem[];
+  height?: number;
+}
+
+interface MetricCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  color: string;
+}
+
+const COLORS = {
+  primary: '#34A270',
+  secondary: '#075532',
+  accent: '#E0D30D',
+  text: '#374151',
+  lightText: '#6B7280',
+  background: '#F9FAFB',
+  border: '#E5E7EB',
+};
+
+const DonutChart: React.FC<DonutChartProps> = ({ data, size = 100 }) => {
+  const total = data.reduce((sum: number, item: ChartDataItem) => sum + item.value, 0);
+  let currentAngle = 0;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {data.map((item: ChartDataItem, index: number) => {
+        const percentage = (item.value / total) * 100;
+        const angle = (percentage / 100) * 360;
+        const startAngle = currentAngle;
+        currentAngle += angle;
+
+        return (
+          <View
+            key={index}
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              borderRadius: size / 2,
+              border: `8px solid ${item.color}`,
+              borderTopColor: 'transparent',
+              borderRightColor: 'transparent',
+              transform: `rotate(${startAngle}deg)`,
+            }}
+          />
+        );
+      })}
       <View
         style={{
-          border: '1px solid #000000',
-          borderRadius: 10,
-          padding: 20,
-          display: 'flex',
-          flexDirection: 'column',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          alignItems: 'center',
         }}
       >
-        <View>
-          <Text style={styles.value}>{testDetails.name}</Text>
-          <Text style={styles.label}>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: COLORS.text }}>
+          {total}
+        </Text>
+        <Text style={{ fontSize: 8, color: COLORS.lightText }}>Total</Text>
+      </View>
+    </View>
+  );
+};
+
+const BarChart: React.FC<BarChartProps> = ({ data, height = 100 }) => {
+  const maxValue = Math.max(...data.map(item => item.value));
+
+  return (
+    <View style={{ height, flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
+      {data.map((item: ChartDataItem, index: number) => (
+        <View key={index} style={{ flex: 1, alignItems: 'center' }}>
+          <View
+            style={{
+              width: '100%',
+              height: `${(item.value / maxValue) * 100}%`,
+              backgroundColor: item.color,
+              borderRadius: 4,
+            }}
+          />
+          <Text style={{ fontSize: 8, color: COLORS.lightText, marginTop: 4 }}>
+            {item.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) => (
+  <View
+    style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: COLORS.background,
+      padding: 12,
+      borderRadius: 8,
+      gap: 8,
+    }}
+  >
+    <View
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: color,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {icon}
+    </View>
+    <View>
+      <Text style={{ fontSize: 10, color: COLORS.lightText }}>{label}</Text>
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text }}>
+        {value}
+      </Text>
+    </View>
+  </View>
+);
+
+export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ testDetails }) => {
+  // Procesar datos de género
+  const genderData = testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
+    const existingGender = acc.find(item => item.label === gender);
+    if (existingGender) {
+      existingGender.value += 1;
+    } else {
+      acc.push({ value: 1, color: COLORS.primary, label: gender });
+    }
+    return acc;
+  }, []) || [];
+
+  // Procesar datos de edad
+  const ageData = testDetails.demographics.ageRanges?.map((range: string, index: number) => ({
+    value: 1, // Cada rango cuenta como 1 por ahora
+    color: [COLORS.primary, COLORS.secondary, COLORS.accent][index % 3],
+    label: range
+  })) || [];
+
+  // Procesar datos de ubicación
+  const locationData = testDetails.demographics.locations?.reduce((acc: ChartDataItem[], location: string) => {
+    const existingLocation = acc.find(item => item.label === location);
+    if (existingLocation) {
+      existingLocation.value += 1;
+    } else {
+      acc.push({ value: 1, color: COLORS.primary, label: location });
+    }
+    return acc;
+  }, []) || [];
+
+  return (
+    <Page size="A4" orientation="portrait" style={{ padding: 20, backgroundColor: 'white' }}>
+      <Header title="Test Design" />
+      <View style={{ flex: 1, gap: 20 }}>
+        {/* Test Info */}
+        <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}>
+            {testDetails.name}
+          </Text>
+          <Text style={{ fontSize: 10, color: COLORS.lightText }}>
             Created on {new Date(testDetails.updatedAt).toLocaleDateString()}
           </Text>
         </View>
-        <View>
-          <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 10, marginTop: 5 }}>
-            <Text style={styles.value}>Test configurations</Text>
 
-            <View style={styles.detailsCard}>
-              <Text style={styles.label}>Participants</Text>
-              <Text style={styles.value}>{testDetails.demographics.testerCount}</Text>
+        {/* Metrics */}
+        <View style={{ flexDirection: 'row', gap: 16 }}>
+          <MetricCard
+            icon={<Text style={{ color: 'white', fontSize: 16 }}>👥</Text>}
+            label="Total Testers"
+            value={testDetails.demographics.testerCount}
+            color={COLORS.primary}
+          />
+          <MetricCard
+            icon={<Text style={{ color: 'white', fontSize: 16 }}>🎯</Text>}
+            label="Winning Sessions"
+            value={testDetails.demographics.testerCount}
+            color={COLORS.secondary}
+          />
+        </View>
+
+        {/* Demographics */}
+        <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+          <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+            Demographics
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 24 }}>
+            {/* Gender Distribution */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Gender</Text>
+              {genderData.length > 0 ? (
+                <DonutChart data={genderData} />
+              ) : (
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No gender data available</Text>
+              )}
             </View>
 
-            <View style={styles.detailsCard}>
-              <Text style={styles.label}>Search Term</Text>
-              <Text style={styles.value}>{testDetails.searchTerm}</Text>
+            {/* Age Distribution */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Age Ranges</Text>
+              {ageData.length > 0 ? (
+                <BarChart data={ageData} />
+              ) : (
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
+              )}
             </View>
 
-            <View style={styles.detailsCard}>
-              <Text style={styles.label}>Competitors</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                {testDetails.competitors.map((competitor: string, index: number) => (
-                  <Image
-                    key={index}
-                    src={competitor.image_url}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      objectFit: 'contain',
-                      borderRadius: 4,
-                    }}
-                  />
-                ))}
-              </View>
+            {/* Location Distribution */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Locations</Text>
+              {locationData.length > 0 ? (
+                <BarChart data={locationData} />
+              ) : (
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No location data available</Text>
+              )}
             </View>
-            <View style={styles.detailsCard}>
-              <Text style={styles.label}>Variations</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
+          </View>
+        </View>
+
+        {/* Test Configuration */}
+        <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+          <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+            Test Configuration
+          </Text>
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 10, color: COLORS.lightText }}>Search Term:</Text>
+              <Text style={{ fontSize: 10, color: COLORS.text }}>{testDetails.searchTerm}</Text>
+            </View>
+
+            <View>
+              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>Variations</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 {Object.values(testDetails.variations)
                   .filter(v => v !== null)
                   .map((variation, index) => (
                     <View
                       key={index}
                       style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: '#F9FAFB',
+                        flex: 1,
+                        border: `1px solid ${COLORS.border}`,
                         borderRadius: 8,
-                        padding: 2,
-                        marginBottom: 2,
-                        minWidth: '45%',
+                        padding: 8,
+                        alignItems: 'center',
                       }}
                     >
                       <Image
                         src={variation.image_url}
                         style={{
-                          width: 40,
-                          height: 40,
+                          width: 60,
+                          height: 60,
                           objectFit: 'contain',
-                          borderRadius: 4,
+                          marginBottom: 8,
                         }}
                       />
                       <Text
                         style={{
                           fontSize: 10,
-                          fontWeight: 'bold',
-                          color: '#1F2937',
-                          flex: 1,
-                          marginLeft: 4,
+                          color: COLORS.text,
+                          textAlign: 'center',
                         }}
                       >
-                        {variation.title.length > 20
-                          ? `${variation.title.substring(0, 20)}...`
-                          : variation.title}
+                        {variation.title}
                       </Text>
                     </View>
                   ))}
-              </View>
-            </View>
-          </View>
-          <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 10, marginTop: 5 }}>
-            <Text style={styles.value}>Demographics</Text>
-            <View>
-              <View style={styles.detailsCard}>
-                <Text style={styles.label}>Age Ranges</Text>
-                {testDetails.demographics.ageRanges.map((age: string, index: number) => (
-                  <Text key={index} style={styles.pill}>
-                    {age}
-                  </Text>
-                ))}
-              </View>
-              <View style={styles.detailsCard}>
-                <Text style={styles.label}>Gender</Text>
-                {testDetails.demographics.gender.map((gender: string, index: number) => (
-                  <Text key={index} style={styles.pill}>
-                    {gender}
-                  </Text>
-                ))}
-              </View>
-
-              <View style={styles.detailsCard}>
-                <Text style={styles.label}>Locations</Text>
-                {testDetails.demographics.locations.map((location: string, index: number) => (
-                  <Text key={index} style={styles.pill}>
-                    {location}
-                  </Text>
-                ))}
               </View>
             </View>
           </View>
@@ -172,6 +310,6 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
         />
       </View>
-    </View>
-  </Page>
-);
+    </Page>
+  );
+};

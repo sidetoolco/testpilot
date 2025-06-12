@@ -18,8 +18,12 @@ export interface TestDetails {
   name: string;
   status: 'draft' | 'active' | 'complete';
   updatedAt: string;
+  searchTerm: string;
   demographics: {
     testerCount: number;
+    gender?: string[];
+    ageRanges?: string[];
+    locations?: string[];
   };
   competitors: {
     image_url: string;
