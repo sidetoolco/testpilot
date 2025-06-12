@@ -1,8 +1,14 @@
 import React from 'react';
-import { View, Text, Image, Page } from '@react-pdf/renderer';
+import { View, Text, Image, Page, Font } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { TestDetails } from '../utils/types';
 import { Header } from './Header';
+
+// Register Font Awesome font
+Font.register({
+  family: 'FontAwesome',
+  src: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.ttf',
+});
 
 interface TestDetailsPDFSectionProps {
   testDetails: TestDetails;
@@ -194,13 +200,13 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
         {/* Metrics */}
         <View style={{ flexDirection: 'row', gap: 16 }}>
           <MetricCard
-            icon={<Text style={{ color: 'white', fontSize: 16 }}>👥</Text>}
+            icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf0c0'}</Text>}
             label="Total Testers"
             value={testDetails.demographics.testerCount}
             color={COLORS.primary}
           />
           <MetricCard
-            icon={<Text style={{ color: 'white', fontSize: 16 }}>🎯</Text>}
+            icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf091'}</Text>}
             label="Winning Sessions"
             value={testDetails.demographics.testerCount}
             color={COLORS.secondary}
