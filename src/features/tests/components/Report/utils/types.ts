@@ -16,6 +16,7 @@ export interface Recommendation {
 export interface TestDetails {
   id: string;
   name: string;
+  status: 'draft' | 'active' | 'complete';
   updatedAt: string;
   demographics: {
     testerCount: number;

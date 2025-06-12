@@ -135,6 +135,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
+  const isTestActiveOrComplete = testDetails?.status === 'active' || testDetails?.status === 'complete';
+
   const handleExportPDF = async () => {
     try {
       if (!testDetails || !summaryData || !competitiveinsights || !insights) {
@@ -200,7 +202,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         <button
           onClick={handleExportPDF}
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          disabled
+          disabled={!isTestActiveOrComplete}
         >
           <FilePdf size={20} />
           Export to PDF
