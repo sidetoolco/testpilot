@@ -32,20 +32,20 @@ interface Dataset {
 
 interface PurchaseDriversPDFSectionProps {
   insights?: string;
-  averagesurveys: Survey[];
+  averagesurveys: Survey;
 }
 
-const getChartData = (surveys: Survey[]): Dataset[] => {
-  if (!surveys || surveys.length === 0) {
+const getChartData = (survey: Survey): Dataset[] => {
+  if (!survey) {
     return [];
   }
 
   const data = [
-    surveys.appearance,
-    surveys.value,
-    surveys.confidence,
-    surveys.brand,
-    surveys.convenience,
+    survey.appearance,
+    survey.value,
+    survey.confidence,
+    survey.brand,
+    survey.convenience,
   ];
 
   return [
@@ -120,12 +120,12 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
 }) => {
   const datasets = getChartData(averagesurveys);
 
-  if (!averagesurveys.count) {
+  if (!averagesurveys) {
     return (
       <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
         <Header title="Purchase Drivers" />
         <View style={styles.section}>
-          <InsufficientDataMessage variantCount={averagesurveys.count} />
+          <InsufficientDataMessage />
         </View>
         <Footer />
       </Page>
@@ -136,7 +136,6 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
     <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
-        <MarkdownText text={insights} />
         <View style={styles.section}>
           <View style={styles.chartContainer}>
             {/* Legend */}
@@ -198,6 +197,13 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
             </View>
           </View>
         </View>
+
+        {/* Insights text in a separate section */}
+        {insights && (
+          <View style={{ marginTop: 20 }}>
+            <MarkdownText text={insights} />
+          </View>
+        )}
       </View>
       <Footer />
     </Page>
