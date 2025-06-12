@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package } from 'lucide-react';
+import { Package, Search } from 'lucide-react';
 import { Product } from '../../types';
 import { useProducts } from '../../features/tests/hooks/useProducts';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -23,6 +23,7 @@ type Variations = 'a' | 'b' | 'c';
 export default function TestVariations({ variations, onChange }: TestVariationsProps) {
   const [showProductSelector, setShowProductSelector] = useState<Variations | null>(null);
   const [showProductForm, setShowProductForm] = useState<Variations | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { products, loading, error } = useProducts();
   const { addProduct, updateProduct } = useProductStore();
 
@@ -68,6 +69,10 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
     });
     setShowProductForm(null);
   };
+
+  const filteredProducts = products.filter(product =>
+    product.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderVariation = (key: Variations) => {
     const isRequired = key === 'a';
@@ -197,10 +202,22 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Select Existing Product</h3>
+              <div className="flex items-center space-x-8 flex-1">
+                <h3 className="text-lg font-medium whitespace-nowrap">Select Existing Product</h3>
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by product name..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-all"
+                  />
+                </div>
+              </div>
               <button
                 onClick={() => setShowProductSelector(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 ml-4"
               >
                 ×
               </button>
@@ -209,26 +226,36 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
             {loading && <LoadingSpinner />}
             {error && <ErrorMessage message={error} />}
 
-            {!loading && !error && products.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-                {products.map(product => (
-                  <div
-                    key={product.id}
-                    onClick={() => handleSelectProduct(showProductSelector, product)}
-                    className="border rounded-xl p-4 cursor-pointer hover:border-primary-400 transition-colors"
-                  >
-                    <div className="aspect-square mb-3">
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
-                    <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+            {!loading && !error && (
+              <>
+                {filteredProducts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    {searchQuery
+                      ? 'No products found matching your search.'
+                      : 'No products available.'}
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                    {filteredProducts.map(product => (
+                      <div
+                        key={product.id}
+                        onClick={() => handleSelectProduct(showProductSelector, product)}
+                        className="border rounded-xl p-4 cursor-pointer hover:border-primary-400 transition-colors"
+                      >
+                        <div className="aspect-square mb-3">
+                          <img
+                            src={product.image_url}
+                            alt={product.title}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
+                        <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
