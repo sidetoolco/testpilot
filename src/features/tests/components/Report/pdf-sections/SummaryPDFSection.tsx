@@ -55,57 +55,60 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
   const [rows, setRows] = useState<string[][]>([]);
 
   useEffect(() => {
-    async function loadData() {
-      const { rows: summaryRows } = summaryData;
+    if (!summaryData?.rows) return;
 
-      setRows(
-        summaryRows.map((row: any) => [
-          row.title,
-          row.shareOfClicks,
-          row.shareOfBuy,
-          row.valueScore,
-          row.isWinner,
-        ])
-      );
-    }
-    loadData();
+    const formattedRows = summaryData.rows.map((row: any) => {
+      // Asegurarnos de que los valores sean strings y tengan el formato correcto
+      const title = String(row.title || 'Unknown Variant');
+      const shareOfClicks = `${row.shareOfClicks}%`;
+      const shareOfBuy = `${row.shareOfBuy}%`;
+      const valueScore = String(row.valueScore);
+      const isWinner = row.isWinner === 'Yes' ? 'Yes' : 'No';
+
+      return [title, shareOfClicks, shareOfBuy, valueScore, isWinner];
+    });
+
+    setRows(formattedRows);
   }, [summaryData]);
 
   return (
     <Page size="A4" orientation="portrait" style={styles.page}>
       <Header title="Results Overview" />
       <View style={styles.section}>
-        <Text
-          style={{
-            fontSize: 12,
-            color: '#111827',
-            marginBottom: 20,
-            lineHeight: 1.5,
-          }}
-        >
-          {insights.comparison_between_variants.split('\n').map((line: string, index: number) => {
-            const parts = line.split(/(\*\*.*?\*\*)/g);
-            return (
-              <Text key={index}>
-                {parts.map((part, partIndex) => {
-                  if (part.startsWith('**') && part.endsWith('**')) {
-                    return (
-                      <Text
-                        key={partIndex}
-                        style={{
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {part.slice(2, -2)}
-                      </Text>
-                    );
-                  }
-                  return part;
-                })}{' '}
-              </Text>
-            );
-          })}
-        </Text>
+        {insights?.comparison_between_variants && (
+          <Text
+            style={{
+              fontSize: 12,
+              color: '#111827',
+              marginBottom: 20,
+              lineHeight: 1.5,
+            }}
+          >
+            {insights.comparison_between_variants.split('\n').map((line: string, index: number) => {
+              const parts = line.split(/(\*\*.*?\*\*)/g);
+              return (
+                <Text key={index}>
+                  {parts.map((part, partIndex) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return (
+                        <Text
+                          key={partIndex}
+                          style={{
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {part.slice(2, -2)}
+                        </Text>
+                      );
+                    }
+                    return part;
+                  })}{' '}
+                </Text>
+              );
+            })}
+          </Text>
+        )}
+
         <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, marginBottom: 20 }}>
           {/* Table Header */}
           <View
