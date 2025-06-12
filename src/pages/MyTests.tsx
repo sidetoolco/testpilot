@@ -7,6 +7,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import ModalLayout from '../layouts/ModalLayout';
+import apiClient from '../lib/api';
+import { DEFAULT_ERROR_MSG } from '../lib/constants';
 
 interface Variation {
   id: string;
@@ -62,24 +64,12 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
-      const response = await fetch(
-        'https://testpilot.app.n8n.cloud/webhook-test/publish-prolific',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ testId }),
-        }
-      );
+      await apiClient.post(`/tests/${testId}/publish`);
 
-      if (!response.ok) {
-        throw new Error('Failed to publish test');
-      }
       toast.success('Test published successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error publishing test:', error);
-      toast.error('Failed to publish test. Please try again.');
+      toast.error(`Failed to publish test: ${error.response?.data?.message || DEFAULT_ERROR_MSG}`);
     } finally {
       setPublishingTests(prev => prev.filter(id => id !== testId));
     }
