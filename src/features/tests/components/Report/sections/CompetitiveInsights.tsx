@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 
@@ -6,6 +6,13 @@ interface CompetitorProduct {
   product_url: string;
   image_url: string;
   title: string;
+  price?: string | number;
+}
+
+interface Product {
+  image_url: string;
+  title: string;
+  price?: string | number;
 }
 
 interface InsightItem {
@@ -17,7 +24,11 @@ interface InsightItem {
   trust: number;
   convenience: number;
   count: number;
-  variant_type: string; // 👈 importante para el filtro
+  variant_type: string;
+  product?: Product;
+  appearance?: number;
+  confidence?: number;
+  brand?: number;
 }
 
 interface CompetitiveInsightsProps {
@@ -47,54 +58,56 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   variants,
   sumaryvariations,
 }) => {
-  if (!competitiveinsights || competitiveinsights.length === 0) return null;
-
   const [selectedVariant, setSelectedVariant] = useState('a');
   const { insight } = useInsightStore();
 
-  const shareOfBuy = sumaryvariations.find((variation: any) =>
+  if (!competitiveinsights || competitiveinsights.length === 0) {
+    return null;
+  }
+
+  // Get available variants
+  const availableVariants = [...new Set(competitiveinsights.map(item => item.variant_type))].sort();
+
+  // Filter insights for selected variant
+  const shareOfBuy = sumaryvariations?.find((variation: any) =>
     variation.title.includes('Variant ' + selectedVariant.toUpperCase())
   )?.shareOfBuy;
-  const filteredVariant = variants.find((variant: any) => variant.variant_type === selectedVariant);
 
+  const filteredVariant = variants?.find((variant: any) => variant.variant_type === selectedVariant);
+  
   if (filteredVariant) {
     filteredVariant.share_of_buy = shareOfBuy;
   }
 
-  // 🔍 Filtrar datos por variant_type
-  const filteredInsights = useMemo(() => {
-    const filtered = competitiveinsights
-      .filter(item => item.variant_type === selectedVariant)
-      .sort((a, b) => b.share_of_buy - a.share_of_buy);
+  const filtered = competitiveinsights
+    .filter(item => item.variant_type === selectedVariant)
+    .sort((a, b) => b.share_of_buy - a.share_of_buy);
 
-    return filteredVariant ? [filteredVariant, ...filtered] : filtered;
-  }, [competitiveinsights, selectedVariant, filteredVariant]);
+  const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
       <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>
 
       <div className="mb-6 flex items-center justify-center space-x-3">
-        {[...new Set(competitiveinsights.map(item => item.variant_type))]
-          .sort() // Sort variants alphabetically (a, b, c)
-          .map(variant => (
-            <button
-              key={`variant-btn-${variant}`}
-              onClick={() => setSelectedVariant(variant)}
-              className={`px-6 py-2 rounded font-medium transition-colors
-                  ${
-                    selectedVariant === variant
-                      ? 'bg-green-500 text-white hover:bg-green-600' // Selected variant in green
-                      : 'bg-green-200 text-black hover:bg-gray-400' // Other available variants in light gray
-                  }`}
-            >
-              Variant {variant.toUpperCase()}
-            </button>
-          ))}
+        {availableVariants.map(variant => (
+          <button
+            key={variant}
+            onClick={() => setSelectedVariant(variant)}
+            className={`px-6 py-2 rounded font-medium transition-colors
+              ${
+                selectedVariant === variant
+                  ? 'bg-green-500 text-white hover:bg-green-600'
+                  : 'bg-green-200 text-black hover:bg-gray-400'
+              }`}
+          >
+            Variant {variant.toUpperCase()}
+          </button>
+        ))}
       </div>
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
-        <MarkdownContent content={insight.competitive_insights} />
+        <MarkdownContent content={insight?.competitive_insights || ''} />
       </div>
 
       {filteredInsights.length === 0 ? (
@@ -130,80 +143,41 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                 <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
                   <div className="relative group">
                     <a
-                      href={
-                        item.competitor_product_id?.product_url
-                          ? item.competitor_product_id.product_url
-                          : 'x'
-                      }
+                      href={item.competitor_product_id?.product_url || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3"
                     >
                       <img
-                        src={
-                          item.competitor_product_id?.image_url
-                            ? item.competitor_product_id.image_url
-                            : item.product.image_url
-                        }
-                        alt={
-                          item.competitor_product_id?.title
-                            ? item.competitor_product_id.title
-                            : item.product.title
-                        }
+                        src={item.competitor_product_id?.image_url || item.product?.image_url}
+                        alt={item.competitor_product_id?.title || item.product?.title}
                         className="w-16 h-16 rounded object-cover shadow-sm"
                       />
                       <span className="text-xs font-semibold text-gray-700">
-                        $
-                        {item.competitor_product_id?.price
-                          ? item.competitor_product_id.price
-                          : item.product?.price}
+                        ${item.competitor_product_id?.price || item.product?.price}
                       </span>
                     </a>
 
-                    {/* Tooltip on hover */}
-                    <div
-                      className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
-        whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                    >
-                      {(item.competitor_product_id?.title
-                        ? item.competitor_product_id.title
-                        : item.product.title
-                      ).length > 40
-                        ? `${(item.competitor_product_id?.title
-                            ? item.competitor_product_id.title
-                            : item.product.title
-                          ).slice(0, 40)}...`
-                        : item.competitor_product_id?.title
-                          ? item.competitor_product_id.title
-                          : item.product.title}
+                    <div className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
+                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                      {(item.competitor_product_id?.title || item.product?.title || '').slice(0, 40)}
+                      {(item.competitor_product_id?.title || item.product?.title || '').length > 40 ? '...' : ''}
                     </div>
 
-                    {/* Highlight when count is exactly 1 */}
                     {item.count === 1 && (
-                      <span
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
-        rounded-full flex items-center justify-center text-[10px] shadow"
-                      >
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
+                        rounded-full flex items-center justify-center text-[10px] shadow">
                         🔍
                       </span>
                     )}
                   </div>
                 </td>
-
-                <td className={`border border-gray-300 p-2`}>
+                <td className="border border-gray-300 p-2">
                   {item.count > 0 ? `${item.share_of_buy}%` : '-'}
                 </td>
                 {renderCell(Number(item.value), item.count, !!item.product)}
-                {renderCell(
-                  Number(item.aesthetics || item.appearance || 0),
-                  item.count,
-                  !!item.product
-                )}
-                {renderCell(
-                  Number(item.utility || item.confidence || 0),
-                  item.count,
-                  !!item.product
-                )}
+                {renderCell(Number(item.aesthetics || item.appearance || 0), item.count, !!item.product)}
+                {renderCell(Number(item.utility || item.confidence || 0), item.count, !!item.product)}
                 {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
                 {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
               </tr>
