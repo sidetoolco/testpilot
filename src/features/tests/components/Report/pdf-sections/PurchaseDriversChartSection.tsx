@@ -92,26 +92,6 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
       <View style={styles.section}>
         <Header title={`Purchase Drivers - Variant ${variantKey.toUpperCase()}`} />
         
-        {/* Título de la variante */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ 
-            fontSize: 16, 
-            fontWeight: 'bold', 
-            color: '#333', 
-            textAlign: 'center',
-            marginBottom: 5
-          }}>
-            {variantTitle}
-          </Text>
-          <Text style={{ 
-            fontSize: 12, 
-            color: '#666', 
-            textAlign: 'center'
-          }}>
-            Variant {variantKey.toUpperCase()}
-          </Text>
-        </View>
-
         <View style={styles.section}>
           <View style={styles.chartContainer}>
             {/* Legend */}

@@ -14,6 +14,8 @@ import apiClient from '../../../../lib/api';
 import { toast } from 'sonner';
 import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSection';
 import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
+import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
+import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 
 // Configurar Buffer para el navegador
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -94,16 +96,22 @@ const PDFDocument = ({
           )
       )}
 
-      {/* Competitive Insights por variante */}
+      {/* Nueva estructura: Competitive Insights con texto general primero */}
+      {safeInsights?.competitive_insights && (
+        <CompetitiveInsightsTextSection insights={safeInsights.competitive_insights} />
+      )}
+
+      {/* Luego las tablas de cada variante */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
           variation && (
-            <CompetitiveInsightsPDFSection
-              key={`competitive-${key}`}
+            <CompetitiveInsightsTableSection
+              key={`competitive-table-${key}`}
+              variantKey={key}
+              variantTitle={variation.title}
               competitiveinsights={safeCompetitiveInsights.summaryData?.filter(
                 (item: any) => item.variant_type === key
               ) || []}
-              insights={safeInsights?.competitive_insights}
             />
           )
       )}
