@@ -5,15 +5,15 @@ import { MarkdownText } from '../utils/MarkdownText';
 import { styles } from '../utils/styles';
 
 interface Competitor {
-  title: string;
-  count: number;
-  shopper_count: number;
+  competitor_product_id: {
+    title: string;
+  };
+  share_of_buy: number;
   value: number;
   aesthetics: number;
   convenience: number;
   trust: number;
   utility: number;
-  share: number;
 }
 
 interface CompetitiveInsightsPDFSectionProps {
@@ -159,9 +159,9 @@ const truncateTitle = (title: string, maxLength: number = 25): string => {
 };
 
 const getColorStyle = (value: number) => {
-  if (value > 3) return { backgroundColor: '#DCFCE7', color: '#166534', padding: '4px 8px' }; // green
-  if (value < 3) return { backgroundColor: '#FEE2E2', color: '#991B1B', padding: '4px 8px' }; // red
-  return { backgroundColor: '#FEF9C3', color: '#854D0E', padding: '4px 8px' }; // yellow
+  if (value > 0) return { backgroundColor: '#DCFCE7', color: '#166534', padding: '4px 8px' }; // verde para valores positivos
+  if (value < 0) return { backgroundColor: '#FEE2E2', color: '#991B1B', padding: '4px 8px' }; // rojo para valores negativos
+  return { backgroundColor: '#FEF9C3', color: '#854D0E', padding: '4px 8px' }; // amarillo para valor cero
 };
 
 const calculateAverageMetrics = (competitors: Competitor[]) => {
