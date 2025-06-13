@@ -15,6 +15,16 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
 
+  define: {
+    global: 'globalThis',
+  },
+
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+    },
+  },
+
   build: {
     sourcemap: true,
   },

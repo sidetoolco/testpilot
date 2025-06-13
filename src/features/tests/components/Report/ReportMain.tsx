@@ -76,26 +76,51 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
   const navigate = useNavigate();
 
+  // Función para convertir Test a TestDetails de forma segura
+  const convertTestToTestDetails = (test: any): any => {
+    return {
+      ...test,
+      objective: test.objective || '', // Asegurar que objective no sea undefined
+      updatedAt: test.updatedAt || test.createdAt, // Usar createdAt como fallback
+    };
+  };
+
   useEffect(() => {
     const fetchSummaryData = async () => {
       if (!testInfo) return;
-      const existingInsights = await checkIdInIaInsights(id);
-      const data = await getSummaryData(id);
-      const averagesurveys = await getAveragesurveys(id);
-      const competitiveinsights = await getCompetitiveInsights(id);
+      
+      try {
+        setLoading(true);
+        
+        console.log('Starting data fetch for test:', testInfo.id);
+        
+        const [existingInsights, data, averagesurveys, competitiveinsights] = await Promise.all([
+          checkIdInIaInsights(id),
+          getSummaryData(id),
+          getAveragesurveys(id),
+          getCompetitiveInsights(id)
+        ]);
 
-      setSummaryData({
-        ...data,
-      });
-      setAveragesurveys(averagesurveys);
-      setCompetitiveinsights(competitiveinsights);
-      setInsight(existingInsights);
-      return;
+        console.log('Data fetched successfully:', {
+          insights: !!existingInsights,
+          summaryData: !!data,
+          averagesurveys: !!averagesurveys,
+          competitiveinsights: !!competitiveinsights
+        });
+
+        setSummaryData(data);
+        setAveragesurveys(averagesurveys);
+        setCompetitiveinsights(competitiveinsights);
+        setInsight(existingInsights);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
     };
-    setLoading(true);
+    
     fetchSummaryData();
-    setLoading(false);
-  }, [testInfo]);
+  }, [testInfo, id, setInsight, setLoading]);
 
   useEffect(() => {
     const observerOptions = {
@@ -209,7 +234,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
           <h1 className="text-xl sm:text-2xl font-bold">Insights Summary</h1>
           <ReportPDF
-            testDetails={testInfo}
+            testDetails={convertTestToTestDetails(testInfo)}
             summaryData={summaryData}
             insights={insight}
             disabled={testInfo?.status !== 'complete'}
