@@ -66,45 +66,54 @@ const formatSummaryData = (summaryData: any): string[][] => {
   });
 };
 
+// Componente de markdown para procesar texto con formato
+const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
+  if (!text) return null;
+
+  return (
+    <View style={{ marginBottom: 20 }}>
+      {text.split('\n').map((line, index) => {
+        if (!line.trim()) return null;
+        
+        // Procesar texto en negrita
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        
+        return (
+          <Text key={index} style={{ fontSize: 12, color: '#333', marginBottom: 8, lineHeight: 1.5 }}>
+            {parts.map((part, partIndex) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                  <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                    {part.slice(2, -2)}
+                  </Text>
+                );
+              }
+              return part;
+            })}
+          </Text>
+        );
+      }).filter(Boolean)}
+    </View>
+  );
+};
+
 export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryData, insights }) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);
+
+  const comparisonText = insights?.comparison_between_variants;
 
   return (
     <Page size="A4" orientation="portrait" style={styles.page}>
       <Header title="Results Overview" />
       <View style={styles.section}>
-        {insights?.comparison_between_variants && (
-          <Text
-            style={{
-              fontSize: 12,
-              color: '#111827',
-              marginBottom: 20,
-              lineHeight: 1.5,
-            }}
-          >
-            {insights.comparison_between_variants.split('\n').map((line: string, index: number) => {
-              const parts = line.split(/(\*\*.*?\*\*)/g);
-              return (
-                <Text key={index}>
-                  {parts.map((part, partIndex) => {
-                    if (part.startsWith('**') && part.endsWith('**')) {
-                      return (
-                        <Text
-                          key={partIndex}
-                          style={{
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {part.slice(2, -2)}
-                        </Text>
-                      );
-                    }
-                    return part;
-                  })}{' '}
-                </Text>
-              );
-            })}
+        {comparisonText && (
+          <SimpleMarkdownText text={comparisonText} />
+        )}
+
+        {!comparisonText && (
+          <Text style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
+            No comparison data available
           </Text>
         )}
 
