@@ -75,16 +75,15 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 40,
-        padding: 40,
+        gap: 10,
+        padding: 10,
         backgroundColor: '#000000',
       }}
     >
       <Image src={logo} style={{ width: 200, alignSelf: 'center', marginTop: 40 }} />
       <View
         style={{
-          marginTop: 'auto',
-          marginBottom: 'auto',
+          marginTop: 30,
           width: '100%',
           display: 'flex',
           alignItems: 'center',
@@ -108,7 +107,8 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
           flexDirection: 'row',
           justifyContent: 'center',
           gap: 20,
-          marginBottom: 40,
+          marginTop: 20,
+          marginBottom: 'auto',
         }}
       >
         <View
