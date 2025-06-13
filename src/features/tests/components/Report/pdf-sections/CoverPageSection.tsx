@@ -14,6 +14,52 @@ interface CoverPageSectionProps {
   variantsArray: ({ image_url: string; title: string } | null)[];
 }
 
+const GradientLine: React.FC = () => {
+  const colors = ['#00A6FF', '#00A67E'];
+  const segments = 40;
+
+  return (
+    <View style={{ 
+      height: 5,
+      flexDirection: 'row',
+      width: '100%',
+      marginBottom: 40
+    }}>
+      {Array.from({ length: segments }).map((_, index) => {
+        const progress = index / (segments - 1);
+        
+        const color1 = colors[0];
+        const color2 = colors[1];
+        
+        const r1 = parseInt(color1.slice(1, 3), 16);
+        const g1 = parseInt(color1.slice(3, 5), 16);
+        const b1 = parseInt(color1.slice(5, 7), 16);
+        
+        const r2 = parseInt(color2.slice(1, 3), 16);
+        const g2 = parseInt(color2.slice(3, 5), 16);
+        const b2 = parseInt(color2.slice(5, 7), 16);
+        
+        const r = Math.round(r1 + (r2 - r1) * progress);
+        const g = Math.round(g1 + (g2 - g1) * progress);
+        const b = Math.round(b1 + (b2 - b1) * progress);
+        
+        const color = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+        return (
+          <View
+            key={index}
+            style={{
+              flex: 1,
+              height: '100%',
+              backgroundColor: color
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+};
+
 export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   testDetails,
   variantsArray,
@@ -42,11 +88,11 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          padding: '20px 0',
-          borderTop: '1px solid #00A67E',
-          borderBottom: '1px solid #00A67E',
+          padding: '40px 0',
+          borderBottom: '4px solid #00A67E',
         }}
       >
+        <GradientLine />
         <View>
           <Text style={{ fontSize: 24, color: '#999999', textAlign: 'center', marginBottom: 10 }}>
             {testDetails.name.split(' ')[0]}
