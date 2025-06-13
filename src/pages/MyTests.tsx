@@ -46,11 +46,11 @@ const statusConfig = {
     textColor: 'text-[#eabd31]',
     icon: Pencil,
   },
-  "in progress": {
+  'in progress': {
     bgColor: 'bg-gray-300',
     textColor: 'text-gray-600',
     icon: Clock,
-  }
+  },
 };
 
 export default function MyTests() {

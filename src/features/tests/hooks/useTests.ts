@@ -13,25 +13,21 @@ export function useTests() {
     // Initialize socket connection
     const socketInstance = io(import.meta.env.VITE_API_URL || 'http://localhost:8080', {
       withCredentials: true,
-      transports: ["websocket", "polling"],
+      transports: ['websocket', 'polling'],
     });
 
     socketInstance.on('connect', () => {
       console.log('Connected to WebSocket server');
     });
 
-    socketInstance.on('connect_error', (error) => {
+    socketInstance.on('connect_error', error => {
       console.error('Socket connection error:', error);
     });
 
     // Listen for test status updates
     socketInstance.on('testStatusUpdate', ({ testId, status }) => {
-      setTests(prevTests => 
-        prevTests.map(test => 
-          test.id === testId 
-            ? { ...test, status } 
-            : test
-        )
+      setTests(prevTests =>
+        prevTests.map(test => (test.id === testId ? { ...test, status } : test))
       );
     });
 
