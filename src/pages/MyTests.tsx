@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle } from 'lucide-react';
+import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useState, useEffect } from 'react';
@@ -13,6 +13,7 @@ import { DEFAULT_ERROR_MSG } from '../lib/constants';
 interface Variation {
   id: string;
   name: string;
+  title?: string;
   description?: string;
 }
 
@@ -28,6 +29,24 @@ interface ConfirmationModal {
   };
   variantsArray: Variation[];
 }
+
+const statusConfig = {
+  complete: {
+    bgColor: 'bg-[#E3F9F3]',
+    textColor: 'text-[#00A67E]',
+    icon: CheckCircle,
+  },
+  active: {
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-500',
+    icon: Clock,
+  },
+  draft: {
+    bgColor: 'bg-[#FEF6E6]',
+    textColor: 'text-[#eabd31]',
+    icon: Pencil,
+  },
+};
 
 export default function MyTests() {
   const navigate = useNavigate();
@@ -225,85 +244,84 @@ export default function MyTests() {
             </button>
           </div>
         ) : (
-          tests.map(test => (
-            <motion.div
-              key={test.id}
-              className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(`/tests/${test.id}`)}
-              whileHover={{ y: -2 }}
-            >
-              <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className={`w-12 h-12 rounded-full ${test.status === 'complete' ? 'bg-[#E3F9F3]' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0`}
-                  >
-                    {test.status === 'complete' ? (
-                      <CheckCircle className="h-6 w-6 text-[#00A67E]" />
-                    ) : (
-                      <Clock className="h-6 w-6 text-blue-500" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-                      <span className="truncate">Search term: {test.searchTerm}</span>
-                      <span className="hidden sm:inline">•</span>
-                      <span
-                        className={`${test.status === 'complete' ? 'text-[#00A67E]' : 'text-blue-500'}`}
-                      >
-                        {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
-                      </span>
+          tests.map(test => {
+            const config = statusConfig[test.status as keyof typeof statusConfig];
+            const StatusIcon = config.icon;
+
+            return (
+              <motion.div
+                key={test.id}
+                className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/tests/${test.id}`)}
+                whileHover={{ y: -2 }}
+              >
+                <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
+                  <div className="flex items-center space-x-4">
+                    <div
+                      className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                        <span className="truncate">Search term: {test.searchTerm}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span className={config.textColor}>
+                          {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center text-gray-500 sm:text-center">
-                  {new Date(test.createdAt).toLocaleDateString()}
-                </div>
-                {isAdmin && (
-                  <div className="flex items-center gap-4 sm:justify-end">
-                    <button
-                      onClick={e => handleGetData(test.id, e)}
-                      disabled={gettingDataTests.includes(test.id)}
-                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                        gettingDataTests.includes(test.id)
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:bg-blue-600'
-                      }`}
-                    >
-                      {gettingDataTests.includes(test.id) ? (
-                        <span className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Getting Data...
-                        </span>
-                      ) : (
-                        'Get Data'
-                      )}
-                    </button>
-                    {test.status !== 'complete' && (
+                  <div className="flex items-center text-gray-500 sm:text-center">
+                    {new Date(test.createdAt).toLocaleDateString()}
+                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-4 sm:justify-end">
                       <button
-                        onClick={e => handlePublish(test.id, e, test)}
-                        disabled={publishingTests.includes(test.id)}
-                        className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
-                          publishingTests.includes(test.id)
+                        onClick={e => handleGetData(test.id, e)}
+                        disabled={gettingDataTests.includes(test.id)}
+                        className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
+                          gettingDataTests.includes(test.id)
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:bg-green-600'
+                            : 'hover:bg-blue-600'
                         }`}
                       >
-                        {publishingTests.includes(test.id) ? (
+                        {gettingDataTests.includes(test.id) ? (
                           <span className="flex items-center gap-2">
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Publishing...
+                            Getting Data...
                           </span>
                         ) : (
-                          'Publish'
+                          'Get Data'
                         )}
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ))
+                      {test.status !== 'complete' && (
+                        <button
+                          onClick={e => handlePublish(test.id, e, test)}
+                          disabled={publishingTests.includes(test.id)}
+                          className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
+                            publishingTests.includes(test.id)
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'hover:bg-green-600'
+                          }`}
+                        >
+                          {publishingTests.includes(test.id) ? (
+                            <span className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Publishing...
+                            </span>
+                          ) : (
+                            'Publish'
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </div>
 
