@@ -92,11 +92,11 @@ export const VariantCover: React.FC<VariantCoverProps> = ({ variantKey, title, i
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ color: '#00ffcc', fontSize: 12, fontWeight: 'bold' }}>testpilotcpg.com</Text>
+        <Text style={{ color: '#00ffcc', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) =>
-            `${String(pageNumber).padStart(2, '0')}`
+            `${pageNumber}`
           }
         />
       </View>
