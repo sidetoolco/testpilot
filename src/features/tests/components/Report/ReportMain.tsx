@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
@@ -73,6 +73,8 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   const [summaryData, setSummaryData] = useState<any>(null);
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const fetchingRef = useRef(false);
 
   const navigate = useNavigate();
 
@@ -87,7 +89,10 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
   useEffect(() => {
     const fetchSummaryData = async () => {
-      if (!testInfo) return;
+      // Evitar múltiples ejecuciones
+      if (!testInfo || fetchingRef.current || dataLoaded) return;
+      
+      fetchingRef.current = true;
       
       try {
         setLoading(true);
@@ -112,15 +117,28 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         setAveragesurveys(averagesurveys);
         setCompetitiveinsights(competitiveinsights);
         setInsight(existingInsights);
+        setDataLoaded(true);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        fetchingRef.current = false;
       }
     };
     
     fetchSummaryData();
-  }, [testInfo, id, setInsight, setLoading]);
+  }, [testInfo?.id, id, setInsight, setLoading, dataLoaded]);
+
+  // Limpiar estado cuando cambia el ID del test
+  useEffect(() => {
+    if (testInfo?.id && testInfo.id !== id) {
+      setDataLoaded(false);
+      setSummaryData(null);
+      setAveragesurveys(null);
+      setCompetitiveinsights(null);
+      fetchingRef.current = false;
+    }
+  }, [testInfo?.id, id]);
 
   useEffect(() => {
     const observerOptions = {
