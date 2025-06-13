@@ -15,41 +15,50 @@ interface CoverPageSectionProps {
 }
 
 const GradientLine: React.FC = () => {
-  const colors = ['#00A6FF', '#00A67E'];
-  const segments = 40;
+  // Función para interpolar entre dos colores
+  const interpolateColor = (color1: string, color2: string, factor: number): string => {
+    const r1 = parseInt(color1.slice(1, 3), 16);
+    const g1 = parseInt(color1.slice(3, 5), 16);
+    const b1 = parseInt(color1.slice(5, 7), 16);
+    
+    const r2 = parseInt(color2.slice(1, 3), 16);
+    const g2 = parseInt(color2.slice(3, 5), 16);
+    const b2 = parseInt(color2.slice(5, 7), 16);
+    
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
+
+  const startColor = '#00A6FF';
+  const endColor = '#00A67E';
+  const layers = 12; // Más capas para mayor suavidad
 
   return (
     <View style={{ 
-      height: 5,
-      flexDirection: 'row',
+      height: 4,
       width: '100%',
-      marginBottom: 40
+      marginBottom: 40,
+      position: 'relative',
+      borderRadius: 2,
+      overflow: 'hidden'
     }}>
-      {Array.from({ length: segments }).map((_, index) => {
-        const progress = index / (segments - 1);
+      {Array.from({ length: layers }).map((_, index) => {
+        const progress = index / (layers - 1);
+        const color = interpolateColor(startColor, endColor, progress);
+        const leftPosition = `${(progress * 100)}%`;
+        const width = `${100 - (progress * 100) + (100 / layers)}%`;
         
-        const color1 = colors[0];
-        const color2 = colors[1];
-        
-        const r1 = parseInt(color1.slice(1, 3), 16);
-        const g1 = parseInt(color1.slice(3, 5), 16);
-        const b1 = parseInt(color1.slice(5, 7), 16);
-        
-        const r2 = parseInt(color2.slice(1, 3), 16);
-        const g2 = parseInt(color2.slice(3, 5), 16);
-        const b2 = parseInt(color2.slice(5, 7), 16);
-        
-        const r = Math.round(r1 + (r2 - r1) * progress);
-        const g = Math.round(g1 + (g2 - g1) * progress);
-        const b = Math.round(b1 + (b2 - b1) * progress);
-        
-        const color = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-
         return (
           <View
             key={index}
             style={{
-              flex: 1,
+              position: 'absolute',
+              left: leftPosition,
+              top: 0,
+              width: width,
               height: '100%',
               backgroundColor: color
             }}
