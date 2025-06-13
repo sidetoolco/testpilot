@@ -107,16 +107,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
     <Page size="A4" orientation="portrait" style={styles.page}>
       <Header title="Results Overview" />
       <View style={styles.section}>
-        {comparisonText && (
-          <SimpleMarkdownText text={comparisonText} />
-        )}
-
-        {!comparisonText && (
-          <Text style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
-            No comparison data available
-          </Text>
-        )}
-
+        {/* PRIMERO: La tabla */}
         {rows.length === 0 ? (
           <View style={{ padding: 20, textAlign: 'center' }}>
             <Text style={{ color: '#666', fontSize: 12 }}>No hay datos disponibles</Text>
@@ -200,6 +191,17 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
               </View>
             ))}
           </View>
+        )}
+
+        {/* DESPUÉS: El texto de comparación */}
+        {comparisonText && (
+          <SimpleMarkdownText text={comparisonText} />
+        )}
+
+        {!comparisonText && (
+          <Text style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
+            No comparison data available
+          </Text>
         )}
       </View>
 

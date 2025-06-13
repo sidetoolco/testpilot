@@ -60,7 +60,7 @@ const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
   if (!text) return null;
 
   return (
-    <View style={{ marginBottom: 20, marginTop: 16 }}>
+    <View style={{ marginBottom: 10, marginTop: 40 }}>
       {text.split('\n').map((line, index) => {
         if (!line.trim()) return null;
         
@@ -120,7 +120,7 @@ const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantC
       backgroundColor: '#FEF2F2',
       borderRadius: 8,
       padding: 16,
-      marginTop: 20,
+      marginTop: 15,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
@@ -199,12 +199,8 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
         
-        {/* Mostrar insights específicos de la variante */}
-        {variantInsights && (
-          <InsightMarkdownText text={variantInsights} />
-        )}
-        
         <View style={styles.section}>
+          {/* PRIMERO: La gráfica */}
           <View style={styles.chartContainer}>
             {/* Legend */}
             <View style={styles.chartLegend}>
@@ -264,6 +260,11 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
               ))}
             </View>
           </View>
+          
+          {/* DESPUÉS: Los insights específicos de la variante */}
+          {variantInsights && (
+            <InsightMarkdownText text={variantInsights} />
+          )}
         </View>
       </View>
       <Footer />
