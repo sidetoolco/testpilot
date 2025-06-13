@@ -12,6 +12,8 @@ import { TestDetails } from './utils/types';
 import { VariantCover } from './sections/VariantCover';
 import apiClient from '../../../../lib/api';
 import { toast } from 'sonner';
+import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSection';
+import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
 
 // Configurar Buffer para el navegador
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -72,38 +74,40 @@ const PDFDocument = ({
       <TestDetailsPDFSection testDetails={testDetails} />
       <SummaryPDFSection summaryData={summaryData} insights={safeInsights} />
 
+      {/* Nueva estructura: Purchase Drivers con texto general primero */}
+      {safeInsights?.purchase_drivers && (
+        <PurchaseDriversTextSection insights={safeInsights.purchase_drivers} />
+      )}
+
+      {/* Luego las gráficas de cada variante */}
+      {Object.entries(testDetails.variations || {}).map(
+        ([key, variation]) =>
+          variation && safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key) && (
+            <PurchaseDriversChartSection
+              key={key}
+              variantKey={key}
+              variantTitle={variation.title}
+              averagesurveys={safeAveragesurveys.summaryData.find(
+                (item: any) => item.variant_type === key
+              )}
+            />
+          )
+      )}
+
+      {/* Competitive Insights por variante */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
           variation && (
-            <React.Fragment key={key}>
-              <VariantCover
-                variantKey={key}
-                title={variation.title}
-                imageUrl={variation.image_url}
-              />
-              <PurchaseDriversPDFSection
-                insights={safeInsights?.purchase_drivers}
-                averagesurveys={safeAveragesurveys.summaryData?.find(
-                  (item: any) => item.variant_type === key
-                )}
-              />
-              <CompetitiveInsightsPDFSection
-                competitiveinsights={safeCompetitiveInsights.summaryData?.filter(
-                  (item: any) => item.variant_type === key
-                ) || []}
-                insights={safeInsights?.competitive_insights}
-              />
-            </React.Fragment>
+            <CompetitiveInsightsPDFSection
+              key={`competitive-${key}`}
+              competitiveinsights={safeCompetitiveInsights.summaryData?.filter(
+                (item: any) => item.variant_type === key
+              ) || []}
+              insights={safeInsights?.competitive_insights}
+            />
           )
       )}
-      {/* <Page size="A4" orientation="portrait" style={styles.page}>
-                <Image
-                    src={logo}
-                    style={styles.logo}
-                />
-                <ShopperCommentsPDFSection />
-                <Text style={styles.pageNumber} render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `${pageNumber} / ${totalPages}`} />
-            </Page> */}
+
       {safeInsights?.recommendations && (
         <RecommendationsPDFSection insights={safeInsights.recommendations} />
       )}
