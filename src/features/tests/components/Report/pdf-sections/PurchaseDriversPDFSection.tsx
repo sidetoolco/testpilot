@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, Page } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
-import { MarkdownText } from '../utils/MarkdownText';
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'] as const;
 const COLORS = ['#34A270', '#075532', '#E0D30D'] as const;
@@ -34,6 +33,64 @@ interface PurchaseDriversPDFSectionProps {
   insights?: string;
   averagesurveys: Survey;
 }
+
+// Función para extraer el texto específico de una variante
+const extractVariantInsights = (fullText: string, variantType: string): string => {
+  if (!fullText || !variantType) return '';
+
+  // Convertir el tipo de variante a formato de búsqueda (a -> A, b -> B, etc.)
+  const variantLabel = `Variant ${variantType.toUpperCase()}`;
+  
+  // Buscar el inicio de la sección de la variante
+  const variantIndex = fullText.indexOf(variantLabel);
+  if (variantIndex === -1) return '';
+
+  // Buscar el final de la sección (siguiente "Variant" o final del texto)
+  const nextVariantIndex = fullText.indexOf('Variant ', variantIndex + variantLabel.length);
+  const endIndex = nextVariantIndex === -1 ? fullText.length : nextVariantIndex;
+
+  // Extraer solo la sección de esta variante
+  const variantSection = fullText.substring(variantIndex, endIndex).trim();
+  
+  return variantSection;
+};
+
+// Componente de markdown simplificado para insights
+const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
+  if (!text) return null;
+
+  return (
+    <View style={{ marginBottom: 20, marginTop: 16 }}>
+      {text.split('\n').map((line, index) => {
+        if (!line.trim()) return null;
+        
+        // Procesar texto en negrita y bullets
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        
+        return (
+          <Text key={index} style={{ 
+            fontSize: 11, 
+            color: '#333', 
+            marginBottom: 6, 
+            lineHeight: 1.4,
+            paddingLeft: line.startsWith('•') ? 8 : 0
+          }}>
+            {parts.map((part, partIndex) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                  <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                    {part.slice(2, -2)}
+                  </Text>
+                );
+              }
+              return part;
+            })}
+          </Text>
+        );
+      }).filter(Boolean)}
+    </View>
+  );
+};
 
 const getChartData = (survey: Survey): Dataset[] => {
   if (!survey) {
@@ -119,6 +176,11 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
   averagesurveys,
 }) => {
   const datasets = getChartData(averagesurveys);
+  
+  // Extraer insights específicos para esta variante
+  const variantInsights = insights && averagesurveys?.variant_type 
+    ? extractVariantInsights(insights, averagesurveys.variant_type)
+    : '';
 
   if (!averagesurveys) {
     return (
@@ -136,6 +198,12 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
     <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
+        
+        {/* Mostrar insights específicos de la variante */}
+        {variantInsights && (
+          <InsightMarkdownText text={variantInsights} />
+        )}
+        
         <View style={styles.section}>
           <View style={styles.chartContainer}>
             {/* Legend */}
@@ -197,13 +265,6 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
             </View>
           </View>
         </View>
-
-        {/* Insights text in a separate section */}
-        {insights && (
-          <View style={{ marginTop: 20 }}>
-            <MarkdownText text={insights} />
-          </View>
-        )}
       </View>
       <Footer />
     </Page>
