@@ -247,7 +247,7 @@ export default function MyTests() {
           tests.map(test => {
             const config = statusConfig[test.status as keyof typeof statusConfig];
             const StatusIcon = config.icon;
-            
+
             return (
               <motion.div
                 key={test.id}
@@ -257,7 +257,9 @@ export default function MyTests() {
               >
                 <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}>
+                    <div
+                      className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
+                    >
                       <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
                     </div>
                     <div className="min-w-0">
