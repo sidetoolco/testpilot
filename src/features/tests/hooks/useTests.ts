@@ -2,11 +2,40 @@ import { useState, useEffect } from 'react';
 import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { testService } from '../services/testService';
+import { io } from 'socket.io-client';
 
 export function useTests() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Initialize socket connection
+    const socketInstance = io(import.meta.env.VITE_API_URL || 'http://localhost:8080', {
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+    });
+
+    socketInstance.on('connect', () => {
+      console.log('Connected to WebSocket server');
+    });
+
+    socketInstance.on('connect_error', error => {
+      console.error('Socket connection error:', error);
+    });
+
+    // Listen for test status updates
+    socketInstance.on('testStatusUpdate', ({ testId, status }) => {
+      setTests(prevTests =>
+        prevTests.map(test => (test.id === testId ? { ...test, status } : test))
+      );
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchTests() {
