@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import { useTests } from '../../features/tests/hooks/useTests';
 
 interface SearchTermEntryProps {
   value: string;
@@ -8,16 +9,34 @@ interface SearchTermEntryProps {
 }
 
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
-  const [suggestions] = useState([
+  const { tests, loading } = useTests();
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Sugerencias predeterminadas cuando no hay tests
+  const defaultSuggestions = [
     'Fabric Softener',
     'Laundry Detergent',
     'Dish Soap',
     'All-Purpose Cleaner',
     'Air Freshener',
     'Bathroom Cleaner',
-  ]);
+  ];
 
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  useEffect(() => {
+    if (!loading) {
+      if (tests.length === 0) {
+        // Si no hay tests, usar sugerencias predeterminadas
+        setSuggestions(defaultSuggestions);
+      } else {
+        // Si hay tests, extraer search_terms únicos
+        const uniqueSearchTerms = Array.from(
+          new Set(tests.map(test => test.searchTerm).filter(Boolean))
+        );
+        setSuggestions(uniqueSearchTerms);
+      }
+    }
+  }, [tests, loading]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
@@ -53,15 +72,18 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
                 }
               }}
               onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
               placeholder="e.g., 'Fabric Softener'"
             />
           </div>
 
-          {showSuggestions && value && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg">
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
               {suggestions
-                .filter(suggestion => suggestion.toLowerCase().includes(value.toLowerCase()))
+                .filter(suggestion => 
+                  value === '' || suggestion.toLowerCase().includes(value.toLowerCase())
+                )
                 .map((suggestion, index) => (
                   <button
                     key={index}
