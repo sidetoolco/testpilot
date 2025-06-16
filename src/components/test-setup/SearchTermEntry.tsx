@@ -81,8 +81,9 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
               {suggestions
-                .filter(suggestion => 
-                  value === '' || suggestion.toLowerCase().includes(value.toLowerCase())
+                .filter(
+                  suggestion =>
+                    value === '' || suggestion.toLowerCase().includes(value.toLowerCase())
                 )
                 .map((suggestion, index) => (
                   <button
