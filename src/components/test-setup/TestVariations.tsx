@@ -44,7 +44,7 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       id: undefined,
       title: `${product.title} (Copy)`,
     };
-    
+
     onChange({
       ...variations,
       [variation]: {
@@ -52,7 +52,7 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
         isExisting: false,
       },
     });
-    
+
     setShowProductSelector(null);
     setShowProductForm(variation);
   };
