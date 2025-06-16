@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import ModalLayout from '../layouts/ModalLayout';
 import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
+import TestSearch from '../components/ui/TestSearch';
 
 interface Variation {
   id: string;
@@ -61,6 +62,7 @@ export default function MyTests() {
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -172,6 +174,17 @@ export default function MyTests() {
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
   };
 
+  // Filtrar tests basado en la búsqueda
+  const filteredTests = useMemo(() => {
+    if (!searchQuery.trim()) return tests;
+
+    return tests.filter(
+      test =>
+        test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        test.searchTerm.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [tests, searchQuery]);
+
   // Calculate statistics
   const activeTests = tests.filter(s => s.status === 'active').length;
   const completedTests = tests.filter(s => s.status === 'complete').length;
@@ -235,21 +248,41 @@ export default function MyTests() {
         </motion.div>
       </div>
 
+      {/* Search Bar */}
+      <TestSearch value={searchQuery} onChange={setSearchQuery} />
+
       {/* Test List */}
       <div className="space-y-4">
-        {tests.length === 0 ? (
+        {filteredTests.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No tests yet</h3>
-            <p className="text-gray-500 mb-4">Create your first test to get started</p>
-            <button
-              onClick={() => navigate('/create-test')}
-              className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
-            >
-              Create New Test
-            </button>
+            {searchQuery ? (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No tests found</h3>
+                <p className="text-gray-500 mb-4">
+                  No tests match your search criteria "{searchQuery}"
+                </p>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
+                >
+                  Clear Search
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No tests yet</h3>
+                <p className="text-gray-500 mb-4">Create your first test to get started</p>
+                <button
+                  onClick={() => navigate('/create-test')}
+                  className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
+                >
+                  Create New Test
+                </button>
+              </>
+            )}
           </div>
         ) : (
-          tests.map(test => {
+          filteredTests.map(test => {
             const config = statusConfig[test.status as keyof typeof statusConfig];
             const StatusIcon = config.icon;
 
