@@ -15,7 +15,7 @@ const formatVariants = (content: string): string => {
 
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, className = '' }) => {
   const formattedContent = formatVariants(content);
-  
+
   return (
     <div className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown

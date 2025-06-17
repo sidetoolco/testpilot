@@ -88,45 +88,45 @@ const Summary: React.FC<{
         </div>
       </div>
       <div className="p-6 bg-white rounded-xl shadow-md">
-      <div className="overflow-x-auto mt-6">
-        <table className="w-full border-collapse bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-          <thead>
-            <tr>
-              {headers.map((header, index) => (
-                <th
-                  key={index}
-                  className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50"
-                  title={`Sort by ${header}`}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className="border border-gray-100 hover:bg-gray-50 transition-colors duration-200"
-              >
-                {row.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    className={clsx(
-                      'p-4 border border-gray-100',
-                      getColorForValue(cell, cellIndex, rows),
-                      'transition-colors duration-200'
-                    )}
-                    title={`${headers[cellIndex]}: ${cell}`}
+        <div className="overflow-x-auto mt-6">
+          <table className="w-full border-collapse bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+            <thead>
+              <tr>
+                {headers.map((header, index) => (
+                  <th
+                    key={index}
+                    className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50"
+                    title={`Sort by ${header}`}
                   >
-                    {cell}
-                  </td>
+                    {header}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className="border border-gray-100 hover:bg-gray-50 transition-colors duration-200"
+                >
+                  {row.map((cell, cellIndex) => (
+                    <td
+                      key={cellIndex}
+                      className={clsx(
+                        'p-4 border border-gray-100',
+                        getColorForValue(cell, cellIndex, rows),
+                        'transition-colors duration-200'
+                      )}
+                      title={`${headers[cellIndex]}: ${cell}`}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
