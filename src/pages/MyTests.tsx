@@ -249,8 +249,8 @@ export default function MyTests() {
       </div>
 
       {/* Search Bar */}
-      <SearchInput 
-        value={searchQuery} 
+      <SearchInput
+        value={searchQuery}
         onChange={setSearchQuery}
         placeholder="Search tests by name or search term..."
       />

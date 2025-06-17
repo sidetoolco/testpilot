@@ -7,11 +7,11 @@ interface SearchInputProps {
   className?: string;
 }
 
-export default function SearchInput({ 
-  value, 
-  onChange, 
-  placeholder = "Search...",
-  className = ""
+export default function SearchInput({
+  value,
+  onChange,
+  placeholder = 'Search...',
+  className = '',
 }: SearchInputProps) {
   const handleClear = () => {
     onChange('');
@@ -25,7 +25,7 @@ export default function SearchInput({
           type="text"
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
         />
         {value && (
