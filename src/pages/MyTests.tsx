@@ -338,10 +338,10 @@ export default function MyTests() {
           title="Confirm Publication"
         >
           <div className="space-y-4">
-            <p className="text-gray-700">
+            <p className="text-lg font-medium text-gray-900 mb-2">
               Are you sure you want to publish the test "{confirmationModal.test.name}"?
             </p>
-            <p className="text-gray-600">
+            <p className="text-gray-500 text-sm">
               {confirmationModal.test.demographics.testerCount *
                 confirmationModal.variantsArray.length}{' '}
               testers will be invited to participate in the test.
