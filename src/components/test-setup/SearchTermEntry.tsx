@@ -8,29 +8,28 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
+// Sugerencias predeterminadas - constante que no depende del estado del componente
+const defaultSuggestions = [
+  'Fabric Softener',
+  'Laundry Detergent',
+  'Dish Soap',
+  'All-Purpose Cleaner',
+  'Air Freshener',
+  'Bathroom Cleaner',
+];
+
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const { tests, loading } = useTests();
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
-  // Sugerencias predeterminadas
-  const defaultSuggestions = [
-    'Fabric Softener',
-    'Laundry Detergent',
-    'Dish Soap',
-    'All-Purpose Cleaner',
-    'Air Freshener',
-    'Bathroom Cleaner',
-  ];
-
   // Obtener todas las sugerencias disponibles
-  const allSuggestions = loading 
-    ? [] 
-    : tests.length === 0 
+  const allSuggestions = loading
+    ? []
+    : tests.length === 0
       ? defaultSuggestions
-      : Array.from(new Set([
-          ...defaultSuggestions,
-          ...tests.map(test => test.searchTerm).filter(Boolean)
-        ]));
+      : Array.from(
+          new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
+        );
 
   // Filtrar sugerencias basadas en el input del usuario
   useEffect(() => {
@@ -42,7 +41,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
     const filtered = allSuggestions.filter(suggestion =>
       suggestion.toLowerCase().includes(value.toLowerCase())
     );
-    
+
     setFilteredSuggestions(filtered);
   }, [value, allSuggestions]);
 
