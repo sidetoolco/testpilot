@@ -10,10 +10,9 @@ interface SearchTermEntryProps {
 
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const { tests, loading } = useTests();
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
-  // Sugerencias predeterminadas cuando no hay tests
+  // Sugerencias predeterminadas
   const defaultSuggestions = [
     'Fabric Softener',
     'Laundry Detergent',
@@ -23,24 +22,33 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
     'Bathroom Cleaner',
   ];
 
+  // Obtener todas las sugerencias disponibles
+  const allSuggestions = loading 
+    ? [] 
+    : tests.length === 0 
+      ? defaultSuggestions
+      : Array.from(new Set([
+          ...defaultSuggestions,
+          ...tests.map(test => test.searchTerm).filter(Boolean)
+        ]));
+
+  // Filtrar sugerencias basadas en el input del usuario
   useEffect(() => {
-    if (!loading) {
-      if (tests.length === 0) {
-        // Si no hay tests, usar sugerencias predeterminadas
-        setSuggestions(defaultSuggestions);
-      } else {
-        // Si hay tests, extraer search_terms únicos
-        const uniqueSearchTerms = Array.from(
-          new Set(tests.map(test => test.searchTerm).filter(Boolean))
-        );
-        setSuggestions(uniqueSearchTerms);
-      }
+    if (!value.trim()) {
+      setFilteredSuggestions([]);
+      return;
     }
-  }, [tests, loading]);
+
+    const filtered = allSuggestions.filter(suggestion =>
+      suggestion.toLowerCase().includes(value.toLowerCase())
+    );
+    
+    setFilteredSuggestions(filtered);
+  }, [value, allSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
-    setShowSuggestions(false);
+    setFilteredSuggestions([]);
   };
 
   return (
@@ -62,38 +70,28 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
             <input
               type="text"
               value={value}
-              onChange={e => {
-                onChange(e.target.value);
-                setShowSuggestions(true);
-              }}
+              onChange={e => onChange(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   onNext();
                 }
               }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
               placeholder="e.g., 'Fabric Softener'"
             />
           </div>
 
-          {showSuggestions && suggestions.length > 0 && (
+          {filteredSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-              {suggestions
-                .filter(
-                  suggestion =>
-                    value === '' || suggestion.toLowerCase().includes(value.toLowerCase())
-                )
-                .map((suggestion, index) => (
-                  <button
-                    key={index}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+              {filteredSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           )}
         </div>
