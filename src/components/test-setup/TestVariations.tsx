@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import ProductModal from '../../features/products/components/ProductModal';
 import { useProductStore } from '../../store/useProductStore';
+import { toast } from 'sonner';
 
 interface TestVariationsProps {
   variations: {
@@ -39,6 +40,12 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
   };
 
   const handleDuplicateProduct = (variation: Variations, product: Product) => {
+    if (!product.id) {
+      toast.error('Error: Cannot duplicate product without valid ID');
+      console.error('Attempted to duplicate product without ID:', product);
+      return;
+    }
+
     const duplicatedProduct = {
       ...product,
       id: undefined,
