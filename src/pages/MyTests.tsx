@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import ModalLayout from '../layouts/ModalLayout';
 import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
-import TestSearch from '../components/ui/TestSearch';
+import SearchInput from '../components/ui/SearchInput';
 
 interface Variation {
   id: string;
@@ -249,7 +249,11 @@ export default function MyTests() {
       </div>
 
       {/* Search Bar */}
-      <TestSearch value={searchQuery} onChange={setSearchQuery} />
+      <SearchInput 
+        value={searchQuery} 
+        onChange={setSearchQuery}
+        placeholder="Search tests by name or search term..."
+      />
 
       {/* Test List */}
       <div className="space-y-4">
