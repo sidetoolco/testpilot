@@ -71,26 +71,29 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   }, [competitiveinsights, selectedVariant, filteredVariant]);
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg shadow-sm">
+    <div className="w-full p-6 bg-white rounded-xl shadow-sm">
       <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>
 
-      <div className="mb-6 flex items-center justify-center space-x-3">
-        {[...new Set(competitiveinsights.map(item => item.variant_type))]
-          .sort() // Sort variants alphabetically (a, b, c)
-          .map(variant => (
-            <button
-              key={`variant-btn-${variant}`}
-              onClick={() => setSelectedVariant(variant)}
-              className={`px-6 py-2 rounded font-medium transition-colors
-                  ${
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8">
+            {[...new Set(competitiveinsights.map(item => item.variant_type))]
+              .sort() // Sort variants alphabetically (a, b, c)
+              .map(variant => (
+                <button
+                  key={`variant-btn-${variant}`}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                     selectedVariant === variant
-                      ? 'bg-green-500 text-white hover:bg-green-600' // Selected variant in green
-                      : 'bg-green-200 text-black hover:bg-gray-400' // Other available variants in light gray
+                      ? 'border-green-600 text-green-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
-            >
-              Variant {variant.toUpperCase()}
-            </button>
-          ))}
+                >
+                  Variant {variant.toUpperCase()}
+                </button>
+              ))}
+          </nav>
+        </div>
       </div>
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
