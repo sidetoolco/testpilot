@@ -82,7 +82,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
 
           {filteredSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-              {filteredSuggestions.map((suggestion) => (
+              {filteredSuggestions.map(suggestion => (
                 <button
                   key={suggestion}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
