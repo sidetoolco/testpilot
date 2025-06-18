@@ -5,7 +5,17 @@ interface MarkdownContentProps {
   className?: string;
 }
 
+const formatVariants = (content: string): string => {
+  // Convertir "Variant A", "Variant B", "Variant C" a negrita
+  return content
+    .replace(/\bVariant A\b/g, '**Variant A**')
+    .replace(/\bVariant B\b/g, '**Variant B**')
+    .replace(/\bVariant C\b/g, '**Variant C**');
+};
+
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, className = '' }) => {
+  const formattedContent = formatVariants(content);
+
   return (
     <div className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown
@@ -40,7 +50,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, class
           ),
         }}
       >
-        {content}
+        {formattedContent}
       </ReactMarkdown>
     </div>
   );
