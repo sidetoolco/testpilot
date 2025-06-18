@@ -13,6 +13,7 @@ interface TestCreationContentProps {
   onUpdateTestData: React.Dispatch<React.SetStateAction<TestData>>;
   onNext: () => void;
   onBack: () => void;
+  onObjectiveSelect?: (objective: string) => Promise<void>;
 }
 
 export function TestCreationContent({
@@ -21,6 +22,7 @@ export function TestCreationContent({
   onUpdateTestData,
   onNext,
   onBack,
+  onObjectiveSelect,
 }: TestCreationContentProps) {
   const handleUpdateData = (key: keyof TestData, value: any) => {
     onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
@@ -31,8 +33,12 @@ export function TestCreationContent({
       {currentStep === 'objective' && (
         <ObjectiveSelection
           onSelect={selectedObjective => {
-            handleUpdateData('objective', selectedObjective);
-            onNext();
+            if (onObjectiveSelect) {
+              onObjectiveSelect(selectedObjective);
+            } else {
+              handleUpdateData('objective', selectedObjective);
+              onNext();
+            }
           }}
         />
       )}
