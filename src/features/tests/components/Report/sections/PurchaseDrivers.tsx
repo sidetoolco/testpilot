@@ -86,8 +86,8 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
         >
           {/* Legend */}
           <div className="absolute -top-12 left-0 flex space-x-2 p-2 bg-white rounded shadow">
-            {datasets.map((dataset: any, index: number) => (
-              <div key={index} className="flex items-center space-x-1">
+            {datasets.map((dataset: any) => (
+              <div key={dataset.productId} className="flex items-center space-x-1">
                 <div
                   className="w-4 h-4 rounded"
                   style={{ backgroundColor: dataset.backgroundColor }}
@@ -99,9 +99,9 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
 
           {/* Y axis */}
           <div className="relative h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible">
-            {yScale.ticks(8).map((value, i) => (
+            {yScale.ticks(8).map((value) => (
               <div
-                key={i}
+                key={value}
                 style={{ top: `${yScale(value)}%` }}
                 className="absolute text-xs tabular-nums -translate-y-1/2 text-gray-300 w-full text-right pr-2"
               >
@@ -113,9 +113,9 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
           {/* Chart Area */}
           <div className="absolute inset-0 h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[calc(100%-var(--marginLeft)-var(--marginRight))] translate-x-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible">
             <div className="relative w-full h-full">
-              {LABELS.map((label, i) => (
+              {LABELS.map((label) => (
                 <div
-                  key={i}
+                  key={label}
                   className="absolute text-xs text-gray-600"
                   style={{
                     left: `${xScale(label)! + xScale.bandwidth() / 2}%`,
@@ -128,9 +128,9 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
               ))}
 
               <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {yScale.ticks(8).map((value, i) => (
+                {yScale.ticks(8).map((value) => (
                   <g
-                    key={i}
+                    key={value}
                     transform={`translate(0,${yScale(value)})`}
                     className="text-gray-300/80 dark:text-gray-800/80"
                   >
@@ -147,23 +147,26 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
               </svg>
 
               {datasets.map((dataset: any) =>
-                dataset.data.map((value: number, index: number) => (
-                  <div
-                    key={`${dataset.productId}-${index}`}
-                    className="absolute bottom-0 rounded-t"
-                    style={{
-                      left: `${xScale(LABELS[index])! + subXScale(dataset.productId)!}%`,
-                      width: `${subXScale.bandwidth()}%`,
-                      height: `${100 - yScale(value)}%`,
-                      backgroundColor: dataset.backgroundColor,
-                      border: `1px solid #a07dff22`,
-                    }}
-                  >
-                    <span className="absolute top-0 text-xs text-white w-full text-center">
-                      {value.toFixed(1)}
-                    </span>
-                  </div>
-                ))
+                LABELS.map((label, labelIndex) => {
+                  const value = dataset.data[labelIndex];
+                  return (
+                    <div
+                      key={`${dataset.productId}-${label}`}
+                      className="absolute bottom-0 rounded-t"
+                      style={{
+                        left: `${xScale(label)! + subXScale(dataset.productId)!}%`,
+                        width: `${subXScale.bandwidth()}%`,
+                        height: `${100 - yScale(value)}%`,
+                        backgroundColor: dataset.backgroundColor,
+                        border: `1px solid #a07dff22`,
+                      }}
+                    >
+                      <span className="absolute top-0 text-xs text-white w-full text-center">
+                        {value.toFixed(1)}
+                      </span>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
