@@ -99,7 +99,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
 
           {/* Y axis */}
           <div className="relative h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible">
-            {yScale.ticks(8).map((value) => (
+            {yScale.ticks(8).map(value => (
               <div
                 key={value}
                 style={{ top: `${yScale(value)}%` }}
@@ -113,7 +113,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
           {/* Chart Area */}
           <div className="absolute inset-0 h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[calc(100%-var(--marginLeft)-var(--marginRight))] translate-x-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible">
             <div className="relative w-full h-full">
-              {LABELS.map((label) => (
+              {LABELS.map(label => (
                 <div
                   key={label}
                   className="absolute text-xs text-gray-600"
@@ -128,7 +128,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
               ))}
 
               <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {yScale.ticks(8).map((value) => (
+                {yScale.ticks(8).map(value => (
                   <g
                     key={value}
                     transform={`translate(0,${yScale(value)})`}

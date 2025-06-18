@@ -92,7 +92,7 @@ const Summary: React.FC<{
           <table className="w-full border-collapse bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <thead>
               <tr>
-                {headers.map((header) => (
+                {headers.map(header => (
                   <th
                     key={header}
                     className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50"
@@ -104,7 +104,7 @@ const Summary: React.FC<{
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map(row => (
                 <tr
                   key={row[0]}
                   className="border border-gray-100 hover:bg-gray-50 transition-colors duration-200"
