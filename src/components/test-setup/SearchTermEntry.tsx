@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import { useTests } from '../../features/tests/hooks/useTests';
 
 interface SearchTermEntryProps {
   value: string;
@@ -7,21 +8,46 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
-export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
-  const [suggestions] = useState([
-    'Fabric Softener',
-    'Laundry Detergent',
-    'Dish Soap',
-    'All-Purpose Cleaner',
-    'Air Freshener',
-    'Bathroom Cleaner',
-  ]);
+// Sugerencias predeterminadas - constante que no depende del estado del componente
+const defaultSuggestions = [
+  'Fabric Softener',
+  'Laundry Detergent',
+  'Dish Soap',
+  'All-Purpose Cleaner',
+  'Air Freshener',
+  'Bathroom Cleaner',
+];
 
-  const [showSuggestions, setShowSuggestions] = useState(false);
+export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
+  const { tests, loading } = useTests();
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+  // Obtener todas las sugerencias disponibles
+  const allSuggestions = loading
+    ? []
+    : tests.length === 0
+      ? defaultSuggestions
+      : Array.from(
+          new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
+        );
+
+  // Filtrar sugerencias basadas en el input del usuario
+  useEffect(() => {
+    if (!value.trim()) {
+      setFilteredSuggestions([]);
+      return;
+    }
+
+    const filtered = allSuggestions.filter(suggestion =>
+      suggestion.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFilteredSuggestions(filtered);
+  }, [value, allSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
-    setShowSuggestions(false);
+    setFilteredSuggestions([]);
   };
 
   return (
@@ -43,34 +69,28 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
             <input
               type="text"
               value={value}
-              onChange={e => {
-                onChange(e.target.value);
-                setShowSuggestions(true);
-              }}
+              onChange={e => onChange(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   onNext();
                 }
               }}
-              onFocus={() => setShowSuggestions(true)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
               placeholder="e.g., 'Fabric Softener'"
             />
           </div>
 
-          {showSuggestions && value && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg">
-              {suggestions
-                .filter(suggestion => suggestion.toLowerCase().includes(value.toLowerCase()))
-                .map((suggestion, index) => (
-                  <button
-                    key={index}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+          {filteredSuggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+              {filteredSuggestions.map(suggestion => (
+                <button
+                  key={suggestion}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           )}
         </div>
