@@ -38,7 +38,6 @@ const initialTestData: TestData = {
     },
   },
 };
-
 const LoadingMessages = [
   'Creating your test...',
   'Analyzing demographics...',
@@ -47,45 +46,17 @@ const LoadingMessages = [
   'Finalizing details...',
 ];
 
-// Mapeo de steps a valores del enum test_step
-const stepMapping: Record<string, string> = {
-  'search': 'search_term',
-  'competitors': 'competitors',
-  'variations': 'variants',
-  'demographics': 'demographics',
-  'preview': 'preview',
-  'review': 'review',
-};
-
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [currentTestId, setCurrentTestId] = useState<string | null>(null);
 
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
-    }
-  };
-
-  const handleObjectiveSelect = async (objective: string) => {
-    try {
-      // Crear test inicial con el objetivo seleccionado (sin loader)
-      const test = await testService.createInitialTest(objective);
-      setCurrentTestId(test.id);
-      
-      // Actualizar testData con el objetivo y avanzar al siguiente paso
-      setTestData(prev => ({ ...prev, objective: objective as any }));
-      setCurrentStep('search');
-      
-      toast.success('Test initialized successfully');
-    } catch (error: any) {
-      console.error('Error creating initial test:', error);
-      toast.error('Failed to initialize test. Please try again.');
     }
   };
 
@@ -131,26 +102,14 @@ export default function CreateConsumerTest() {
     }
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (handleNext()) {
       const currentIndex = steps.findIndex(s => s.key === currentStep);
       if (currentIndex < steps.length - 1) {
-        const nextStep = steps[currentIndex + 1].key;
-        setCurrentStep(nextStep);
-        
-        // Actualizar el step en la base de datos si tenemos un testId y el step está mapeado
-        if (currentTestId && stepMapping[nextStep]) {
-          try {
-            await testService.updateTestStep(currentTestId, stepMapping[nextStep]);
-          } catch (error) {
-            console.error('Error updating test step:', error);
-            // No mostramos error al usuario para no interrumpir el flujo
-          }
-        }
+        setCurrentStep(steps[currentIndex + 1].key);
       }
     }
   };
-
   // Efecto para cambiar los mensajes
   useEffect(() => {
     if (isLoading) {
@@ -158,7 +117,7 @@ export default function CreateConsumerTest() {
         setLoadingMessageIndex((current: number) =>
           current < LoadingMessages.length - 1 ? current + 1 : current
         );
-      }, 4000); // Cambia cada 4 segundos
+      }, 4000); // Cambia cada 2 segundos
 
       return () => {
         clearInterval(interval);
@@ -207,7 +166,6 @@ export default function CreateConsumerTest() {
         onUpdateTestData={setTestData}
         onNext={handleContinue}
         onBack={handleBack}
-        onObjectiveSelect={handleObjectiveSelect}
       />
     </div>
   );
