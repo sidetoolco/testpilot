@@ -332,47 +332,49 @@ export default function MyTests() {
                         Continue
                       </button>
                     </div>
-                  ) : isAdmin && (
-                    <div className="flex items-center gap-4 sm:justify-end">
-                      <button
-                        onClick={e => handleGetData(test.id, e)}
-                        disabled={gettingDataTests.includes(test.id)}
-                        className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                          gettingDataTests.includes(test.id)
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:bg-blue-600'
-                        }`}
-                      >
-                        {gettingDataTests.includes(test.id) ? (
-                          <span className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Getting Data...
-                          </span>
-                        ) : (
-                          'Get Data'
-                        )}
-                      </button>
-                      {test.status !== 'complete' && (
+                  ) : (
+                    isAdmin && (
+                      <div className="flex items-center gap-4 sm:justify-end">
                         <button
-                          onClick={e => handlePublish(test.id, e, test)}
-                          disabled={publishingTests.includes(test.id)}
-                          className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
-                            publishingTests.includes(test.id)
+                          onClick={e => handleGetData(test.id, e)}
+                          disabled={gettingDataTests.includes(test.id)}
+                          className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
+                            gettingDataTests.includes(test.id)
                               ? 'opacity-50 cursor-not-allowed'
-                              : 'hover:bg-green-600'
+                              : 'hover:bg-blue-600'
                           }`}
                         >
-                          {publishingTests.includes(test.id) ? (
+                          {gettingDataTests.includes(test.id) ? (
                             <span className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Publishing...
+                              Getting Data...
                             </span>
                           ) : (
-                            'Publish'
+                            'Get Data'
                           )}
                         </button>
-                      )}
-                    </div>
+                        {test.status !== 'complete' && (
+                          <button
+                            onClick={e => handlePublish(test.id, e, test)}
+                            disabled={publishingTests.includes(test.id)}
+                            className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
+                              publishingTests.includes(test.id)
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-green-600'
+                            }`}
+                          >
+                            {publishingTests.includes(test.id) ? (
+                              <span className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Publishing...
+                              </span>
+                            ) : (
+                              'Publish'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
               </motion.div>

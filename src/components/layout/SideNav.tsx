@@ -13,7 +13,14 @@ const menuItems = [
 ];
 
 // Steps donde se considera que hay un test en progreso
-const testInProgressSteps = ['search', 'competitors', 'variations', 'demographics', 'preview', 'review'];
+const testInProgressSteps = [
+  'search',
+  'competitors',
+  'variations',
+  'demographics',
+  'preview',
+  'review',
+];
 
 export default function SideNav() {
   const location = useLocation();
@@ -31,12 +38,16 @@ export default function SideNav() {
     try {
       // Verificar si hay test en progreso
       const testState = getGlobalTestState();
-      if (location.pathname === '/create-test' && testState && testInProgressSteps.includes(testState.currentStep)) {
+      if (
+        location.pathname === '/create-test' &&
+        testState &&
+        testInProgressSteps.includes(testState.currentStep)
+      ) {
         setPendingNavigation('/logout');
         setShowIncompleteModal(true);
         return;
       }
-      
+
       await signOut();
     } catch (error) {
       console.error('Error logging out:', error);
@@ -45,15 +56,19 @@ export default function SideNav() {
 
   const handleNavigation = (path: string, e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     // Verificar si hay test en progreso
     const testState = getGlobalTestState();
-    if (location.pathname === '/create-test' && testState && testInProgressSteps.includes(testState.currentStep)) {
+    if (
+      location.pathname === '/create-test' &&
+      testState &&
+      testInProgressSteps.includes(testState.currentStep)
+    ) {
       setPendingNavigation(path);
       setShowIncompleteModal(true);
       return;
     }
-    
+
     // Navegación normal
     navigate(path);
     setIsOpen(false);
@@ -69,10 +84,10 @@ export default function SideNav() {
       if (testName) {
         testState.testData.name = testName;
       }
-      
+
       await testState.saveIncompleteTest();
       setShowIncompleteModal(false);
-      
+
       if (pendingNavigation) {
         if (pendingNavigation === '/logout') {
           await signOut();
@@ -91,7 +106,7 @@ export default function SideNav() {
 
   const handleCancelNavigation = () => {
     setShowIncompleteModal(false);
-    
+
     // Permitir navegación inmediata al hacer click en Discard
     if (pendingNavigation) {
       if (pendingNavigation === '/logout') {
@@ -120,7 +135,7 @@ export default function SideNav() {
         {/* Logo */}
         <a
           href="/my-tests"
-          onClick={(e) => handleNavigation('/my-tests', e)}
+          onClick={e => handleNavigation('/my-tests', e)}
           className="flex items-center space-x-2"
         >
           <div className="bg-[#00A67E] p-2 rounded-lg">
@@ -151,9 +166,9 @@ export default function SideNav() {
       `}
       >
         <div className="p-6 border-b border-[#00C495]">
-          <a 
-            href="/my-tests" 
-            onClick={(e) => handleNavigation('/my-tests', e)}
+          <a
+            href="/my-tests"
+            onClick={e => handleNavigation('/my-tests', e)}
             className="flex items-center space-x-2"
           >
             <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
@@ -166,7 +181,7 @@ export default function SideNav() {
               <li key={item.path}>
                 <a
                   href={item.path}
-                  onClick={(e) => handleNavigation(item.path, e)}
+                  onClick={e => handleNavigation(item.path, e)}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive(item.path)
                       ? 'bg-[#008F6B] text-white'
@@ -199,7 +214,7 @@ export default function SideNav() {
                   <li>
                     <a
                       href="/settings/team"
-                      onClick={(e) => handleNavigation('/settings/team', e)}
+                      onClick={e => handleNavigation('/settings/team', e)}
                       className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
                         isActive('/settings/team')
                           ? 'bg-[#008F6B] text-white'

@@ -375,11 +375,7 @@ export const testService = {
         test = data;
       } else {
         // Crear nuevo test
-        const { data, error } = await supabase
-          .from('tests')
-          .insert(testPayload)
-          .select()
-          .single();
+        const { data, error } = await supabase.from('tests').insert(testPayload).select().single();
 
         if (error) {
           throw new TestCreationError('Failed to create incomplete test', { error });

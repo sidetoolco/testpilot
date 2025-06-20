@@ -29,7 +29,7 @@ export default function IncompleteTestModal({
     if (needsName && !testName.trim()) {
       return; // No guardar si necesita nombre y está vacío
     }
-    
+
     await onSave(needsName ? testName.trim() : undefined);
   };
 
@@ -39,9 +39,7 @@ export default function IncompleteTestModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Incomplete Test in Progress
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Incomplete Test in Progress</h2>
           <button
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -50,7 +48,7 @@ export default function IncompleteTestModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         <p className="text-gray-600 mb-4">
           You have an incomplete test in progress. Do you want to save it before leaving?
         </p>
@@ -64,7 +62,7 @@ export default function IncompleteTestModal({
               id="testName"
               type="text"
               value={testName}
-              onChange={(e) => setTestName(e.target.value)}
+              onChange={e => setTestName(e.target.value)}
               placeholder="Enter a name for your test"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               disabled={isSaving}
@@ -92,4 +90,4 @@ export default function IncompleteTestModal({
       </div>
     </div>
   );
-} 
+}
