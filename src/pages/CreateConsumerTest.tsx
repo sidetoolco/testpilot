@@ -38,6 +38,7 @@ const initialTestData: TestData = {
     },
   },
 };
+
 const LoadingMessages = [
   'Creating your test...',
   'Analyzing demographics...',
@@ -46,12 +47,54 @@ const LoadingMessages = [
   'Finalizing details...',
 ];
 
+// Variable global para acceder al estado desde SideNav
+let globalTestState: {
+  testData: TestData;
+  currentStep: string;
+  currentTestId: string | null;
+  saveIncompleteTest: () => Promise<void>;
+} | null = null;
+
+export const getGlobalTestState = () => globalTestState;
+
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [currentTestId, setCurrentTestId] = useState<string | null>(null);
+
+  // Función para guardar test incompleto
+  const saveIncompleteTest = async () => {
+    try {
+      const savedTest = await testService.saveIncompleteTest(testData, currentTestId || undefined);
+      if (!currentTestId) {
+        setCurrentTestId((savedTest as any).id);
+      }
+      toast.success('Test saved successfully');
+    } catch (error) {
+      console.error('Error saving incomplete test:', error);
+      throw error;
+    }
+  };
+
+  // Actualizar estado global
+  useEffect(() => {
+    globalTestState = {
+      testData,
+      currentStep,
+      currentTestId,
+      saveIncompleteTest,
+    };
+  }, [testData, currentStep, currentTestId]);
+
+  // Limpiar estado global al desmontar
+  useEffect(() => {
+    return () => {
+      globalTestState = null;
+    };
+  }, []);
 
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);
@@ -110,6 +153,7 @@ export default function CreateConsumerTest() {
       }
     }
   };
+
   // Efecto para cambiar los mensajes
   useEffect(() => {
     if (isLoading) {

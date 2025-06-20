@@ -300,4 +300,102 @@ export const testService = {
       throw error;
     }
   },
+
+  // Función para eliminar un test
+  async deleteTest(testId: string) {
+    try {
+      const { error } = await supabase
+        .from('tests')
+        .delete()
+        .eq('id', testId as any);
+
+      if (error) {
+        throw new TestCreationError('Failed to delete test', { error });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Test deletion error:', error);
+      if (error instanceof TestCreationError) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+      throw error;
+    }
+  },
+
+  // Función para crear o actualizar test incompleto con datos parciales
+  async saveIncompleteTest(testData: any, existingTestId?: string) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id as any)
+        .single();
+
+      const typedProfile = profile as Profile;
+
+      if (profileError || !typedProfile?.company_id) {
+        throw new TestCreationError('Company profile not found');
+      }
+
+      // Preparar datos básicos para el test
+      const testPayload = {
+        name: testData.name || `Test - ${new Date().toLocaleDateString()}`,
+        search_term: testData.searchTerm || '',
+        status: 'incomplete',
+        company_id: typedProfile.company_id,
+        user_id: user.id,
+        objective: testData.objective || null,
+        settings: {},
+      } as any;
+
+      let test;
+
+      if (existingTestId) {
+        // Actualizar test existente
+        const { data, error } = await supabase
+          .from('tests')
+          .update(testPayload)
+          .eq('id', existingTestId as any)
+          .select()
+          .single();
+
+        if (error) {
+          throw new TestCreationError('Failed to update incomplete test', { error });
+        }
+        test = data;
+      } else {
+        // Crear nuevo test
+        const { data, error } = await supabase
+          .from('tests')
+          .insert(testPayload)
+          .select()
+          .single();
+
+        if (error) {
+          throw new TestCreationError('Failed to create incomplete test', { error });
+        }
+        test = data;
+      }
+
+      return test;
+    } catch (error) {
+      console.error('Save incomplete test error:', error);
+      if (error instanceof TestCreationError) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+      throw error;
+    }
+  },
 };

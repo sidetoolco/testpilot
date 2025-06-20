@@ -47,6 +47,11 @@ const statusConfig = {
     textColor: 'text-[#eabd31]',
     icon: Pencil,
   },
+  incomplete: {
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-500',
+    icon: Clock,
+  },
   'in progress': {
     bgColor: 'bg-gray-300',
     textColor: 'text-gray-600',
@@ -318,7 +323,16 @@ export default function MyTests() {
                   <div className="flex items-center text-gray-500 sm:text-center">
                     {new Date(test.createdAt).toLocaleDateString()}
                   </div>
-                  {isAdmin && (
+                  {(test.status as any) === 'incomplete' ? (
+                    <div className="flex items-center sm:justify-end">
+                      <button
+                        onClick={e => handleContinueTest(test.id, e)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  ) : isAdmin && (
                     <div className="flex items-center gap-4 sm:justify-end">
                       <button
                         onClick={e => handleGetData(test.id, e)}
