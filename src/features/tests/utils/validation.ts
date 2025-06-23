@@ -26,6 +26,7 @@ export const validateStep = (step: string, data: TestData): boolean => {
         return (
           isValidDemographics &&
           !!data.demographics.customScreening.question?.trim().length &&
+          !!data.demographics.customScreening.validAnswer &&
           !data.demographics.customScreening.isValidating
         );
       } else {
