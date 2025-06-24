@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import ProductModal from '../../features/products/components/ProductModal';
 import { useProductStore } from '../../store/useProductStore';
+import { toast } from 'sonner';
 
 interface TestVariationsProps {
   variations: {
@@ -36,6 +37,31 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       },
     });
     setShowProductSelector(null);
+  };
+
+  const handleDuplicateProduct = (variation: Variations, product: Product) => {
+    if (!product.id) {
+      toast.error('Error: Cannot duplicate product without valid ID');
+      console.error('Attempted to duplicate product without ID:', product);
+      return;
+    }
+
+    const duplicatedProduct = {
+      ...product,
+      id: undefined,
+      title: `${product.title} (Copy)`,
+    };
+
+    onChange({
+      ...variations,
+      [variation]: {
+        ...duplicatedProduct,
+        isExisting: false,
+      },
+    });
+
+    setShowProductSelector(null);
+    setShowProductForm(variation);
   };
 
   const handleRemoveProduct = (key: Variations) => {
@@ -235,25 +261,40 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
                       : 'No products available.'}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
                     {filteredProducts.map(product => (
-                      <div
-                        key={product.id}
-                        onClick={() => handleSelectProduct(showProductSelector, product)}
-                        className="border rounded-xl p-4 cursor-pointer hover:border-primary-400 transition-colors"
-                      >
-                        <div className="aspect-square mb-3">
-                          <img
-                            src={product.image_url}
-                            alt={product.title}
-                            className="w-full h-full object-contain"
-                          />
+                  <div
+                    key={product.id}
+                        className="border rounded-xl p-4 hover:border-primary-400 transition-colors flex flex-col"
+                  >
+                    <div className="aspect-square mb-3">
+                      <img
+                        src={product.image_url}
+                        alt={product.title}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                        <div className="flex-1">
+                    <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
+                          <p className="text-sm text-gray-500 mb-3">${product.price.toFixed(2)}</p>
                         </div>
-                        <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
-                        <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-                      </div>
-                    ))}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSelectProduct(showProductSelector, product)}
+                            className="flex-1 px-3 py-1.5 bg-primary-500 text-white text-sm rounded-lg hover:bg-primary-600 transition-colors"
+                          >
+                            Select
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateProduct(showProductSelector, product)}
+                            className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Duplicate
+                          </button>
+                        </div>
                   </div>
+                ))}
+              </div>
                 )}
               </>
             )}

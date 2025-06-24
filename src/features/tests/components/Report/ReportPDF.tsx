@@ -16,6 +16,7 @@ import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSe
 import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
+import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
 
 // Configurar Buffer para el navegador
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -31,6 +32,7 @@ interface PDFDocumentProps {
     purchase_drivers?: string;
     recommendations?: string;
     competitive_insights?: string;
+    shopper_comments?: any[];
   };
   competitiveinsights: any;
   averagesurveys: any;
@@ -115,6 +117,12 @@ const PDFDocument = ({
             />
           )
       )}
+
+      <ShopperCommentsPDFSection 
+        comments={safeInsights?.shopper_comments || []} 
+        comparision={testDetails.responses?.comparisons}
+        surveys={testDetails.responses?.surveys}
+      />
 
       {safeInsights?.recommendations && (
         <RecommendationsPDFSection insights={safeInsights.recommendations} />
@@ -206,7 +214,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         insights: insights ? JSON.parse(JSON.stringify(insights)) : {
           purchase_drivers: '',
           recommendations: '',
-          competitive_insights: ''
+          competitive_insights: '',
+          shopper_comments: []
         },
         competitiveinsights: competitiveinsights ? JSON.parse(JSON.stringify(competitiveinsights)) : {
           summaryData: []
@@ -221,7 +230,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         summaryDataRows: pdfData.summaryData?.rows?.length || 0,
         insightsKeys: Object.keys(pdfData.insights),
         competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
-        averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0
+        averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
+        shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0
       });
 
       const blob = await pdf(

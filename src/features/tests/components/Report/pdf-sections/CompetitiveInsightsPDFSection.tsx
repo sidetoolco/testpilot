@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Page } from '@react-pdf/renderer';
+import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
 import { styles } from '../utils/styles';
@@ -210,7 +210,12 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
             justifyContent: 'space-between',
           }}
         >
-          <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+          <Link
+            src="https://TestPilotCPG.com"
+            style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+          >
+            TestPilotCPG.com
+          </Link>
           <Text
             style={styles.pageNumber}
             render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
@@ -241,7 +246,12 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
             justifyContent: 'space-between',
           }}
         >
-          <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+          <Link
+            src="https://TestPilotCPG.com"
+            style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+          >
+            TestPilotCPG.com
+          </Link>
           <Text
             style={styles.pageNumber}
             render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
@@ -261,16 +271,16 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                   Value: {averageMetrics.value.toFixed(1)}
                 </Text>
                 <Text style={TABLE_STYLES.averageMetricItem}>
-                  aesthetics: {averageMetrics.aesthetics.toFixed(1)}
+                  Aesthetics: {averageMetrics.aesthetics.toFixed(1)}
                 </Text>
                 <Text style={TABLE_STYLES.averageMetricItem}>
                   Convenience: {averageMetrics.convenience.toFixed(1)}
                 </Text>
                 <Text style={TABLE_STYLES.averageMetricItem}>
-                  trust: {averageMetrics.trust.toFixed(1)}
+                  Trust: {averageMetrics.trust.toFixed(1)}
                 </Text>
                 <Text style={TABLE_STYLES.averageMetricItem}>
-                  utility: {averageMetrics.utility.toFixed(1)}
+                  Utility: {averageMetrics.utility.toFixed(1)}
                 </Text>
               </View>
             </View>
@@ -288,16 +298,16 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                 <Text style={TABLE_STYLES.headerText}>Value</Text>
               </View>
               <View style={TABLE_STYLES.headerCell}>
-                <Text style={TABLE_STYLES.headerText}>{'Appear-\nance'}</Text>
+                <Text style={TABLE_STYLES.headerText}>Appearance</Text>
               </View>
               <View style={TABLE_STYLES.headerCell}>
-                <Text style={TABLE_STYLES.headerText}>{'Conve-\nnience'}</Text>
+                <Text style={TABLE_STYLES.headerText}>Convenience</Text>
               </View>
               <View style={TABLE_STYLES.headerCell}>
-                <Text style={TABLE_STYLES.headerText}>trust</Text>
+                <Text style={TABLE_STYLES.headerText}>Trust</Text>
               </View>
               <View style={TABLE_STYLES.headerCellLast}>
-                <Text style={TABLE_STYLES.headerText}>{'Confi-\ndence'}</Text>
+                <Text style={TABLE_STYLES.headerText}>Confidence</Text>
               </View>
             </View>
             {competitiveinsights.map((competitor, index) => (
@@ -310,7 +320,7 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                 <Text style={TABLE_STYLES.productCell}>
                   {truncateTitle(competitor.competitor_product_id.title)}
                 </Text>
-                <Text style={TABLE_STYLES.metricCell}>{competitor.share_of_buy.toFixed(1)}%</Text>
+                <Text style={TABLE_STYLES.metricCell}>{Math.round(competitor.share_of_buy)}%</Text>
                 <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.value) }}>
                   {competitor.value.toFixed(1)}
                 </Text>
@@ -346,7 +356,12 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
             justifyContent: 'space-between',
           }}
         >
-          <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+          <Link
+            src="https://TestPilotCPG.com"
+            style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+          >
+            TestPilotCPG.com
+          </Link>
           <Text
             style={styles.pageNumber}
             render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}

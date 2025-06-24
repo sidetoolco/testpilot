@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, View, Text } from '@react-pdf/renderer';
+import { Page, View, Text, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
@@ -28,7 +28,12 @@ export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps>
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+        <Link
+          src="https://TestPilotCPG.com"
+          style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+        >
+          TestPilotCPG.com
+        </Link>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}

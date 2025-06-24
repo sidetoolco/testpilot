@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Page } from '@react-pdf/renderer';
+import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 
@@ -105,8 +105,8 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
 
   return (
     <Page size="A4" orientation="portrait" style={styles.page}>
-      <Header title="Results Overview" />
       <View style={styles.section}>
+      <Header title="Results Overview" />
         {/* PRIMERO: La tabla */}
         {rows.length === 0 ? (
           <View style={{ padding: 20, textAlign: 'center' }}>
@@ -215,7 +215,12 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+        <Link
+          src="https://TestPilotCPG.com"
+          style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+        >
+          TestPilotCPG.com
+        </Link>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}

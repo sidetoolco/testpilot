@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, Page, Font } from '@react-pdf/renderer';
+import { View, Text, Image, Page, Font, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { TestDetails } from '../utils/types';
 import { Header } from './Header';
@@ -187,9 +187,9 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
   }, []) || [];
 
   return (
-    <Page size="A4" orientation="portrait" style={{ padding: 20, backgroundColor: 'white' }}>
+    <Page size="A4" orientation="portrait" style={styles.page}>
+      <View style={{ ...styles.section, gap: 5 }}>
       <Header title="Test Design" />
-      <View style={{ flex: 1, gap: 20 }}>
         {/* Test Info */}
         <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}>
@@ -214,7 +214,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
           />
           <MetricCard
             icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf091'}</Text>}
-            label="Winning Sessions"
+            label="Completed Sessions"
             value={completedSessionsFraction}
             color={COLORS.secondary}
           />
@@ -236,24 +236,23 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
               )}
             </View>
 
-            {/* Age Distribution */}
+            {/* Age Range - Texto simple */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 16 }}>Age Ranges</Text>
-              {ageData.length > 0 ? (
-                <BarChart data={ageData} />
-              ) : (
-                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
-              )}
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Age Range</Text>
+              <Text style={{ fontSize: 12, color: COLORS.text, backgroundColor: COLORS.background, padding: 8, borderRadius: 4 }}>
+                {testDetails.demographics.ageRanges && testDetails.demographics.ageRanges.length >= 2 
+                  ? `${testDetails.demographics.ageRanges[0]} - ${testDetails.demographics.ageRanges[1]} years`
+                  : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'
+                }
+              </Text>
             </View>
 
-            {/* Location Distribution */}
+            {/* Locations - Texto simple */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 16 }}>Locations</Text>
-              {locationData.length > 0 ? (
-                <BarChart data={locationData} />
-              ) : (
-                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No location data available</Text>
-              )}
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Locations</Text>
+              <Text style={{ fontSize: 12, color: COLORS.text, backgroundColor: COLORS.background, padding: 8, borderRadius: 4 }}>
+                {testDetails.demographics.locations?.join(', ') || 'No location data available'}
+              </Text>
             </View>
           </View>
         </View>
@@ -267,6 +266,33 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={{ fontSize: 10, color: COLORS.lightText }}>Search Term:</Text>
               <Text style={{ fontSize: 10, color: COLORS.text }}>{testDetails.searchTerm}</Text>
+            </View>
+
+            <View>
+              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>Competitors</Text>
+              <View style={{ flexDirection: 'row', gap: 4, flexWrap: 'wrap' }}>
+                {testDetails.competitors?.map((competitor, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Image
+                      src={competitor.image_url}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  </View>
+                ))}
+              </View>
             </View>
 
             <View>
@@ -321,7 +347,12 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+        <Link
+    src="https://TestPilotCPG.com"
+    style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+  >
+    TestPilotCPG.com
+  </Link>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
