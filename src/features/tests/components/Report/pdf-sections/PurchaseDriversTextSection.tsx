@@ -13,33 +13,39 @@ const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
 
   return (
     <View style={{ marginBottom: 20, marginTop: 20 }}>
-      {text.split('\n').map((line, index) => {
-        if (!line.trim()) return null;
-        
-        // Procesar texto en negrita y bullets
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        
-        return (
-          <Text key={index} style={{ 
-            fontSize: 12, 
-            color: '#333', 
-            marginBottom: 8, 
-            lineHeight: 1.5,
-            paddingLeft: line.startsWith('•') ? 12 : 0
-          }}>
-            {parts.map((part, partIndex) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return (
-                  <Text key={partIndex} style={{ fontWeight: 'bold' }}>
-                    {part.slice(2, -2)}
-                  </Text>
-                );
-              }
-              return part;
-            })}
-          </Text>
-        );
-      }).filter(Boolean)}
+      {text
+        .split('\n')
+        .map((line, index) => {
+          if (!line.trim()) return null;
+
+          // Procesar texto en negrita y bullets
+          const parts = line.split(/(\*\*.*?\*\*)/g);
+
+          return (
+            <Text
+              key={index}
+              style={{
+                fontSize: 12,
+                color: '#333',
+                marginBottom: 8,
+                lineHeight: 1.5,
+                paddingLeft: line.startsWith('•') ? 12 : 0,
+              }}
+            >
+              {parts.map((part, partIndex) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return (
+                    <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                      {part.slice(2, -2)}
+                    </Text>
+                  );
+                }
+                return part;
+              })}
+            </Text>
+          );
+        })
+        .filter(Boolean)}
     </View>
   );
 };
@@ -80,4 +86,4 @@ export const PurchaseDriversTextSection: React.FC<PurchaseDriversTextSectionProp
       <Footer />
     </Page>
   );
-}; 
+};

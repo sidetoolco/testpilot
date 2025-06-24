@@ -72,27 +72,33 @@ const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
 
   return (
     <View style={{ marginBottom: 20 }}>
-      {text.split('\n').map((line, index) => {
-        if (!line.trim()) return null;
-        
-        // Procesar texto en negrita
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        
-        return (
-          <Text key={index} style={{ fontSize: 12, color: '#333', marginBottom: 8, lineHeight: 1.5 }}>
-            {parts.map((part, partIndex) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return (
-                  <Text key={partIndex} style={{ fontWeight: 'bold' }}>
-                    {part.slice(2, -2)}
-                  </Text>
-                );
-              }
-              return part;
-            })}
-          </Text>
-        );
-      }).filter(Boolean)}
+      {text
+        .split('\n')
+        .map((line, index) => {
+          if (!line.trim()) return null;
+
+          // Procesar texto en negrita
+          const parts = line.split(/(\*\*.*?\*\*)/g);
+
+          return (
+            <Text
+              key={index}
+              style={{ fontSize: 12, color: '#333', marginBottom: 8, lineHeight: 1.5 }}
+            >
+              {parts.map((part, partIndex) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return (
+                    <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                      {part.slice(2, -2)}
+                    </Text>
+                  );
+                }
+                return part;
+              })}
+            </Text>
+          );
+        })
+        .filter(Boolean)}
     </View>
   );
 };
@@ -106,7 +112,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
   return (
     <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
-      <Header title="Results Overview" />
+        <Header title="Results Overview" />
         {/* PRIMERO: La tabla */}
         {rows.length === 0 ? (
           <View style={{ padding: 20, textAlign: 'center' }}>
@@ -194,9 +200,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
         )}
 
         {/* DESPUÉS: El texto de comparación */}
-        {comparisonText && (
-          <SimpleMarkdownText text={comparisonText} />
-        )}
+        {comparisonText && <SimpleMarkdownText text={comparisonText} />}
 
         {!comparisonText && (
           <Text style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>

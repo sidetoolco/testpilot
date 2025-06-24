@@ -95,9 +95,7 @@ export const VariantCover: React.FC<VariantCoverProps> = ({ variantKey, title, i
         <Text style={{ color: '#00ffcc', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
         <Text
           style={styles.pageNumber}
-          render={({ pageNumber }: { pageNumber: number }) =>
-            `${pageNumber}`
-          }
+          render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
         />
       </View>
     </Page>

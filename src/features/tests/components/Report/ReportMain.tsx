@@ -91,26 +91,26 @@ const Report: React.FC<ReportProps> = ({ id }) => {
     const fetchSummaryData = async () => {
       // Evitar múltiples ejecuciones
       if (!testInfo || fetchingRef.current || dataLoaded) return;
-      
+
       fetchingRef.current = true;
-      
+
       try {
         setLoading(true);
-        
+
         console.log('Starting data fetch for test:', testInfo.id);
-        
+
         const [existingInsights, data, averagesurveys, competitiveinsights] = await Promise.all([
           checkIdInIaInsights(id),
           getSummaryData(id),
           getAveragesurveys(id),
-          getCompetitiveInsights(id)
+          getCompetitiveInsights(id),
         ]);
 
         console.log('Data fetched successfully:', {
           insights: !!existingInsights,
           summaryData: !!data,
           averagesurveys: !!averagesurveys,
-          competitiveinsights: !!competitiveinsights
+          competitiveinsights: !!competitiveinsights,
         });
 
         setSummaryData(data);
@@ -125,7 +125,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         fetchingRef.current = false;
       }
     };
-    
+
     fetchSummaryData();
   }, [testInfo?.id, id, setInsight, setLoading, dataLoaded]);
 

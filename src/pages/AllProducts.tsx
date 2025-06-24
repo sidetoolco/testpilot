@@ -40,14 +40,14 @@ export default function AllProducts() {
   };
 
   const handleDelete = async (productId: string) => {
-      try {
-        await deleteProduct(productId);
+    try {
+      await deleteProduct(productId);
       setShowAddProduct(false);
       setEditProduct(null);
       setShowDeleteConfirm(false);
       setProductToDelete(null);
-      } catch (err) {
-        console.error('Failed to delete product:', err);
+    } catch (err) {
+      console.error('Failed to delete product:', err);
     }
   };
 

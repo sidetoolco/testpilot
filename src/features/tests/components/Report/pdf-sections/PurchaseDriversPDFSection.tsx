@@ -40,7 +40,7 @@ const extractVariantInsights = (fullText: string, variantType: string): string =
 
   // Convertir el tipo de variante a formato de búsqueda (a -> A, b -> B, etc.)
   const variantLabel = `Variant ${variantType.toUpperCase()}`;
-  
+
   // Buscar el inicio de la sección de la variante
   const variantIndex = fullText.indexOf(variantLabel);
   if (variantIndex === -1) return '';
@@ -51,7 +51,7 @@ const extractVariantInsights = (fullText: string, variantType: string): string =
 
   // Extraer solo la sección de esta variante
   const variantSection = fullText.substring(variantIndex, endIndex).trim();
-  
+
   return variantSection;
 };
 
@@ -61,33 +61,39 @@ const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
 
   return (
     <View style={{ marginBottom: 10, marginTop: 40 }}>
-      {text.split('\n').map((line, index) => {
-        if (!line.trim()) return null;
-        
-        // Procesar texto en negrita y bullets
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        
-        return (
-          <Text key={index} style={{ 
-            fontSize: 11, 
-            color: '#333', 
-            marginBottom: 6, 
-            lineHeight: 1.4,
-            paddingLeft: line.startsWith('•') ? 8 : 0
-          }}>
-            {parts.map((part, partIndex) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return (
-                  <Text key={partIndex} style={{ fontWeight: 'bold' }}>
-                    {part.slice(2, -2)}
-                  </Text>
-                );
-              }
-              return part;
-            })}
-          </Text>
-        );
-      }).filter(Boolean)}
+      {text
+        .split('\n')
+        .map((line, index) => {
+          if (!line.trim()) return null;
+
+          // Procesar texto en negrita y bullets
+          const parts = line.split(/(\*\*.*?\*\*)/g);
+
+          return (
+            <Text
+              key={index}
+              style={{
+                fontSize: 11,
+                color: '#333',
+                marginBottom: 6,
+                lineHeight: 1.4,
+                paddingLeft: line.startsWith('•') ? 8 : 0,
+              }}
+            >
+              {parts.map((part, partIndex) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return (
+                    <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                      {part.slice(2, -2)}
+                    </Text>
+                  );
+                }
+                return part;
+              })}
+            </Text>
+          );
+        })
+        .filter(Boolean)}
     </View>
   );
 };
@@ -181,11 +187,12 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
   averagesurveys,
 }) => {
   const datasets = getChartData(averagesurveys);
-  
+
   // Extraer insights específicos para esta variante
-  const variantInsights = insights && averagesurveys?.variant_type 
-    ? extractVariantInsights(insights, averagesurveys.variant_type)
-    : '';
+  const variantInsights =
+    insights && averagesurveys?.variant_type
+      ? extractVariantInsights(insights, averagesurveys.variant_type)
+      : '';
 
   if (!averagesurveys) {
     return (
@@ -203,15 +210,17 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
     <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
-        
+
         <View style={styles.section}>
           {/* PRIMERO: La gráfica */}
-          <View style={{
-            border: '1px solid #E0E0E0',
-            borderRadius: 4,
-            padding: '16px 16px 40px 16px',
-            marginTop: 16,
-          }}>
+          <View
+            style={{
+              border: '1px solid #E0E0E0',
+              borderRadius: 4,
+              padding: '16px 16px 40px 16px',
+              marginTop: 16,
+            }}
+          >
             <View style={styles.chartContainer}>
               {/* Legend */}
               <View style={styles.chartLegend}>
@@ -272,11 +281,9 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
               </View>
             </View>
           </View>
-          
+
           {/* DESPUÉS: Los insights específicos de la variante */}
-          {variantInsights && (
-            <InsightMarkdownText text={variantInsights} />
-          )}
+          {variantInsights && <InsightMarkdownText text={variantInsights} />}
         </View>
       </View>
       <Footer />

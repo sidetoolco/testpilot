@@ -261,21 +261,21 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
                       : 'No products available.'}
                   </div>
                 ) : (
-              <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
                     {filteredProducts.map(product => (
-                  <div
-                    key={product.id}
+                      <div
+                        key={product.id}
                         className="border rounded-xl p-4 hover:border-primary-400 transition-colors flex flex-col"
-                  >
-                    <div className="aspect-square mb-3">
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
+                      >
+                        <div className="aspect-square mb-3">
+                          <img
+                            src={product.image_url}
+                            alt={product.title}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
                         <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
+                          <h4 className="font-medium text-gray-900 mb-1">{product.title}</h4>
                           <p className="text-sm text-gray-500 mb-3">${product.price.toFixed(2)}</p>
                         </div>
                         <div className="flex gap-2">
@@ -292,9 +292,9 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
                             Duplicate
                           </button>
                         </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
                 )}
               </>
             )}

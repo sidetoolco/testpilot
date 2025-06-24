@@ -73,8 +73,10 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     variation.title.includes('Variant ' + selectedVariant.toUpperCase())
   )?.shareOfBuy;
 
-  const filteredVariant = variants?.find((variant: any) => variant.variant_type === selectedVariant);
-  
+  const filteredVariant = variants?.find(
+    (variant: any) => variant.variant_type === selectedVariant
+  );
+
   if (filteredVariant) {
     filteredVariant.share_of_buy = shareOfBuy;
   }
@@ -163,15 +165,24 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                       </span>
                     </a>
 
-                    <div className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
-                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                      {(item.competitor_product_id?.title || item.product?.title || '').slice(0, 40)}
-                      {(item.competitor_product_id?.title || item.product?.title || '').length > 40 ? '...' : ''}
+                    <div
+                      className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
+                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                    >
+                      {(item.competitor_product_id?.title || item.product?.title || '').slice(
+                        0,
+                        40
+                      )}
+                      {(item.competitor_product_id?.title || item.product?.title || '').length > 40
+                        ? '...'
+                        : ''}
                     </div>
 
                     {item.count === 1 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
-                        rounded-full flex items-center justify-center text-[10px] shadow">
+                      <span
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
+                        rounded-full flex items-center justify-center text-[10px] shadow"
+                      >
                         🔍
                       </span>
                     )}
@@ -181,8 +192,16 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   {item.count > 0 ? `${item.share_of_buy}%` : '-'}
                 </td>
                 {renderCell(Number(item.value), item.count, !!item.product)}
-                {renderCell(Number(item.aesthetics || item.appearance || 0), item.count, !!item.product)}
-                {renderCell(Number(item.utility || item.confidence || 0), item.count, !!item.product)}
+                {renderCell(
+                  Number(item.aesthetics || item.appearance || 0),
+                  item.count,
+                  !!item.product
+                )}
+                {renderCell(
+                  Number(item.utility || item.confidence || 0),
+                  item.count,
+                  !!item.product
+                )}
                 {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
                 {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
               </tr>

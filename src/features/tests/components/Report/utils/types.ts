@@ -38,21 +38,21 @@ export interface TestDetails {
     image_url: string;
   }[];
   variations: {
-    a: { 
+    a: {
       id: string;
       price: number;
       title: string;
       image_url: string;
       prolificStatus: string;
     } | null;
-    b: { 
+    b: {
       id: string;
       price: number;
       title: string;
       image_url: string;
       prolificStatus: string;
     } | null;
-    c: { 
+    c: {
       id: string;
       price: number;
       title: string;

@@ -50,11 +50,11 @@ const AnalysisSection: React.FC<{ title: string; content: string[] }> = ({ title
         {title}
       </Text>
     </View>
-    
+
     {/* Contenido con el mismo estilo que MarkdownText */}
     {content.map((paragraph, index) => {
       if (!paragraph.trim()) return null;
-      
+
       return (
         <Text
           key={index}
@@ -112,7 +112,8 @@ export const ShopperCommentsPDFSection: React.FC<ShopperCommentsPDFSectionProps>
   });
 
   // Verificar si hay comentarios disponibles
-  const hasComments = comments.length > 0 || 
+  const hasComments =
+    comments.length > 0 ||
     (comparision && Object.values(comparision).some(v => v.length > 0)) ||
     (surveys && Object.values(surveys).some(v => v.length > 0));
 
@@ -164,7 +165,7 @@ export const ShopperCommentsPDFSection: React.FC<ShopperCommentsPDFSectionProps>
     <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title="Comments Analysis" />
-        
+
         <View
           style={{
             marginBottom: 6,
@@ -206,66 +207,64 @@ export const ShopperCommentsPDFSection: React.FC<ShopperCommentsPDFSectionProps>
           <AnalysisSection
             title="What's Winning (Brand Chooser Satisfaction Drivers)"
             content={[
-              "Among current buyers (n=14)",
-              "",
-              "Premium ingredients (Arabica, natural flavors) – 9 of 14",
-              "Customers highlight \"100% Arabica coffee\", \"natural cacao\", and \"cold brew\" as standout features driving product satisfaction.",
-              "",
-              "Cocktail-specific quality & ease – 7 of 14",
-              "Appreciation for bar-quality results with minimal effort; ideal for hosting.",
-              "",
-              "Elegant design and premium positioning – 6 of 14",
-              "Product perceived as \"luxurious\", \"crafted\", and gift-appropriate.",
-              "",
-              "Defined serving size (10 cocktails) – 4 of 14",
-              "Clear value and portioning appreciated for planning and convenience."
+              'Among current buyers (n=14)',
+              '',
+              'Premium ingredients (Arabica, natural flavors) – 9 of 14',
+              'Customers highlight "100% Arabica coffee", "natural cacao", and "cold brew" as standout features driving product satisfaction.',
+              '',
+              'Cocktail-specific quality & ease – 7 of 14',
+              'Appreciation for bar-quality results with minimal effort; ideal for hosting.',
+              '',
+              'Elegant design and premium positioning – 6 of 14',
+              'Product perceived as "luxurious", "crafted", and gift-appropriate.',
+              '',
+              'Defined serving size (10 cocktails) – 4 of 14',
+              'Clear value and portioning appreciated for planning and convenience.',
             ]}
           />
 
           <AnalysisSection
             title="Improvement Opportunities (Brand Chooser Pain Points)"
             content={[
-              "Among current buyers (n=14)",
-              "",
-              "Design and packaging upgrades – 5 of 14",
-              "Font, bottle, and logo described as \"ugly\", \"hard to read\", or lacking appeal.",
-              "",
-              "Lower price or better value – 4 of 14",
-              "Some feel the price is high for the quantity or visual impression.",
-              "",
-              "Flavor innovation – 3 of 14",
-              "Desire for more variants like espresso, vanilla, or mocktail-friendly options.",
-              "",
-              "More reviews and proof of quality – 2 of 14",
-              "Lack of social proof makes some hesitant even post-purchase."
+              'Among current buyers (n=14)',
+              '',
+              'Design and packaging upgrades – 5 of 14',
+              'Font, bottle, and logo described as "ugly", "hard to read", or lacking appeal.',
+              '',
+              'Lower price or better value – 4 of 14',
+              'Some feel the price is high for the quantity or visual impression.',
+              '',
+              'Flavor innovation – 3 of 14',
+              'Desire for more variants like espresso, vanilla, or mocktail-friendly options.',
+              '',
+              'More reviews and proof of quality – 2 of 14',
+              'Lack of social proof makes some hesitant even post-purchase.',
             ]}
           />
 
           <AnalysisSection
             title="Competitive Purchase Barriers (Why We Lose to Competition)"
             content={[
-              "Among competitive shoppers (n=46)",
-              "",
-              "% of shoppers mentioning each theme",
-              "",
-              "Price too high / poor value – 59%",
-              "A dominant theme: \"cheaper\", \"too expensive\", \"price to quantity ratio\".",
-              "",
-              "Unappealing packaging/design – 35%",
-              "Comments point to \"better bottle\", \"fun design\", \"ugly logo\", and \"hard-to-read font\".",
-              "",
-              "Lack of reviews or credibility – 24%",
-              "Shoppers hesitate due to limited social proof and unclear quality signals.",
-              "",
-              "Desire for more flavors/customization – 20%",
-              "Suggestions include more flavor profiles, mocktail options, or gift sets.",
-              "",
-              "Perceived inferiority vs. competitor – 15%",
-              "Some express stronger trust in competitor (Item B), citing familiarity or taste."
+              'Among competitive shoppers (n=46)',
+              '',
+              '% of shoppers mentioning each theme',
+              '',
+              'Price too high / poor value – 59%',
+              'A dominant theme: "cheaper", "too expensive", "price to quantity ratio".',
+              '',
+              'Unappealing packaging/design – 35%',
+              'Comments point to "better bottle", "fun design", "ugly logo", and "hard-to-read font".',
+              '',
+              'Lack of reviews or credibility – 24%',
+              'Shoppers hesitate due to limited social proof and unclear quality signals.',
+              '',
+              'Desire for more flavors/customization – 20%',
+              'Suggestions include more flavor profiles, mocktail options, or gift sets.',
+              '',
+              'Perceived inferiority vs. competitor – 15%',
+              'Some express stronger trust in competitor (Item B), citing familiarity or taste.',
             ]}
           />
-
-  
         </View>
       </View>
       <Footer />

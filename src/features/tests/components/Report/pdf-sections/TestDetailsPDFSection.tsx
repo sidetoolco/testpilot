@@ -83,8 +83,7 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 70 }) => {
           transform: 'translate(-50%, -50%)',
           alignItems: 'center',
         }}
-      >
-      </View>
+      ></View>
     </View>
   );
 };
@@ -104,9 +103,7 @@ const BarChart: React.FC<BarChartProps> = ({ data, height = 70 }) => {
               borderRadius: 4,
             }}
           />
-          <Text style={{ fontSize: 8, color: COLORS.lightText, marginTop: 4 }}>
-            {item.label}
-          </Text>
+          <Text style={{ fontSize: 8, color: COLORS.lightText, marginTop: 4 }}>{item.label}</Text>
         </View>
       ))}
     </View>
@@ -138,9 +135,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
     </View>
     <View>
       <Text style={{ fontSize: 10, color: COLORS.lightText }}>{label}</Text>
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text }}>
-        {value}
-      </Text>
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text }}>{value}</Text>
     </View>
   </View>
 );
@@ -152,54 +147,58 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
 
   // Calcular el número de variaciones
   const variationCount = Object.values(testDetails.variations).filter(v => v !== null).length;
-  
+
   // Calcular la fracción de sesiones completadas
   const totalPossibleSessions = testDetails.demographics.testerCount * variationCount;
   const completedSessionsFraction = `${testDetails.completed_sessions} / ${totalPossibleSessions}`;
 
   // Procesar datos de género
-  const genderData = testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
-    const existingGender = acc.find(item => item.label === gender);
-    if (existingGender) {
-      existingGender.value += 1;
-    } else {
-      acc.push({ value: 1, color: COLORS.primary, label: gender });
-    }
-    return acc;
-  }, []) || [];
+  const genderData =
+    testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
+      const existingGender = acc.find(item => item.label === gender);
+      if (existingGender) {
+        existingGender.value += 1;
+      } else {
+        acc.push({ value: 1, color: COLORS.primary, label: gender });
+      }
+      return acc;
+    }, []) || [];
 
   // Procesar datos de edad
-  const ageData = testDetails.demographics.ageRanges?.map((range: string, index: number) => ({
-    value: 1, // Cada rango cuenta como 1 por ahora
-    color: [COLORS.primary, COLORS.secondary, COLORS.accent][index % 3],
-    label: range
-  })) || [];
+  const ageData =
+    testDetails.demographics.ageRanges?.map((range: string, index: number) => ({
+      value: 1, // Cada rango cuenta como 1 por ahora
+      color: [COLORS.primary, COLORS.secondary, COLORS.accent][index % 3],
+      label: range,
+    })) || [];
 
   // Procesar datos de ubicación
-  const locationData = testDetails.demographics.locations?.reduce((acc: ChartDataItem[], location: string) => {
-    const existingLocation = acc.find(item => item.label === location);
-    if (existingLocation) {
-      existingLocation.value += 1;
-    } else {
-      acc.push({ value: 1, color: COLORS.primary, label: location });
-    }
-    return acc;
-  }, []) || [];
+  const locationData =
+    testDetails.demographics.locations?.reduce((acc: ChartDataItem[], location: string) => {
+      const existingLocation = acc.find(item => item.label === location);
+      if (existingLocation) {
+        existingLocation.value += 1;
+      } else {
+        acc.push({ value: 1, color: COLORS.primary, label: location });
+      }
+      return acc;
+    }, []) || [];
 
   return (
     <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={{ ...styles.section, gap: 5 }}>
-      <Header title="Test Design" />
+        <Header title="Test Design" />
         {/* Test Info */}
         <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}>
             {testDetails.name}
           </Text>
           <Text style={{ fontSize: 10, color: COLORS.lightText }}>
-            Created on {new Date(testDetails.createdAt).toLocaleDateString('en-US', {
+            Created on{' '}
+            {new Date(testDetails.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
-              day: 'numeric'
+              day: 'numeric',
             })}
           </Text>
         </View>
@@ -207,13 +206,21 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
         {/* Metrics */}
         <View style={{ flexDirection: 'row', gap: 16 }}>
           <MetricCard
-            icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf0c0'}</Text>}
+            icon={
+              <Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>
+                {'\uf0c0'}
+              </Text>
+            }
             label="Total Testers"
             value={testDetails.demographics.testerCount}
             color={COLORS.primary}
           />
           <MetricCard
-            icon={<Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>{'\uf091'}</Text>}
+            icon={
+              <Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>
+                {'\uf091'}
+              </Text>
+            }
             label="Completed Sessions"
             value={completedSessionsFraction}
             color={COLORS.secondary}
@@ -232,25 +239,47 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
               {genderData.length > 0 ? (
                 <DonutChart data={genderData} />
               ) : (
-                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No gender data available</Text>
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>
+                  No gender data available
+                </Text>
               )}
             </View>
 
             {/* Age Range - Texto simple */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Age Range</Text>
-              <Text style={{ fontSize: 12, color: COLORS.text, backgroundColor: COLORS.background, padding: 8, borderRadius: 4 }}>
-                {testDetails.demographics.ageRanges && testDetails.demographics.ageRanges.length >= 2 
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                Age Range
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: COLORS.text,
+                  backgroundColor: COLORS.background,
+                  padding: 8,
+                  borderRadius: 4,
+                }}
+              >
+                {testDetails.demographics.ageRanges &&
+                testDetails.demographics.ageRanges.length >= 2
                   ? `${testDetails.demographics.ageRanges[0]} - ${testDetails.demographics.ageRanges[1]} years`
-                  : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'
-                }
+                  : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'}
               </Text>
             </View>
 
             {/* Locations - Texto simple */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Locations</Text>
-              <Text style={{ fontSize: 12, color: COLORS.text, backgroundColor: COLORS.background, padding: 8, borderRadius: 4 }}>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                Locations
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: COLORS.text,
+                  backgroundColor: COLORS.background,
+                  padding: 8,
+                  borderRadius: 4,
+                }}
+              >
                 {testDetails.demographics.locations?.join(', ') || 'No location data available'}
               </Text>
             </View>
@@ -269,7 +298,9 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
             </View>
 
             <View>
-              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>Competitors</Text>
+              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>
+                Competitors
+              </Text>
               <View style={{ flexDirection: 'row', gap: 4, flexWrap: 'wrap' }}>
                 {testDetails.competitors?.map((competitor, index) => (
                   <View
@@ -296,7 +327,9 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
             </View>
 
             <View>
-              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>Variations</Text>
+              <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>
+                Variations
+              </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {Object.values(testDetails.variations)
                   .filter(v => v !== null)
@@ -348,11 +381,11 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
         }}
       >
         <Link
-    src="https://TestPilotCPG.com"
-    style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
-  >
-    TestPilotCPG.com
-  </Link>
+          src="https://TestPilotCPG.com"
+          style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+        >
+          TestPilotCPG.com
+        </Link>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}

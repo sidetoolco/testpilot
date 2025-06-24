@@ -194,30 +194,36 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
     <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title={`Competitive Insights - Variant ${variantKey.toUpperCase()}`} />
-        
+
         {averageMetrics && (
-          <View style={{
-            marginTop: 24,
-            marginBottom: 20,
-            padding: 16,
-            backgroundColor: '#F8FAFC',
-            borderRadius: 4,
-            border: '1px solid #E0E0E0',
-          }}>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: 12,
-            }}>
+          <View
+            style={{
+              marginTop: 24,
+              marginBottom: 20,
+              padding: 16,
+              backgroundColor: '#F8FAFC',
+              borderRadius: 4,
+              border: '1px solid #E0E0E0',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#111827',
+                marginBottom: 12,
+              }}
+            >
               Average metrics your product vs the competitors
             </Text>
-            <View style={{
-              flexDirection: 'row' as const,
-              justifyContent: 'space-between' as const,
-              flexWrap: 'wrap' as const,
-              gap: 16,
-            }}>
+            <View
+              style={{
+                flexDirection: 'row' as const,
+                justifyContent: 'space-between' as const,
+                flexWrap: 'wrap' as const,
+                gap: 16,
+              }}
+            >
               <Text style={{ fontSize: 11, color: '#374151' }}>
                 Value: {averageMetrics.value.toFixed(1)}
               </Text>
@@ -236,7 +242,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
             </View>
           </View>
         )}
-        
+
         <View style={TABLE_STYLES.container}>
           <Text style={TABLE_STYLES.tableTitle}>Your Item vs Competitor</Text>
           <View style={TABLE_STYLES.header}>
@@ -276,9 +282,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.value) }}>
                 {competitor.value.toFixed(1)}
               </Text>
-              <Text
-                style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.aesthetics) }}
-              >
+              <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.aesthetics) }}>
                 {competitor.aesthetics.toFixed(1)}
               </Text>
               <Text
@@ -301,4 +305,4 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
       <Footer />
     </Page>
   );
-}; 
+};

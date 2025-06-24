@@ -66,7 +66,7 @@ const PDFDocument = ({
   const safeInsights = insights || {
     purchase_drivers: '',
     recommendations: '',
-    competitive_insights: ''
+    competitive_insights: '',
   };
 
   const safeCompetitiveInsights = competitiveinsights || { summaryData: [] };
@@ -86,7 +86,8 @@ const PDFDocument = ({
       {/* Luego las gráficas de cada variante */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
-          variation && safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key) && (
+          variation &&
+          safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key) && (
             <PurchaseDriversChartSection
               key={key}
               variantKey={key}
@@ -111,15 +112,17 @@ const PDFDocument = ({
               key={`competitive-table-${key}`}
               variantKey={key}
               variantTitle={variation.title}
-              competitiveinsights={safeCompetitiveInsights.summaryData?.filter(
-                (item: any) => item.variant_type === key
-              ) || []}
+              competitiveinsights={
+                safeCompetitiveInsights.summaryData?.filter(
+                  (item: any) => item.variant_type === key
+                ) || []
+              }
             />
           )
       )}
 
-      <ShopperCommentsPDFSection 
-        comments={safeInsights?.shopper_comments || []} 
+      <ShopperCommentsPDFSection
+        comments={safeInsights?.shopper_comments || []}
         comparision={testDetails.responses?.comparisons}
         surveys={testDetails.responses?.surveys}
       />
@@ -172,14 +175,15 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const isTestActiveOrComplete = testDetails?.status === 'active' || testDetails?.status === 'complete';
+  const isTestActiveOrComplete =
+    testDetails?.status === 'active' || testDetails?.status === 'complete';
 
   const handleExportPDF = async () => {
     if (isGenerating) return; // Prevenir múltiples generaciones simultáneas
-    
+
     try {
       setIsGenerating(true);
-      
+
       // Limpiar URL anterior si existe
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
@@ -192,7 +196,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         summaryData: !!summaryData,
         insights: !!insights,
         competitiveinsights: !!competitiveinsights,
-        averagesurveys: !!averagesurveys
+        averagesurveys: !!averagesurveys,
       });
 
       if (!testDetails) {
@@ -211,18 +215,24 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       const pdfData = {
         testDetails: JSON.parse(JSON.stringify(testDetails)),
         summaryData: JSON.parse(JSON.stringify(summaryData)),
-        insights: insights ? JSON.parse(JSON.stringify(insights)) : {
-          purchase_drivers: '',
-          recommendations: '',
-          competitive_insights: '',
-          shopper_comments: []
-        },
-        competitiveinsights: competitiveinsights ? JSON.parse(JSON.stringify(competitiveinsights)) : {
-          summaryData: []
-        },
-        averagesurveys: averagesurveys ? JSON.parse(JSON.stringify(averagesurveys)) : {
-          summaryData: []
-        }
+        insights: insights
+          ? JSON.parse(JSON.stringify(insights))
+          : {
+              purchase_drivers: '',
+              recommendations: '',
+              competitive_insights: '',
+              shopper_comments: [],
+            },
+        competitiveinsights: competitiveinsights
+          ? JSON.parse(JSON.stringify(competitiveinsights))
+          : {
+              summaryData: [],
+            },
+        averagesurveys: averagesurveys
+          ? JSON.parse(JSON.stringify(averagesurveys))
+          : {
+              summaryData: [],
+            },
       };
 
       console.log('Generating PDF with data:', {
@@ -231,7 +241,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         insightsKeys: Object.keys(pdfData.insights),
         competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
         averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
-        shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0
+        shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0,
       });
 
       const blob = await pdf(
@@ -243,15 +253,17 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           averagesurveys={pdfData.averagesurveys}
         />
       ).toBlob();
-      
+
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-      
+
       console.log('PDF generated successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error('Error al generar el PDF: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+      toast.error(
+        'Error al generar el PDF: ' + (error instanceof Error ? error.message : 'Error desconocido')
+      );
     } finally {
       setIsGenerating(false);
     }

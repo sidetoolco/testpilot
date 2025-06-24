@@ -96,14 +96,16 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
     <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title={`Purchase Drivers - Variant ${variantKey.toUpperCase()}`} />
-        
+
         <View style={styles.section}>
-          <View style={{
-            border: '1px solid #E0E0E0',
-            borderRadius: 4,
-            padding: '16px 16px 40px 16px',
-            marginTop: 16,
-          }}>
+          <View
+            style={{
+              border: '1px solid #E0E0E0',
+              borderRadius: 4,
+              padding: '16px 16px 40px 16px',
+              marginTop: 16,
+            }}
+          >
             <View style={styles.chartContainer}>
               {/* Legend */}
               <View style={styles.chartLegend}>
@@ -169,4 +171,4 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
       <Footer />
     </Page>
   );
-}; 
+};
