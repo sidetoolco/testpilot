@@ -29,74 +29,11 @@ interface Dataset {
   data: number[];
 }
 
-interface PurchaseDriversPDFSectionProps {
-  insights?: string;
+interface PurchaseDriversChartSectionProps {
+  variantKey: string;
+  variantTitle: string;
   averagesurveys: Survey;
 }
-
-// Función para extraer el texto específico de una variante
-const extractVariantInsights = (fullText: string, variantType: string): string => {
-  if (!fullText || !variantType) return '';
-
-  // Convertir el tipo de variante a formato de búsqueda (a -> A, b -> B, etc.)
-  const variantLabel = `Variant ${variantType.toUpperCase()}`;
-
-  // Buscar el inicio de la sección de la variante
-  const variantIndex = fullText.indexOf(variantLabel);
-  if (variantIndex === -1) return '';
-
-  // Buscar el final de la sección (siguiente "Variant" o final del texto)
-  const nextVariantIndex = fullText.indexOf('Variant ', variantIndex + variantLabel.length);
-  const endIndex = nextVariantIndex === -1 ? fullText.length : nextVariantIndex;
-
-  // Extraer solo la sección de esta variante
-  const variantSection = fullText.substring(variantIndex, endIndex).trim();
-
-  return variantSection;
-};
-
-// Componente de markdown simplificado para insights
-const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
-  if (!text) return null;
-
-  return (
-    <View style={{ marginBottom: 10, marginTop: 40 }}>
-      {text
-        .split('\n')
-        .map((line, index) => {
-          if (!line.trim()) return null;
-
-          // Procesar texto en negrita y bullets
-          const parts = line.split(/(\*\*.*?\*\*)/g);
-
-          return (
-            <Text
-              key={index}
-              style={{
-                fontSize: 11,
-                color: '#333',
-                marginBottom: 6,
-                lineHeight: 1.4,
-                paddingLeft: line.startsWith('•') ? 8 : 0,
-              }}
-            >
-              {parts.map((part, partIndex) => {
-                if (part.startsWith('**') && part.endsWith('**')) {
-                  return (
-                    <Text key={partIndex} style={{ fontWeight: 'bold' }}>
-                      {part.slice(2, -2)}
-                    </Text>
-                  );
-                }
-                return part;
-              })}
-            </Text>
-          );
-        })
-        .filter(Boolean)}
-    </View>
-  );
-};
 
 const getChartData = (survey: Survey): Dataset[] => {
   if (!survey) {
@@ -119,44 +56,6 @@ const getChartData = (survey: Survey): Dataset[] => {
     },
   ];
 };
-
-const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantCount }) => (
-  <View
-    style={{
-      backgroundColor: '#FEF2F2',
-      borderRadius: 8,
-      padding: 16,
-      marginTop: 15,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    }}
-  >
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        backgroundColor: '#FEE2E2',
-        borderRadius: 12,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text style={{ color: '#DC2626', fontSize: 16 }}>!</Text>
-    </View>
-    <View>
-      <Text style={{ color: '#991B1B', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>
-        Insufficient Data
-      </Text>
-      <Text style={{ color: '#7F1D1D', fontSize: 12 }}>
-        {variantCount && variantCount > 0
-          ? `No shoppers selected any of the ${variantCount} variants.`
-          : 'No data available for this test.'}
-      </Text>
-    </View>
-  </View>
-);
 
 const Footer: React.FC = () => (
   <View
@@ -182,37 +81,23 @@ const Footer: React.FC = () => (
   </View>
 );
 
-export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps> = ({
-  insights,
+export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionProps> = ({
+  variantKey,
+  variantTitle,
   averagesurveys,
 }) => {
   const datasets = getChartData(averagesurveys);
 
-  // Extraer insights específicos para esta variante
-  const variantInsights =
-    insights && averagesurveys?.variant_type
-      ? extractVariantInsights(insights, averagesurveys.variant_type)
-      : '';
-
   if (!averagesurveys) {
-    return (
-      <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
-        <Header title="Purchase Drivers" />
-        <View style={styles.section}>
-          <InsufficientDataMessage />
-        </View>
-        <Footer />
-      </Page>
-    );
+    return null;
   }
 
   return (
-    <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
-        <Header title="Purchase Drivers" />
+        <Header title={`Purchase Drivers - Variant ${variantKey.toUpperCase()}`} />
 
         <View style={styles.section}>
-          {/* PRIMERO: La gráfica */}
           <View
             style={{
               border: '1px solid #E0E0E0',
@@ -281,9 +166,6 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
               </View>
             </View>
           </View>
-
-          {/* DESPUÉS: Los insights específicos de la variante */}
-          {variantInsights && <InsightMarkdownText text={variantInsights} />}
         </View>
       </View>
       <Footer />
