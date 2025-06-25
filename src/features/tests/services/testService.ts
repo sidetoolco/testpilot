@@ -326,7 +326,7 @@ export const testService = {
   },
 
   // Función para crear o actualizar test incompleto con datos parciales
-  async saveIncompleteTest(testData: any, existingTestId?: string) {
+  async saveIncompleteTest(testData: any, existingTestId?: string, currentStep?: string) {
     try {
       const {
         data: { user },
@@ -347,6 +347,28 @@ export const testService = {
         throw new TestCreationError('Company profile not found');
       }
 
+      // Mapear el paso actual a los valores del enum
+      const mapStepToEnum = (step: string): string => {
+        switch (step) {
+          case 'objective':
+            return 'search_term'; // El primer paso se mapea a search_term
+          case 'search':
+            return 'search_term';
+          case 'competitors':
+            return 'competitors';
+          case 'variations':
+            return 'variants';
+          case 'demographics':
+            return 'demographics';
+          case 'preview':
+            return 'preview';
+          case 'review':
+            return 'review';
+          default:
+            return 'search_term'; // Valor por defecto
+        }
+      };
+
       // Preparar datos básicos para el test
       const testPayload = {
         name: testData.name || `Test - ${new Date().toLocaleDateString()}`,
@@ -356,6 +378,7 @@ export const testService = {
         user_id: user.id,
         objective: testData.objective || null,
         settings: {},
+        step: currentStep ? mapStepToEnum(currentStep) : 'search_term', // Guardar el paso actual en la columna step
       } as any;
 
       let test;
@@ -383,6 +406,27 @@ export const testService = {
         test = data;
       }
 
+      // Guardar datos relacionados según el paso actual (replicando createTest)
+      // Step 3: Insertar competidores (si estamos en paso competitors o posterior)
+      if (testData.competitors && testData.competitors.length > 0) {
+        await this.saveAmazonProducts(test.id, testData.competitors);
+      }
+
+      // Step 4: Insertar variaciones (si estamos en paso variations o posterior)
+      if (testData.variations) {
+        await this.insertVariations(test.id, testData.variations);
+      }
+
+      // Step 5: Insertar datos demográficos (si estamos en paso demographics o posterior)
+      if (testData.demographics) {
+        await this.insertDemographics(test.id, testData.demographics);
+      }
+
+      // Step 6: Guardar custom screening questions (si está habilitado y estamos en paso demographics o posterior)
+      if (testData.demographics?.customScreening?.enabled) {
+        await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
+      }
+
       return test;
     } catch (error) {
       console.error('Save incomplete test error:', error);
@@ -394,4 +438,145 @@ export const testService = {
       throw error;
     }
   },
+
+  // Función para cargar un test incompleto con todos sus datos relacionados
+  async loadIncompleteTest(testId: string) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      // Cargar el test principal
+      const { data: test, error: testError } = await supabase
+        .from('tests')
+        .select('*')
+        .eq('id', testId as any)
+        .single();
+
+      if (testError) {
+        throw new TestCreationError('Failed to load test', { error: testError });
+      }
+
+      if (!test) {
+        throw new TestCreationError('Test not found');
+      }
+
+      // Cargar competidores si existen
+      const { data: competitors, error: competitorsError } = await supabase
+        .from('test_competitors')
+        .select(`
+          product:amazon_products(*)
+        `)
+        .eq('test_id', testId as any);
+
+      if (competitorsError) {
+        console.warn('Error loading competitors:', competitorsError);
+      }
+
+      // Cargar variaciones si existen
+      const { data: variations, error: variationsError } = await supabase
+        .from('test_variations')
+        .select(`
+          product:products(*),
+          variation_type
+        `)
+        .eq('test_id', testId as any);
+
+      if (variationsError) {
+        console.warn('Error loading variations:', variationsError);
+      }
+
+      // Cargar datos demográficos si existen
+      const { data: demographics, error: demographicsError } = await supabase
+        .from('test_demographics')
+        .select('*')
+        .eq('test_id', testId as any)
+        .maybeSingle();
+
+      if (demographicsError) {
+        console.warn('Error loading demographics:', demographicsError);
+      }
+
+      // Cargar custom screening si existe
+      const { data: customScreening, error: screeningError } = await supabase
+        .from('custom_screening')
+        .select('*')
+        .eq('test_id', testId as any)
+        .maybeSingle();
+
+      if (screeningError) {
+        console.warn('Error loading custom screening:', screeningError);
+      }
+
+      // Mapear el paso del enum a los valores internos
+      const mapEnumToStep = (step: string): string => {
+        switch (step) {
+          case 'search_term':
+            return 'search';
+          case 'variants':
+            return 'variations';
+          default:
+            return step; // competitors, demographics, preview, review
+        }
+      };
+
+      // Usar el paso guardado en la columna step
+      const lastCompletedStep = (test as any).step ? mapEnumToStep((test as any).step) : 'objective';
+
+      // Construir el objeto TestData
+      const testData: TestData = {
+        name: (test as any).name || '',
+        searchTerm: (test as any).search_term || '',
+        objective: (test as any).objective,
+        competitors: competitors?.map((c: any) => c.product) || [],
+        variations: {
+          a: (variations as any)?.find((v: any) => v.variation_type === 'a')?.product || null,
+          b: (variations as any)?.find((v: any) => v.variation_type === 'b')?.product || null,
+          c: (variations as any)?.find((v: any) => v.variation_type === 'c')?.product || null,
+        },
+        demographics: {
+          ageRanges: (demographics as any)?.age_ranges || [],
+          gender: (demographics as any)?.genders || [],
+          locations: (demographics as any)?.locations || [],
+          interests: (demographics as any)?.interests || [],
+          testerCount: (demographics as any)?.tester_count || 25,
+          customScreening: {
+            enabled: !!customScreening,
+            question: (customScreening as any)?.question || '',
+            validAnswer: (customScreening as any)?.valid_option as 'Yes' | 'No' || undefined,
+            isValidating: false,
+          },
+        },
+      };
+
+      return {
+        testData,
+        lastCompletedStep,
+        testId: (test as any).id,
+      };
+    } catch (error) {
+      console.error('Load incomplete test error:', error);
+      if (error instanceof TestCreationError) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred while loading the test');
+      }
+      throw error;
+    }
+  },
+
+  // Función para determinar el siguiente paso basado en el último completado
+  getNextStep(lastCompletedStep: string): string {
+    const steps = ['objective', 'search', 'competitors', 'variations', 'demographics', 'preview', 'review'];
+    const currentIndex = steps.indexOf(lastCompletedStep);
+    
+    if (currentIndex === -1 || currentIndex === steps.length - 1) {
+      return 'objective';
+    }
+    
+    return steps[currentIndex + 1];
+  }
 };

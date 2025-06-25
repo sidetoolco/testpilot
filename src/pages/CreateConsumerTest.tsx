@@ -68,7 +68,7 @@ export default function CreateConsumerTest() {
   // Función para guardar test incompleto
   const saveIncompleteTest = async () => {
     try {
-      const savedTest = await testService.saveIncompleteTest(testData, currentTestId || undefined);
+      const savedTest = await testService.saveIncompleteTest(testData, currentTestId || undefined, currentStep);
       if (!currentTestId) {
         setCurrentTestId((savedTest as any).id);
       }
