@@ -177,7 +177,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   orientation = 'portrait',
 }) => {
   const isLandscape = orientation === 'landscape';
-  
+
   // Ajustar estilos para landscape
   const tableStyles = {
     ...TABLE_STYLES,
@@ -336,17 +336,13 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.aesthetics) }}>
                 {competitor.aesthetics.toFixed(1)}
               </Text>
-              <Text
-                style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience) }}
-              >
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience) }}>
                 {competitor.convenience.toFixed(1)}
               </Text>
               <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.trust) }}>
                 {competitor.trust.toFixed(1)}
               </Text>
-              <Text
-                style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility) }}
-              >
+              <Text style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility) }}>
                 {competitor.utility.toFixed(1)}
               </Text>
             </View>

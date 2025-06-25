@@ -141,9 +141,9 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
   </View>
 );
 
-export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ 
-  testDetails, 
-  orientation = 'portrait' 
+export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
+  testDetails,
+  orientation = 'portrait',
 }) => {
   console.log('Test Details:', testDetails);
   console.log('Created At:', testDetails.createdAt);
@@ -198,7 +198,9 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
             <Header title="Test Design" />
             {/* Test Info */}
             <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}>
+              <Text
+                style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}
+              >
                 {testDetails.name}
               </Text>
               <Text style={{ fontSize: 10, color: COLORS.lightText }}>
@@ -237,13 +239,17 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
 
             {/* Demographics */}
             <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
-              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+              <Text
+                style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}
+              >
                 Demographics
               </Text>
               <View style={{ flexDirection: 'row', gap: 24 }}>
                 {/* Gender Distribution */}
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Gender</Text>
+                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                    Gender
+                  </Text>
                   {genderData.length > 0 ? (
                     <DonutChart data={genderData} />
                   ) : (
@@ -322,10 +328,12 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
         <Page size="A4" orientation={orientation} style={styles.page}>
           <View style={{ ...styles.section, gap: 5 }}>
             <Header title="Test Design" />
-            
+
             {/* Test Configuration */}
             <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
-              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+              <Text
+                style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}
+              >
                 Test Configuration
               </Text>
               <View style={{ gap: 12 }}>

@@ -8,15 +8,15 @@ interface MarkdownTextProps {
   orientation?: 'portrait' | 'landscape';
 }
 
-export const MarkdownText: React.FC<MarkdownTextProps> = ({ 
-  text, 
-  baseTextStyle = {}, 
-  orientation = 'portrait' 
+export const MarkdownText: React.FC<MarkdownTextProps> = ({
+  text,
+  baseTextStyle = {},
+  orientation = 'portrait',
 }) => {
   if (!text) return null;
 
   const isLandscape = orientation === 'landscape';
-  
+
   // Ajustar tamaños de fuente para landscape
   const h3FontSize = isLandscape ? 20 : 24;
   const h2FontSize = isLandscape ? 16 : 20;
@@ -37,7 +37,10 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({
         // Check if it's a header (starts with ###)
         if (paragraph.startsWith('###')) {
           return (
-            <View key={index} style={{ marginBottom: h3MarginBottom, marginTop: isLandscape ? 8 : 12 }}>
+            <View
+              key={index}
+              style={{ marginBottom: h3MarginBottom, marginTop: isLandscape ? 8 : 12 }}
+            >
               <Text
                 style={[
                   styles.text,
@@ -69,7 +72,10 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({
         // Check if it's a subheader (starts with ##)
         if (paragraph.startsWith('##')) {
           return (
-            <View key={index} style={{ marginBottom: h2MarginBottom, marginTop: isLandscape ? 6 : 10 }}>
+            <View
+              key={index}
+              style={{ marginBottom: h2MarginBottom, marginTop: isLandscape ? 6 : 10 }}
+            >
               <Text
                 style={[
                   styles.text,

@@ -9,7 +9,10 @@ interface CompetitiveInsightsTextSectionProps {
 }
 
 // Componente de markdown para procesar texto con formato
-const InsightMarkdownText: React.FC<{ text: string; orientation?: 'portrait' | 'landscape' }> = ({ text, orientation = 'portrait' }) => {
+const InsightMarkdownText: React.FC<{ text: string; orientation?: 'portrait' | 'landscape' }> = ({
+  text,
+  orientation = 'portrait',
+}) => {
   if (!text) return null;
 
   const isLandscape = orientation === 'landscape';
@@ -17,10 +20,12 @@ const InsightMarkdownText: React.FC<{ text: string; orientation?: 'portrait' | '
   const lineHeight = isLandscape ? 1.4 : 1.5; // Ajustar line-height para landscape
 
   return (
-    <View style={{ 
-      marginBottom: isLandscape ? 15 : 20, 
-      marginTop: isLandscape ? 15 : 20 
-    }}>
+    <View
+      style={{
+        marginBottom: isLandscape ? 15 : 20,
+        marginTop: isLandscape ? 15 : 20,
+      }}
+    >
       {text
         .split('\n')
         .map((line, index) => {

@@ -76,13 +76,24 @@ const PDFDocument = ({
 
   return (
     <Document>
-      <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} orientation={orientation} />
+      <CoverPageSection
+        testDetails={testDetails}
+        variantsArray={variantsArray}
+        orientation={orientation}
+      />
       <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
-      <SummaryPDFSection summaryData={summaryData} insights={safeInsights} orientation={orientation} />
+      <SummaryPDFSection
+        summaryData={summaryData}
+        insights={safeInsights}
+        orientation={orientation}
+      />
 
       {/* Nueva estructura: Purchase Drivers con texto general primero */}
       {safeInsights?.purchase_drivers && (
-        <PurchaseDriversTextSection insights={safeInsights.purchase_drivers} orientation={orientation} />
+        <PurchaseDriversTextSection
+          insights={safeInsights.purchase_drivers}
+          orientation={orientation}
+        />
       )}
 
       {/* Luego las gráficas de cada variante */}
@@ -104,7 +115,10 @@ const PDFDocument = ({
 
       {/* Nueva estructura: Competitive Insights con texto general primero */}
       {safeInsights?.competitive_insights && (
-        <CompetitiveInsightsTextSection insights={safeInsights.competitive_insights} orientation={orientation} />
+        <CompetitiveInsightsTextSection
+          insights={safeInsights.competitive_insights}
+          orientation={orientation}
+        />
       )}
 
       {/* Luego las tablas de cada variante */}
@@ -134,7 +148,10 @@ const PDFDocument = ({
       */}
 
       {safeInsights?.recommendations && (
-        <RecommendationsPDFSection insights={safeInsights.recommendations} orientation={orientation} />
+        <RecommendationsPDFSection
+          insights={safeInsights.recommendations}
+          orientation={orientation}
+        />
       )}
     </Document>
   );
@@ -315,7 +332,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           <RefreshCcw size={20} />
           {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
         </button>
-        
+
         {/* Dropdown para Export to PDF */}
         <div className="relative">
           <button
@@ -327,7 +344,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             {isGenerating ? 'Generating PDF...' : 'Export to PDF'}
             <ChevronDown size={16} />
           </button>
-          
+
           {showOrientationMenu && (
             <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-full">
               <button
@@ -339,9 +356,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                 className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >
                 <span>Portrait</span>
-                {orientation === 'portrait' && (
-                  <span className="text-green-600 font-bold">✓</span>
-                )}
+                {orientation === 'portrait' && <span className="text-green-600 font-bold">✓</span>}
               </button>
               <div className="border-t border-gray-100"></div>
               <button
@@ -353,9 +368,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
                 className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >
                 <span>Landscape</span>
-                {orientation === 'landscape' && (
-                  <span className="text-green-600 font-bold">✓</span>
-                )}
+                {orientation === 'landscape' && <span className="text-green-600 font-bold">✓</span>}
               </button>
             </div>
           )}
@@ -364,10 +377,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
       {/* Cerrar menú al hacer click fuera */}
       {showOrientationMenu && (
-        <div 
-          className="fixed inset-0 z-5" 
-          onClick={() => setShowOrientationMenu(false)}
-        />
+        <div className="fixed inset-0 z-5" onClick={() => setShowOrientationMenu(false)} />
       )}
 
       {isPreviewOpen && pdfUrl && (

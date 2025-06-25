@@ -126,7 +126,9 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
               </View>
 
               {/* Chart */}
-              <View style={[styles.chartGrid, { height: chartHeight, marginTop: isLandscape ? 5 : 10 }]}>
+              <View
+                style={[styles.chartGrid, { height: chartHeight, marginTop: isLandscape ? 5 : 10 }]}
+              >
                 {/* Y Axis */}
                 <View style={styles.yAxis}>
                   {[5, 4, 3, 2, 1, 0].map(value => (
@@ -165,7 +167,9 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
               </View>
 
               {/* X Axis Labels */}
-              <View style={[styles.xAxis, { paddingHorizontal: '2%', bottom: isLandscape ? -15 : -20 }]}>
+              <View
+                style={[styles.xAxis, { paddingHorizontal: '2%', bottom: isLandscape ? -15 : -20 }]}
+              >
                 {LABELS.map(label => (
                   <View key={label} style={{ width: '18%', alignItems: 'center' }}>
                     <Text style={styles.xAxisLabel}>{label}</Text>

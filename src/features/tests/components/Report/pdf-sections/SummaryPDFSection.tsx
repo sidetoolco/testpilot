@@ -104,10 +104,10 @@ const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ 
-  summaryData, 
-  insights, 
-  orientation = 'portrait' 
+export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
+  summaryData,
+  insights,
+  orientation = 'portrait',
 }) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);
@@ -125,11 +125,13 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
             <Text style={{ color: '#666', fontSize: 12 }}>No hay datos disponibles</Text>
           </View>
         ) : (
-          <View style={{ 
-            border: '1px solid #E5E7EB', 
-            borderRadius: 8, 
-            marginBottom: isLandscape ? 12 : 20 
-          }}>
+          <View
+            style={{
+              border: '1px solid #E5E7EB',
+              borderRadius: 8,
+              marginBottom: isLandscape ? 12 : 20,
+            }}
+          >
             {/* Table Header */}
             <View
               style={{
