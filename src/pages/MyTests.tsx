@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil } from 'lucide-react';
+import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil, Play, Pause, FileText, TrendingUp, Calendar, BarChart3 } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useState, useEffect, useMemo } from 'react';
@@ -10,6 +10,7 @@ import ModalLayout from '../layouts/ModalLayout';
 import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import SearchInput from '../components/ui/SearchInput';
+import { useContinueTest } from '../features/tests/hooks/useContinueTest';
 
 interface Variation {
   id: string;
@@ -68,6 +69,7 @@ export default function MyTests() {
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { continueTest } = useContinueTest();
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -177,6 +179,25 @@ export default function MyTests() {
     const variantsArray = [test.variations.a, test.variations.b, test.variations.c].filter(v => v);
 
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
+  };
+
+  // Nueva función para manejar la continuación de tests incompletos
+  const handleContinueTest = async (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se active el onClick del contenedor
+    
+    const result = await continueTest(testId);
+    
+    if (result) {
+      // Navegar directamente a /create-test con los datos del test incompleto
+      navigate('/create-test', {
+        state: {
+          testData: result.testData,
+          testId: result.testId,
+          isIncompleteTest: true,
+          currentStep: result.currentStep,
+        },
+      });
+    }
   };
 
   // Filtrar tests basado en la búsqueda

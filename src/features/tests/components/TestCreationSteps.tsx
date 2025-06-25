@@ -26,6 +26,15 @@ export function TestCreationSteps({
   const isFirstStep = currentIndex === 0;
   const isLastStep = currentIndex === steps.length - 1;
 
+  console.log('TestCreationSteps renderizado:', {
+    currentStep,
+    currentIndex,
+    isFirstStep,
+    isLastStep,
+    canProceed,
+    stepsLength: steps.length
+  });
+
   return (
     <div className="border-b">
       <div className="max-w-6xl mx-auto px-8 py-6">

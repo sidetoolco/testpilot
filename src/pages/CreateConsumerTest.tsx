@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
 import { testService } from '../features/tests/services/testService';
 import { TestCreationSteps } from '../features/tests/components/TestCreationSteps';
 import { TestCreationContent } from '../features/tests/components/TestCreationContent';
 import { TestData } from '../features/tests/types';
+import { useTestStateFromLocation, initializeTestFromState } from '../features/tests/utils/testStateManager';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -59,11 +60,55 @@ export const getGlobalTestState = () => globalTestState;
 
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
+
+  // Obtener estado del test incompleto desde la navegación
+  const testState = useTestStateFromLocation();
+
+  // Log para verificar el estado del hook
+  console.log('CreateConsumerTest renderizado - currentStep:', currentStep, 'canProceed:', canProceed());
+
+  // Efecto para inicializar test incompleto si viene desde navegación
+  useEffect(() => {
+    console.log('TestState recibido:', testState);
+    console.log('isIncompleteTest:', testState.isIncompleteTest);
+    console.log('testData:', testState.testData);
+    console.log('currentStep:', testState.currentStep);
+    
+    // Solo inicializar si es un test incompleto Y no se ha inicializado ya
+    if (testState.isIncompleteTest && testState.testData && !currentTestId) {
+      console.log('Inicializando test incompleto:', testState);
+      
+      // Cargar datos del test
+      setTestData(testState.testData);
+      console.log('TestData establecido:', testState.testData);
+      
+      // Establecer ID del test
+      if (testState.testId) {
+        setCurrentTestId(testState.testId);
+        console.log('TestId establecido:', testState.testId);
+      }
+      
+      // Establecer el paso correcto
+      if (testState.currentStep) {
+        console.log('Estableciendo paso a:', testState.currentStep);
+        setCurrentStep(testState.currentStep);
+        console.log('Paso establecido correctamente');
+        
+        // Forzar un re-render para asegurar que el estado se actualice
+        setTimeout(() => {
+          console.log('Estado final - currentStep:', testState.currentStep);
+        }, 100);
+      }
+      
+      toast.success('Test incompleto cargado correctamente');
+    }
+  }, [testState, setCurrentStep, currentTestId]);
 
   // Función para guardar test incompleto
   const saveIncompleteTest = async () => {
@@ -97,6 +142,7 @@ export default function CreateConsumerTest() {
   }, []);
 
   const handleBack = () => {
+    console.log('handleBack ejecutado - currentStep:', currentStep);
     const currentIndex = steps.findIndex(s => s.key === currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
@@ -146,6 +192,7 @@ export default function CreateConsumerTest() {
   };
 
   const handleContinue = () => {
+    console.log('handleContinue ejecutado - currentStep:', currentStep);
     if (handleNext()) {
       const currentIndex = steps.findIndex(s => s.key === currentStep);
       if (currentIndex < steps.length - 1) {

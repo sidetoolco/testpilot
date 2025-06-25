@@ -406,25 +406,32 @@ export const testService = {
         test = data;
       }
 
-      // Guardar datos relacionados según el paso actual (replicando createTest)
-      // Step 3: Insertar competidores (si estamos en paso competitors o posterior)
+      // ULTRA OPTIMIZACIÓN: Solo operaciones de base de datos locales, sin APIs externas
+      const allOperations: Promise<any>[] = [];
+
+      // Competidores - OPTIMIZADO: Inserción directa sin API externa
       if (testData.competitors && testData.competitors.length > 0) {
-        await this.saveAmazonProducts(test.id, testData.competitors);
+        allOperations.push(this.saveCompetitorsBatch(test.id, testData.competitors));
       }
 
-      // Step 4: Insertar variaciones (si estamos en paso variations o posterior)
+      // Variaciones
       if (testData.variations) {
-        await this.insertVariations(test.id, testData.variations);
+        allOperations.push(this.insertVariationsBatch(test.id, testData.variations));
       }
 
-      // Step 5: Insertar datos demográficos (si estamos en paso demographics o posterior)
+      // Demográficos
       if (testData.demographics) {
-        await this.insertDemographics(test.id, testData.demographics);
+        allOperations.push(this.insertDemographicsBatch(test.id, testData.demographics));
       }
 
-      // Step 6: Guardar custom screening questions (si está habilitado y estamos en paso demographics o posterior)
+      // Custom screening
       if (testData.demographics?.customScreening?.enabled) {
-        await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
+        allOperations.push(this.saveCustomScreeningBatch(test.id, testData.demographics.customScreening));
+      }
+
+      // Ejecutar TODAS las operaciones en paralelo
+      if (allOperations.length > 0) {
+        await Promise.all(allOperations);
       }
 
       return test;
@@ -439,7 +446,92 @@ export const testService = {
     }
   },
 
-  // Función para cargar un test incompleto con todos sus datos relacionados
+  // Nueva función optimizada para guardar competidores sin API externa
+  async saveCompetitorsBatch(testId: string, competitors: any[]) {
+    if (!competitors || competitors.length === 0) return;
+
+    try {
+      // Primero, limpiar competidores existentes para este test
+      await supabase.from('test_competitors').delete().eq('test_id', testId as any);
+
+      // Preparar datos para inserción - usar 'id' (UUID) no 'asin' (string)
+      const competitorData = competitors.map(competitor => ({
+        test_id: testId,
+        product_id: competitor.id, // Usar solo el ID (UUID), no el ASIN
+      }));
+
+      console.log('Inserting competitor data:', competitorData);
+
+      // Insertar competidores con 'as any' para evitar problemas de tipos que causan query params incorrectos
+      const { data, error } = await supabase
+        .from('test_competitors')
+        .insert(competitorData as any);
+
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw new TestCreationError('Failed to save competitors', { error });
+      }
+
+      console.log('Competitors saved successfully:', data);
+    } catch (error) {
+      console.error('Error in saveCompetitorsBatch:', error);
+      throw error;
+    }
+  },
+
+  // Versión batch de insertVariations
+  async insertVariationsBatch(testId: string, variations: TestData['variations']) {
+    const variationData = Object.entries(variations)
+      .filter(([_, variation]) => variation !== null)
+      .map(([type, variation]) => ({
+        test_id: testId,
+        product_id: variation!.id,
+        variation_type: type,
+      }));
+
+    if (variationData.length === 0) return;
+
+    const { error } = await supabase.from('test_variations').insert(variationData as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to add variations', { error });
+    }
+  },
+
+  // Versión batch de insertDemographics
+  async insertDemographicsBatch(testId: string, demographics: TestData['demographics']) {
+    const { error } = await supabase.from('test_demographics').insert({
+      test_id: testId,
+      age_ranges: demographics.ageRanges,
+      genders: demographics.gender,
+      locations: demographics.locations,
+      interests: demographics.interests,
+      tester_count: demographics.testerCount,
+    } as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to add demographics', { error });
+    }
+  },
+
+  // Versión batch de saveCustomScreening
+  async saveCustomScreeningBatch(testId: string, customScreening: CustomScreening) {
+    const { error } = await supabase.from('custom_screening').insert({
+      test_id: testId,
+      question: customScreening.question,
+      valid_option: customScreening.validAnswer,
+      invalid_option: customScreening.validAnswer === 'Yes' ? 'No' : 'Yes',
+    } as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to save custom screening question', { error });
+    }
+  },
+
+  // Función para cargar un test incompleto con todos sus datos relacionados (MEJORADA)
   async loadIncompleteTest(testId: string) {
     try {
       const {
@@ -464,97 +556,144 @@ export const testService = {
         throw new TestCreationError('Test not found');
       }
 
-      // Cargar competidores si existen
-      const { data: competitors, error: competitorsError } = await supabase
-        .from('test_competitors')
-        .select(`
-          product:amazon_products(*)
-        `)
-        .eq('test_id', testId as any);
+      // Cargar todos los datos relacionados en paralelo para mejor rendimiento
+      const [
+        competitorsResult,
+        variationsResult,
+        demographicsResult,
+        customScreeningResult
+      ] = await Promise.all([
+        // Cargar competidores desde test_competitors -> amazon_products
+        supabase
+          .from('test_competitors')
+          .select(`
+            product:amazon_products(*)
+          `)
+          .eq('test_id', testId as any),
 
-      if (competitorsError) {
-        console.warn('Error loading competitors:', competitorsError);
-      }
+        // Cargar variaciones desde test_variations -> products
+        supabase
+          .from('test_variations')
+          .select(`
+            product:products(*),
+            variation_type
+          `)
+          .eq('test_id', testId as any),
 
-      // Cargar variaciones si existen
-      const { data: variations, error: variationsError } = await supabase
-        .from('test_variations')
-        .select(`
-          product:products(*),
-          variation_type
-        `)
-        .eq('test_id', testId as any);
+        // Cargar demográficos
+        supabase
+          .from('test_demographics')
+          .select('*')
+          .eq('test_id', testId as any)
+          .maybeSingle(),
 
-      if (variationsError) {
-        console.warn('Error loading variations:', variationsError);
-      }
+        // Cargar custom screening
+        supabase
+          .from('custom_screening')
+          .select('*')
+          .eq('test_id', testId as any)
+          .maybeSingle()
+      ]);
 
-      // Cargar datos demográficos si existen
-      const { data: demographics, error: demographicsError } = await supabase
-        .from('test_demographics')
-        .select('*')
-        .eq('test_id', testId as any)
-        .maybeSingle();
+      // Procesar competidores (manejar caso vacío)
+      const competitors = competitorsResult.error 
+        ? [] 
+        : (competitorsResult.data || []).map((c: any) => c.product).filter(Boolean);
 
-      if (demographicsError) {
-        console.warn('Error loading demographics:', demographicsError);
-      }
+      // Procesar variaciones (manejar caso vacío)
+      const variations = variationsResult.error 
+        ? { a: null, b: null, c: null }
+        : (variationsResult.data || []).reduce((acc: any, v: any) => {
+            if (v.product && v.variation_type) {
+              acc[v.variation_type] = v.product;
+            }
+            return acc;
+          }, { a: null, b: null, c: null });
 
-      // Cargar custom screening si existe
-      const { data: customScreening, error: screeningError } = await supabase
-        .from('custom_screening')
-        .select('*')
-        .eq('test_id', testId as any)
-        .maybeSingle();
+      // Procesar demográficos (manejar caso vacío)
+      const demographics = demographicsResult.error || !demographicsResult.data
+        ? {
+            ageRanges: [],
+            gender: [],
+            locations: [],
+            interests: [],
+            testerCount: 25,
+            customScreening: {
+              enabled: false,
+              question: '',
+              validAnswer: undefined,
+              isValidating: false,
+            },
+          }
+        : {
+            ageRanges: demographicsResult.data.age_ranges || [],
+            gender: demographicsResult.data.genders || [],
+            locations: demographicsResult.data.locations || [],
+            interests: demographicsResult.data.interests || [],
+            testerCount: demographicsResult.data.tester_count || 25,
+            customScreening: {
+              enabled: !!customScreeningResult.data,
+              question: customScreeningResult.data?.question || '',
+              validAnswer: customScreeningResult.data?.valid_option as 'Yes' | 'No' || undefined,
+              isValidating: false,
+            },
+          };
 
-      if (screeningError) {
-        console.warn('Error loading custom screening:', screeningError);
-      }
-
-      // Mapear el paso del enum a los valores internos
+      // Mapear el paso del enum a los valores internos de la UI
       const mapEnumToStep = (step: string): string => {
         switch (step) {
           case 'search_term':
             return 'search';
+          case 'competitors':
+            return 'competitors';
           case 'variants':
             return 'variations';
+          case 'demographics':
+            return 'demographics';
+          case 'preview':
+            return 'preview';
+          case 'review':
+            return 'review';
           default:
-            return step; // competitors, demographics, preview, review
+            return 'objective'; // Si no hay paso guardado, empezar desde el principio
         }
       };
 
-      // Usar el paso guardado en la columna step
-      const lastCompletedStep = (test as any).step ? mapEnumToStep((test as any).step) : 'objective';
+      // Determinar el último paso completado basado en los datos disponibles
+      let lastCompletedStep = 'objective';
+      
+      if ((test as any).search_term) {
+        lastCompletedStep = 'search';
+      }
+      if (competitors.length > 0) {
+        lastCompletedStep = 'competitors';
+      }
+      if (variations.a || variations.b || variations.c) {
+        lastCompletedStep = 'variations';
+      }
+      if (demographics.ageRanges.length > 0 || demographics.gender.length > 0) {
+        lastCompletedStep = 'demographics';
+      }
 
-      // Construir el objeto TestData
-      const testData: TestData = {
+      // Si hay un paso guardado en la columna step, usarlo; si no, usar el determinado por los datos
+      const currentStep = (test as any).step 
+        ? mapEnumToStep((test as any).step) 
+        : lastCompletedStep;
+
+      // Construir el objeto TestData completo
+      const testData = {
         name: (test as any).name || '',
         searchTerm: (test as any).search_term || '',
         objective: (test as any).objective,
-        competitors: competitors?.map((c: any) => c.product) || [],
-        variations: {
-          a: (variations as any)?.find((v: any) => v.variation_type === 'a')?.product || null,
-          b: (variations as any)?.find((v: any) => v.variation_type === 'b')?.product || null,
-          c: (variations as any)?.find((v: any) => v.variation_type === 'c')?.product || null,
-        },
-        demographics: {
-          ageRanges: (demographics as any)?.age_ranges || [],
-          gender: (demographics as any)?.genders || [],
-          locations: (demographics as any)?.locations || [],
-          interests: (demographics as any)?.interests || [],
-          testerCount: (demographics as any)?.tester_count || 25,
-          customScreening: {
-            enabled: !!customScreening,
-            question: (customScreening as any)?.question || '',
-            validAnswer: (customScreening as any)?.valid_option as 'Yes' | 'No' || undefined,
-            isValidating: false,
-          },
-        },
+        competitors: competitors,
+        variations: variations,
+        demographics: demographics,
       };
 
       return {
         testData,
         lastCompletedStep,
+        currentStep,
         testId: (test as any).id,
       };
     } catch (error) {
@@ -578,5 +717,34 @@ export const testService = {
     }
     
     return steps[currentIndex + 1];
-  }
+  },
+
+  // Función helper para continuar un test incompleto
+  async continueIncompleteTest(testId: string) {
+    try {
+      // Cargar todos los datos del test
+      const { testData, currentStep, lastCompletedStep } = await this.loadIncompleteTest(testId);
+      
+      // Usar currentStep como el paso al que navegar (donde se quedó el usuario)
+      // No necesitamos nextStep, queremos ir al paso actual
+      
+      console.log('ContinueIncompleteTest - Datos cargados:', {
+        testId,
+        currentStep,
+        lastCompletedStep,
+        testDataKeys: Object.keys(testData)
+      });
+      
+      return {
+        testData,
+        currentStep,
+        lastCompletedStep,
+        nextStep: currentStep, // Mantener compatibilidad con la interfaz existente
+        testId,
+      };
+    } catch (error) {
+      console.error('Continue incomplete test error:', error);
+      throw error;
+    }
+  },
 };
