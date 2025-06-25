@@ -6,17 +6,19 @@ import { MarkdownText } from '../utils/MarkdownText';
 
 interface RecommendationsPDFSectionProps {
   insights: string;
+  orientation?: 'portrait' | 'landscape';
 }
 
 export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps> = ({
   insights,
+  orientation = 'portrait',
 }) => {
   if (!insights) return null;
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Recommendations" />
-        <MarkdownText text={insights} />
+        <MarkdownText text={insights} orientation={orientation} />
       </View>
       <View
         style={{

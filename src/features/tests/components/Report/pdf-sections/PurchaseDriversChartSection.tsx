@@ -94,6 +94,12 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
     return null;
   }
 
+  // Ajustar dimensiones para landscape
+  const isLandscape = orientation === 'landscape';
+  const chartHeight = isLandscape ? 200 : 250; // Reducir altura en landscape
+  const containerHeight = isLandscape ? 250 : 300; // Reducir altura del contenedor
+  const padding = isLandscape ? '12px 16px 30px 16px' : '16px 16px 40px 16px'; // Reducir padding en landscape
+
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
@@ -104,13 +110,13 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
             style={{
               border: '1px solid #E0E0E0',
               borderRadius: 4,
-              padding: '16px 16px 40px 16px',
-              marginTop: 16,
+              padding: padding,
+              marginTop: isLandscape ? 8 : 16, // Reducir margen superior en landscape
             }}
           >
-            <View style={styles.chartContainer}>
+            <View style={[styles.chartContainer, { height: containerHeight }]}>
               {/* Legend */}
-              <View style={styles.chartLegend}>
+              <View style={[styles.chartLegend, { marginBottom: isLandscape ? 10 : 15 }]}>
                 {datasets.map((dataset: Dataset, i: number) => (
                   <View key={i} style={styles.legendItem}>
                     <View style={[styles.legendColor, { backgroundColor: dataset.color }]} />
@@ -120,7 +126,7 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
               </View>
 
               {/* Chart */}
-              <View style={styles.chartGrid}>
+              <View style={[styles.chartGrid, { height: chartHeight, marginTop: isLandscape ? 5 : 10 }]}>
                 {/* Y Axis */}
                 <View style={styles.yAxis}>
                   {[5, 4, 3, 2, 1, 0].map(value => (
@@ -159,7 +165,7 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
               </View>
 
               {/* X Axis Labels */}
-              <View style={[styles.xAxis, { paddingHorizontal: '2%' }]}>
+              <View style={[styles.xAxis, { paddingHorizontal: '2%', bottom: isLandscape ? -15 : -20 }]}>
                 {LABELS.map(label => (
                   <View key={label} style={{ width: '18%', alignItems: 'center' }}>
                     <Text style={styles.xAxisLabel}>{label}</Text>

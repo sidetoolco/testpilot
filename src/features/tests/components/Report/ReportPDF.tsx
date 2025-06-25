@@ -104,7 +104,7 @@ const PDFDocument = ({
 
       {/* Nueva estructura: Competitive Insights con texto general primero */}
       {safeInsights?.competitive_insights && (
-        <CompetitiveInsightsTextSection insights={safeInsights.competitive_insights} />
+        <CompetitiveInsightsTextSection insights={safeInsights.competitive_insights} orientation={orientation} />
       )}
 
       {/* Luego las tablas de cada variante */}
@@ -120,6 +120,7 @@ const PDFDocument = ({
                   (item: any) => item.variant_type === key
                 ) || []
               }
+              orientation={orientation}
             />
           )
       )}
@@ -133,7 +134,7 @@ const PDFDocument = ({
       */}
 
       {safeInsights?.recommendations && (
-        <RecommendationsPDFSection insights={safeInsights.recommendations} />
+        <RecommendationsPDFSection insights={safeInsights.recommendations} orientation={orientation} />
       )}
     </Document>
   );
@@ -328,31 +329,32 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           </button>
           
           {showOrientationMenu && (
-            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[140px]">
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-full">
               <button
                 onClick={() => {
                   setOrientation('portrait');
                   setShowOrientationMenu(false);
                   handleExportPDF('portrait');
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >
                 <span>Portrait</span>
                 {orientation === 'portrait' && (
-                  <span className="text-green-600">✓</span>
+                  <span className="text-green-600 font-bold">✓</span>
                 )}
               </button>
+              <div className="border-t border-gray-100"></div>
               <button
                 onClick={() => {
                   setOrientation('landscape');
                   setShowOrientationMenu(false);
                   handleExportPDF('landscape');
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >
                 <span>Landscape</span>
                 {orientation === 'landscape' && (
-                  <span className="text-green-600">✓</span>
+                  <span className="text-green-600 font-bold">✓</span>
                 )}
               </button>
             </div>

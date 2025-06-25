@@ -5,14 +5,22 @@ import { Header } from './Header';
 
 interface CompetitiveInsightsTextSectionProps {
   insights: string;
+  orientation?: 'portrait' | 'landscape';
 }
 
 // Componente de markdown para procesar texto con formato
-const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
+const InsightMarkdownText: React.FC<{ text: string; orientation?: 'portrait' | 'landscape' }> = ({ text, orientation = 'portrait' }) => {
   if (!text) return null;
 
+  const isLandscape = orientation === 'landscape';
+  const fontSize = isLandscape ? 11 : 12; // Reducir ligeramente el tamaño de fuente en landscape
+  const lineHeight = isLandscape ? 1.4 : 1.5; // Ajustar line-height para landscape
+
   return (
-    <View style={{ marginBottom: 20, marginTop: 20 }}>
+    <View style={{ 
+      marginBottom: isLandscape ? 15 : 20, 
+      marginTop: isLandscape ? 15 : 20 
+    }}>
       {text
         .split('\n')
         .map((line, index) => {
@@ -25,10 +33,10 @@ const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
             <Text
               key={index}
               style={{
-                fontSize: 12,
+                fontSize: fontSize,
                 color: '#333',
-                marginBottom: 8,
-                lineHeight: 1.5,
+                marginBottom: isLandscape ? 6 : 8,
+                lineHeight: lineHeight,
                 paddingLeft: line.startsWith('•') ? 12 : 0,
               }}
             >
@@ -76,12 +84,13 @@ const Footer: React.FC = () => (
 
 export const CompetitiveInsightsTextSection: React.FC<CompetitiveInsightsTextSectionProps> = ({
   insights,
+  orientation = 'portrait',
 }) => {
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Competitive Insights" />
-        <InsightMarkdownText text={insights} />
+        <InsightMarkdownText text={insights} orientation={orientation} />
       </View>
       <Footer />
     </Page>

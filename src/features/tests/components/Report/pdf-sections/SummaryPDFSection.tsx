@@ -111,6 +111,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
 }) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);
+  const isLandscape = orientation === 'landscape';
 
   const comparisonText = insights?.comparison_between_variants;
 
@@ -124,7 +125,11 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
             <Text style={{ color: '#666', fontSize: 12 }}>No hay datos disponibles</Text>
           </View>
         ) : (
-          <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, marginBottom: 20 }}>
+          <View style={{ 
+            border: '1px solid #E5E7EB', 
+            borderRadius: 8, 
+            marginBottom: isLandscape ? 12 : 20 
+          }}>
             {/* Table Header */}
             <View
               style={{
@@ -139,8 +144,8 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
                   style={{
                     width: header.width,
                     borderRight: index < tableHeaders.length - 1 ? '1px solid #E5E7EB' : 'none',
-                    paddingHorizontal: 8,
-                    paddingVertical: 10,
+                    paddingHorizontal: isLandscape ? 4 : 8,
+                    paddingVertical: isLandscape ? 6 : 10,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -148,7 +153,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
                 >
                   <Text
                     style={{
-                      fontSize: 10,
+                      fontSize: isLandscape ? 8 : 10,
                       fontWeight: 'bold',
                       color: '#6B7280',
                       textAlign: 'center',
@@ -178,8 +183,8 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
                       style={{
                         width: tableHeaders[cellIndex].width,
                         borderRight: cellIndex < row.length - 1 ? '1px solid #E5E7EB' : 'none',
-                        paddingHorizontal: 8,
-                        paddingVertical: 10,
+                        paddingHorizontal: isLandscape ? 4 : 8,
+                        paddingVertical: isLandscape ? 6 : 10,
                         display: 'flex',
                         alignItems: cellIndex === 0 ? 'flex-start' : 'center',
                         justifyContent: cellIndex === 0 ? 'flex-start' : 'center',
@@ -188,7 +193,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
                     >
                       <Text
                         style={{
-                          fontSize: 12,
+                          fontSize: isLandscape ? 10 : 12,
                           color: colors.text,
                           fontWeight: cellIndex === 0 ? 'normal' : 'bold',
                           textAlign: cellIndex === 0 ? 'left' : 'center',

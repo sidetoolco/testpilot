@@ -5,10 +5,26 @@ import { styles } from './styles';
 interface MarkdownTextProps {
   text?: string;
   baseTextStyle?: any;
+  orientation?: 'portrait' | 'landscape';
 }
 
-export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle = {} }) => {
+export const MarkdownText: React.FC<MarkdownTextProps> = ({ 
+  text, 
+  baseTextStyle = {}, 
+  orientation = 'portrait' 
+}) => {
   if (!text) return null;
+
+  const isLandscape = orientation === 'landscape';
+  
+  // Ajustar tamaños de fuente para landscape
+  const h3FontSize = isLandscape ? 20 : 24;
+  const h2FontSize = isLandscape ? 16 : 20;
+  const bodyFontSize = isLandscape ? 12 : 14;
+  const lineHeight = isLandscape ? 1.4 : 1.6;
+  const marginBottom = isLandscape ? 8 : 12;
+  const h3MarginBottom = isLandscape ? 16 : 20;
+  const h2MarginBottom = isLandscape ? 12 : 16;
 
   const renderMarkdownText = (content: string) => {
     // Split by newlines first to handle paragraphs
@@ -21,12 +37,12 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
         // Check if it's a header (starts with ###)
         if (paragraph.startsWith('###')) {
           return (
-            <View key={index} style={{ marginBottom: 20, marginTop: 12 }}>
+            <View key={index} style={{ marginBottom: h3MarginBottom, marginTop: isLandscape ? 8 : 12 }}>
               <Text
                 style={[
                   styles.text,
                   {
-                    fontSize: 24,
+                    fontSize: h3FontSize,
                     fontWeight: 'bold',
                     color: '#111827',
                     letterSpacing: -0.5,
@@ -53,12 +69,12 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
         // Check if it's a subheader (starts with ##)
         if (paragraph.startsWith('##')) {
           return (
-            <View key={index} style={{ marginBottom: 16, marginTop: 10 }}>
+            <View key={index} style={{ marginBottom: h2MarginBottom, marginTop: isLandscape ? 6 : 10 }}>
               <Text
                 style={[
                   styles.text,
                   {
-                    fontSize: 20,
+                    fontSize: h2FontSize,
                     fontWeight: 'bold',
                     color: '#1F2937',
                     letterSpacing: -0.3,
@@ -82,10 +98,10 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
             style={[
               styles.text,
               {
-                fontSize: 14,
+                fontSize: bodyFontSize,
                 color: '#4B5563',
-                marginBottom: 12,
-                lineHeight: 1.6,
+                marginBottom: marginBottom,
+                lineHeight: lineHeight,
                 letterSpacing: 0.2,
               },
               baseTextStyle,
@@ -118,7 +134,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ text, baseTextStyle 
   return (
     <View
       style={{
-        marginBottom: 24,
+        marginBottom: isLandscape ? 16 : 24,
         paddingHorizontal: 4,
       }}
     >

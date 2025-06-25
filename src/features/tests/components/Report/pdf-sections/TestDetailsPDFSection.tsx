@@ -188,6 +188,252 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
       return acc;
     }, []) || [];
 
+  // En landscape, dividir en dos páginas para evitar cortes
+  if (orientation === 'landscape') {
+    return (
+      <>
+        {/* Primera página: Header, Test Info, Metrics, Demographics */}
+        <Page size="A4" orientation={orientation} style={styles.page}>
+          <View style={{ ...styles.section, gap: 5 }}>
+            <Header title="Test Design" />
+            {/* Test Info */}
+            <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 }}>
+                {testDetails.name}
+              </Text>
+              <Text style={{ fontSize: 10, color: COLORS.lightText }}>
+                Created on{' '}
+                {new Date(testDetails.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+            </View>
+
+            {/* Metrics */}
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <MetricCard
+                icon={
+                  <Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>
+                    {'\uf0c0'}
+                  </Text>
+                }
+                label="Total Testers"
+                value={testDetails.demographics.testerCount}
+                color={COLORS.primary}
+              />
+              <MetricCard
+                icon={
+                  <Text style={{ color: 'white', fontSize: 16, fontFamily: 'FontAwesome' }}>
+                    {'\uf091'}
+                  </Text>
+                }
+                label="Completed Sessions"
+                value={completedSessionsFraction}
+                color={COLORS.secondary}
+              />
+            </View>
+
+            {/* Demographics */}
+            <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+                Demographics
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 24 }}>
+                {/* Gender Distribution */}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Gender</Text>
+                  {genderData.length > 0 ? (
+                    <DonutChart data={genderData} />
+                  ) : (
+                    <Text style={{ fontSize: 10, color: COLORS.lightText }}>
+                      No gender data available
+                    </Text>
+                  )}
+                </View>
+
+                {/* Age Range - Texto simple */}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                    Age Range
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: COLORS.text,
+                      backgroundColor: COLORS.background,
+                      padding: 8,
+                      borderRadius: 4,
+                    }}
+                  >
+                    {testDetails.demographics.ageRanges &&
+                    testDetails.demographics.ageRanges.length >= 2
+                      ? `${testDetails.demographics.ageRanges[0]} - ${testDetails.demographics.ageRanges[1]} years`
+                      : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'}
+                  </Text>
+                </View>
+
+                {/* Locations - Texto simple */}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                    Locations
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: COLORS.text,
+                      backgroundColor: COLORS.background,
+                      padding: 8,
+                      borderRadius: 4,
+                    }}
+                  >
+                    {testDetails.demographics.locations?.join(', ') || 'No location data available'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View
+            style={{
+              borderTop: '1px solid #000000',
+              paddingTop: 20,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Link
+              src="https://TestPilotCPG.com"
+              style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+            >
+              TestPilotCPG.com
+            </Link>
+            <Text
+              style={styles.pageNumber}
+              render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
+            />
+          </View>
+        </Page>
+
+        {/* Segunda página: Test Configuration */}
+        <Page size="A4" orientation={orientation} style={styles.page}>
+          <View style={{ ...styles.section, gap: 5 }}>
+            <Header title="Test Design" />
+            
+            {/* Test Configuration */}
+            <View style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 }}>
+                Test Configuration
+              </Text>
+              <View style={{ gap: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontSize: 10, color: COLORS.lightText }}>Search Term:</Text>
+                  <Text style={{ fontSize: 10, color: COLORS.text }}>{testDetails.searchTerm}</Text>
+                </View>
+
+                <View>
+                  <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>
+                    Competitors
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 4, flexWrap: 'wrap' }}>
+                    {testDetails.competitors?.map((competitor, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 4,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <Image
+                          src={competitor.image_url}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                          }}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View>
+                  <Text style={{ fontSize: 10, color: COLORS.lightText, marginBottom: 8 }}>
+                    Variations
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                    {Object.values(testDetails.variations)
+                      .filter(v => v !== null)
+                      .map((variation, index) => (
+                        <View
+                          key={index}
+                          style={{
+                            flex: 1,
+                            border: `1px solid ${COLORS.border}`,
+                            borderRadius: 8,
+                            padding: 8,
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Image
+                            src={variation.image_url}
+                            style={{
+                              width: 60,
+                              height: 60,
+                              objectFit: 'contain',
+                              marginBottom: 8,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              color: COLORS.text,
+                              textAlign: 'center',
+                            }}
+                          >
+                            {variation.title}
+                          </Text>
+                        </View>
+                      ))}
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View
+            style={{
+              borderTop: '1px solid #000000',
+              paddingTop: 20,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Link
+              src="https://TestPilotCPG.com"
+              style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+            >
+              TestPilotCPG.com
+            </Link>
+            <Text
+              style={styles.pageNumber}
+              render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
+            />
+          </View>
+        </Page>
+      </>
+    );
+  }
+
+  // Versión original para portrait (sin cambios)
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={{ ...styles.section, gap: 5 }}>
