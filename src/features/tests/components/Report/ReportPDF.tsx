@@ -121,11 +121,13 @@ const PDFDocument = ({
           )
       )}
 
+      {/* Comentado temporalmente - ShopperCommentsPDFSection
       <ShopperCommentsPDFSection
         comments={safeInsights?.shopper_comments || []}
         comparision={testDetails.responses?.comparisons}
         surveys={testDetails.responses?.surveys}
       />
+      */}
 
       {safeInsights?.recommendations && (
         <RecommendationsPDFSection insights={safeInsights.recommendations} />

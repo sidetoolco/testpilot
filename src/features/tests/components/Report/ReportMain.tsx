@@ -33,6 +33,15 @@ const TABS = [
   'recommendations',
 ];
 
+// Función de conversión movida fuera del componente para evitar recreación en cada re-render
+const convertTestToTestDetails = (test: any): any => {
+  return {
+    ...test,
+    objective: test.objective || '', // Asegurar que objective no sea undefined
+    updatedAt: test.updatedAt || test.createdAt, // Usar createdAt como fallback
+  };
+};
+
 const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
   const { user } = useAuth();
   return (
@@ -77,15 +86,6 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   const fetchingRef = useRef(false);
 
   const navigate = useNavigate();
-
-  // Función para convertir Test a TestDetails de forma segura
-  const convertTestToTestDetails = (test: any): any => {
-    return {
-      ...test,
-      objective: test.objective || '', // Asegurar que objective no sea undefined
-      updatedAt: test.updatedAt || test.createdAt, // Usar createdAt como fallback
-    };
-  };
 
   useEffect(() => {
     const fetchSummaryData = async () => {
