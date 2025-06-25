@@ -5,6 +5,7 @@ import { Header } from './Header';
 
 interface PurchaseDriversTextSectionProps {
   insights: string;
+  orientation?: 'portrait' | 'landscape';
 }
 
 // Componente de markdown para procesar texto con formato
@@ -76,9 +77,10 @@ const Footer: React.FC = () => (
 
 export const PurchaseDriversTextSection: React.FC<PurchaseDriversTextSectionProps> = ({
   insights,
+  orientation = 'portrait',
 }) => {
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
         <InsightMarkdownText text={insights} />

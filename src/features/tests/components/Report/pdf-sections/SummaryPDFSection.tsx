@@ -6,6 +6,7 @@ import { Header } from './Header';
 interface SummaryPDFSectionProps {
   summaryData: any;
   insights: any;
+  orientation?: 'portrait' | 'landscape';
 }
 
 const COLORS = {
@@ -103,14 +104,18 @@ const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryData, insights }) => {
+export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ 
+  summaryData, 
+  insights, 
+  orientation = 'portrait' 
+}) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);
 
   const comparisonText = insights?.comparison_between_variants;
 
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Results Overview" />
         {/* PRIMERO: La tabla */}

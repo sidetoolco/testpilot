@@ -12,6 +12,7 @@ Font.register({
 interface CoverPageSectionProps {
   testDetails: TestDetails;
   variantsArray: ({ image_url: string; title: string } | null)[];
+  orientation?: 'portrait' | 'landscape';
 }
 
 // Función para interpolar entre dos colores - movida fuera del componente
@@ -75,6 +76,7 @@ const GradientLine: React.FC = () => {
 export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   testDetails,
   variantsArray,
+  orientation = 'portrait',
 }) => {
   const validVariants = variantsArray.filter(
     (v): v is { image_url: string; title: string } => v !== null
@@ -83,7 +85,7 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   return (
     <Page
       size="A4"
-      orientation="portrait"
+      orientation={orientation}
       style={{
         display: 'flex',
         flexDirection: 'column',

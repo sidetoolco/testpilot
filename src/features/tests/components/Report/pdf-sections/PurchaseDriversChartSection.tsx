@@ -33,6 +33,7 @@ interface PurchaseDriversChartSectionProps {
   variantKey: string;
   variantTitle: string;
   averagesurveys: Survey;
+  orientation?: 'portrait' | 'landscape';
 }
 
 const getChartData = (survey: Survey): Dataset[] => {
@@ -85,6 +86,7 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
   variantKey,
   variantTitle,
   averagesurveys,
+  orientation = 'portrait',
 }) => {
   const datasets = getChartData(averagesurveys);
 
@@ -93,7 +95,7 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
   }
 
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title={`Purchase Drivers - Variant ${variantKey.toUpperCase()}`} />
 

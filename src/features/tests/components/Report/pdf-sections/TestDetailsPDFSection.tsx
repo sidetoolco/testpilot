@@ -12,6 +12,7 @@ Font.register({
 
 interface TestDetailsPDFSectionProps {
   testDetails: TestDetails;
+  orientation?: 'portrait' | 'landscape';
 }
 
 interface ChartDataItem {
@@ -140,7 +141,10 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
   </View>
 );
 
-export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ testDetails }) => {
+export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ 
+  testDetails, 
+  orientation = 'portrait' 
+}) => {
   console.log('Test Details:', testDetails);
   console.log('Created At:', testDetails.createdAt);
   console.log('Date Object:', new Date(testDetails.createdAt));
@@ -185,7 +189,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
     }, []) || [];
 
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={{ ...styles.section, gap: 5 }}>
         <Header title="Test Design" />
         {/* Test Info */}
