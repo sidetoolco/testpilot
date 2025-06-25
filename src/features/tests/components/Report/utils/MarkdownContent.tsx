@@ -10,7 +10,7 @@ const formatVariants = (content: string): string => {
   if (!content || typeof content !== 'string') {
     return '';
   }
-  
+
   // Convertir "Variant A", "Variant B", "Variant C" a negrita
   return content
     .replace(/\bVariant A\b/g, '**Variant A**')
@@ -18,7 +18,10 @@ const formatVariants = (content: string): string => {
     .replace(/\bVariant C\b/g, '**Variant C**');
 };
 
-export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content = '', className = '' }) => {
+export const MarkdownContent: React.FC<MarkdownContentProps> = ({
+  content = '',
+  className = '',
+}) => {
   // Validar que content sea un string válido antes de procesarlo
   if (!content || typeof content !== 'string') {
     return (

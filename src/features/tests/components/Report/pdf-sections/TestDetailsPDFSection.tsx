@@ -142,9 +142,9 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
 );
 
 // Componente para gráfica de barras verticales
-const VerticalBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({ 
-  data, 
-  height = 80 
+const VerticalBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
+  data,
+  height = 80,
 }) => {
   const maxValue = Math.max(...data.map(item => item.value));
 
@@ -165,7 +165,9 @@ const VerticalBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = (
             <Text style={{ fontSize: 7, color: COLORS.lightText, textAlign: 'center' }}>
               {item.label}
             </Text>
-            <Text style={{ fontSize: 7, color: COLORS.text, fontWeight: 'bold', textAlign: 'center' }}>
+            <Text
+              style={{ fontSize: 7, color: COLORS.text, fontWeight: 'bold', textAlign: 'center' }}
+            >
               {item.value}
             </Text>
           </View>
@@ -176,9 +178,9 @@ const VerticalBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = (
 };
 
 // Componente para gráfica de barras horizontales para género
-const GenderBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({ 
-  data, 
-  height = 50 
+const GenderBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
+  data,
+  height = 50,
 }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
@@ -229,7 +231,7 @@ const processAgeData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const ageCounts: { [key: string]: number } = {};
-  
+
   // Procesar datos de edad desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
@@ -245,7 +247,7 @@ const processAgeData = (responses: any): ChartDataItem[] => {
           else if (age >= 40 && age <= 44) range = '40-44';
           else if (age >= 45 && age <= 49) range = '45-49';
           else if (age >= 50) range = '50+';
-          
+
           if (range) {
             ageCounts[range] = (ageCounts[range] || 0) + 1;
           }
@@ -255,7 +257,15 @@ const processAgeData = (responses: any): ChartDataItem[] => {
   });
 
   // Convertir a formato de gráfica con colores originales
-  const colors = [COLORS.primary, COLORS.secondary, COLORS.accent, '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+  const colors = [
+    COLORS.primary,
+    COLORS.secondary,
+    COLORS.accent,
+    '#10B981',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+  ];
   return Object.entries(ageCounts)
     .sort(([a], [b]) => {
       const aStart = parseInt(a.split('-')[0]);
@@ -274,7 +284,7 @@ const processGenderData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const genderCounts: { [key: string]: number } = {};
-  
+
   // Procesar datos de género desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
@@ -409,9 +419,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({ te
                   <VerticalBarChart data={finalAgeData} height={60} />
                 </View>
               ) : (
-                <Text style={{ fontSize: 10, color: COLORS.lightText }}>
-                  No age data available
-                </Text>
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
               )}
             </View>
 
