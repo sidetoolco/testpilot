@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useInsightStore } from '../../../hooks/useIaInsight';
+import { MarkdownContent } from '../utils/MarkdownContent';
 
 interface Comment {
   likes_most?: string;
@@ -64,17 +66,19 @@ const CommentSection: React.FC<{
 );
 
 const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys }) => {
+  const { insight } = useInsightStore();
+
   const availableVariants = Object.entries(comparision)
     .filter(([_, comments]) => comments && comments.length > 0)
     .map(([variant]) => variant as 'a' | 'b' | 'c')
     .sort();
 
-  const [variant, setVariant] = useState<'a' | 'b' | 'c'>(availableVariants[0] || 'a');
+  const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
 
-  const hasComparision = comparision[variant]?.length > 0;
-  const hasSurveys = surveys[variant]?.length > 0;
+  const hasComparision = variant !== 'summary' && comparision[variant]?.length > 0;
+  const hasSurveys = variant !== 'summary' && surveys[variant]?.length > 0;
 
-  if (!hasComparision && !hasSurveys) {
+  if (variant !== 'summary' && !hasComparision && !hasSurveys) {
     return (
       <div className="h-80 flex flex-col items-center justify-center bg-white p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
@@ -101,14 +105,25 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
     );
   }
 
-  const currentComparision = comparision[variant];
-  const currentSurveys = surveys[variant];
+  const currentComparision = variant === 'summary' ? [] : comparision[variant];
+  const currentSurveys = variant === 'summary' ? [] : surveys[variant];
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
       <div className="flex flex-col mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
         <div className="flex items-center justify-center space-x-3">
+          <button
+            onClick={() => setVariant('summary')}
+            className={`px-6 py-2 rounded font-medium transition-colors
+                                ${
+                                  variant === 'summary'
+                                    ? 'bg-green-500 text-white hover:bg-green-600'
+                                    : 'bg-green-200 text-black hover:bg-gray-400'
+                                }`}
+          >
+            Summary
+          </button>
           {availableVariants.map(v => (
             <button
               key={`variant-btn-${v}`}
@@ -125,6 +140,8 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
           ))}
         </div>
       </div>
+
+      {variant === 'summary' && <MarkdownContent content={insight.comment_summary} />}
 
       {hasSurveys && (
         <div className="mb-8">
