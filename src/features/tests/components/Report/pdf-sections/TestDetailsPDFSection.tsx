@@ -434,7 +434,9 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                       <VerticalBarChart data={finalAgeData} height={60} />
                     </View>
                   ) : (
-                    <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
+                    <Text style={{ fontSize: 10, color: COLORS.lightText }}>
+                      No age data available
+                    </Text>
                   )}
                 </View>
 
@@ -651,9 +653,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
           <View style={{ flexDirection: 'row', gap: 24 }}>
             {/* Gender Distribution - Usar GenderBarChart como en portrait */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
-                Gender
-              </Text>
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Gender</Text>
               {finalGenderData.length > 0 ? (
                 <View style={{ alignItems: 'center' }}>
                   <GenderBarChart data={finalGenderData} height={50} />
