@@ -451,18 +451,87 @@ export const testService = {
     if (!competitors || competitors.length === 0) return;
 
     try {
+      console.log('saveCompetitorsBatch - Datos de entrada:', {
+        testId,
+        competitorsCount: competitors.length,
+        competitors: competitors.map(c => ({
+          id: c.id,
+          asin: c.asin,
+          title: c.title,
+          hasId: !!c.id,
+          hasAsin: !!c.asin
+        }))
+      });
+
       // Primero, limpiar competidores existentes para este test
       await supabase.from('test_competitors').delete().eq('test_id', testId as any);
 
-      // Preparar datos para inserción - usar 'id' (UUID) no 'asin' (string)
-      const competitorData = competitors.map(competitor => ({
+      // Obtener el company_id del usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id as any)
+        .single();
+
+      if (profileError || !profile?.company_id) {
+        throw new TestCreationError('Company profile not found');
+      }
+
+      // Buscar los IDs correctos de amazon_products usando el ASIN
+      const productIds: string[] = [];
+      
+      console.log('Buscando productos en amazon_products por ASIN');
+      
+      for (const competitor of competitors) {
+        console.log(`Buscando producto con ASIN: ${competitor.asin}`);
+        
+        // Buscar el producto en amazon_products usando solo ASIN (sin company_id)
+        const { data: existingProduct, error: searchError } = await supabase
+          .from('amazon_products')
+          .select('id, asin, title')
+          .eq('asin', competitor.asin)
+          .limit(1)
+          .maybeSingle();
+
+        if (searchError) {
+          console.error('Error buscando producto:', searchError);
+          continue; // Saltar este producto si hay error
+        }
+
+        if (!existingProduct) {
+          console.warn(`Producto no encontrado en amazon_products para ASIN: ${competitor.asin}`);
+          continue; // Saltar este producto si no existe
+        }
+
+        const productId = (existingProduct as any).id;
+        productIds.push(productId);
+        console.log(`Producto encontrado para ASIN ${competitor.asin}:`, {
+          id: productId,
+          title: existingProduct.title
+        });
+      }
+
+      console.log(`Total de productos encontrados: ${productIds.length} de ${competitors.length}`);
+
+      if (productIds.length === 0) {
+        console.warn('No se encontraron productos válidos en amazon_products');
+        return;
+      }
+
+      // Crear registros en test_competitors usando los IDs correctos
+      const competitorData = productIds.map(productId => ({
         test_id: testId,
-        product_id: competitor.id, // Usar solo el ID (UUID), no el ASIN
+        product_id: productId,
       }));
 
-      console.log('Inserting competitor data:', competitorData);
+      console.log('Inserting competitor data with correct product IDs:', competitorData);
 
-      // Insertar competidores con 'as any' para evitar problemas de tipos que causan query params incorrectos
+      // Insertar competidores
       const { data, error } = await supabase
         .from('test_competitors')
         .insert(competitorData as any);

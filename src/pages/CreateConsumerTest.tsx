@@ -106,7 +106,6 @@ export default function CreateConsumerTest() {
         }, 100);
       }
       
-      toast.success('Test incompleto cargado correctamente');
     }
   }, [testState, setCurrentStep, currentTestId]);
 
