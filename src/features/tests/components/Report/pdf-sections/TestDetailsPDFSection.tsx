@@ -61,6 +61,7 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 70 }) => {
         const startAngle = currentAngle;
         currentAngle += angle;
 
+        // Crear el segmento con el color correcto
         return (
           <View
             key={index}
@@ -70,8 +71,8 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 70 }) => {
               height: '100%',
               borderRadius: size / 2,
               border: `8px solid ${item.color}`,
-              borderTopColor: 'transparent',
-              borderRightColor: 'transparent',
+              borderTopColor: index === 0 ? item.color : 'transparent',
+              borderRightColor: index === 0 ? item.color : 'transparent',
               transform: `rotate(${startAngle}deg)`,
             }}
           />
@@ -142,6 +143,171 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
   </View>
 );
 
+// Función para procesar datos de edad desde responses_comparisons
+const processAgeData = (responses: any): ChartDataItem[] => {
+  if (!responses?.comparisons) return [];
+
+  const ageCounts: { [key: string]: number } = {};
+
+  // Procesar datos de edad desde responses_comparisons (organizado por variation_type)
+  Object.values(responses.comparisons).forEach((variationResponses: any) => {
+    if (Array.isArray(variationResponses)) {
+      variationResponses.forEach((response: any) => {
+        if (response?.tester_id?.shopper_demographic?.age) {
+          const age = response.tester_id.shopper_demographic.age;
+          // Crear rangos de edad
+          let range = '';
+          if (age >= 18 && age <= 24) range = '18-24';
+          else if (age >= 25 && age <= 29) range = '25-29';
+          else if (age >= 30 && age <= 34) range = '30-34';
+          else if (age >= 35 && age <= 39) range = '35-39';
+          else if (age >= 40 && age <= 44) range = '40-44';
+          else if (age >= 45 && age <= 49) range = '45-49';
+          else if (age >= 50) range = '50+';
+
+          if (range) {
+            ageCounts[range] = (ageCounts[range] || 0) + 1;
+          }
+        }
+      });
+    }
+  });
+
+  // Convertir a formato de gráfica con colores originales
+  const colors = [
+    COLORS.primary,
+    COLORS.secondary,
+    COLORS.accent,
+    '#10B981',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+  ];
+  return Object.entries(ageCounts)
+    .sort(([a], [b]) => {
+      const aStart = parseInt(a.split('-')[0]);
+      const bStart = parseInt(b.split('-')[0]);
+      return aStart - bStart;
+    })
+    .map(([range, count], index) => ({
+      label: range,
+      value: count,
+      color: colors[index % colors.length],
+    }));
+};
+
+// Función para procesar datos de género desde responses_comparisons
+const processGenderData = (responses: any): ChartDataItem[] => {
+  if (!responses?.comparisons) return [];
+
+  const genderCounts: { [key: string]: number } = {};
+
+  // Procesar datos de género desde responses_comparisons (organizado por variation_type)
+  Object.values(responses.comparisons).forEach((variationResponses: any) => {
+    if (Array.isArray(variationResponses)) {
+      variationResponses.forEach((response: any) => {
+        if (response?.tester_id?.shopper_demographic?.sex) {
+          const gender = response.tester_id.shopper_demographic.sex;
+          genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  // Convertir a formato de gráfica con colores del estilo de la app
+  const genderColors = [COLORS.primary, COLORS.secondary]; // Verde principal y secundario
+  return Object.entries(genderCounts).map(([gender, count], index) => ({
+    label: gender.charAt(0).toUpperCase() + gender.slice(1),
+    value: count,
+    color: genderColors[index % genderColors.length],
+  }));
+};
+
+// Componente para gráfica de barras verticales
+const VerticalBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
+  data,
+  height = 80,
+}) => {
+  const maxValue = Math.max(...data.map(item => item.value));
+
+  return (
+    <View style={{ height, width: '100%' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: '60%', gap: 4 }}>
+        {data.map((item, index) => (
+          <View key={index} style={{ flex: 1, alignItems: 'center' }}>
+            <View
+              style={{
+                width: '100%',
+                height: `${(item.value / maxValue) * 100}%`,
+                backgroundColor: item.color,
+                borderRadius: 4,
+                marginBottom: 4,
+              }}
+            />
+            <Text style={{ fontSize: 7, color: COLORS.lightText, textAlign: 'center' }}>
+              {item.label}
+            </Text>
+            <Text
+              style={{ fontSize: 7, color: COLORS.text, fontWeight: 'bold', textAlign: 'center' }}
+            >
+              {item.value}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// Componente para gráfica de barras horizontales para género
+const GenderBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
+  data,
+  height = 50,
+}) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+
+  return (
+    <View style={{ height, width: '100%' }}>
+      <View style={{ flexDirection: 'row', height: '100%', borderRadius: 4, overflow: 'hidden' }}>
+        {data.map((item, index) => {
+          const percentage = (item.value / total) * 100;
+          return (
+            <View
+              key={index}
+              style={{
+                width: `${percentage}%`,
+                backgroundColor: item.color,
+                height: '100%',
+              }}
+            />
+          );
+        })}
+      </View>
+      {/* Leyenda con porcentajes */}
+      <View style={{ marginTop: 4, gap: 2 }}>
+        {data.map((item, index) => {
+          const percentage = Math.round((item.value / total) * 100);
+          return (
+            <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: item.color,
+                  borderRadius: 3,
+                }}
+              />
+              <Text style={{ fontSize: 7, color: COLORS.text }}>
+                {item.label}: {item.value} ({percentage}%)
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
 export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   testDetails,
   orientation = 'portrait',
@@ -157,8 +323,12 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   const totalPossibleSessions = testDetails.demographics.testerCount * variationCount;
   const completedSessionsFraction = `${testDetails.completed_sessions} / ${totalPossibleSessions}`;
 
-  // Procesar datos de género
-  const genderData =
+  // Procesar datos de demografía desde responses_comparisons
+  const ageData = processAgeData(testDetails.responses);
+  const genderData = processGenderData(testDetails.responses);
+
+  // Fallback a datos originales si no hay datos de responses_comparisons
+  const fallbackGenderData =
     testDetails.demographics.gender?.reduce((acc: ChartDataItem[], gender: string) => {
       const existingGender = acc.find(item => item.label === gender);
       if (existingGender) {
@@ -169,25 +339,17 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
       return acc;
     }, []) || [];
 
-  // Procesar datos de edad
-  const ageData =
+  // Fallback para edad si no hay datos detallados
+  const fallbackAgeData =
     testDetails.demographics.ageRanges?.map((range: string, index: number) => ({
       value: 1, // Cada rango cuenta como 1 por ahora
       color: [COLORS.primary, COLORS.secondary, COLORS.accent][index % 3],
       label: range,
     })) || [];
 
-  // Procesar datos de ubicación
-  const locationData =
-    testDetails.demographics.locations?.reduce((acc: ChartDataItem[], location: string) => {
-      const existingLocation = acc.find(item => item.label === location);
-      if (existingLocation) {
-        existingLocation.value += 1;
-      } else {
-        acc.push({ value: 1, color: COLORS.primary, label: location });
-      }
-      return acc;
-    }, []) || [];
+  // Usar datos procesados si están disponibles, sino usar fallback
+  const finalGenderData = genderData.length > 0 ? genderData : fallbackGenderData;
+  const finalAgeData = ageData.length > 0 ? ageData : fallbackAgeData;
 
   // En landscape, dividir en dos páginas para evitar cortes
   if (orientation === 'landscape') {
@@ -246,13 +408,15 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                 Demographics
               </Text>
               <View style={{ flexDirection: 'row', gap: 24 }}>
-                {/* Gender Distribution */}
+                {/* Gender Distribution - Usar GenderBarChart como en portrait */}
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
                     Gender
                   </Text>
-                  {genderData.length > 0 ? (
-                    <DonutChart data={genderData} />
+                  {finalGenderData.length > 0 ? (
+                    <View style={{ alignItems: 'center' }}>
+                      <GenderBarChart data={finalGenderData} height={50} />
+                    </View>
                   ) : (
                     <Text style={{ fontSize: 10, color: COLORS.lightText }}>
                       No gender data available
@@ -260,28 +424,21 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                   )}
                 </View>
 
-                {/* Age Range - Texto simple */}
+                {/* Age Distribution - Usar VerticalBarChart como en portrait */}
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
-                    Age Range
+                  <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 12 }}>
+                    Age Distribution
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: COLORS.text,
-                      backgroundColor: COLORS.background,
-                      padding: 8,
-                      borderRadius: 4,
-                    }}
-                  >
-                    {testDetails.demographics.ageRanges &&
-                    testDetails.demographics.ageRanges.length >= 2
-                      ? `${testDetails.demographics.ageRanges[0]} - ${testDetails.demographics.ageRanges[1]} years`
-                      : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'}
-                  </Text>
+                  {finalAgeData.length > 0 ? (
+                    <View style={{ marginTop: 8 }}>
+                      <VerticalBarChart data={finalAgeData} height={60} />
+                    </View>
+                  ) : (
+                    <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
+                  )}
                 </View>
 
-                {/* Locations - Texto simple */}
+                {/* Locations - Mantener como texto simple */}
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
                     Locations
@@ -492,11 +649,15 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
             Demographics
           </Text>
           <View style={{ flexDirection: 'row', gap: 24 }}>
-            {/* Gender Distribution */}
+            {/* Gender Distribution - Usar GenderBarChart como en portrait */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>Gender</Text>
-              {genderData.length > 0 ? (
-                <DonutChart data={genderData} />
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
+                Gender
+              </Text>
+              {finalGenderData.length > 0 ? (
+                <View style={{ alignItems: 'center' }}>
+                  <GenderBarChart data={finalGenderData} height={50} />
+                </View>
               ) : (
                 <Text style={{ fontSize: 10, color: COLORS.lightText }}>
                   No gender data available
@@ -504,28 +665,21 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
               )}
             </View>
 
-            {/* Age Range - Texto simple */}
+            {/* Age Distribution - Usar VerticalBarChart como en portrait */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
-                Age Range
+              <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 12 }}>
+                Age Distribution
               </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: COLORS.text,
-                  backgroundColor: COLORS.background,
-                  padding: 8,
-                  borderRadius: 4,
-                }}
-              >
-                {testDetails.demographics.ageRanges &&
-                testDetails.demographics.ageRanges.length >= 2
-                  ? `${testDetails.demographics.ageRanges[0]} - ${testDetails.demographics.ageRanges[1]} years`
-                  : testDetails.demographics.ageRanges?.join(', ') || 'No age data available'}
-              </Text>
+              {finalAgeData.length > 0 ? (
+                <View style={{ marginTop: 8 }}>
+                  <VerticalBarChart data={finalAgeData} height={60} />
+                </View>
+              ) : (
+                <Text style={{ fontSize: 10, color: COLORS.lightText }}>No age data available</Text>
+              )}
             </View>
 
-            {/* Locations - Texto simple */}
+            {/* Locations - Mantener como texto simple */}
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, color: COLORS.lightText, marginBottom: 8 }}>
                 Locations
