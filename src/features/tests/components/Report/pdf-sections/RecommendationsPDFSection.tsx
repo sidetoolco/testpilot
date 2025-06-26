@@ -3,20 +3,23 @@ import { Page, View, Text, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
+import { PDFOrientation } from '../types';
 
 interface RecommendationsPDFSectionProps {
   insights: string;
+  orientation?: PDFOrientation;
 }
 
 export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps> = ({
   insights,
+  orientation = 'portrait',
 }) => {
   if (!insights) return null;
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Recommendations" />
-        <MarkdownText text={insights} />
+        <MarkdownText text={insights} orientation={orientation} />
       </View>
       <View
         style={{

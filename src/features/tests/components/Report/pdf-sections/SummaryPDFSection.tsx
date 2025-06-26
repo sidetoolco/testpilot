@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
+import { PDFOrientation } from '../types';
 
 interface SummaryPDFSectionProps {
   summaryData: any;
   insights: any;
+  orientation?: PDFOrientation;
 }
 
 const COLORS = {
@@ -103,14 +105,19 @@ const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryData, insights }) => {
+export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
+  summaryData,
+  insights,
+  orientation = 'portrait',
+}) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);
+  const isLandscape = orientation === 'landscape';
 
   const comparisonText = insights?.comparison_between_variants;
 
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Results Overview" />
         {/* PRIMERO: La tabla */}
@@ -119,7 +126,13 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
             <Text style={{ color: '#666', fontSize: 12 }}>No hay datos disponibles</Text>
           </View>
         ) : (
-          <View style={{ border: '1px solid #E5E7EB', borderRadius: 8, marginBottom: 20 }}>
+          <View
+            style={{
+              border: '1px solid #E5E7EB',
+              borderRadius: 8,
+              marginBottom: isLandscape ? 12 : 20,
+            }}
+          >
             {/* Table Header */}
             <View
               style={{
@@ -134,8 +147,8 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
                   style={{
                     width: header.width,
                     borderRight: index < tableHeaders.length - 1 ? '1px solid #E5E7EB' : 'none',
-                    paddingHorizontal: 8,
-                    paddingVertical: 10,
+                    paddingHorizontal: isLandscape ? 4 : 8,
+                    paddingVertical: isLandscape ? 6 : 10,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -143,7 +156,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
                 >
                   <Text
                     style={{
-                      fontSize: 10,
+                      fontSize: isLandscape ? 8 : 10,
                       fontWeight: 'bold',
                       color: '#6B7280',
                       textAlign: 'center',
@@ -173,8 +186,8 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
                       style={{
                         width: tableHeaders[cellIndex].width,
                         borderRight: cellIndex < row.length - 1 ? '1px solid #E5E7EB' : 'none',
-                        paddingHorizontal: 8,
-                        paddingVertical: 10,
+                        paddingHorizontal: isLandscape ? 4 : 8,
+                        paddingVertical: isLandscape ? 6 : 10,
                         display: 'flex',
                         alignItems: cellIndex === 0 ? 'flex-start' : 'center',
                         justifyContent: cellIndex === 0 ? 'flex-start' : 'center',
@@ -183,7 +196,7 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({ summaryDat
                     >
                       <Text
                         style={{
-                          fontSize: 12,
+                          fontSize: isLandscape ? 10 : 12,
                           color: colors.text,
                           fontWeight: cellIndex === 0 ? 'normal' : 'bold',
                           textAlign: cellIndex === 0 ? 'left' : 'center',

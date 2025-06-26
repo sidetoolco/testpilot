@@ -2,6 +2,8 @@ import React from 'react';
 import { Page, Text, Image, View, Font } from '@react-pdf/renderer';
 import { TestDetails } from '../utils/types';
 import logo from '../utils/testpilot-logo.png';
+import { styles } from '../utils/styles';
+import { PDFOrientation } from '../types';
 
 // Register Font Awesome font
 Font.register({
@@ -11,7 +13,8 @@ Font.register({
 
 interface CoverPageSectionProps {
   testDetails: TestDetails;
-  variantsArray: ({ image_url: string; title: string } | null)[];
+  variantsArray: any[];
+  orientation?: PDFOrientation;
 }
 
 // Función para interpolar entre dos colores - movida fuera del componente
@@ -75,6 +78,7 @@ const GradientLine: React.FC = () => {
 export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   testDetails,
   variantsArray,
+  orientation = 'portrait',
 }) => {
   const validVariants = variantsArray.filter(
     (v): v is { image_url: string; title: string } => v !== null
@@ -83,7 +87,7 @@ export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   return (
     <Page
       size="A4"
-      orientation="portrait"
+      orientation={orientation}
       style={{
         display: 'flex',
         flexDirection: 'column',

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { styles } from '../utils/styles';
+import { PDFOrientation } from '../types';
 
 interface Competitor {
   competitor_product_id: {
@@ -19,6 +20,7 @@ interface CompetitiveInsightsTableSectionProps {
   variantKey: string;
   variantTitle: string;
   competitiveinsights: Competitor[];
+  orientation?: PDFOrientation;
 }
 
 // Constants for styling
@@ -173,10 +175,60 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   variantKey,
   variantTitle,
   competitiveinsights,
+  orientation = 'portrait',
 }) => {
+  const isLandscape = orientation === 'landscape';
+
+  // Ajustar estilos para landscape
+  const tableStyles = {
+    ...TABLE_STYLES,
+    container: {
+      ...TABLE_STYLES.container,
+      marginTop: isLandscape ? 8 : 16,
+    },
+    headerCellFirst: {
+      ...TABLE_STYLES.headerCellFirst,
+      paddingLeft: isLandscape ? 4 : 8,
+      paddingVertical: isLandscape ? 4 : 8,
+    },
+    headerCell: {
+      ...TABLE_STYLES.headerCell,
+      paddingVertical: isLandscape ? 4 : 8,
+    },
+    headerCellLast: {
+      ...TABLE_STYLES.headerCellLast,
+      paddingVertical: isLandscape ? 4 : 8,
+    },
+    headerText: {
+      ...TABLE_STYLES.headerText,
+      fontSize: isLandscape ? 9 : 11,
+    },
+    productCell: {
+      ...TABLE_STYLES.productCell,
+      fontSize: isLandscape ? 9 : 11,
+      padding: isLandscape ? '4px' : '8px',
+    },
+    metricCell: {
+      ...TABLE_STYLES.metricCell,
+      fontSize: isLandscape ? 9 : 11,
+      padding: isLandscape ? '4px 2px' : '8px 4px',
+    },
+    metricCellLast: {
+      ...TABLE_STYLES.metricCellLast,
+      fontSize: isLandscape ? 9 : 11,
+      padding: isLandscape ? '4px 2px' : '8px 4px',
+    },
+    tableTitle: {
+      ...TABLE_STYLES.tableTitle,
+      fontSize: isLandscape ? 10 : 12,
+      padding: isLandscape ? '4px 8px' : '8px 12px',
+      paddingRight: isLandscape ? 60 : 100,
+    },
+  };
+
   if (!competitiveinsights || competitiveinsights.length === 0) {
     return (
-      <Page size="A4" orientation="portrait" style={{ padding: 30, backgroundColor: '#fff' }}>
+      <Page size="A4" orientation={orientation} style={{ padding: 30, backgroundColor: '#fff' }}>
         <View style={styles.section}>
           <Header title={`Competitive Insights - Variant ${variantKey.toUpperCase()}`} />
           <Text style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
@@ -191,16 +243,16 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   const averageMetrics = calculateAverageMetrics(competitiveinsights);
 
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title={`Competitive Insights - Variant ${variantKey.toUpperCase()}`} />
 
         {averageMetrics && (
           <View
             style={{
-              marginTop: 24,
-              marginBottom: 20,
-              padding: 16,
+              marginTop: isLandscape ? 12 : 24,
+              marginBottom: isLandscape ? 12 : 20,
+              padding: isLandscape ? 12 : 16,
               backgroundColor: '#F8FAFC',
               borderRadius: 4,
               border: '1px solid #E0E0E0',
@@ -208,10 +260,10 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
           >
             <Text
               style={{
-                fontSize: 14,
+                fontSize: isLandscape ? 12 : 14,
                 fontWeight: 'bold',
                 color: '#111827',
-                marginBottom: 12,
+                marginBottom: isLandscape ? 8 : 12,
               }}
             >
               Average metrics your product vs the competitors
@@ -221,51 +273,51 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 flexDirection: 'row' as const,
                 justifyContent: 'space-between' as const,
                 flexWrap: 'wrap' as const,
-                gap: 16,
+                gap: isLandscape ? 12 : 16,
               }}
             >
-              <Text style={{ fontSize: 11, color: '#374151' }}>
+              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
                 Value: {averageMetrics.value.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: '#374151' }}>
+              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
                 Aesthetics: {averageMetrics.aesthetics.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: '#374151' }}>
+              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
                 Convenience: {averageMetrics.convenience.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: '#374151' }}>
+              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
                 Trust: {averageMetrics.trust.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: '#374151' }}>
+              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
                 Utility: {averageMetrics.utility.toFixed(1)}
               </Text>
             </View>
           </View>
         )}
 
-        <View style={TABLE_STYLES.container}>
-          <Text style={TABLE_STYLES.tableTitle}>Your Item vs Competitor</Text>
-          <View style={TABLE_STYLES.header}>
-            <View style={TABLE_STYLES.headerCellFirst}>
-              <Text style={TABLE_STYLES.headerText}>Competitor</Text>
+        <View style={tableStyles.container}>
+          <Text style={tableStyles.tableTitle}>Your Item vs Competitor</Text>
+          <View style={tableStyles.header}>
+            <View style={tableStyles.headerCellFirst}>
+              <Text style={tableStyles.headerText}>Competitor</Text>
             </View>
-            <View style={TABLE_STYLES.headerCell}>
-              <Text style={TABLE_STYLES.headerText}>Share</Text>
+            <View style={tableStyles.headerCell}>
+              <Text style={tableStyles.headerText}>Share</Text>
             </View>
-            <View style={TABLE_STYLES.headerCell}>
-              <Text style={TABLE_STYLES.headerText}>Value</Text>
+            <View style={tableStyles.headerCell}>
+              <Text style={tableStyles.headerText}>Value</Text>
             </View>
-            <View style={TABLE_STYLES.headerCell}>
-              <Text style={TABLE_STYLES.headerText}>Appearance</Text>
+            <View style={tableStyles.headerCell}>
+              <Text style={tableStyles.headerText}>Appearance</Text>
             </View>
-            <View style={TABLE_STYLES.headerCell}>
-              <Text style={TABLE_STYLES.headerText}>Convenience</Text>
+            <View style={tableStyles.headerCell}>
+              <Text style={tableStyles.headerText}>Convenience</Text>
             </View>
-            <View style={TABLE_STYLES.headerCell}>
-              <Text style={TABLE_STYLES.headerText}>Trust</Text>
+            <View style={tableStyles.headerCell}>
+              <Text style={tableStyles.headerText}>Trust</Text>
             </View>
-            <View style={TABLE_STYLES.headerCellLast}>
-              <Text style={TABLE_STYLES.headerText}>Confidence</Text>
+            <View style={tableStyles.headerCellLast}>
+              <Text style={tableStyles.headerText}>Confidence</Text>
             </View>
           </View>
           {competitiveinsights.map((competitor, index) => (
@@ -275,27 +327,23 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
               }
             >
-              <Text style={TABLE_STYLES.productCell}>
-                {truncateTitle(competitor.competitor_product_id.title)}
+              <Text style={tableStyles.productCell}>
+                {truncateTitle(competitor.competitor_product_id.title, isLandscape ? 20 : 25)}
               </Text>
-              <Text style={TABLE_STYLES.metricCell}>{Math.round(competitor.share_of_buy)}%</Text>
-              <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.value) }}>
+              <Text style={tableStyles.metricCell}>{Math.round(competitor.share_of_buy)}%</Text>
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value) }}>
                 {competitor.value.toFixed(1)}
               </Text>
-              <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.aesthetics) }}>
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.aesthetics) }}>
                 {competitor.aesthetics.toFixed(1)}
               </Text>
-              <Text
-                style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.convenience) }}
-              >
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience) }}>
                 {competitor.convenience.toFixed(1)}
               </Text>
-              <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.trust) }}>
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.trust) }}>
                 {competitor.trust.toFixed(1)}
               </Text>
-              <Text
-                style={{ ...TABLE_STYLES.metricCellLast, ...getColorStyle(competitor.utility) }}
-              >
+              <Text style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility) }}>
                 {competitor.utility.toFixed(1)}
               </Text>
             </View>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, ChevronDown } from 'lucide-react';
 import { Document, pdf } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
@@ -17,6 +17,7 @@ import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChart
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
+import { PDFOrientation } from './types';
 
 // Configurar Buffer para el navegador
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -45,12 +46,14 @@ const PDFDocument = ({
   insights,
   competitiveinsights,
   averagesurveys,
+  orientation = 'portrait',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
   summaryData: PDFDocumentProps['summaryData'];
   insights: PDFDocumentProps['insights'];
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
+  orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
     return null;
@@ -74,13 +77,24 @@ const PDFDocument = ({
 
   return (
     <Document>
-      <CoverPageSection testDetails={testDetails} variantsArray={variantsArray} />
-      <TestDetailsPDFSection testDetails={testDetails} />
-      <SummaryPDFSection summaryData={summaryData} insights={safeInsights} />
+      <CoverPageSection
+        testDetails={testDetails}
+        variantsArray={variantsArray}
+        orientation={orientation}
+      />
+      <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
+      <SummaryPDFSection
+        summaryData={summaryData}
+        insights={safeInsights}
+        orientation={orientation}
+      />
 
       {/* Nueva estructura: Purchase Drivers con texto general primero */}
       {safeInsights?.purchase_drivers && (
-        <PurchaseDriversTextSection insights={safeInsights.purchase_drivers} />
+        <PurchaseDriversTextSection
+          insights={safeInsights.purchase_drivers}
+          orientation={orientation}
+        />
       )}
 
       {/* Luego las gráficas de cada variante */}
@@ -95,13 +109,17 @@ const PDFDocument = ({
               averagesurveys={safeAveragesurveys.summaryData.find(
                 (item: any) => item.variant_type === key
               )}
+              orientation={orientation}
             />
           )
       )}
 
       {/* Nueva estructura: Competitive Insights con texto general primero */}
       {safeInsights?.competitive_insights && (
-        <CompetitiveInsightsTextSection insights={safeInsights.competitive_insights} />
+        <CompetitiveInsightsTextSection
+          insights={safeInsights.competitive_insights}
+          orientation={orientation}
+        />
       )}
 
       {/* Luego las tablas de cada variante */}
@@ -117,6 +135,7 @@ const PDFDocument = ({
                   (item: any) => item.variant_type === key
                 ) || []
               }
+              orientation={orientation}
             />
           )
       )}
@@ -130,7 +149,10 @@ const PDFDocument = ({
       */}
 
       {safeInsights?.recommendations && (
-        <RecommendationsPDFSection insights={safeInsights.recommendations} />
+        <RecommendationsPDFSection
+          insights={safeInsights.recommendations}
+          orientation={orientation}
+        />
       )}
     </Document>
   );
@@ -176,11 +198,13 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [orientation, setOrientation] = useState<PDFOrientation>('portrait');
+  const [showOrientationMenu, setShowOrientationMenu] = useState(false);
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = async (selectedOrientation: PDFOrientation = orientation) => {
     if (isGenerating) return; // Prevenir múltiples generaciones simultáneas
 
     try {
@@ -199,6 +223,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         insights: !!insights,
         competitiveinsights: !!competitiveinsights,
         averagesurveys: !!averagesurveys,
+        orientation: selectedOrientation,
       });
 
       if (!testDetails) {
@@ -244,6 +269,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
         averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
         shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0,
+        orientation: selectedOrientation,
       });
 
       const blob = await pdf(
@@ -253,6 +279,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           insights={pdfData.insights}
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
+          orientation={selectedOrientation}
         />
       ).toBlob();
 
@@ -306,15 +333,53 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           <RefreshCcw size={20} />
           {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
         </button>
-        <button
-          onClick={handleExportPDF}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          disabled={!isTestActiveOrComplete || isGenerating}
-        >
-          <FilePdf size={20} />
-          {isGenerating ? 'Generating PDF...' : 'Export to PDF'}
-        </button>
+
+        {/* Dropdown para Export to PDF */}
+        <div className="relative">
+          <button
+            onClick={() => setShowOrientationMenu(!showOrientationMenu)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={!isTestActiveOrComplete || isGenerating}
+          >
+            <FilePdf size={20} />
+            {isGenerating ? 'Generating PDF...' : 'Export to PDF'}
+            <ChevronDown size={16} />
+          </button>
+
+          {showOrientationMenu && (
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-full">
+              <button
+                onClick={() => {
+                  setOrientation('portrait' as PDFOrientation);
+                  setShowOrientationMenu(false);
+                  handleExportPDF('portrait' as PDFOrientation);
+                }}
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
+              >
+                <span>Portrait</span>
+                {orientation === 'portrait' && <span className="text-green-600 font-bold">✓</span>}
+              </button>
+              <div className="border-t border-gray-100"></div>
+              <button
+                onClick={() => {
+                  setOrientation('landscape' as PDFOrientation);
+                  setShowOrientationMenu(false);
+                  handleExportPDF('landscape' as PDFOrientation);
+                }}
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
+              >
+                <span>Landscape</span>
+                {orientation === 'landscape' && <span className="text-green-600 font-bold">✓</span>}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Cerrar menú al hacer click fuera */}
+      {showOrientationMenu && (
+        <div className="fixed inset-0 z-5" onClick={() => setShowOrientationMenu(false)} />
+      )}
 
       {isPreviewOpen && pdfUrl && (
         <PDFPreviewModal isOpen={isPreviewOpen} onClose={handleClosePreview} pdfUrl={pdfUrl} />
