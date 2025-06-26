@@ -3,10 +3,11 @@ import { Page, View, Text, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
+import { PDFOrientation } from '../types';
 
 interface RecommendationsPDFSectionProps {
   insights: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps> = ({

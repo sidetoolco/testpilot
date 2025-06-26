@@ -17,6 +17,7 @@ import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChart
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
+import { PDFOrientation } from './types';
 
 // Configurar Buffer para el navegador
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -52,7 +53,7 @@ const PDFDocument = ({
   insights: PDFDocumentProps['insights'];
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
     return null;
@@ -197,13 +198,13 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [orientation, setOrientation] = useState<PDFOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
-  const handleExportPDF = async (selectedOrientation: 'portrait' | 'landscape' = orientation) => {
+  const handleExportPDF = async (selectedOrientation: PDFOrientation = orientation) => {
     if (isGenerating) return; // Prevenir múltiples generaciones simultáneas
 
     try {
@@ -349,9 +350,9 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-full">
               <button
                 onClick={() => {
-                  setOrientation('portrait');
+                  setOrientation('portrait' as PDFOrientation);
                   setShowOrientationMenu(false);
-                  handleExportPDF('portrait');
+                  handleExportPDF('portrait' as PDFOrientation);
                 }}
                 className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >
@@ -361,9 +362,9 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
               <div className="border-t border-gray-100"></div>
               <button
                 onClick={() => {
-                  setOrientation('landscape');
+                  setOrientation('landscape' as PDFOrientation);
                   setShowOrientationMenu(false);
-                  handleExportPDF('landscape');
+                  handleExportPDF('landscape' as PDFOrientation);
                 }}
                 className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
               >

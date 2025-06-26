@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
+import { PDFOrientation } from '../types';
 
 interface SummaryPDFSectionProps {
   summaryData: any;
   insights: any;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 const COLORS = {

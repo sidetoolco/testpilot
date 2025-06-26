@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { styles } from '../utils/styles';
+import { PDFOrientation } from '../types';
 
 interface Competitor {
   competitor_product_id: {
@@ -19,7 +20,7 @@ interface CompetitiveInsightsTableSectionProps {
   variantKey: string;
   variantTitle: string;
   competitiveinsights: Competitor[];
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 // Constants for styling

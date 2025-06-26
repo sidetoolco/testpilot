@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
+import { PDFOrientation } from '../types';
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'] as const;
 const COLORS = ['#34A270', '#075532', '#E0D30D'] as const;
@@ -33,7 +34,7 @@ interface PurchaseDriversChartSectionProps {
   variantKey: string;
   variantTitle: string;
   averagesurveys: Survey;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 const getChartData = (survey: Survey): Dataset[] => {

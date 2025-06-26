@@ -2,14 +2,15 @@ import React from 'react';
 import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
+import { PDFOrientation } from '../types';
 
 interface CompetitiveInsightsTextSectionProps {
   insights: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 // Componente de markdown para procesar texto con formato
-const InsightMarkdownText: React.FC<{ text: string; orientation?: 'portrait' | 'landscape' }> = ({
+const InsightMarkdownText: React.FC<{ text: string; orientation?: PDFOrientation }> = ({
   text,
   orientation = 'portrait',
 }) => {

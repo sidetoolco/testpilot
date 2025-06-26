@@ -3,6 +3,7 @@ import { View, Text, Image, Page, Font, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { TestDetails } from '../utils/types';
 import { Header } from './Header';
+import { PDFOrientation } from '../types';
 
 // Register Font Awesome font
 Font.register({
@@ -12,7 +13,7 @@ Font.register({
 
 interface TestDetailsPDFSectionProps {
   testDetails: TestDetails;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 interface ChartDataItem {

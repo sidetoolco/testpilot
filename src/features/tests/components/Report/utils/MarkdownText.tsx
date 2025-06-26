@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
+import { PDFOrientation } from '../types';
 
 interface MarkdownTextProps {
   text?: string;
   baseTextStyle?: any;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: PDFOrientation;
 }
 
 export const MarkdownText: React.FC<MarkdownTextProps> = ({
