@@ -65,9 +65,6 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     return null;
   }
 
-  // Get available variants
-  const availableVariants = [...new Set(competitiveinsights.map(item => item.variant_type))].sort();
-
   // Filter insights for selected variant
   const shareOfBuy = sumaryvariations?.find((variation: any) =>
     variation.title.includes('Variant ' + selectedVariant.toUpperCase())
