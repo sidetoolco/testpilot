@@ -72,6 +72,7 @@ const QuestionDetail: React.FC = () => {
         .post('/prolific/submission/screen-out', {
           studyId: prolificStudyId,
           participantId: prolificPid,
+          studyInternalName: id,
         })
         .catch(err => console.error(`Failed to screen out submission`, err))
         .finally(
