@@ -1,22 +1,25 @@
 import React from 'react';
-import { Page, View, Text } from '@react-pdf/renderer';
+import { Page, View, Text, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { MarkdownText } from '../utils/MarkdownText';
+import { PDFOrientation } from '../types';
 
 interface RecommendationsPDFSectionProps {
   insights: string;
+  orientation?: PDFOrientation;
 }
 
 export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps> = ({
   insights,
+  orientation = 'portrait',
 }) => {
   if (!insights) return null;
   return (
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Recommendations" />
-        <MarkdownText text={insights} />
+        <MarkdownText text={insights} orientation={orientation} />
       </View>
       <View
         style={{
@@ -28,7 +31,12 @@ export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps>
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+        <Link
+          src="https://TestPilotCPG.com"
+          style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+        >
+          TestPilotCPG.com
+        </Link>
         <Text
           style={styles.pageNumber}
           render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}

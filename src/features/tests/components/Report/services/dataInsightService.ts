@@ -1,5 +1,4 @@
 import { supabase } from '../../../../../lib/supabase';
-import { TestDetails } from '../utils/types';
 
 // Checks if a given ID exists in the ia_insights table.
 // Parameters:

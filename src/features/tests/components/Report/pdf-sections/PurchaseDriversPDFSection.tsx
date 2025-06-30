@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, Page } from '@react-pdf/renderer';
+import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
-import { MarkdownText } from '../utils/MarkdownText';
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'] as const;
 const COLORS = ['#34A270', '#075532', '#E0D30D'] as const;
@@ -32,25 +31,89 @@ interface Dataset {
 
 interface PurchaseDriversPDFSectionProps {
   insights?: string;
-  averagesurveys: Survey[];
+  averagesurveys: Survey;
 }
 
-const getChartData = (surveys: Survey[]): Dataset[] => {
-  if (!surveys || surveys.length === 0) {
+// Función para extraer el texto específico de una variante
+const extractVariantInsights = (fullText: string, variantType: string): string => {
+  if (!fullText || !variantType) return '';
+
+  // Convertir el tipo de variante a formato de búsqueda (a -> A, b -> B, etc.)
+  const variantLabel = `Variant ${variantType.toUpperCase()}`;
+
+  // Buscar el inicio de la sección de la variante
+  const variantIndex = fullText.indexOf(variantLabel);
+  if (variantIndex === -1) return '';
+
+  // Buscar el final de la sección (siguiente "Variant" o final del texto)
+  const nextVariantIndex = fullText.indexOf('Variant ', variantIndex + variantLabel.length);
+  const endIndex = nextVariantIndex === -1 ? fullText.length : nextVariantIndex;
+
+  // Extraer solo la sección de esta variante
+  const variantSection = fullText.substring(variantIndex, endIndex).trim();
+
+  return variantSection;
+};
+
+// Componente de markdown simplificado para insights
+const InsightMarkdownText: React.FC<{ text: string }> = ({ text }) => {
+  if (!text) return null;
+
+  return (
+    <View style={{ marginBottom: 10, marginTop: 40 }}>
+      {text
+        .split('\n')
+        .map((line, index) => {
+          if (!line.trim()) return null;
+
+          // Procesar texto en negrita y bullets
+          const parts = line.split(/(\*\*.*?\*\*)/g);
+
+          return (
+            <Text
+              key={index}
+              style={{
+                fontSize: 11,
+                color: '#333',
+                marginBottom: 6,
+                lineHeight: 1.4,
+                paddingLeft: line.startsWith('•') ? 8 : 0,
+              }}
+            >
+              {parts.map((part, partIndex) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return (
+                    <Text key={partIndex} style={{ fontWeight: 'bold' }}>
+                      {part.slice(2, -2)}
+                    </Text>
+                  );
+                }
+                return part;
+              })}
+            </Text>
+          );
+        })
+        .filter(Boolean)}
+    </View>
+  );
+};
+
+const getChartData = (survey: Survey): Dataset[] => {
+  if (!survey) {
     return [];
   }
 
   const data = [
-    surveys.appearance,
-    surveys.value,
-    surveys.confidence,
-    surveys.brand,
-    surveys.convenience,
+    survey.appearance,
+    survey.value,
+    survey.confidence,
+    survey.brand,
+    survey.convenience,
   ];
 
   return [
     {
-      label: 'Average Score',
+      label: '',
       color: COLORS[0],
       data: data,
     },
@@ -63,7 +126,7 @@ const InsufficientDataMessage: React.FC<{ variantCount?: number }> = ({ variantC
       backgroundColor: '#FEF2F2',
       borderRadius: 8,
       padding: 16,
-      marginTop: 20,
+      marginTop: 15,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
@@ -106,7 +169,12 @@ const Footer: React.FC = () => (
       justifyContent: 'space-between',
     }}
   >
-    <Text style={{ color: 'black', fontSize: 12, fontWeight: 'bold' }}>testpilot.com</Text>
+    <Link
+      src="https://TestPilotCPG.com"
+      style={{ color: 'black', fontSize: 12, fontWeight: 'bold', textDecoration: 'none' }}
+    >
+      TestPilotCPG.com
+    </Link>
     <Text
       style={styles.pageNumber}
       render={({ pageNumber }: { pageNumber: number }) => `${pageNumber}`}
@@ -120,12 +188,18 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
 }) => {
   const datasets = getChartData(averagesurveys);
 
-  if (!averagesurveys.count) {
+  // Extraer insights específicos para esta variante
+  const variantInsights =
+    insights && averagesurveys?.variant_type
+      ? extractVariantInsights(insights, averagesurveys.variant_type)
+      : '';
+
+  if (!averagesurveys) {
     return (
       <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
         <Header title="Purchase Drivers" />
         <View style={styles.section}>
-          <InsufficientDataMessage variantCount={averagesurveys.count} />
+          <InsufficientDataMessage />
         </View>
         <Footer />
       </Page>
@@ -136,67 +210,80 @@ export const PurchaseDriversPDFSection: React.FC<PurchaseDriversPDFSectionProps>
     <Page key="drivers" size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.section}>
         <Header title="Purchase Drivers" />
-        <MarkdownText text={insights} />
-        <View style={styles.section}>
-          <View style={styles.chartContainer}>
-            {/* Legend */}
-            <View style={styles.chartLegend}>
-              {datasets.map((dataset: Dataset, i: number) => (
-                <View key={i} style={styles.legendItem}>
-                  <View style={[styles.legendColor, { backgroundColor: dataset.color }]} />
-                  <Text style={styles.legendText}>{dataset.label}</Text>
-                </View>
-              ))}
-            </View>
 
-            {/* Chart */}
-            <View style={styles.chartGrid}>
-              {/* Y Axis */}
-              <View style={styles.yAxis}>
-                {[5, 4, 3, 2, 1, 0].map(value => (
-                  <Text key={value} style={[styles.yAxisLabel, { bottom: `${value * 20}%` }]}>
-                    {value}
-                  </Text>
+        <View style={styles.section}>
+          {/* PRIMERO: La gráfica */}
+          <View
+            style={{
+              border: '1px solid #E0E0E0',
+              borderRadius: 4,
+              padding: '16px 16px 40px 16px',
+              marginTop: 16,
+            }}
+          >
+            <View style={styles.chartContainer}>
+              {/* Legend */}
+              <View style={styles.chartLegend}>
+                {datasets.map((dataset: Dataset, i: number) => (
+                  <View key={i} style={styles.legendItem}>
+                    <View style={[styles.legendColor, { backgroundColor: dataset.color }]} />
+                    <Text style={styles.legendText}>{dataset.label}</Text>
+                  </View>
                 ))}
               </View>
 
-              {/* Bars */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  flex: 1,
-                  marginLeft: 35,
-                  justifyContent: 'space-between',
-                }}
-              >
-                {LABELS.map((label, labelIndex) => (
-                  <View key={label} style={[styles.barGroup, { width: '18%' }]}>
-                    {datasets.map((dataset: Dataset, datasetIndex: number) => {
-                      const value = dataset.data[labelIndex];
-                      const height = `${(value / 5) * 100}%`;
-                      return (
-                        <View
-                          key={datasetIndex}
-                          style={[styles.bar, { height, backgroundColor: dataset.color }]}
-                        >
-                          <Text style={styles.barValue}>{value.toFixed(1)}</Text>
-                        </View>
-                      );
-                    })}
+              {/* Chart */}
+              <View style={styles.chartGrid}>
+                {/* Y Axis */}
+                <View style={styles.yAxis}>
+                  {[5, 4, 3, 2, 1, 0].map(value => (
+                    <Text key={value} style={[styles.yAxisLabel, { bottom: `${value * 20}%` }]}>
+                      {value}
+                    </Text>
+                  ))}
+                </View>
+
+                {/* Bars */}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flex: 1,
+                    marginLeft: 35,
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {LABELS.map((label, labelIndex) => (
+                    <View key={label} style={[styles.barGroup, { width: '18%' }]}>
+                      {datasets.map((dataset: Dataset, datasetIndex: number) => {
+                        const value = dataset.data[labelIndex];
+                        const height = `${(value / 5) * 100}%`;
+                        return (
+                          <View
+                            key={datasetIndex}
+                            style={[styles.bar, { height, backgroundColor: dataset.color }]}
+                          >
+                            <Text style={styles.barValue}>{value.toFixed(1)}</Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* X Axis Labels */}
+              <View style={[styles.xAxis, { paddingHorizontal: '2%' }]}>
+                {LABELS.map(label => (
+                  <View key={label} style={{ width: '18%', alignItems: 'center' }}>
+                    <Text style={styles.xAxisLabel}>{label}</Text>
                   </View>
                 ))}
               </View>
             </View>
-
-            {/* X Axis Labels */}
-            <View style={[styles.xAxis, { paddingHorizontal: '2%' }]}>
-              {LABELS.map(label => (
-                <View key={label} style={{ width: '18%', alignItems: 'center' }}>
-                  <Text style={styles.xAxisLabel}>{label}</Text>
-                </View>
-              ))}
-            </View>
           </View>
+
+          {/* DESPUÉS: Los insights específicos de la variante */}
+          {variantInsights && <InsightMarkdownText text={variantInsights} />}
         </View>
       </View>
       <Footer />

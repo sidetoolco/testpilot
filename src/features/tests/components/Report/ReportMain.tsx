@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import ReportContent from './ReportContent';
 import ReportPDF from './ReportPDF';
@@ -32,6 +32,15 @@ const TABS = [
   'shopper-comments',
   'recommendations',
 ];
+
+// Función de conversión movida fuera del componente para evitar recreación en cada re-render
+const convertTestToTestDetails = (test: any): any => {
+  return {
+    ...test,
+    objective: test.objective || '', // Asegurar que objective no sea undefined
+    updatedAt: test.updatedAt || test.createdAt, // Usar createdAt como fallback
+  };
+};
 
 const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
   const { user } = useAuth();
@@ -73,29 +82,63 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   const [summaryData, setSummaryData] = useState<any>(null);
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const fetchingRef = useRef(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
-      if (!testInfo) return;
-      const existingInsights = await checkIdInIaInsights(id);
-      const data = await getSummaryData(id);
-      const averagesurveys = await getAveragesurveys(id);
-      const competitiveinsights = await getCompetitiveInsights(id);
+      // Evitar múltiples ejecuciones
+      if (!testInfo || fetchingRef.current || dataLoaded) return;
 
-      setSummaryData({
-        ...data,
-      });
-      setAveragesurveys(averagesurveys);
-      setCompetitiveinsights(competitiveinsights);
-      setInsight(existingInsights);
-      return;
+      fetchingRef.current = true;
+
+      try {
+        setLoading(true);
+
+        console.log('Starting data fetch for test:', testInfo.id);
+
+        const [existingInsights, data, averagesurveys, competitiveinsights] = await Promise.all([
+          checkIdInIaInsights(id),
+          getSummaryData(id),
+          getAveragesurveys(id),
+          getCompetitiveInsights(id),
+        ]);
+
+        console.log('Data fetched successfully:', {
+          insights: !!existingInsights,
+          summaryData: !!data,
+          averagesurveys: !!averagesurveys,
+          competitiveinsights: !!competitiveinsights,
+        });
+
+        setSummaryData(data);
+        setAveragesurveys(averagesurveys);
+        setCompetitiveinsights(competitiveinsights);
+        setInsight(existingInsights);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+        fetchingRef.current = false;
+      }
     };
-    setLoading(true);
+
     fetchSummaryData();
-    setLoading(false);
-  }, [testInfo]);
+  }, [testInfo?.id, id, setInsight, setLoading, dataLoaded]);
+
+  // Limpiar estado cuando cambia el ID del test
+  useEffect(() => {
+    if (testInfo?.id && testInfo.id !== id) {
+      setDataLoaded(false);
+      setSummaryData(null);
+      setAveragesurveys(null);
+      setCompetitiveinsights(null);
+      fetchingRef.current = false;
+    }
+  }, [testInfo?.id, id]);
 
   useEffect(() => {
     const observerOptions = {
@@ -209,7 +252,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
           <h1 className="text-xl sm:text-2xl font-bold">Insights Summary</h1>
           <ReportPDF
-            testDetails={testInfo}
+            testDetails={convertTestToTestDetails(testInfo)}
             summaryData={summaryData}
             insights={insight}
             disabled={testInfo?.status !== 'complete'}

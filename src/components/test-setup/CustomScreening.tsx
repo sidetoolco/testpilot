@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { CustomScreening as CustomScreeningInterface } from '../../features/tests/types';
 import apiClient from '../../lib/api';
@@ -17,42 +17,88 @@ interface CustomScreeningProps {
 export default function CustomScreening({ onChange, value }: CustomScreeningProps) {
   const [error, setError] = useState<string | null>(null);
   const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const validateQuestion = (question: string) => {
+  const validateQuestion = (question: string, desiredAnswer?: string) => {
     if (!question.trim()) {
       setError('Please enter a screening question');
+      onChange('valid', false);
       return false;
     }
 
+    if (!desiredAnswer) {
+      setError(null);
+      onChange('valid', false);
+      return;
+    }
+
+    // Clear any existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Set loading state immediately
+    setIsValidating(true);
     onChange('isValidating', true);
     setSuggestedQuestion(null);
 
-    apiClient
-      .post<ValidateQuestionResponse>('/screening/validate-question', {
-        question,
-      })
-      .then(({ data }) => {
-        if (!data.isValid || data.error) {
+    // Debounce the API call by 1 second
+    debounceTimeoutRef.current = setTimeout(() => {
+      apiClient
+        .post<ValidateQuestionResponse>('/screening/validate-question', {
+          question,
+          desiredAnswer,
+        })
+        .then(({ data }) => {
+          if (!data.isValid || data.error) {
+            setError(
+              data.error ||
+                'This question may be too narrow and could limit participant availability.'
+            );
+            onChange('valid', false);
+            if (data.suggestedQuestion) {
+              setSuggestedQuestion(data.suggestedQuestion);
+            }
+          } else {
+            onChange('valid', true);
+            setError(null);
+          }
+        })
+        .catch(err => {
           setError(
-            data.error ||
-              'This question may be too narrow and could limit participant availability.'
+            err.response?.data?.message || 'Something unexpected happened. Please, try again later'
           );
           onChange('valid', false);
-          if (data.suggestedQuestion) {
-            setSuggestedQuestion(data.suggestedQuestion);
-          }
-        } else {
-          onChange('valid', true);
-          setError(null);
-        }
-      })
-      .catch(err => {
-        setError(
-          err.response?.data?.message || 'Something unexpected happened. Please, try again later'
-        );
-      })
-      .finally(() => onChange('isValidating', false));
+        })
+        .finally(() => {
+          setIsValidating(false);
+          onChange('isValidating', false);
+        });
+    }, 1000);
   };
+
+  // Effect to trigger validation when validAnswer changes
+  useEffect(() => {
+    if (value.enabled && value.question && value.validAnswer) {
+      validateQuestion(value.question, value.validAnswer);
+    } else if (value.enabled && value.question && !value.validAnswer) {
+      // If we have a question but no answer, clear validation state
+      setIsValidating(false);
+      onChange('isValidating', false);
+      setError(null);
+      onChange('valid', false);
+    }
+  }, [value.validAnswer, value.enabled]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuestion = e.target.value;
@@ -61,10 +107,15 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     setSuggestedQuestion(null);
   };
 
+  const handleQuestionBlur = () => {
+    if (value.question && value.validAnswer) {
+      validateQuestion(value.question, value.validAnswer);
+    }
+  };
+
   const useSuggestedQuestion = () => {
     if (suggestedQuestion) {
       onChange('question', suggestedQuestion);
-      validateQuestion(suggestedQuestion);
     }
   };
 
@@ -131,22 +182,22 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                   type="text"
                   value={value.question || ''}
                   onChange={handleQuestionChange}
-                  onBlur={() => validateQuestion(value.question || '')}
+                  onBlur={handleQuestionBlur}
                   placeholder="e.g., Do you use cleaning products regularly?"
                   className={`w-full px-4 py-3 border ${
                     error
                       ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                      : value.valid && !value.isValidating
+                      : value.valid && !isValidating
                         ? 'border-green-500 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                         : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
                   } rounded-xl transition-all`}
                 />
-                {value.isValidating && (
+                {isValidating && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#00A67E]"></div>
                   </div>
                 )}
-                {value.valid && !value.isValidating && (
+                {value.valid && !isValidating && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   </div>

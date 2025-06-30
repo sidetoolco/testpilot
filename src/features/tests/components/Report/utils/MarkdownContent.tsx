@@ -1,11 +1,16 @@
 import ReactMarkdown from 'react-markdown';
 
 interface MarkdownContentProps {
-  content: string;
+  content?: string;
   className?: string;
 }
 
 const formatVariants = (content: string): string => {
+  // Validar que content sea un string válido
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+
   // Convertir "Variant A", "Variant B", "Variant C" a negrita
   return content
     .replace(/\bVariant A\b/g, '**Variant A**')
@@ -13,7 +18,19 @@ const formatVariants = (content: string): string => {
     .replace(/\bVariant C\b/g, '**Variant C**');
 };
 
-export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, className = '' }) => {
+export const MarkdownContent: React.FC<MarkdownContentProps> = ({
+  content = '',
+  className = '',
+}) => {
+  // Validar que content sea un string válido antes de procesarlo
+  if (!content || typeof content !== 'string') {
+    return (
+      <div className={`prose prose-sm max-w-none ${className}`}>
+        <p className="text-gray-500 italic">No content available</p>
+      </div>
+    );
+  }
+
   const formattedContent = formatVariants(content);
 
   return (
