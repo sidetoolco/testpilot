@@ -6,7 +6,10 @@ import { testService } from '../features/tests/services/testService';
 import { TestCreationSteps } from '../features/tests/components/TestCreationSteps';
 import { TestCreationContent } from '../features/tests/components/TestCreationContent';
 import { TestData } from '../features/tests/types';
-import { useTestStateFromLocation, initializeTestFromState } from '../features/tests/utils/testStateManager';
+import {
+  useTestStateFromLocation,
+  initializeTestFromState,
+} from '../features/tests/utils/testStateManager';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -71,7 +74,12 @@ export default function CreateConsumerTest() {
   const testState = useTestStateFromLocation();
 
   // Log para verificar el estado del hook
-  console.log('CreateConsumerTest renderizado - currentStep:', currentStep, 'canProceed:', canProceed());
+  console.log(
+    'CreateConsumerTest renderizado - currentStep:',
+    currentStep,
+    'canProceed:',
+    canProceed()
+  );
 
   // Efecto para inicializar test incompleto si viene desde navegación
   useEffect(() => {
@@ -79,40 +87,43 @@ export default function CreateConsumerTest() {
     console.log('isIncompleteTest:', testState.isIncompleteTest);
     console.log('testData:', testState.testData);
     console.log('currentStep:', testState.currentStep);
-    
+
     // Solo inicializar si es un test incompleto Y no se ha inicializado ya
     if (testState.isIncompleteTest && testState.testData && !currentTestId) {
       console.log('Inicializando test incompleto:', testState);
-      
+
       // Cargar datos del test
       setTestData(testState.testData);
       console.log('TestData establecido:', testState.testData);
-      
+
       // Establecer ID del test
       if (testState.testId) {
         setCurrentTestId(testState.testId);
         console.log('TestId establecido:', testState.testId);
       }
-      
+
       // Establecer el paso correcto
       if (testState.currentStep) {
         console.log('Estableciendo paso a:', testState.currentStep);
         setCurrentStep(testState.currentStep);
         console.log('Paso establecido correctamente');
-        
+
         // Forzar un re-render para asegurar que el estado se actualice
         setTimeout(() => {
           console.log('Estado final - currentStep:', testState.currentStep);
         }, 100);
       }
-      
     }
   }, [testState, setCurrentStep, currentTestId]);
 
   // Función para guardar test incompleto
   const saveIncompleteTest = async () => {
     try {
-      const savedTest = await testService.saveIncompleteTest(testData, currentTestId || undefined, currentStep);
+      const savedTest = await testService.saveIncompleteTest(
+        testData,
+        currentTestId || undefined,
+        currentStep
+      );
       if (!currentTestId) {
         setCurrentTestId((savedTest as any).id);
       }
@@ -176,7 +187,29 @@ export default function CreateConsumerTest() {
 
       setIsLoading(true);
 
-      // Create test
+      // Verificar si es un test incompleto existente
+      if (testState.isIncompleteTest && currentTestId) {
+        console.log('Actualizando test incompleto existente a draft:', currentTestId);
+
+        try {
+          // Actualizar el test incompleto a draft y actualizar datos
+          await testService.updateIncompleteTestToDraft(currentTestId, testData);
+          console.log('Test incompleto actualizado exitosamente a draft');
+
+          // Proceder con el launch normal (crear proyectos en Prolific)
+          await testService.createProlificProjectsForTest(currentTestId, testData);
+
+          toast.success('Test launched successfully');
+          navigate('/my-tests');
+          return;
+        } catch (updateError) {
+          console.error('Error actualizando test incompleto:', updateError);
+          toast.error('Failed to update incomplete test. Creating new test instead.');
+          // Si falla la actualización, continuar con el flujo normal de crear nuevo test
+        }
+      }
+
+      // Create test (flujo normal para tests nuevos)
       await testService.createTest(testData);
 
       toast.success('Test created successfully');

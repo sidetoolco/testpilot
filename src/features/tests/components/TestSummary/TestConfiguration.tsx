@@ -130,7 +130,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                             src={variation.image_url || '/placeholder-image.jpg'}
                             alt={variation.title || 'Product image'}
                             className="w-16 h-16 object-contain rounded-md"
-                            onError={(e) => {
+                            onError={e => {
                               const target = e.target as HTMLImageElement;
                               target.src = '/placeholder-image.jpg';
                             }}
@@ -142,18 +142,14 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            ${variation.price || '0.00'}
-                          </div>
+                          <div className="text-sm text-gray-900">${variation.price || '0.00'}</div>
                         </td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             ) : (
-              <div className="text-gray-500 italic text-center py-8">
-                No variations available.
-              </div>
+              <div className="text-gray-500 italic text-center py-8">No variations available.</div>
             )}
           </div>
         </div>
@@ -193,7 +189,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                           src={competitor.image_url || '/placeholder-image.jpg'}
                           alt={competitor.title || 'Product image'}
                           className="w-16 h-16 object-contain rounded-md"
-                          onError={(e) => {
+                          onError={e => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/placeholder-image.jpg';
                           }}
@@ -205,18 +201,14 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          ${competitor.price || '0.00'}
-                        </div>
+                        <div className="text-sm text-gray-900">${competitor.price || '0.00'}</div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <div className="text-gray-500 italic text-center py-8">
-                No competitors available.
-              </div>
+              <div className="text-gray-500 italic text-center py-8">No competitors available.</div>
             )}
           </div>
         </div>

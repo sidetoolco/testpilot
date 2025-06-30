@@ -32,7 +32,7 @@ export function TestCreationSteps({
     isFirstStep,
     isLastStep,
     canProceed,
-    stepsLength: steps.length
+    stepsLength: steps.length,
   });
 
   return (

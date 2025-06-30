@@ -29,7 +29,7 @@ export const initializeTestFromState = (
   if (state.isIncompleteTest && state.testData) {
     // Cargar datos del test incompleto
     setTestData(state.testData);
-    
+
     if (state.testId && setCurrentTestId) {
       setCurrentTestId(state.testId);
     }
@@ -55,4 +55,4 @@ const CreateTestComponent = () => {
 
   // ... resto del componente
 };
-*/ 
+*/

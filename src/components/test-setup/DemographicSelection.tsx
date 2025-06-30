@@ -30,10 +30,27 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  const [testerCount, setTesterCount] = useState<number>(25);
+  // Log para debugging
+  console.log('DemographicSelection - Datos recibidos:', {
+    demographics,
+    testerCount: demographics.testerCount,
+    ageRanges: demographics.ageRanges,
+    gender: demographics.gender,
+    locations: demographics.locations,
+  });
+
+  // Inicializar estados locales con los datos cargados
+  const [testerCount, setTesterCount] = useState<number>(demographics.testerCount || 25);
   const [error, setError] = useState<string | null>(null);
-  const [minAge, setMinAge] = useState<number>(18);
-  const [maxAge, setMaxAge] = useState<number>(55);
+
+  // Inicializar minAge y maxAge con los valores cargados
+  const initialMinAge =
+    demographics.ageRanges?.length >= 2 ? parseInt(demographics.ageRanges[0]) : 18;
+  const initialMaxAge =
+    demographics.ageRanges?.length >= 2 ? parseInt(demographics.ageRanges[1]) : 55;
+
+  const [minAge, setMinAge] = useState<number>(initialMinAge);
+  const [maxAge, setMaxAge] = useState<number>(initialMaxAge);
   const [ageError, setAgeError] = useState<string | null>(null);
 
   const genders = ['Male', 'Female'];
@@ -51,10 +68,11 @@ export default function DemographicSelection({
   // Calculate number of active variants
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
 
-  // Set default values on component mount
+  // Set default values on component mount ONLY if no data exists
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
 
+    // Solo establecer valores por defecto si no hay datos existentes
     if (!demographics.locations?.length) {
       updates.locations = ['US', 'CA'];
     }
@@ -67,10 +85,32 @@ export default function DemographicSelection({
       updates.ageRanges = [minAge.toString(), maxAge.toString()];
     }
 
+    // Solo aplicar updates si hay cambios necesarios
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
     }
-  }, []);
+  }, []); // Solo ejecutar una vez al montar el componente
+
+  // Sincronizar estados locales cuando cambien los datos demográficos
+  useEffect(() => {
+    // Actualizar testerCount si cambia en demographics
+    if (demographics.testerCount !== testerCount) {
+      setTesterCount(demographics.testerCount || 25);
+    }
+
+    // Actualizar minAge y maxAge si cambian en demographics
+    if (demographics.ageRanges?.length >= 2) {
+      const newMinAge = parseInt(demographics.ageRanges[0]);
+      const newMaxAge = parseInt(demographics.ageRanges[1]);
+
+      if (newMinAge !== minAge) {
+        setMinAge(newMinAge);
+      }
+      if (newMaxAge !== maxAge) {
+        setMaxAge(newMaxAge);
+      }
+    }
+  }, [demographics.testerCount, demographics.ageRanges, testerCount, minAge, maxAge]);
 
   const handleAgeChange = (type: 'min' | 'max', value: string) => {
     const numValue = parseInt(value);

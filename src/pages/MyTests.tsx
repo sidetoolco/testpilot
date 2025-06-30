@@ -1,6 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil, Play, Pause, FileText, TrendingUp, Calendar, BarChart3 } from 'lucide-react';
+import {
+  Plus,
+  PlayCircle,
+  Users2,
+  Clock,
+  CheckCircle,
+  Pencil,
+  Play,
+  Pause,
+  FileText,
+  TrendingUp,
+  Calendar,
+  BarChart3,
+} from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useState, useEffect, useMemo } from 'react';
@@ -51,7 +64,7 @@ const statusConfig = {
   incomplete: {
     bgColor: 'bg-orange-50',
     textColor: 'text-orange-500',
-    icon: Clock,
+    icon: Pause,
   },
   'in progress': {
     bgColor: 'bg-gray-300',
@@ -184,9 +197,9 @@ export default function MyTests() {
   // Nueva función para manejar la continuación de tests incompletos
   const handleContinueTest = async (testId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se active el onClick del contenedor
-    
+
     const result = await continueTest(testId);
-    
+
     if (result) {
       // Navegar directamente a /create-test con los datos del test incompleto
       navigate('/create-test', {

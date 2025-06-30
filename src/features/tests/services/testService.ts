@@ -426,7 +426,9 @@ export const testService = {
 
       // Custom screening
       if (testData.demographics?.customScreening?.enabled) {
-        allOperations.push(this.saveCustomScreeningBatch(test.id, testData.demographics.customScreening));
+        allOperations.push(
+          this.saveCustomScreeningBatch(test.id, testData.demographics.customScreening)
+        );
       }
 
       // Ejecutar TODAS las operaciones en paralelo
@@ -459,15 +461,20 @@ export const testService = {
           asin: c.asin,
           title: c.title,
           hasId: !!c.id,
-          hasAsin: !!c.asin
-        }))
+          hasAsin: !!c.asin,
+        })),
       });
 
       // Primero, limpiar competidores existentes para este test
-      await supabase.from('test_competitors').delete().eq('test_id', testId as any);
+      await supabase
+        .from('test_competitors')
+        .delete()
+        .eq('test_id', testId as any);
 
       // Obtener el company_id del usuario actual
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new TestCreationError('Not authenticated');
       }
@@ -484,12 +491,12 @@ export const testService = {
 
       // Buscar los IDs correctos de amazon_products usando el ASIN
       const productIds: string[] = [];
-      
+
       console.log('Buscando productos en amazon_products por ASIN');
-      
+
       for (const competitor of competitors) {
         console.log(`Buscando producto con ASIN: ${competitor.asin}`);
-        
+
         // Buscar el producto en amazon_products usando solo ASIN (sin company_id)
         const { data: existingProduct, error: searchError } = await supabase
           .from('amazon_products')
@@ -512,7 +519,7 @@ export const testService = {
         productIds.push(productId);
         console.log(`Producto encontrado para ASIN ${competitor.asin}:`, {
           id: productId,
-          title: existingProduct.title
+          title: existingProduct.title,
         });
       }
 
@@ -532,9 +539,7 @@ export const testService = {
       console.log('Inserting competitor data with correct product IDs:', competitorData);
 
       // Insertar competidores
-      const { data, error } = await supabase
-        .from('test_competitors')
-        .insert(competitorData as any);
+      const { data, error } = await supabase.from('test_competitors').insert(competitorData as any);
 
       if (error) {
         console.error('Supabase error details:', error);
@@ -626,87 +631,92 @@ export const testService = {
       }
 
       // Cargar todos los datos relacionados en paralelo para mejor rendimiento
-      const [
-        competitorsResult,
-        variationsResult,
-        demographicsResult,
-        customScreeningResult
-      ] = await Promise.all([
-        // Cargar competidores desde test_competitors -> amazon_products
-        supabase
-          .from('test_competitors')
-          .select(`
+      const [competitorsResult, variationsResult, demographicsResult, customScreeningResult] =
+        await Promise.all([
+          // Cargar competidores desde test_competitors -> amazon_products
+          supabase
+            .from('test_competitors')
+            .select(
+              `
             product:amazon_products(*)
-          `)
-          .eq('test_id', testId as any),
+          `
+            )
+            .eq('test_id', testId as any),
 
-        // Cargar variaciones desde test_variations -> products
-        supabase
-          .from('test_variations')
-          .select(`
+          // Cargar variaciones desde test_variations -> products
+          supabase
+            .from('test_variations')
+            .select(
+              `
             product:products(*),
             variation_type
-          `)
-          .eq('test_id', testId as any),
+          `
+            )
+            .eq('test_id', testId as any),
 
-        // Cargar demográficos
-        supabase
-          .from('test_demographics')
-          .select('*')
-          .eq('test_id', testId as any)
-          .maybeSingle(),
+          // Cargar demográficos
+          supabase
+            .from('test_demographics')
+            .select('*')
+            .eq('test_id', testId as any)
+            .maybeSingle(),
 
-        // Cargar custom screening
-        supabase
-          .from('custom_screening')
-          .select('*')
-          .eq('test_id', testId as any)
-          .maybeSingle()
-      ]);
+          // Cargar custom screening
+          supabase
+            .from('custom_screening')
+            .select('*')
+            .eq('test_id', testId as any)
+            .maybeSingle(),
+        ]);
 
       // Procesar competidores (manejar caso vacío)
-      const competitors = competitorsResult.error 
-        ? [] 
+      const competitors = competitorsResult.error
+        ? []
         : (competitorsResult.data || []).map((c: any) => c.product).filter(Boolean);
 
       // Procesar variaciones (manejar caso vacío)
-      const variations = variationsResult.error 
+      const variations = variationsResult.error
         ? { a: null, b: null, c: null }
-        : (variationsResult.data || []).reduce((acc: any, v: any) => {
-            if (v.product && v.variation_type) {
-              acc[v.variation_type] = v.product;
-            }
-            return acc;
-          }, { a: null, b: null, c: null });
+        : (variationsResult.data || []).reduce(
+            (acc: any, v: any) => {
+              if (v.product && v.variation_type) {
+                acc[v.variation_type] = v.product;
+              }
+              return acc;
+            },
+            { a: null, b: null, c: null }
+          );
 
       // Procesar demográficos (manejar caso vacío)
-      const demographics = demographicsResult.error || !demographicsResult.data
-        ? {
-            ageRanges: [],
-            gender: [],
-            locations: [],
-            interests: [],
-            testerCount: 25,
-            customScreening: {
-              enabled: false,
-              question: '',
-              validAnswer: undefined,
-              isValidating: false,
-            },
-          }
-        : {
-            ageRanges: demographicsResult.data.age_ranges || [],
-            gender: demographicsResult.data.genders || [],
-            locations: demographicsResult.data.locations || [],
-            interests: demographicsResult.data.interests || [],
-            testerCount: demographicsResult.data.tester_count || 25,
-            customScreening: {
-              enabled: !!customScreeningResult.data,
-              question: customScreeningResult.data?.question || '',
-              validAnswer: customScreeningResult.data?.valid_option as 'Yes' | 'No' || undefined,
-              isValidating: false,
-            },
-          };
+      const demographics =
+        demographicsResult.error || !demographicsResult.data
+          ? {
+              ageRanges: [],
+              gender: [],
+              locations: [],
+              interests: [],
+              testerCount: 25,
+              customScreening: {
+                enabled: false,
+                question: '',
+                validAnswer: undefined,
+                isValidating: false,
+              },
+            }
+          : {
+              ageRanges: demographicsResult.data.age_ranges || [],
+              gender: demographicsResult.data.genders || [],
+              locations: demographicsResult.data.locations || [],
+              interests: demographicsResult.data.interests || [],
+              testerCount: demographicsResult.data.tester_count || 25,
+              customScreening: {
+                enabled: !!customScreeningResult.data,
+                question: customScreeningResult.data?.question || '',
+                validAnswer:
+                  (customScreeningResult.data?.valid_option as 'Yes' | 'No') || undefined,
+                isValidating: false,
+              },
+            };
 
       // Mapear el paso del enum a los valores internos de la UI
       const mapEnumToStep = (step: string): string => {
@@ -730,7 +740,7 @@ export const testService = {
 
       // Determinar el último paso completado basado en los datos disponibles
       let lastCompletedStep = 'objective';
-      
+
       if ((test as any).search_term) {
         lastCompletedStep = 'search';
       }
@@ -745,8 +755,8 @@ export const testService = {
       }
 
       // Si hay un paso guardado en la columna step, usarlo; si no, usar el determinado por los datos
-      const currentStep = (test as any).step 
-        ? mapEnumToStep((test as any).step) 
+      const currentStep = (test as any).step
+        ? mapEnumToStep((test as any).step)
         : lastCompletedStep;
 
       // Construir el objeto TestData completo
@@ -778,13 +788,21 @@ export const testService = {
 
   // Función para determinar el siguiente paso basado en el último completado
   getNextStep(lastCompletedStep: string): string {
-    const steps = ['objective', 'search', 'competitors', 'variations', 'demographics', 'preview', 'review'];
+    const steps = [
+      'objective',
+      'search',
+      'competitors',
+      'variations',
+      'demographics',
+      'preview',
+      'review',
+    ];
     const currentIndex = steps.indexOf(lastCompletedStep);
-    
+
     if (currentIndex === -1 || currentIndex === steps.length - 1) {
       return 'objective';
     }
-    
+
     return steps[currentIndex + 1];
   },
 
@@ -793,17 +811,17 @@ export const testService = {
     try {
       // Cargar todos los datos del test
       const { testData, currentStep, lastCompletedStep } = await this.loadIncompleteTest(testId);
-      
+
       // Usar currentStep como el paso al que navegar (donde se quedó el usuario)
       // No necesitamos nextStep, queremos ir al paso actual
-      
+
       console.log('ContinueIncompleteTest - Datos cargados:', {
         testId,
         currentStep,
         lastCompletedStep,
-        testDataKeys: Object.keys(testData)
+        testDataKeys: Object.keys(testData),
       });
-      
+
       return {
         testData,
         currentStep,
@@ -813,6 +831,153 @@ export const testService = {
       };
     } catch (error) {
       console.error('Continue incomplete test error:', error);
+      throw error;
+    }
+  },
+
+  // Función para actualizar un test incompleto a draft y actualizar sus datos
+  async updateIncompleteTestToDraft(testId: string, testData: TestData) {
+    try {
+      console.log('Actualizando test incompleto a draft:', testId);
+
+      // 1. Actualizar el test principal a draft
+      const { error: updateError } = await supabase
+        .from('tests')
+        .update({
+          name: testData.name.trim(),
+          search_term: testData.searchTerm.trim(),
+          status: 'draft',
+          objective: testData.objective,
+        })
+        .eq('id', testId as any);
+
+      if (updateError) {
+        throw new TestCreationError('Failed to update test status', { error: updateError });
+      }
+
+      // 2. Actualizar datos relacionados en paralelo
+      const updateOperations: Promise<any>[] = [];
+
+      // Limpiar datos existentes primero
+      updateOperations.push(
+        supabase
+          .from('test_competitors')
+          .delete()
+          .eq('test_id', testId as any),
+        supabase
+          .from('test_variations')
+          .delete()
+          .eq('test_id', testId as any),
+        supabase
+          .from('test_demographics')
+          .delete()
+          .eq('test_id', testId as any),
+        supabase
+          .from('custom_screening')
+          .delete()
+          .eq('test_id', testId as any)
+      );
+
+      await Promise.all(updateOperations);
+
+      // 3. Insertar datos actualizados
+      const insertOperations: Promise<any>[] = [];
+
+      // Competidores
+      if (testData.competitors && testData.competitors.length > 0) {
+        insertOperations.push(this.saveCompetitorsBatch(testId, testData.competitors));
+      }
+
+      // Variaciones
+      if (testData.variations) {
+        insertOperations.push(this.insertVariationsBatch(testId, testData.variations));
+      }
+
+      // Demográficos
+      if (testData.demographics) {
+        insertOperations.push(this.insertDemographicsBatch(testId, testData.demographics));
+      }
+
+      // Custom screening
+      if (testData.demographics?.customScreening?.enabled) {
+        insertOperations.push(
+          this.saveCustomScreeningBatch(testId, testData.demographics.customScreening)
+        );
+      }
+
+      // Ejecutar todas las inserciones en paralelo
+      if (insertOperations.length > 0) {
+        await Promise.all(insertOperations);
+      }
+
+      console.log('Test incompleto actualizado exitosamente a draft:', testId);
+    } catch (error) {
+      console.error('Error actualizando test incompleto a draft:', error);
+      throw error;
+    }
+  },
+
+  // Función para crear proyectos en Prolific para un test existente
+  async createProlificProjectsForTest(testId: string, testData: TestData) {
+    try {
+      console.log('Creando proyectos Prolific para test existente:', testId);
+
+      // Obtener información del test
+      const { data: test, error: testError } = await supabase
+        .from('tests')
+        .select('*')
+        .eq('id', testId as any)
+        .single();
+
+      if (testError || !test) {
+        throw new TestCreationError('Failed to get test information', { error: testError });
+      }
+
+      // Crear proyectos en Prolific para cada variación
+      for (const [variationType, variation] of Object.entries(testData.variations)) {
+        if (variation) {
+          const respondentProjectData = {
+            publicTitle: this.generateDynamicTitle(testData.searchTerm),
+            publicInternalName: `${testId}-${variationType}`,
+            participantTimeRequiredMinutes: 10,
+            incentiveAmount: Math.round((20 / 60) * 10 * 100),
+            targetNumberOfParticipants: testData.demographics.testerCount,
+            externalResearcher: {
+              researcherId: (test as any).company_id,
+              researcherName: 'Company Researcher',
+            },
+            demographics: {
+              ageRanges: testData.demographics.ageRanges,
+              genders: Array.isArray(testData.demographics.gender)
+                ? testData.demographics.gender
+                : [testData.demographics.gender],
+              locations: testData.demographics.locations,
+              interests: testData.demographics.interests,
+            },
+            testId: testId,
+            variationType,
+            customScreeningEnabled: testData.demographics.customScreening?.enabled || false,
+          };
+
+          try {
+            const response = await apiClient.post('/tests', respondentProjectData);
+            console.log(
+              `Prolific project created for variation ${variationType}:`,
+              response.status
+            );
+          } catch (error) {
+            console.error(
+              `Failed to create Prolific project for variation ${variationType}:`,
+              error
+            );
+            throw new TestCreationError('Failed to create Prolific project', { error });
+          }
+        }
+      }
+
+      console.log('Proyectos Prolific creados exitosamente para test:', testId);
+    } catch (error) {
+      console.error('Error creando proyectos Prolific:', error);
       throw error;
     }
   },

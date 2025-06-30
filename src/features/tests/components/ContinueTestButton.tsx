@@ -19,7 +19,7 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
 
   const handleContinue = async () => {
     const result = await continueTest(testId);
-    
+
     if (result) {
       // Si hay un callback personalizado, usarlo
       if (onTestLoaded) {
@@ -39,7 +39,7 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
       };
 
       const route = stepRoutes[result.nextStep] || '/create-test';
-      
+
       // Navegar al paso correspondiente con los datos cargados
       navigate(route, {
         state: {
@@ -58,12 +58,8 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
       disabled={loading}
       className={`inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors ${className}`}
     >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Play className="h-4 w-4" />
-      )}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
       {loading ? 'Cargando...' : 'Continuar'}
     </button>
   );
-}; 
+};

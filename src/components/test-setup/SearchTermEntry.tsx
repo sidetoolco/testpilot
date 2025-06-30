@@ -26,7 +26,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
   const allSuggestions = useMemo(() => {
     if (loading) return [];
     if (tests.length === 0) return defaultSuggestions;
-    
+
     return Array.from(
       new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
     );
