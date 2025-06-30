@@ -7,25 +7,27 @@ interface MarkdownTextProps {
   text?: string;
   baseTextStyle?: any;
   orientation?: PDFOrientation;
+  small?: boolean;
 }
 
 export const MarkdownText: React.FC<MarkdownTextProps> = ({
   text,
   baseTextStyle = {},
   orientation = 'portrait',
+  small = false,
 }) => {
   if (!text) return null;
 
   const isLandscape = orientation === 'landscape';
 
-  // Ajustar tamaños de fuente para landscape
-  const h3FontSize = isLandscape ? 20 : 24;
-  const h2FontSize = isLandscape ? 16 : 20;
-  const bodyFontSize = isLandscape ? 12 : 14;
-  const lineHeight = isLandscape ? 1.4 : 1.6;
-  const marginBottom = isLandscape ? 8 : 12;
-  const h3MarginBottom = isLandscape ? 16 : 20;
-  const h2MarginBottom = isLandscape ? 12 : 16;
+  // Ajustar tamaños de fuente para landscape y small
+  const h3FontSize = small ? (isLandscape ? 14 : 16) : isLandscape ? 20 : 24;
+  const h2FontSize = small ? (isLandscape ? 12 : 14) : isLandscape ? 16 : 20;
+  const bodyFontSize = small ? (isLandscape ? 9 : 10) : isLandscape ? 12 : 14;
+  const lineHeight = small ? (isLandscape ? 1.3 : 1.4) : isLandscape ? 1.4 : 1.6;
+  const marginBottom = small ? (isLandscape ? 6 : 8) : isLandscape ? 8 : 12;
+  const h3MarginBottom = small ? (isLandscape ? 12 : 14) : isLandscape ? 16 : 20;
+  const h2MarginBottom = small ? (isLandscape ? 10 : 12) : isLandscape ? 12 : 16;
 
   const renderMarkdownText = (content: string) => {
     // Split by newlines first to handle paragraphs

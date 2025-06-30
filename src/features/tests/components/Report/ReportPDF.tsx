@@ -34,7 +34,7 @@ interface PDFDocumentProps {
     recommendations?: string;
     competitive_insights?: string;
     shopper_comments?: any[];
-    shopper_comments_summary?: string;
+    comment_summary?: string;
   };
   competitiveinsights: any;
   averagesurveys: any;
@@ -144,13 +144,13 @@ const PDFDocument = ({
       {/* Shopper Comments Analysis */}
       {(() => {
         const shouldShowComments =
-          safeInsights?.shopper_comments_summary ||
+          safeInsights?.comment_summary ||
           (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
           testDetails.responses?.comparisons ||
           testDetails.responses?.surveys;
 
         console.log('ShopperCommentsPDFSection condition check:', {
-          hasSummary: !!safeInsights?.shopper_comments_summary,
+          hasSummary: !!safeInsights?.comment_summary,
           hasComments: !!(
             safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0
           ),
@@ -165,7 +165,7 @@ const PDFDocument = ({
           comments={safeInsights?.shopper_comments || []}
           comparision={testDetails.responses?.comparisons}
           surveys={testDetails.responses?.surveys}
-          shopperCommentsSummary={safeInsights?.shopper_comments_summary || ''}
+          shopperCommentsSummary={safeInsights?.comment_summary || ''}
           orientation={orientation}
         />
       )}
@@ -271,7 +271,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
               recommendations: '',
               competitive_insights: '',
               shopper_comments: [],
-              shopper_comments_summary: '',
+              comment_summary: '',
             },
         competitiveinsights: competitiveinsights
           ? JSON.parse(JSON.stringify(competitiveinsights))
@@ -292,7 +292,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
         averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
         shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0,
-        shopperCommentsSummary: !!pdfData.insights?.shopper_comments_summary,
+        shopperCommentsSummary: !!pdfData.insights?.comment_summary,
         hasComparisons: !!pdfData.testDetails.responses?.comparisons,
         hasSurveys: !!pdfData.testDetails.responses?.surveys,
         orientation: selectedOrientation,
