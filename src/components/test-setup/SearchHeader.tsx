@@ -2,7 +2,7 @@ import React from 'react';
 
 interface SearchHeaderProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
 }
 
 export function SearchHeader({ title, subtitle }: SearchHeaderProps) {
