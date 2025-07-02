@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react'; // 1. Import useMemo
 import { Search } from 'lucide-react';
 import { useTests } from '../../features/tests/hooks/useTests';
 
@@ -8,7 +8,6 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
-// Sugerencias predeterminadas - constante que no depende del estado del componente
 const defaultSuggestions = [
   'Fabric Softener',
   'Laundry Detergent',
@@ -22,16 +21,14 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
   const { tests, loading } = useTests();
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
-  // Obtener todas las sugerencias disponibles
-  const allSuggestions = loading
-    ? []
-    : tests.length === 0
-      ? defaultSuggestions
-      : Array.from(
-          new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
-        );
+  const allSuggestions = useMemo(() => {
+    if (loading) return [];
+    if (tests.length === 0) return defaultSuggestions;
+    return Array.from(
+      new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
+    );
+  }, [loading, tests]);
 
-  // Filtrar sugerencias basadas en el input del usuario
   useEffect(() => {
     if (!value.trim()) {
       setFilteredSuggestions([]);
