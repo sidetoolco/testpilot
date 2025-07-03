@@ -10,6 +10,7 @@ import {
   useTestStateFromLocation,
   initializeTestFromState,
 } from '../features/tests/utils/testStateManager';
+import { useTestCreation } from '../features/tests/context/TestCreationContext';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -51,16 +52,6 @@ const LoadingMessages = [
   'Finalizing details...',
 ];
 
-// Variable global para acceder al estado desde SideNav
-let globalTestState: {
-  testData: TestData;
-  currentStep: string;
-  currentTestId: string | null;
-  saveIncompleteTest: () => Promise<void>;
-} | null = null;
-
-export const getGlobalTestState = () => globalTestState;
-
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,53 +61,72 @@ export default function CreateConsumerTest() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
 
-  // Obtener estado del test incompleto desde la navegación
+  // Get incomplete test state from navigation
   const testState = useTestStateFromLocation();
 
-  // Log para verificar el estado del hook
+  // Use the test creation context
+  const {
+    setTestData: setContextTestData,
+    setCurrentStep: setContextStep,
+    setCurrentTestId: setContextTestId,
+    setIsInProgress,
+    setSaveIncompleteTest,
+  } = useTestCreation();
+
+  // Log to verify hook state
   console.log(
-    'CreateConsumerTest renderizado - currentStep:',
+    'CreateConsumerTest rendered - currentStep:',
     currentStep,
     'canProceed:',
     canProceed()
   );
 
-  // Efecto para inicializar test incompleto si viene desde navegación
+  // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
-    console.log('TestState recibido:', testState);
+    console.log('TestState received:', testState);
     console.log('isIncompleteTest:', testState.isIncompleteTest);
     console.log('testData:', testState.testData);
     console.log('currentStep:', testState.currentStep);
 
-    // Solo inicializar si es un test incompleto Y no se ha inicializado ya
+    // Only initialize if it's an incomplete test AND hasn't been initialized yet
     if (testState.isIncompleteTest && testState.testData && !currentTestId) {
-      console.log('Inicializando test incompleto:', testState);
+      console.log('Initializing incomplete test:', testState);
 
-      // Cargar datos del test
+      // Load test data
       setTestData(testState.testData);
-      console.log('TestData establecido:', testState.testData);
+      setContextTestData(testState.testData);
+      console.log('TestData set:', testState.testData);
 
-      // Establecer ID del test
+      // Set test ID
       if (testState.testId) {
         setCurrentTestId(testState.testId);
-        console.log('TestId establecido:', testState.testId);
+        setContextTestId(testState.testId);
+        console.log('TestId set:', testState.testId);
       }
 
-      // Establecer el paso correcto
+      // Set the correct step
       if (testState.currentStep) {
-        console.log('Estableciendo paso a:', testState.currentStep);
+        console.log('Setting step to:', testState.currentStep);
         setCurrentStep(testState.currentStep);
-        console.log('Paso establecido correctamente');
+        setContextStep(testState.currentStep);
+        console.log('Step set successfully');
 
-        // Forzar un re-render para asegurar que el estado se actualice
+        // Force a re-render to ensure state updates
         setTimeout(() => {
-          console.log('Estado final - currentStep:', testState.currentStep);
+          console.log('Final state - currentStep:', testState.currentStep);
         }, 100);
       }
     }
-  }, [testState, setCurrentStep, currentTestId]);
+  }, [
+    testState,
+    setCurrentStep,
+    currentTestId,
+    setContextTestData,
+    setContextStep,
+    setContextTestId,
+  ]);
 
-  // Función para guardar test incompleto
+  // Function to save incomplete test
   const saveIncompleteTest = async () => {
     try {
       const savedTest = await testService.saveIncompleteTest(
@@ -126,6 +136,7 @@ export default function CreateConsumerTest() {
       );
       if (!currentTestId) {
         setCurrentTestId((savedTest as any).id);
+        setContextTestId((savedTest as any).id);
       }
       toast.success('Test saved successfully');
     } catch (error) {
@@ -134,25 +145,34 @@ export default function CreateConsumerTest() {
     }
   };
 
-  // Actualizar estado global
+  // Register saveIncompleteTest function with context
   useEffect(() => {
-    globalTestState = {
-      testData,
-      currentStep,
-      currentTestId,
-      saveIncompleteTest,
-    };
-  }, [testData, currentStep, currentTestId]);
+    setSaveIncompleteTest(saveIncompleteTest);
+  }, [setSaveIncompleteTest, testData, currentTestId, currentStep]);
 
-  // Limpiar estado global al desmontar
+  // Update context state when local state changes
   useEffect(() => {
+    setContextTestData(testData);
+  }, [testData, setContextTestData]);
+
+  useEffect(() => {
+    setContextStep(currentStep);
+  }, [currentStep, setContextStep]);
+
+  useEffect(() => {
+    setContextTestId(currentTestId);
+  }, [currentTestId, setContextTestId]);
+
+  // Set in progress when on create-test page
+  useEffect(() => {
+    setIsInProgress(true);
     return () => {
-      globalTestState = null;
+      setIsInProgress(false);
     };
-  }, []);
+  }, [setIsInProgress]);
 
   const handleBack = () => {
-    console.log('handleBack ejecutado - currentStep:', currentStep);
+    console.log('handleBack executed - currentStep:', currentStep);
     const currentIndex = steps.findIndex(s => s.key === currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
@@ -187,29 +207,29 @@ export default function CreateConsumerTest() {
 
       setIsLoading(true);
 
-      // Verificar si es un test incompleto existente
+      // Check if it's an existing incomplete test
       if (testState.isIncompleteTest && currentTestId) {
-        console.log('Actualizando test incompleto existente a draft:', currentTestId);
+        console.log('Updating existing incomplete test to draft:', currentTestId);
 
         try {
-          // Actualizar el test incompleto a draft y actualizar datos
+          // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
-          console.log('Test incompleto actualizado exitosamente a draft');
+          console.log('Incomplete test successfully updated to draft');
 
-          // Proceder con el launch normal (crear proyectos en Prolific)
+          // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
 
           toast.success('Test launched successfully');
           navigate('/my-tests');
           return;
         } catch (updateError) {
-          console.error('Error actualizando test incompleto:', updateError);
+          console.error('Error updating incomplete test:', updateError);
           toast.error('Failed to update incomplete test. Creating new test instead.');
-          // Si falla la actualización, continuar con el flujo normal de crear nuevo test
+          // If update fails, continue with normal flow to create new test
         }
       }
 
-      // Create test (flujo normal para tests nuevos)
+      // Create test (normal flow for new tests)
       await testService.createTest(testData);
 
       toast.success('Test created successfully');
@@ -224,7 +244,7 @@ export default function CreateConsumerTest() {
   };
 
   const handleContinue = () => {
-    console.log('handleContinue ejecutado - currentStep:', currentStep);
+    console.log('handleContinue executed - currentStep:', currentStep);
     if (handleNext()) {
       const currentIndex = steps.findIndex(s => s.key === currentStep);
       if (currentIndex < steps.length - 1) {
@@ -233,18 +253,18 @@ export default function CreateConsumerTest() {
     }
   };
 
-  // Efecto para cambiar los mensajes
+  // Effect to change messages
   useEffect(() => {
     if (isLoading) {
       const interval = setInterval(() => {
         setLoadingMessageIndex((current: number) =>
           current < LoadingMessages.length - 1 ? current + 1 : current
         );
-      }, 4000); // Cambia cada 2 segundos
+      }, 4000); // Change every 2 seconds
 
       return () => {
         clearInterval(interval);
-        setLoadingMessageIndex(0); // Reset al cerrar
+        setLoadingMessageIndex(0); // Reset on close
       };
     }
   }, [isLoading]);

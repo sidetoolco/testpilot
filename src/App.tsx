@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './features/auth/stores/authStore';
+import { TestCreationProvider } from './features/tests/context/TestCreationContext';
 
 // Import components
 import MainLayout from './components/layout/MainLayout';
@@ -54,121 +55,123 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Routes>
-              {/* Unprotected Route */}
+      <TestCreationProvider>
+        <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Routes>
+                {/* Unprotected Route */}
 
-              <Route path="/test/:id" element={<TestUserPage />} />
+                <Route path="/test/:id" element={<TestUserPage />} />
 
-              <Route path="/invite/:token" element={<TeamInviteForm />} />
+                <Route path="/invite/:token" element={<TeamInviteForm />} />
 
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Adminpanel />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Adminpanel />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/support"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Support />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/support"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Support />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/preview-product" element={<PreviewProductDetail />} />
-              <Route path="/questions" element={<TestQuestions />} />
-              <Route path="/questions/:id" element={<QuestionDetail />} />
-              <Route path="/thanks" element={<ThankYou />} />
-              <Route path="/sentry-error-test" element={<SentryErrorTest />} />
-              {/* detalle testing */}
-              <Route
-                path="/tests/:id"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <TestDetail />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/preview-product" element={<PreviewProductDetail />} />
+                <Route path="/questions" element={<TestQuestions />} />
+                <Route path="/questions/:id" element={<QuestionDetail />} />
+                <Route path="/thanks" element={<ThankYou />} />
+                <Route path="/sentry-error-test" element={<SentryErrorTest />} />
+                {/* detalle testing */}
+                <Route
+                  path="/tests/:id"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <TestDetail />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Auth Routes */}
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="/signup" element={<SignupForm />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Auth Routes */}
+                <Route path="/login" element={<LoginForm />} />
+                <Route path="/signup" element={<SignupForm />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Protected Routes */}
-              <Route path="/" element={<Navigate to="/my-tests" replace />} />
+                {/* Protected Routes */}
+                <Route path="/" element={<Navigate to="/my-tests" replace />} />
 
-              <Route
-                path="/my-tests"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <MyTests />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/my-tests"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <MyTests />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/all-products"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <AllProducts />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/all-products"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <AllProducts />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/create-test"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <CreateConsumerTest />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/create-test"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <CreateConsumerTest />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Settings routes */}
-              <Route
-                path="/settings/team"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <TeamSettings />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Settings routes */}
+                <Route
+                  path="/settings/team"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <TeamSettings />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="*" element={<Navigate to="/my-tests" replace />} />
-            </Routes>
-            <Toast />
-          </motion.div>
-        </AnimatePresence>
-      </BrowserRouter>
+                <Route path="*" element={<Navigate to="/my-tests" replace />} />
+              </Routes>
+              <Toast />
+            </motion.div>
+          </AnimatePresence>
+        </BrowserRouter>
+      </TestCreationProvider>
     </QueryClientProvider>
   );
 }

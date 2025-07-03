@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
-import { getGlobalTestState } from '../../pages/CreateConsumerTest';
+import {
+  useTestCreationState,
+  useTestCreation,
+} from '../../features/tests/context/TestCreationContext';
 import IncompleteTestModal from '../ui/IncompleteTestModal';
 import { toast } from 'sonner';
 
@@ -12,7 +15,7 @@ const menuItems = [
   { path: '/support', icon: HelpCircle, label: 'Support Videos' },
 ];
 
-// Steps donde se considera que hay un test en progreso
+// Steps where a test is considered in progress
 const testInProgressSteps = [
   'search',
   'competitors',
@@ -32,15 +35,20 @@ export default function SideNav() {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Use the test creation context state and functions
+  const testState = useTestCreationState();
+  const { saveIncompleteTest } = useTestCreation();
+
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = async () => {
     try {
-      // Verificar si hay test en progreso
-      const testState = getGlobalTestState();
+      // Check if there's a test in progress
       if (
         location.pathname === '/create-test' &&
         testState &&
+        testState.isInProgress &&
+        testState.currentStep &&
         testInProgressSteps.includes(testState.currentStep)
       ) {
         setPendingNavigation('/logout');
@@ -57,11 +65,12 @@ export default function SideNav() {
   const handleNavigation = (path: string, e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Verificar si hay test en progreso
-    const testState = getGlobalTestState();
+    // Check if there's a test in progress
     if (
       location.pathname === '/create-test' &&
       testState &&
+      testState.isInProgress &&
+      testState.currentStep &&
       testInProgressSteps.includes(testState.currentStep)
     ) {
       setPendingNavigation(path);
@@ -69,23 +78,23 @@ export default function SideNav() {
       return;
     }
 
-    // Navegación normal
+    // Normal navigation
     navigate(path);
     setIsOpen(false);
   };
 
   const handleSaveTest = async (testName?: string) => {
-    const testState = getGlobalTestState();
     if (!testState) return;
 
     setIsSaving(true);
     try {
-      // Si se proporciona un nombre, actualizar el testData
-      if (testName) {
+      // If a name is provided, update the testData
+      if (testName && testState.testData) {
         testState.testData.name = testName;
       }
 
-      await testState.saveIncompleteTest();
+      // Use the saveIncompleteTest function from context
+      await saveIncompleteTest();
       setShowIncompleteModal(false);
 
       if (pendingNavigation) {
@@ -107,7 +116,7 @@ export default function SideNav() {
   const handleCancelNavigation = () => {
     setShowIncompleteModal(false);
 
-    // Permitir navegación inmediata al hacer click en Discard
+    // Allow immediate navigation when clicking Discard
     if (pendingNavigation) {
       if (pendingNavigation === '/logout') {
         signOut();
@@ -243,13 +252,13 @@ export default function SideNav() {
         </nav>
       </div>
 
-      {/* Modal de confirmación para tests incompletos */}
+      {/* Confirmation modal for incomplete tests */}
       <IncompleteTestModal
         isOpen={showIncompleteModal}
         onSave={handleSaveTest}
         onCancel={handleCancelNavigation}
         isSaving={isSaving}
-        currentTestName={getGlobalTestState()?.testData?.name}
+        currentTestName={testState?.testData?.name}
       />
     </>
   );

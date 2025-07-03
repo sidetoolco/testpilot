@@ -22,10 +22,10 @@ export const useContinueTest = () => {
     try {
       const result = await testService.continueIncompleteTest(testId);
 
-      toast.success('Test cargado correctamente');
+      toast.success('Test loaded successfully');
       return result;
     } catch (err: any) {
-      const errorMessage = err.message || 'Error al cargar el test';
+      const errorMessage = err.message || 'Error loading test';
       setError(errorMessage);
       toast.error(errorMessage);
       return null;
