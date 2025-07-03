@@ -110,34 +110,35 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
-      <div className="flex flex-col mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
-        <div className="flex items-center justify-center space-x-3">
-          <button
-            onClick={() => setVariant('summary')}
-            className={`px-6 py-2 rounded font-medium transition-colors
-                                ${
-                                  variant === 'summary'
-                                    ? 'bg-green-500 text-white hover:bg-green-600'
-                                    : 'bg-green-200 text-black hover:bg-gray-400'
-                                }`}
-          >
-            Summary
-          </button>
-          {availableVariants.map(v => (
+      <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Shopper comments</h2>
+
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8">
             <button
-              key={`variant-btn-${v}`}
-              onClick={() => setVariant(v)}
-              className={`px-6 py-2 rounded font-medium transition-colors
-                                ${
-                                  variant === v
-                                    ? 'bg-green-500 text-white hover:bg-green-600'
-                                    : 'bg-green-200 text-black hover:bg-gray-400'
-                                }`}
+              onClick={() => setVariant('summary')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                'summary' === variant
+                  ? 'border-green-600 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              Variant {v.toUpperCase()}
+              Summary
             </button>
-          ))}
+            {availableVariants.map(v => (
+              <button
+                key={`variant-btn-${v}`}
+                onClick={() => setVariant(v)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  v === variant
+                    ? 'border-green-600 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Variant {v.toUpperCase()}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 

@@ -34,6 +34,7 @@ interface PDFDocumentProps {
     recommendations?: string;
     competitive_insights?: string;
     shopper_comments?: any[];
+    comment_summary?: string;
   };
   competitiveinsights: any;
   averagesurveys: any;
@@ -140,13 +141,34 @@ const PDFDocument = ({
           )
       )}
 
-      {/* Comentado temporalmente - ShopperCommentsPDFSection
-      <ShopperCommentsPDFSection
-        comments={safeInsights?.shopper_comments || []}
-        comparision={testDetails.responses?.comparisons}
-        surveys={testDetails.responses?.surveys}
-      />
-      */}
+      {/* Shopper Comments Analysis */}
+      {(() => {
+        const shouldShowComments =
+          safeInsights?.comment_summary ||
+          (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
+          testDetails.responses?.comparisons ||
+          testDetails.responses?.surveys;
+
+        console.log('ShopperCommentsPDFSection condition check:', {
+          hasSummary: !!safeInsights?.comment_summary,
+          hasComments: !!(
+            safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0
+          ),
+          hasComparisons: !!testDetails.responses?.comparisons,
+          hasSurveys: !!testDetails.responses?.surveys,
+          shouldShow: shouldShowComments,
+        });
+
+        return shouldShowComments;
+      })() && (
+        <ShopperCommentsPDFSection
+          comments={safeInsights?.shopper_comments || []}
+          comparision={testDetails.responses?.comparisons}
+          surveys={testDetails.responses?.surveys}
+          shopperCommentsSummary={safeInsights?.comment_summary || ''}
+          orientation={orientation}
+        />
+      )}
 
       {safeInsights?.recommendations && (
         <RecommendationsPDFSection
@@ -249,6 +271,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
               recommendations: '',
               competitive_insights: '',
               shopper_comments: [],
+              comment_summary: '',
             },
         competitiveinsights: competitiveinsights
           ? JSON.parse(JSON.stringify(competitiveinsights))
@@ -269,6 +292,9 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
         averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
         shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0,
+        shopperCommentsSummary: !!pdfData.insights?.comment_summary,
+        hasComparisons: !!pdfData.testDetails.responses?.comparisons,
+        hasSurveys: !!pdfData.testDetails.responses?.surveys,
         orientation: selectedOrientation,
       });
 
