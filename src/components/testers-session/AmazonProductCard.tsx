@@ -23,22 +23,22 @@ export default function AmazonProductCard({
   const { id, image_url, image, title, name, rating, reviews_count, price, images } = product;
 
   useEffect(() => {
-    const startTime = Date.now();
-    const currentShopperId = shopperId;
-    
+    const startTime = Date.now(); // Captura el tiempo de entrada
+
     return () => {
-      const endTime = Date.now();
-      const timeSpent = endTime - startTime;
-      if (currentShopperId && product.id && timeSpent > 0) {
-        console.log(`time spent: ${timeSpent / 1000} seconds`);
+      const endTime = Date.now(); // Captura el tiempo de salida
+      const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
+      // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
+      if (shopperId && product.id && timeSpent > 0) {
+        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
         if (product.asin) {
-          recordTimeSpent(currentShopperId, product.id, startTime, endTime, true);
+          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
         } else {
-          recordTimeSpent(currentShopperId, product.id, startTime, endTime);
+          recordTimeSpent(shopperId, product.id, startTime, endTime);
         }
       }
     };
-  }, [product]); 
+  }, [product]);
 
   return (
     <Link
