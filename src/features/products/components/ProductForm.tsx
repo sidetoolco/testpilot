@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
 import { toast } from 'sonner';
+import { InfoIcon } from '../../../components/ui/Tooltip';
 
 interface ProductFormProps {
   onSubmit: (product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => void;
   onClose: () => void;
   initialData?: Product;
 }
+
+
 
 export default function ProductForm({ onSubmit, onClose, initialData }: ProductFormProps) {
   const [formData, setFormData] = useState({
@@ -104,7 +107,9 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Image Upload */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+          Product Images
+        </label>
         <ImageUpload
           images={formData.images}
           onChange={images => setFormData({ ...formData, images })}
@@ -114,7 +119,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
       {/* Product Name */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+          Product Name
+          <div className="pt-1 ml-1">
+            <InfoIcon tooltip="Enter the exact product name as it appears on Amazon. This is crucial for accurate product matching and search results." />
+          </div>
+        </label>
         <input
           type="text"
           value={formData.title}
@@ -126,7 +136,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+          Description
+          <div className="pt-1 ml-1">
+            <InfoIcon tooltip="Write a detailed product description (minimum 50 characters). Include key features, benefits, and specifications that customers need to know." />
+          </div>
+        </label>
         <textarea
           value={formData.description}
           onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -137,8 +152,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
       {/* Bullet Points */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
           About the product ( Enter 5 key points)
+          <div className="pt-1 ml-1">
+            <InfoIcon tooltip="List 5 key selling points or features of your product. These bullet points help customers quickly understand the main benefits and features." />
+          </div>
         </label>
         <div className="space-y-2">
           {[0, 1, 2, 3, 4].map(index => (
@@ -166,7 +184,9 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       {/* Price and Brand */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            Price
+          </label>
           <input
             type="number"
             step="0.01"
@@ -184,7 +204,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            Number of Reviews
+            <div className="pt-1 ml-1">
+              <InfoIcon tooltip="Enter the total number of customer reviews for this product on Amazon. This helps establish product credibility and popularity." />
+            </div>
+          </label>
           <input
             type="number"
             value={formData.reviews_count === undefined ? '' : formData.reviews_count}
@@ -204,8 +229,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       {/* Star Rating and Reviews */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
             Star Rating
+            <div className="pt-1 ml-1">
+              <InfoIcon tooltip="Set the average star rating (0-5 stars) for this product based on Amazon customer reviews. Higher ratings increase product trust and visibility." />
+            </div>
           </label>
           <div className="flex items-center">
             <div className="relative w-full">
