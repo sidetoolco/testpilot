@@ -22,17 +22,13 @@ export default function AmazonProductCard({
 
   const { id, image_url, image, title, name, rating, reviews_count, price, images } = product;
 
-  console.log({ product });
-
   useEffect(() => {
-    const startTime = Date.now(); // Captura el tiempo de entrada
-
+    const startTime = Date.now();
     return () => {
-      const endTime = Date.now(); // Captura el tiempo de salida
-      const timeSpent = endTime - startTime; // Calcula el tiempo transcurrido
-      // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
+      const endTime = Date.now();
+      const timeSpent = endTime - startTime;
       if (shopperId && product.id && timeSpent > 0) {
-        console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
+        console.log(`time spent: ${timeSpent / 1000} seconds`);
         if (product.asin) {
           recordTimeSpent(shopperId, product.id, startTime, endTime, true);
         } else {
@@ -40,7 +36,7 @@ export default function AmazonProductCard({
         }
       }
     };
-  }, [product]);
+  }, [product, shopperId]);
 
   return (
     <Link
@@ -57,8 +53,9 @@ export default function AmazonProductCard({
           location.pathname
         )
       }
+      className="h-full flex"
     >
-      <div className="relative flex flex-col justify-between p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer">
+      <div className="relative flex flex-col w-full p-4 hover:outline hover:outline-[#007185] hover:outline-[1px] rounded cursor-pointer">
         <div className="relative pt-[100%] mb-3">
           <img
             src={image_url || image}
@@ -66,58 +63,53 @@ export default function AmazonProductCard({
             className="absolute top-0 left-0 w-full h-full object-contain hover:scale-105 transition-transform duration-200"
           />
         </div>
-        <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
-          {title || name}
-        </h3>
 
-        <div className="flex items-center mb-1">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => {
-              const currentRating = rating || 5;
-              const fullStars = Math.floor(currentRating);
-              const hasHalfStar = currentRating % 1 >= 0.5;
-              const isFullStar = i < fullStars;
-              const isHalfStar = i === fullStars && hasHalfStar;
-              
-              if (isHalfStar) {
+        <div className="flex-grow flex flex-col">
+          <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#C7511F] line-clamp-2">
+            {title || name}
+          </h3>
+
+          <div className="flex items-center mb-1">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => {
+                // Your original star logic is restored here
+                const fullStars = Math.round(rating || 5);
+                const isFullStar = i < fullStars;
+                const isHalfStar = !isFullStar && i < rating;
                 return (
-                  <div key={i} className="relative h-4 w-4">
-                    <Star className="absolute top-0 left-0 h-4 w-4 text-gray-200 fill-gray-200" />
-                    <div className="absolute top-0 left-0 h-4 w-4 overflow-hidden" style={{ width: '50%' }}>
-                      <Star className="h-4 w-4 text-[#dd8433] fill-[#dd8433]" />
-                    </div>
-                  </div>
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      isFullStar
+                        ? 'text-[#dd8433] fill-[#dd8433]'
+                        : isHalfStar
+                        ? 'text-[#dd8433] fill-current'
+                        : 'text-gray-200 fill-gray-200'
+                    }`}
+                    style={{
+                      clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
+                    }}
+                  />
                 );
-              }
-              
-              return (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    isFullStar
-                      ? 'text-[#dd8433] fill-[#dd8433]'
-                      : 'text-gray-200 fill-gray-200'
-                  }`}
-                />
-              );
-            })}
+              })}
+            </div>
+            <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
+              {reviews_count?.toLocaleString()}
+            </span>
           </div>
-          <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-            {reviews_count?.toLocaleString()}
-          </span>
-        </div>
 
-        <div className="flex items-baseline gap-[2px] text-[#0F1111]">
-          <span className="text-xs align-top mt-[1px]">US$</span>
-          <span className="text-[21px] font-medium">{Math.floor(price)}</span>
-          <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
-        </div>
+          <div className="flex items-baseline gap-[2px] text-[#0F1111]">
+            <span className="text-xs align-top mt-[1px]">US$</span>
+            <span className="text-[21px] font-medium">{Math.floor(price)}</span>
+            <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
+          </div>
 
-        <div className="mt-1 flex items-center gap-1">
-          <img src="/assets/images/amazon-prime-icon.png" alt="Prime" className="h-12" />
-          <div>
-            <span className="text-[12px] text-[#007185]">FREE delivery</span>
-            <span className="text-[12px] text-[#0F1111] ml-1">Tomorrow</span>
+          <div className="mt-1 flex items-center gap-1">
+            <img src="/assets/images/amazon-prime-icon.png" alt="Prime" className="h-12" />
+            <div>
+              <span className="text-[12px] text-[#007185]">FREE delivery</span>
+              <span className="text-[12px] text-[#0F1111] ml-1">Tomorrow</span>
+            </div>
           </div>
         </div>
 
