@@ -18,7 +18,7 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
           className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col"
         >
           <div
-            className="aspect-square mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer"
+            className="h-48 mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer flex items-center justify-center"
             onClick={() => onEdit(product)}
           >
             <img
