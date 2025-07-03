@@ -24,19 +24,21 @@ export default function AmazonProductCard({
 
   useEffect(() => {
     const startTime = Date.now();
+    const currentShopperId = shopperId;
+    
     return () => {
       const endTime = Date.now();
       const timeSpent = endTime - startTime;
-      if (shopperId && product.id && timeSpent > 0) {
+      if (currentShopperId && product.id && timeSpent > 0) {
         console.log(`time spent: ${timeSpent / 1000} seconds`);
         if (product.asin) {
-          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
+          recordTimeSpent(currentShopperId, product.id, startTime, endTime, true);
         } else {
-          recordTimeSpent(shopperId, product.id, startTime, endTime);
+          recordTimeSpent(currentShopperId, product.id, startTime, endTime);
         }
       }
     };
-  }, [product, shopperId]);
+  }, [product]); 
 
   return (
     <Link
