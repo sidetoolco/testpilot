@@ -28,7 +28,7 @@ export default function LoginForm() {
       setFormError(err.message);
     }
   };
-
+  
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
@@ -47,6 +47,7 @@ export default function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+           
             <AuthError error={formError || error} />
 
             <div className="space-y-4">
@@ -94,7 +95,6 @@ export default function LoginForm() {
             </div>
 
             <AuthButton loading={loading} label="Sign in" loadingLabel="Signing in..." />
-
             <div className="relative text-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
