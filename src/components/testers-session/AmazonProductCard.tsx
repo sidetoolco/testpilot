@@ -74,7 +74,6 @@ export default function AmazonProductCard({
           <div className="flex items-center mb-1">
             <div className="flex">
               {[...Array(5)].map((_, i) => {
-                // Your original star logic is restored here
                 const fullStars = Math.round(rating || 5);
                 const isFullStar = i < fullStars;
                 const isHalfStar = !isFullStar && i < rating;
