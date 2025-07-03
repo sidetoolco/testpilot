@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'; // 1. Import useMemo
+import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useTests } from '../../features/tests/hooks/useTests';
 
@@ -19,7 +19,6 @@ const defaultSuggestions = [
 
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const { tests, loading } = useTests();
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
   const allSuggestions = useMemo(() => {
     if (loading) return [];
@@ -29,22 +28,20 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
     );
   }, [loading, tests]);
 
-  useEffect(() => {
-    if (!value.trim()) {
-      setFilteredSuggestions([]);
-      return;
-    }
+  const isExactMatch = allSuggestions.some(
+    suggestion => suggestion.toLowerCase() === value.toLowerCase()
+  );
 
-    const filtered = allSuggestions.filter(suggestion =>
-      suggestion.toLowerCase().includes(value.toLowerCase())
-    );
+  const filteredSuggestions =
+    value.trim() && !isExactMatch
+      ? allSuggestions.filter(suggestion =>
+          suggestion.toLowerCase().includes(value.toLowerCase())
+        )
+      : [];
 
-    setFilteredSuggestions(filtered);
-  }, [value, allSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
-    setFilteredSuggestions([]);
   };
 
   return (
@@ -77,6 +74,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
             />
           </div>
 
+          {/* This part remains the same and just works */}
           {filteredSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
               {filteredSuggestions.map(suggestion => (
