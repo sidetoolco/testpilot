@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
+import ProductPreviewModal from './ProductPreviewModal';
 import { toast } from 'sonner';
 
 interface ProductFormProps {
@@ -32,6 +33,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,186 +102,293 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     onSubmit(productData);
   };
 
+  const createPreviewProduct = (): Product => {
+    // Split bullet points for preview
+    const bulletPointsArray = formData.bullet_points
+      .join('\n')
+      .split('\n')
+      .filter(point => point.trim() !== '');
+
+    return {
+      id: initialData?.id || 'preview',
+      title: formData.title,
+      description: formData.description,
+      bullet_points: bulletPointsArray,
+      price: parseFloat((formData.price || 0).toString()) || 0,
+      brand: formData.brand,
+      image_url: formData.images[0] || '',
+      images: formData.images,
+      isCompetitor: formData.isCompetitor,
+      loads: formData.loads,
+      product_url: formData.product_url,
+      rating: formData.rating,
+      reviews_count: parseInt((formData.reviews_count || 0).toString()) || 0,
+    };
+  };
+
+  const handlePreview = () => {
+    // Validate required fields for preview
+    if (!formData.title || !formData.description || formData.images.length === 0) {
+      toast.error('Please fill in the title, description, and upload at least one image to preview');
+      return;
+    }
+
+    setShowPreview(true);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Image Upload */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-        <ImageUpload
-          images={formData.images}
-          onChange={images => setFormData({ ...formData, images })}
-          maxImages={4}
-        />
-      </div>
-
-      {/* Product Name */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={e => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          required
-        />
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <textarea
-          value={formData.description}
-          onChange={e => setFormData({ ...formData, description: e.target.value })}
-          className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
-          rows={3}
-        />
-      </div>
-
-      {/* Bullet Points */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          About the product ( Enter 5 key points)
-        </label>
-        <div className="space-y-2">
-          {[0, 1, 2, 3, 4].map(index => (
-            <input
-              key={index}
-              type="text"
-              value={formData.bullet_points[index] || ''}
-              onChange={e => {
-                const newBulletPoints = [...formData.bullet_points];
-                newBulletPoints[index] = e.target.value;
-                setFormData({ ...formData, bullet_points: newBulletPoints });
-              }}
-              className={`w-full px-4 py-2 border ${
-                errors.bulletPoints ? 'border-red-500' : 'border-gray-300'
-              } rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
-              placeholder={`Key point ${index + 1}`}
-            />
-          ))}
-        </div>
-        {errors.bulletPoints && (
-          <p className="mt-1 text-sm text-red-500">Please fill all the bullet points</p>
-        )}
-      </div>
-
-      {/* Price and Brand */}
-      <div className="grid grid-cols-2 gap-4">
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+          <ImageUpload
+            images={formData.images}
+            onChange={images => setFormData({ ...formData, images })}
+            maxImages={4}
+          />
+        </div>
+
+        {/* Product Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
           <input
-            type="number"
-            step="0.01"
-            min="0.01"
-            value={formData.price === undefined ? '' : formData.price}
-            onChange={e => {
-              const inputValue = e.target.value;
-              // Allow empty string or valid numbers
-              if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
-                setFormData({ ...formData, price: inputValue === '' ? 0 : parseFloat(inputValue) });
-              }
-            }}
+            type="text"
+            value={formData.title}
+            onChange={e => setFormData({ ...formData, title: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             required
           />
         </div>
+
+        {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
-          <input
-            type="number"
-            value={formData.reviews_count === undefined ? '' : formData.reviews_count}
-            onChange={e => {
-              const value = e.target.value;
-              setFormData({
-                ...formData,
-                reviews_count: value === '' ? 0 : parseInt(value),
-              });
-            }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-            required
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
+            className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
+            rows={3}
           />
         </div>
-      </div>
 
-      {/* Star Rating and Reviews */}
-      <div className="grid grid-cols-2 gap-4">
+        {/* Bullet Points */}
         <div>
-          <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
-            Star Rating
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            About the product ( Enter 5 key points)
           </label>
-          <div className="flex items-center">
-            <div className="relative w-full">
+          <div className="space-y-2">
+            {[0, 1, 2, 3, 4].map(index => (
               <input
-                type="range"
-                id="ratingRange"
-                step="0.1"
-                min="0"
-                max="5"
-                value={formData.rating}
+                key={index}
+                type="text"
+                value={formData.bullet_points[index] || ''}
                 onChange={e => {
-                  const newRating = parseFloat(e.target.value);
-                  setFormData(prev => ({ ...prev, rating: newRating }));
+                  const newBulletPoints = [...formData.bullet_points];
+                  newBulletPoints[index] = e.target.value;
+                  setFormData({ ...formData, bullet_points: newBulletPoints });
                 }}
-                style={{
-                  background: `linear-gradient(to right, #22c55e ${(formData.rating / 5) * 100}%, #e5e7eb ${(formData.rating / 5) * 100}%)`,
-                }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-green-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
-                required
+                className={`w-full px-4 py-2 border ${
+                  errors.bulletPoints ? 'border-red-500' : 'border-gray-300'
+                } rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
+                placeholder={`Key point ${index + 1}`}
               />
-            </div>
-            <span className="ml-2 text-sm text-gray-700 min-w-[2.5rem]">
-              {formData.rating.toFixed(1)}
-            </span>
+            ))}
+          </div>
+          {errors.bulletPoints && (
+            <p className="mt-1 text-sm text-red-500">Please fill all the bullet points</p>
+          )}
+        </div>
+
+        {/* Price and Brand */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={formData.price === undefined ? '' : formData.price}
+              onChange={e => {
+                const inputValue = e.target.value;
+                // Allow empty string or valid numbers
+                if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+                  setFormData({ ...formData, price: inputValue === '' ? 0 : parseFloat(inputValue) });
+                }
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <input
+              type="text"
+              value={formData.brand}
+              onChange={e => setFormData({ ...formData, brand: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              required
+            />
           </div>
         </div>
-      </div>
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center justify-center"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Saving...
-            </>
-          ) : initialData ? (
-            'Update Product'
-          ) : (
-            'Add Product'
-          )}
-        </button>
-      </div>
-    </form>
+        {/* Reviews Count and Loads */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
+            <input
+              type="number"
+              value={formData.reviews_count === undefined ? '' : formData.reviews_count}
+              onChange={e => {
+                const value = e.target.value;
+                setFormData({
+                  ...formData,
+                  reviews_count: value === '' ? 0 : parseInt(value),
+                });
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Loads (Fl Oz)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.loads === undefined ? '' : formData.loads}
+              onChange={e => {
+                const value = e.target.value;
+                setFormData({
+                  ...formData,
+                  loads: value === '' ? undefined : parseFloat(value),
+                });
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        {/* Product URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product URL</label>
+          <input
+            type="url"
+            value={formData.product_url}
+            onChange={e => setFormData({ ...formData, product_url: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+            placeholder="https://example.com/product"
+          />
+        </div>
+
+        {/* Is Competitor */}
+        <div>
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={formData.isCompetitor}
+              onChange={e => setFormData({ ...formData, isCompetitor: e.target.checked })}
+              className="rounded border-gray-300 text-primary-400 focus:ring-primary-400"
+            />
+            <span className="text-sm font-medium text-gray-700">This is a competitor product</span>
+          </label>
+        </div>
+
+        {/* Star Rating and Reviews */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
+              Star Rating
+            </label>
+            <div className="flex items-center">
+              <div className="relative w-full">
+                <input
+                  type="range"
+                  id="ratingRange"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  value={formData.rating}
+                  onChange={e => {
+                    const newRating = parseFloat(e.target.value);
+                    setFormData(prev => ({ ...prev, rating: newRating }));
+                  }}
+                  style={{
+                    background: `linear-gradient(to right, #22c55e ${(formData.rating / 5) * 100}%, #e5e7eb ${(formData.rating / 5) * 100}%)`,
+                  }}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-green-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+                  required
+                />
+              </div>
+              <span className="ml-2 text-sm text-gray-700 min-w-[2.5rem]">
+                {formData.rating.toFixed(1)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handlePreview}
+            className="px-4 py-2 border border-primary-400 text-primary-400 rounded-lg hover:bg-primary-50"
+            disabled={loading}
+          >
+            See Preview
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 text-white mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Saving...
+              </>
+            ) : initialData ? (
+              'Update Product'
+            ) : (
+              'Add Product'
+            )}
+          </button>
+        </div>
+      </form>
+
+      <ProductPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        product={createPreviewProduct()}
+      />
+    </>
   );
 }
