@@ -18,10 +18,19 @@ import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsigh
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
 import { PDFOrientation } from './types';
+import { supabase } from '../../../../lib/supabase';
+import * as XLSX from 'xlsx';
 
-// Configurar Buffer para el navegador
+// Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
   window.Buffer = Buffer;
+}
+
+interface TestExportData {
+  summary_results: any[];
+  purchase_drivers: any[];
+  competitive_ratings: any[];
+  shopper_comments: any[];
 }
 
 interface PDFDocumentProps {
@@ -40,6 +49,85 @@ interface PDFDocumentProps {
   averagesurveys: any;
   disabled?: boolean;
 }
+
+const generateExcelFile = (exportData: TestExportData, testName: string) => {
+  // Create a new workbook
+  const workbook = XLSX.utils.book_new();
+
+  // 1. Summary Results
+  if (exportData.summary_results && exportData.summary_results.length > 0) {
+    const summarySheet = XLSX.utils.json_to_sheet(exportData.summary_results);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary Results');
+  }
+
+  // 2. Purchase Drivers
+  if (exportData.purchase_drivers && exportData.purchase_drivers.length > 0) {
+    const purchaseSheet = XLSX.utils.json_to_sheet(exportData.purchase_drivers);
+    XLSX.utils.book_append_sheet(workbook, purchaseSheet, 'Purchase Drivers');
+  }
+
+  // 3. Competitive Ratings
+  if (exportData.competitive_ratings && exportData.competitive_ratings.length > 0) {
+    const competitiveSheet = XLSX.utils.json_to_sheet(exportData.competitive_ratings);
+    XLSX.utils.book_append_sheet(workbook, competitiveSheet, 'Competitive Ratings');
+  }
+
+  // 4. Shopper Comments
+  if (exportData.shopper_comments && exportData.shopper_comments.length > 0) {
+    const commentsSheet = XLSX.utils.json_to_sheet(exportData.shopper_comments);
+    XLSX.utils.book_append_sheet(workbook, commentsSheet, 'Shopper Comments');
+  }
+
+  // Generate file and download it
+  const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_export.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+};
+
+const getTestExportData = async (testId: string): Promise<TestExportData | null> => {
+  try {
+    console.log('Calling RPC get_test_export_data with input_test_id:', testId);
+
+    const { data, error } = await supabase.rpc('get_test_export_data', {
+      input_test_id: testId
+    });
+
+    if (error) {
+      console.error('Error calling get_test_export_data RPC:', error);
+      throw error;
+    }
+
+    if (!data) {
+      console.warn('No data returned from get_test_export_data RPC');
+      return null;
+    }
+
+    // Verify that the response has the expected structure
+    const exportData = data as TestExportData;
+    
+    // Print each array of results
+    console.log('=== SUMMARY RESULTS ===');
+    console.log('Count:', exportData.summary_results?.length || 0);
+    console.log('Data:', exportData.summary_results);
+    
+    console.log('=== PURCHASE DRIVERS ===');
+    console.log('Count:', exportData.purchase_drivers?.length || 0);
+    console.log('Data:', exportData.purchase_drivers);
+    
+    console.log('=== COMPETITIVE RATINGS ===');
+    console.log('Count:', exportData.competitive_ratings?.length || 0);
+    console.log('Data:', exportData.competitive_ratings);
+    
+    console.log('=== SHOPPER COMMENTS ===');
+    console.log('Count:', exportData.shopper_comments?.length || 0);
+    console.log('Data:', exportData.shopper_comments);
+
+    return exportData;
+
+  } catch (error) {
+    console.error('Failed to get test export data:', error);
+    throw error;
+  }
+};
 
 const PDFDocument = ({
   testDetails,
@@ -66,7 +154,7 @@ const PDFDocument = ({
     testDetails.variations?.c,
   ].filter(v => v);
 
-  // Asegurar que los datos opcionales tengan estructura válida
+  // Ensure optional data has valid structure
   const safeInsights = insights || {
     purchase_drivers: '',
     recommendations: '',
@@ -90,7 +178,7 @@ const PDFDocument = ({
         orientation={orientation}
       />
 
-      {/* Nueva estructura: Purchase Drivers con texto general primero */}
+      {/* New structure: Purchase Drivers with general text first */}
       {safeInsights?.purchase_drivers && (
         <PurchaseDriversTextSection
           insights={safeInsights.purchase_drivers}
@@ -98,7 +186,7 @@ const PDFDocument = ({
         />
       )}
 
-      {/* Luego las gráficas de cada variante */}
+      {/* Then charts for each variant */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
           variation &&
@@ -115,7 +203,7 @@ const PDFDocument = ({
           )
       )}
 
-      {/* Nueva estructura: Competitive Insights con texto general primero */}
+      {/* New structure: Competitive Insights with general text first */}
       {safeInsights?.competitive_insights && (
         <CompetitiveInsightsTextSection
           insights={safeInsights.competitive_insights}
@@ -123,7 +211,7 @@ const PDFDocument = ({
         />
       )}
 
-      {/* Luego las tablas de cada variante */}
+      {/* Then tables for each variant */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
           variation && (
@@ -220,25 +308,55 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [orientation, setOrientation] = useState<PDFOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
+  const handleExportToExcel = async () => {
+    if (!testDetails?.id) {
+      toast.error('No test ID available');
+      return;
+    }
+
+    setIsExportingExcel(true);
+
+    try {
+      console.log('Starting Excel export for test:', testDetails.id);
+      
+      const exportData = await getTestExportData(testDetails.id);
+      
+      if (exportData) {
+        console.log('Export data ready for Excel generation');
+        toast.success('Export data retrieved successfully');
+        
+        generateExcelFile(exportData, testDetails.name);
+      } else {
+        toast.error('No data available for export');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export test data');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const handleExportPDF = async (selectedOrientation: PDFOrientation = orientation) => {
-    if (isGenerating) return; // Prevenir múltiples generaciones simultáneas
+    if (isGenerating) return; // Prevent multiple simultaneous generations
 
     try {
       setIsGenerating(true);
 
-      // Limpiar URL anterior si existe
+      // Clear previous URL if it exists
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
         setPdfUrl(null);
       }
 
-      // Validación mejorada de datos
+      // Improved data validation
       console.log('Validating data for PDF generation:', {
         testDetails: !!testDetails,
         summaryData: !!summaryData,
@@ -250,17 +368,17 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
       if (!testDetails) {
         console.error('Missing testDetails');
-        toast.error('Faltan detalles del test');
+        toast.error('Missing test details');
         return;
       }
 
       if (!summaryData) {
         console.error('Missing summaryData');
-        toast.error('Faltan datos de resumen');
+        toast.error('Missing summary data');
         return;
       }
 
-      // Crear datos con valores por defecto para campos opcionales
+      // Create data with default values for optional fields
       const pdfData = {
         testDetails: JSON.parse(JSON.stringify(testDetails)),
         summaryData: JSON.parse(JSON.stringify(summaryData)),
@@ -317,7 +435,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(
-        'Error al generar el PDF: ' + (error instanceof Error ? error.message : 'Error desconocido')
+        'Error generating PDF: ' + (error instanceof Error ? error.message : 'Unknown error')
       );
     } finally {
       setIsGenerating(false);
@@ -326,7 +444,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
-    // No limpiar la URL inmediatamente para permitir re-apertura
+    // Don't clear URL immediately to allow reopening
   };
 
   const handleRegenerateInsights = () => {
@@ -345,11 +463,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     <>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
         <button
+          onClick={handleExportToExcel}
+          disabled={isExportingExcel}
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          disabled
         >
           <FileSpreadsheet size={20} />
-          Export to Excel
+          {isExportingExcel ? 'Exporting...' : 'Export to Excel'}
         </button>
         <button
           disabled={loadingInsights}
@@ -360,7 +479,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
         </button>
 
-        {/* Dropdown para Export to PDF */}
+        {/* Dropdown for Export to PDF */}
         <div className="relative">
           <button
             onClick={() => setShowOrientationMenu(!showOrientationMenu)}
@@ -402,7 +521,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         </div>
       </div>
 
-      {/* Cerrar menú al hacer click fuera */}
+      {/* Close menu when clicking outside */}
       {showOrientationMenu && (
         <div className="fixed inset-0 z-5" onClick={() => setShowOrientationMenu(false)} />
       )}
