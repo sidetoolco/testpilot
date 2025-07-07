@@ -61,6 +61,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
             <ShopperComments
               comparision={variant.responses.comparisons}
               surveys={variant.responses.surveys}
+              testName={variant.name}
             />
           </div>
           <div
