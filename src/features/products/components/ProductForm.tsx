@@ -341,18 +341,26 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           >
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={handlePreview}
-            className={`px-4 py-2 border rounded-lg transition-colors ${
-              isPreviewEnabled()
-                ? 'border-primary-400 text-primary-400 hover:bg-primary-50'
-                : 'border-gray-300 text-gray-400 cursor-not-allowed'
-            }`}
-            disabled={loading || !isPreviewEnabled()}
-          >
-            See Preview
-          </button>
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={handlePreview}
+              className={`px-4 py-2 border rounded-lg transition-colors ${
+                isPreviewEnabled()
+                  ? 'border-primary-400 text-primary-400 hover:bg-primary-50'
+                  : 'border-gray-300 text-gray-400 cursor-not-allowed'
+              }`}
+              disabled={loading || !isPreviewEnabled()}
+            >
+              See Preview
+            </button>
+            {!isPreviewEnabled() && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                Preview is only available when all required fields are filled
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+              </div>
+            )}
+          </div>
           <button
             type="submit"
             className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center justify-center"
