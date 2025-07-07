@@ -88,7 +88,7 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
     console.log('Calling RPC get_test_export_data with input_test_id:', testId);
 
     const { data, error } = await supabase.rpc('get_test_export_data', {
-      input_test_id: testId
+      input_test_id: testId,
     });
 
     if (error) {
@@ -103,26 +103,25 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
 
     // Verify that the response has the expected structure
     const exportData = data as TestExportData;
-    
+
     // Print each array of results
     console.log('=== SUMMARY RESULTS ===');
     console.log('Count:', exportData.summary_results?.length || 0);
     console.log('Data:', exportData.summary_results);
-    
+
     console.log('=== PURCHASE DRIVERS ===');
     console.log('Count:', exportData.purchase_drivers?.length || 0);
     console.log('Data:', exportData.purchase_drivers);
-    
+
     console.log('=== COMPETITIVE RATINGS ===');
     console.log('Count:', exportData.competitive_ratings?.length || 0);
     console.log('Data:', exportData.competitive_ratings);
-    
+
     console.log('=== SHOPPER COMMENTS ===');
     console.log('Count:', exportData.shopper_comments?.length || 0);
     console.log('Data:', exportData.shopper_comments);
 
     return exportData;
-
   } catch (error) {
     console.error('Failed to get test export data:', error);
     throw error;
@@ -325,13 +324,13 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
     try {
       console.log('Starting Excel export for test:', testDetails.id);
-      
+
       const exportData = await getTestExportData(testDetails.id);
-      
+
       if (exportData) {
         console.log('Export data ready for Excel generation');
         toast.success('Export data retrieved successfully');
-        
+
         generateExcelFile(exportData, testDetails.name);
       } else {
         toast.error('No data available for export');

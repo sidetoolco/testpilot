@@ -69,7 +69,11 @@ const CommentSection: React.FC<{
   </div>
 );
 
-const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys, testName = 'Test' }) => {
+const ShopperComments: React.FC<ShopperCommentsProps> = ({
+  comparision,
+  surveys,
+  testName = 'Test',
+}) => {
   const { insight } = useInsightStore();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -102,11 +106,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys,
         variantSurveys.forEach((comment, index) => {
           allComments.push({
             'Comment Type': 'Survey - Improvement Suggestion',
-            'Comment': comment.improve_suggestions || '',
-            'Age': comment.tester_id?.shopper_demographic?.age || '',
-            'Sex': comment.tester_id?.shopper_demographic?.sex || '',
-            'Country': comment.tester_id?.shopper_demographic?.country_residence || '',
-            'Index': index + 1
+            Comment: comment.improve_suggestions || '',
+            Age: comment.tester_id?.shopper_demographic?.age || '',
+            Sex: comment.tester_id?.shopper_demographic?.sex || '',
+            Country: comment.tester_id?.shopper_demographic?.country_residence || '',
+            Index: index + 1,
           });
         });
 
@@ -114,11 +118,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys,
         variantComparision.forEach((comment, index) => {
           allComments.push({
             'Comment Type': 'Comparison - Choose Reason',
-            'Comment': comment.choose_reason || '',
-            'Age': comment.tester_id?.shopper_demographic?.age || '',
-            'Sex': comment.tester_id?.shopper_demographic?.sex || '',
-            'Country': comment.tester_id?.shopper_demographic?.country_residence || '',
-            'Index': index + 1
+            Comment: comment.choose_reason || '',
+            Age: comment.tester_id?.shopper_demographic?.age || '',
+            Sex: comment.tester_id?.shopper_demographic?.sex || '',
+            Country: comment.tester_id?.shopper_demographic?.country_residence || '',
+            Index: index + 1,
           });
         });
 
@@ -132,7 +136,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys,
       // Generate and download the file
       const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_shopper_comments.xlsx`;
       XLSX.writeFile(workbook, fileName);
-      
+
       toast.success('Shopper comments exported successfully');
     } catch (error) {
       console.error('Error exporting comments:', error);
@@ -173,8 +177,9 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys,
   const currentSurveys = variant === 'summary' ? [] : surveys[variant];
 
   // Check if there are any comments to export
-  const hasAnyComments = Object.values(comparision).some(comments => comments.length > 0) ||
-                        Object.values(surveys).some(comments => comments.length > 0);
+  const hasAnyComments =
+    Object.values(comparision).some(comments => comments.length > 0) ||
+    Object.values(surveys).some(comments => comments.length > 0);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
