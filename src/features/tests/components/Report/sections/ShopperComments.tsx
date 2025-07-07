@@ -8,29 +8,12 @@ interface Comment {
   choose_reason?: string;
   tester_id: {
     shopper_demographic: {
-      age: number;
-      sex: string;
-      country_residence: string;
+      age: null | number;
+      sex: null | string;
+      country_residence: null | string;
     };
   };
 }
-
-// Validation function to ensure demographic fields are present
-const validateCommentDemographics = (comment: any): comment is Comment => {
-  return (
-    comment?.tester_id?.shopper_demographic?.age != null &&
-    comment?.tester_id?.shopper_demographic?.sex != null &&
-    comment?.tester_id?.shopper_demographic?.country_residence != null &&
-    typeof comment.tester_id.shopper_demographic.age === 'number' &&
-    typeof comment.tester_id.shopper_demographic.sex === 'string' &&
-    typeof comment.tester_id.shopper_demographic.country_residence === 'string'
-  );
-};
-
-// Filter comments to only include those with valid demographics
-const filterValidComments = (comments: any[]): Comment[] => {
-  return comments.filter(validateCommentDemographics);
-};
 
 interface ShopperCommentsProps {
   comparision: {
@@ -63,9 +46,15 @@ const CommentSection: React.FC<{
               {typeof comment[field] === 'string' ? comment[field] : ''}
             </p>
             <div className="mt-2 text-sm text-gray-500">
-              <p>Age: {comment.tester_id.shopper_demographic.age}</p>
-              <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
-              <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
+              {comment.tester_id?.shopper_demographic?.age && (
+                <p>Age: {comment.tester_id.shopper_demographic.age}</p>
+              )}
+              {comment.tester_id?.shopper_demographic?.sex && (
+                <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
+              )}
+              {comment.tester_id?.shopper_demographic?.country_residence && (
+                <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
+              )}
             </div>
           </div>
         ))}
@@ -116,8 +105,8 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({ comparision, surveys 
     );
   }
 
-  const currentComparision = variant === 'summary' ? [] : filterValidComments(comparision[variant] || []);
-  const currentSurveys = variant === 'summary' ? [] : filterValidComments(surveys[variant] || []);
+  const currentComparision = variant === 'summary' ? [] : comparision[variant];
+  const currentSurveys = variant === 'summary' ? [] : surveys[variant];
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
