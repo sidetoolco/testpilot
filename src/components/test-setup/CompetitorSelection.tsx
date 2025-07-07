@@ -74,7 +74,7 @@ export default function CompetitorSelection({
     <div className="max-w-6xl mx-auto">
       <SearchHeader
         title="Select Competitor Products"
-        subtitle={`We've pre-selected the top ${MAX_COMPETITORS} selling products in your category. You can modify this selection to include different competitors in your test.`}
+        subtitle={`Select ${MAX_COMPETITORS} selling products in your category. This will help us improve the test results.`}
       />
 
       <div className="mb-6">
