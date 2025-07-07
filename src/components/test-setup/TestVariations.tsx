@@ -25,6 +25,10 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
   const [showProductSelector, setShowProductSelector] = useState<Variations | null>(null);
   const [showProductForm, setShowProductForm] = useState<Variations | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [tempDuplicatedProduct, setTempDuplicatedProduct] = useState<{
+    variation: Variations;
+    product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>;
+  } | null>(null);
   const { products, loading, error } = useProducts();
   const { addProduct, updateProduct } = useProductStore();
 
@@ -52,16 +56,9 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       title: `${product.title} (Copy)`,
     };
 
-    onChange({
-      ...variations,
-      [variation]: {
-        ...duplicatedProduct,
-        isExisting: false,
-      },
-    });
-
     setShowProductSelector(null);
     setShowProductForm(variation);
+    setTempDuplicatedProduct({ variation, product: duplicatedProduct });
   };
 
   const handleRemoveProduct = (key: Variations) => {
@@ -94,6 +91,7 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       },
     });
     setShowProductForm(null);
+    setTempDuplicatedProduct(null);
   };
 
   const filteredProducts = products.filter(product =>
@@ -305,9 +303,20 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
       {showProductForm && (
         <ProductModal
           isOpen={showProductForm ? true : false}
-          onClose={() => setShowProductForm(null)}
+          onClose={() => {
+            setShowProductForm(null);
+            setTempDuplicatedProduct(null);
+          }}
           onSubmit={data => handleProductSubmit(showProductForm, data)}
-          initialData={showProductForm ? variations[showProductForm] : undefined}
+          initialData={
+            showProductForm &&
+            tempDuplicatedProduct &&
+            tempDuplicatedProduct.variation === showProductForm
+              ? tempDuplicatedProduct.product
+              : showProductForm
+                ? variations[showProductForm]
+                : undefined
+          }
         />
       )}
     </div>
