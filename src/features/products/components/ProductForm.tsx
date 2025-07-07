@@ -127,13 +127,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
   };
 
   const handlePreview = () => {
-    // Validate required fields for preview
-    if (!formData.title || !formData.description || formData.images.length === 0) {
-      toast.error('Please fill in the title, description, and upload at least one image to preview');
-      return;
-    }
-
     setShowPreview(true);
+  };
+
+  // Check if preview should be enabled
+  const isPreviewEnabled = () => {
+    const hasRequiredFields = formData.title && formData.description && formData.images.length > 0;
+    const hasAtLeastOneBulletPoint = formData.bullet_points.some(point => point?.trim());
+    const hasValidPrice = formData.price && formData.price > 0;
+    const hasValidReviewCount = formData.reviews_count !== undefined && formData.reviews_count >= 0;
+    return hasRequiredFields && hasAtLeastOneBulletPoint && hasValidPrice && hasValidReviewCount;
   };
 
   return (
@@ -341,8 +344,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <button
             type="button"
             onClick={handlePreview}
-            className="px-4 py-2 border border-primary-400 text-primary-400 rounded-lg hover:bg-primary-50"
-            disabled={loading}
+            className={`px-4 py-2 border rounded-lg transition-colors ${
+              isPreviewEnabled()
+                ? 'border-primary-400 text-primary-400 hover:bg-primary-50'
+                : 'border-gray-300 text-gray-400 cursor-not-allowed'
+            }`}
+            disabled={loading || !isPreviewEnabled()}
           >
             See Preview
           </button>
