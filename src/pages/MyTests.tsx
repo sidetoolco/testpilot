@@ -31,6 +31,11 @@ interface ConfirmationModal {
   variantsArray: Variation[];
 }
 
+interface ErrorModal {
+  isOpen: boolean;
+  message: string;
+}
+
 const statusConfig = {
   complete: {
     bgColor: 'bg-[#E3F9F3]',
@@ -62,6 +67,7 @@ export default function MyTests() {
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
+  const [errorModal, setErrorModal] = useState<ErrorModal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -95,7 +101,8 @@ export default function MyTests() {
       toast.success('Test published successfully');
     } catch (error: any) {
       console.error('Error publishing test:', error);
-      toast.error(`Failed to publish test: ${error.response?.data?.message || DEFAULT_ERROR_MSG}`);
+      const errorMessage = error.response?.data?.message || DEFAULT_ERROR_MSG;
+      setErrorModal({ isOpen: true, message: errorMessage });
     } finally {
       setPublishingTests(prev => prev.filter(id => id !== testId));
     }
@@ -416,6 +423,32 @@ export default function MyTests() {
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Confirm Publication
+              </button>
+            </div>
+          </div>
+        </ModalLayout>
+      )}
+
+      {/* Error Modal */}
+      {errorModal && (
+        <ModalLayout
+          isOpen={errorModal.isOpen}
+          onClose={() => setErrorModal(null)}
+          title="Error"
+        >
+          <div className="space-y-4">
+            <p className="text-lg font-medium text-gray-900 mb-2">
+              Failed to publish test
+            </p>
+            <p className="text-gray-500 text-sm">
+              {errorModal.message}
+            </p>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setErrorModal(null)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Close
               </button>
             </div>
           </div>
