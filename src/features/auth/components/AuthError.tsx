@@ -6,34 +6,36 @@ interface AuthErrorProps {
   error: string | null;
 }
 
-export default function AuthError({ error }: AuthErrorProps) {
-  let messages: string[] = [];
+const parseErrorMessages = (error: string | null): string[] => {
+  if (!error) return [];
 
-  if (error) {
-    try {
-      const parsed = JSON.parse(error);
-      if (Array.isArray(parsed)) {
-        messages = parsed
-          .map(item => {
-            if (typeof item === 'string') {
-              return item;
-            } else if (item && typeof item === 'object' && 'message' in item) {
-              return String(item.message);
-            } else if (item && typeof item === 'object') {
-              return JSON.stringify(item);
-            } else if (item != null) {
-              return String(item);
-            }
-            return null;
-          })
-          .filter((msg): msg is string => msg !== null && msg.trim() !== '');
-      } else {
-        messages = [error];
-      }
-    } catch (e) {
-      messages = [error];
+  try {
+    const parsed = JSON.parse(error);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map(item => {
+          if (typeof item === 'string') {
+            return item;
+          } else if (item && typeof item === 'object' && 'message' in item) {
+            return String(item.message);
+          } else if (item && typeof item === 'object') {
+            return JSON.stringify(item);
+          } else if (item != null) {
+            return String(item);
+          }
+          return null;
+        })
+        .filter((msg): msg is string => msg !== null && msg.trim() !== '');
+    } else {
+      return [error];
     }
+  } catch (e) {
+    return [error];
   }
+};
+
+export default function AuthError({ error }: AuthErrorProps) {
+  const messages = parseErrorMessages(error);
 
   return (
     <AnimatePresence>
