@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useTests } from '../../features/tests/hooks/useTests';
 
@@ -8,7 +8,6 @@ interface SearchTermEntryProps {
   onNext: () => void;
 }
 
-// Sugerencias predeterminadas - constante que no depende del estado del componente
 const defaultSuggestions = [
   'Fabric Softener',
   'Laundry Detergent',
@@ -20,34 +19,29 @@ const defaultSuggestions = [
 
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const { tests, loading } = useTests();
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
-  // Obtener todas las sugerencias disponibles
-  const allSuggestions = loading
-    ? []
-    : tests.length === 0
-      ? defaultSuggestions
-      : Array.from(
-          new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
-        );
-
-  // Filtrar sugerencias basadas en el input del usuario
-  useEffect(() => {
-    if (!value.trim()) {
-      setFilteredSuggestions([]);
-      return;
-    }
-
-    const filtered = allSuggestions.filter(suggestion =>
-      suggestion.toLowerCase().includes(value.toLowerCase())
+  const allSuggestions = useMemo(() => {
+    if (loading) return [];
+    if (tests.length === 0) return defaultSuggestions;
+    return Array.from(
+      new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
     );
+  }, [loading, tests]);
 
-    setFilteredSuggestions(filtered);
-  }, [value, allSuggestions]);
+  const isExactMatch = allSuggestions.some(
+    suggestion => suggestion.toLowerCase() === value.toLowerCase()
+  );
+
+  const filteredSuggestions =
+    value.trim() && !isExactMatch
+      ? allSuggestions.filter(suggestion =>
+          suggestion.toLowerCase().includes(value.toLowerCase())
+        )
+      : [];
+
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
-    setFilteredSuggestions([]);
   };
 
   return (
@@ -80,6 +74,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
             />
           </div>
 
+          {/* This part remains the same and just works */}
           {filteredSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
               {filteredSuggestions.map(suggestion => (
