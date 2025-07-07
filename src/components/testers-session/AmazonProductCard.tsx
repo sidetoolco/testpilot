@@ -79,7 +79,7 @@ export default function AmazonProductCard({
                 const isHalfStar = !isFullStar && i < rating;
                 return (
                   <Star
-                    key={i}
+                    key={`${id}-star-${i}`}
                     className={`h-4 w-4 ${
                       isFullStar
                         ? 'text-[#dd8433] fill-[#dd8433]'
