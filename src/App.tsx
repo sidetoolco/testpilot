@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
@@ -29,6 +29,29 @@ import SentryErrorTest from './pages/SentryErrorTest';
 import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
 
+// Type declaration for Appcues
+declare global {
+  interface Window {
+    Appcues?: {
+      page: () => void;
+    };
+  }
+}
+
+// Component to handle Appcues page identification
+function AppcuesPageTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Notify Appcues of page changes
+    if (window.Appcues) {
+      window.Appcues.page();
+    }
+  }, [location.pathname]);
+
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -55,6 +78,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+        <AppcuesPageTracker />
         <AnimatePresence mode="wait">
           <motion.div
             initial={{ opacity: 0 }}

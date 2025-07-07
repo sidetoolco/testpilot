@@ -8,6 +8,7 @@ import ProductModal from '../features/products/components/ProductModal';
 import ComingSoonModal from '../components/ComingSoonModal';
 import ModalLayout from '../layouts/ModalLayout';
 
+
 export default function AllProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
