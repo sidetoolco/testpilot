@@ -2,17 +2,31 @@ import { useState } from 'react';
 import { Star, Share2, Heart, ChevronDown } from 'lucide-react';
 import { Product } from '../../../types';
 
-const RatingStars = ({ rating }: { rating: number }) => (
-  <>
-    {rating &&
-      rating > 0 &&
-      [...Array(5)].map((_, i) => {
-        const fullStars = Math.round(rating || 5);
-        const isFullStar = i < fullStars;
-        const isHalfStar = !isFullStar && i < rating;
+const RatingStars = ({ rating }: { rating: number }) => {
+  // Handle edge cases
+  if (!rating || rating <= 0) {
+    return (
+      <div className="flex">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={`empty-star-${i}`}
+            className="h-4 w-4 text-gray-200 fill-gray-200"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex">
+      {[...Array(5)].map((_, i) => {
+        const starPosition = i + 1;
+        const isFullStar = starPosition <= Math.floor(rating);
+        const isHalfStar = !isFullStar && starPosition <= Math.ceil(rating) && rating % 1 !== 0;
+        
         return (
           <Star
-            key={i}
+            key={`star-${i}-${rating}`}
             className={`h-4 w-4 ${
               isFullStar
                 ? 'text-[#dd8433] fill-[#dd8433]'
@@ -26,8 +40,9 @@ const RatingStars = ({ rating }: { rating: number }) => (
           />
         );
       })}
-  </>
-);
+    </div>
+  );
+};
 
 interface ProductPreviewProps {
   product: Product;
@@ -51,7 +66,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           <div className="hidden md:flex flex-col gap-2 w-14 pl-2 mr-2">
             {product.images.map((image: string, index: number) => (
               <div
-                key={index}
+                key={`desktop-thumbnail-${image}-${index}`}
                 className={`w-12 h-12 bg-black rounded-lg mb-1 cursor-pointer border-2 ${currentIndex === index ? 'border-primary-400' : 'border-transparent'}`}
                 onClick={() => setCurrentIndex(index)}
               >
@@ -66,7 +81,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           {/* Main image */}
           <div className="w-full aspect-square rounded-lg max-w-[340px] max-h-[340px] overflow-hidden flex items-center justify-center bg-white border border-gray-200">
             <img
-              src={currentIndex === 0 ? product.image_url : product.images[currentIndex]}
+              src={product.images[currentIndex]}
               alt={`Product image ${currentIndex + 1}`}
               className="w-full h-full object-contain"
               style={{ maxHeight: 330, maxWidth: 330 }}
@@ -76,7 +91,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           <div className="flex md:hidden flex-row gap-2 mt-2 justify-center">
             {product.images.map((image: string, index: number) => (
               <div
-                key={index}
+                key={`mobile-thumbnail-${image}-${index}`}
                 className={`w-10 h-10 bg-black rounded-lg cursor-pointer border-2 ${currentIndex === index ? 'border-primary-400' : 'border-transparent'}`}
                 onClick={() => setCurrentIndex(index)}
               >
@@ -119,7 +134,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
             <ul className="list-disc pl-5 py-2">
               {product.bullet_points &&
                 product.bullet_points.map((bullet: string, idx: number) => (
-                  <li key={idx} className="text-[14px] text-[#0F1111] break-words overflow-wrap break-word">
+                  <li key={`bullet-${bullet}-${idx}`} className="text-[14px] text-[#0F1111] break-words overflow-wrap break-word">
                     {bullet}
                   </li>
                 ))}
@@ -167,7 +182,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           <div className="flex space-x-2 text-[#0F1111] text-[14px] flex-col">
             <select className="border border-[#DDD] rounded-lg px-2 py-1 bg-[#F0F2F2]">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                <option key={num} value={num}>
+                <option key={`quantity-${num}`} value={num}>
                   {num}
                 </option>
               ))}

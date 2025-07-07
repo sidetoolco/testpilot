@@ -175,12 +175,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         {/* Bullet Points */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            About the product ( Enter 5 key points)
+            About the product (Enter 5 key points)
           </label>
           <div className="space-y-2">
             {[0, 1, 2, 3, 4].map(index => (
               <input
-                key={index}
+                key={`bullet-point-input-${index}`}
                 type="text"
                 value={formData.bullet_points[index] || ''}
                 onChange={e => {
