@@ -11,9 +11,9 @@ interface Comment {
   choose_reason?: string;
   tester_id?: {
     shopper_demographic?: {
-      age: null | number;
-      sex: null | string;
-      country_residence: null | string;
+      age: number;
+      sex: string;
+      country_residence: string;
     };
   };
 }
