@@ -121,12 +121,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       description: formData.description,
       bullet_points: bulletPointsArray,
       price: numericPrice,
-      brand: '', // Default empty brand
       image_url: formData.images[0],
       images: formData.images,
-      isCompetitor: false, // Default false
-      loads: undefined, // Default undefined
-      product_url: '', // Default empty URL
       rating: formData.rating,
       reviews_count: numericReviewCount,
       id: initialData?.id || undefined,
@@ -150,12 +146,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       description: formData.description,
       bullet_points: bulletPointsArray,
       price: parseFloat((formData.price || 0).toString()) || 0,
-      brand: '', // Default empty brand
       image_url: formData.images[0] || '',
       images: formData.images,
-      isCompetitor: false, // Default false
-      loads: undefined, // Default undefined
-      product_url: '', // Default empty URL
       rating: formData.rating,
       reviews_count: parseInt((formData.reviews_count || 0).toString()) || 0,
     };
@@ -183,7 +175,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <ImageUpload
             images={formData.images}
             onChange={images => setFormData({ ...formData, images })}
-            maxImages={4}
+            maxImages={5}
           />
         </div>
 
