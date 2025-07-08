@@ -3,6 +3,8 @@ import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
 import ProductPreviewModal from './ProductPreviewModal';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
+import { Tooltip } from 'react-tooltip';
 
 interface ProductFormProps {
   onSubmit: (product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => void;
@@ -171,7 +173,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Product Images <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="image-tooltip"
+            />
+            <Tooltip id="image-tooltip">
+              Upload up to 5 high-quality product images. The first image will be used as the main product image.
+            </Tooltip>
+          </label>
           <ImageUpload
             images={formData.images}
             onChange={images => setFormData({ ...formData, images })}
@@ -181,31 +192,58 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
 
         {/* Product Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Product Name <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="title-tooltip"
+            />
+            <Tooltip id="title-tooltip">
+              Enter a clear, descriptive name for your product that customers will see.
+            </Tooltip>
+          </label>
           <input
             type="text"
             value={formData.title}
             onChange={e => setFormData({ ...formData, title: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+            placeholder="e.g., Premium Organic Coffee Beans, 12oz"
             required
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Description <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="description-tooltip"
+            />
+            <Tooltip id="description-tooltip">
+              Provide a detailed description of your product. Must be at least 50 characters long.
+            </Tooltip>
+          </label>
           <textarea
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
             rows={3}
+            placeholder="Describe your product's features, benefits, and what makes it special..."
           />
         </div>
 
         {/* Bullet Points */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            About the product (Enter 5 key points)
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            About the product (Enter 5 key points) <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="bullet-points-tooltip"
+            />
+            <Tooltip id="bullet-points-tooltip">
+              List 5 key features or benefits of your product. These will be displayed as bullet points.
+            </Tooltip>
           </label>
           <div className="space-y-2">
             {[0, 1, 2, 3, 4].map(index => (
@@ -221,7 +259,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 className={`w-full px-4 py-2 border ${
                   errors.bulletPoints ? 'border-red-500' : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
-                placeholder={`Key point ${index + 1}`}
+                placeholder={`Key point ${index + 1} (e.g., High-quality materials, Easy to use, etc.)`}
               />
             ))}
           </div>
@@ -233,7 +271,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         {/* Price and Reviews Count */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Price <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="price-tooltip"
+              />
+              <Tooltip id="price-tooltip">
+                Enter the price of your product in USD. Use the currency format with commas and decimals.
+              </Tooltip>
+            </label>
             <input
               type="text"
               inputMode="decimal"
@@ -245,7 +292,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Number of Reviews <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="reviews-tooltip"
+              />
+              <Tooltip id="reviews-tooltip">
+                Enter the total number of customer reviews for this product.
+              </Tooltip>
+            </label>
             <input
               type="number"
               value={formData.reviews_count === undefined ? '' : formData.reviews_count}
@@ -257,6 +313,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 });
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              placeholder="e.g., 1250"
               required
             />
           </div>
@@ -267,8 +324,15 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         {/* Star Rating and Reviews */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
-              Star Rating
+            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Star Rating <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="rating-tooltip"
+              />
+              <Tooltip id="rating-tooltip">
+                Set the average star rating for your product (0.0 to 5.0 stars).
+              </Tooltip>
             </label>
             <div className="flex items-center">
               <div className="relative w-full">
