@@ -16,12 +16,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: initialData?.description || '',
     bullet_points: initialData?.bullet_points || [],
     price: initialData?.price,
-    brand: initialData?.brand || '',
     image_url: initialData?.image_url || '',
     images: initialData?.images || [],
-    isCompetitor: initialData?.isCompetitor || false,
-    loads: initialData?.loads || undefined,
-    product_url: initialData?.product_url || '',
     rating: initialData?.rating || 5,
     reviews_count: initialData?.reviews_count,
     id: initialData?.id || undefined,
@@ -125,12 +121,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       description: formData.description,
       bullet_points: bulletPointsArray,
       price: numericPrice,
-      brand: formData.brand,
+      brand: '', // Default empty brand
       image_url: formData.images[0],
       images: formData.images,
-      isCompetitor: formData.isCompetitor,
-      loads: formData.loads ? formData.loads : undefined,
-      product_url: formData.product_url,
+      isCompetitor: false, // Default false
+      loads: undefined, // Default undefined
+      product_url: '', // Default empty URL
       rating: formData.rating,
       reviews_count: numericReviewCount,
       id: initialData?.id || undefined,
@@ -154,12 +150,12 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       description: formData.description,
       bullet_points: bulletPointsArray,
       price: parseFloat((formData.price || 0).toString()) || 0,
-      brand: formData.brand,
+      brand: '', // Default empty brand
       image_url: formData.images[0] || '',
       images: formData.images,
-      isCompetitor: formData.isCompetitor,
-      loads: formData.loads,
-      product_url: formData.product_url,
+      isCompetitor: false, // Default false
+      loads: undefined, // Default undefined
+      product_url: '', // Default empty URL
       rating: formData.rating,
       reviews_count: parseInt((formData.reviews_count || 0).toString()) || 0,
     };
@@ -242,7 +238,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           )}
         </div>
 
-        {/* Price and Brand */}
+        {/* Price and Reviews Count */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
@@ -256,20 +252,6 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-            <input
-              type="text"
-              value={formData.brand}
-              onChange={e => setFormData({ ...formData, brand: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Reviews Count and Loads */}
-        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
             <input
@@ -286,50 +268,9 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Loads (Fl Oz)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.loads === undefined ? '' : formData.loads}
-              onChange={e => {
-                const value = e.target.value;
-                setFormData({
-                  ...formData,
-                  loads: value === '' ? undefined : parseFloat(value),
-                });
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-              placeholder="Optional"
-            />
-          </div>
         </div>
 
-        {/* Product URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product URL</label>
-          <input
-            type="url"
-            value={formData.product_url}
-            onChange={e => setFormData({ ...formData, product_url: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-            placeholder="https://example.com/product"
-          />
-        </div>
 
-        {/* Is Competitor */}
-        <div>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.isCompetitor}
-              onChange={e => setFormData({ ...formData, isCompetitor: e.target.checked })}
-              className="rounded border-gray-300 text-primary-400 focus:ring-primary-400"
-            />
-            <span className="text-sm font-medium text-gray-700">This is a competitor product</span>
-          </label>
-        </div>
 
         {/* Star Rating and Reviews */}
         <div className="grid grid-cols-2 gap-4">

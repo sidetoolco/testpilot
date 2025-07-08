@@ -110,12 +110,6 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight pt-2 break-words overflow-wrap break-word">
             {product.title}
           </h1>
-          <a
-            href="#"
-            className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 break-all"
-          >
-            Visit the {product?.brand} Store
-          </a>
           <div className="flex items-center pb-2 flex-wrap gap-2">
             <small className="text-[14px] text-[#0F1111] pr-2">{product.rating}</small>
             <div className="flex items-center p-1">
@@ -210,14 +204,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
         <p className="mb-4 pb-4 break-words overflow-wrap break-word">
           {product?.description ? product.description : 'No description available'}
         </p>
-        <table className="w-full text-left border-collapse">
-          <tbody>
-            <tr className="border-b border-[#DDD] border-t">
-              <td className="py-2 font-semibold">Brand</td>
-              <td className="py-2 break-all">{product.brand || 'No brand available'}</td>
-            </tr>
-          </tbody>
-        </table>
+
         <div className="border-t border-[#DDD] py-6">
           <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
           <div className="bg-[#F3F3F3] p-6 rounded-lg">
