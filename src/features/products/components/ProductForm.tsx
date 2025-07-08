@@ -32,8 +32,49 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: false,
   });
 
+   const [displayPrice, setDisplayPrice] = useState(() => {
+    if (initialData?.price) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(initialData.price);
+    }
+    return '';
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+
+    const parts = sanitizedValue.split('.');
+    if (parts.length > 2) {
+      return;
+    }
+
+    if (parts[1] && parts[1].length > 2) {
+      return;
+    }
+
+    const numericValue = sanitizedValue ? parseFloat(sanitizedValue) : undefined;
+    setFormData({ ...formData, price: numericValue });
+
+    if (sanitizedValue === '') {
+      setDisplayPrice('');
+    } else if (sanitizedValue) {
+      const formattedInteger = new Intl.NumberFormat('en-US').format(
+        parseInt(parts[0] || '0')
+      );
+      let newDisplayValue = '$' + formattedInteger;
+
+      if (parts.length > 1) {
+        newDisplayValue += '.' + (parts[1] || '');
+      }
+      setDisplayPrice(newDisplayValue);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,18 +101,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       alert('Please upload at least one product image');
       return;
     }
-
     // Convert numeric values
     const numericPrice = parseFloat((formData.price || 0).toString());
     const numericReviewCount = parseInt((formData.reviews_count || 0).toString());
 
     if (isNaN(numericPrice) || numericPrice <= 0) {
-      alert('Please enter a valid price');
+      toast.error('Please enter a valid price');
       return;
     }
-
     if (isNaN(numericReviewCount) || numericReviewCount < 0) {
-      alert('Please enter a valid number of reviews');
+      toast.error('Please enter a valid number of reviews');
       return;
     }
 
@@ -208,17 +247,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
             <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={formData.price === undefined ? '' : formData.price}
-              onChange={e => {
-                const inputValue = e.target.value;
-                // Allow empty string or valid numbers
-                if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
-                  setFormData({ ...formData, price: inputValue === '' ? 0 : parseFloat(inputValue) });
-                }
-              }}
+              type="text"
+              inputMode="decimal"
+              value={displayPrice}
+              onChange={handlePriceChange}
+              placeholder="$0.00"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               required
             />
