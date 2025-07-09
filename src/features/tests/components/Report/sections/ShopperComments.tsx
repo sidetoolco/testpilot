@@ -16,6 +16,20 @@ interface Comment {
       country_residence: null | string;
     };
   };
+  // Add product information
+  products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  amazon_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  competitor_id?: string;
 }
 
 interface ShopperCommentsProps {
@@ -30,38 +44,88 @@ interface ShopperCommentsProps {
     c: Comment[];
   };
   testName?: string;
+  testData?: {
+    competitors: Array<{ id: string; title: string; image_url: string; price: number }>;
+    variations: {
+      a: { id: string; title: string; image_url: string; price: number } | null;
+      b: { id: string; title: string; image_url: string; price: number } | null;
+      c: { id: string; title: string; image_url: string; price: number } | null;
+    };
+  };
 }
 
 const CommentSection: React.FC<{
   title: string;
   comments: Comment[];
   field: keyof Comment;
-}> = ({ title, comments, field }) => (
+  testData?: ShopperCommentsProps['testData'];
+}> = ({ title, comments, field, testData }) => (
   <div className="mb-6">
     <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
     {comments.length > 0 ? (
       <div className="grid grid-cols-2 gap-4">
-        {comments.map((comment, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
-          >
-            <p className="text-gray-700">
-              {typeof comment[field] === 'string' ? comment[field] : ''}
-            </p>
-            <div className="mt-2 text-sm text-gray-500">
-              {comment.tester_id?.shopper_demographic?.age && (
-                <p>Age: {comment.tester_id.shopper_demographic.age}</p>
-              )}
-              {comment.tester_id?.shopper_demographic?.sex && (
-                <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
-              )}
-              {comment.tester_id?.shopper_demographic?.country_residence && (
-                <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
-              )}
-            </div>
-          </div>
-        ))}
+        {comments.map((comment, index) => {
+          // Determine which product was chosen
+          let chosenProduct = null;
+          
+          if (comment.competitor_id) {
+            // For comparisons: competitor_id is the chosen product (competitor they chose)
+            // Find the competitor product by ID
+            chosenProduct = testData?.competitors.find(comp => comp.id === comment.competitor_id);
+          } else {
+            // For surveys: product_id is the chosen product (your product)
+            chosenProduct = comment.products;
+          }
+          
+                      return (
+              <div
+                key={index}
+                className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
+              >
+                {/* Display chosen product information at the top */}
+                {chosenProduct && (
+                  <div className="mb-3 p-3 bg-white rounded border-l-4 border-green-500">
+                    <div className="flex items-center space-x-3">
+                      {chosenProduct.image_url && (
+                        <img 
+                          src={chosenProduct.image_url} 
+                          alt={chosenProduct.title}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {chosenProduct.title}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          ${chosenProduct.price?.toFixed(2) || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-600 font-medium mt-1">
+                      ✓ Chosen Product
+                    </p>
+                  </div>
+                )}
+                
+                <p className="text-gray-700">
+                  {typeof comment[field] === 'string' ? comment[field] : ''}
+                </p>
+                
+                <div className="mt-2 text-sm text-gray-500">
+                  {comment.tester_id?.shopper_demographic?.age && (
+                    <p>Age: {comment.tester_id.shopper_demographic.age}</p>
+                  )}
+                  {comment.tester_id?.shopper_demographic?.sex && (
+                    <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
+                  )}
+                  {comment.tester_id?.shopper_demographic?.country_residence && (
+                    <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
+                  )}
+                </div>
+              </div>
+            );
+        })}
       </div>
     ) : (
       <p className="text-gray-500">No comments available.</p>
@@ -73,6 +137,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   comparision,
   surveys,
   testName = 'Test',
+  testData,
 }) => {
   const { insight } = useInsightStore();
   const [isExporting, setIsExporting] = useState(false);
@@ -104,9 +169,13 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
         // Add survey comments (improve_suggestions)
         variantSurveys.forEach((comment, index) => {
+          // For surveys: product_id is the chosen product (your product)
+          const chosenProduct = comment.products;
           allComments.push({
             'Comment Type': 'Survey - Improvement Suggestion',
             Comment: comment.improve_suggestions || '',
+            'Chosen Product': chosenProduct?.title || 'N/A',
+            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
             Age: comment.tester_id?.shopper_demographic?.age || '',
             Sex: comment.tester_id?.shopper_demographic?.sex || '',
             Country: comment.tester_id?.shopper_demographic?.country_residence || '',
@@ -116,9 +185,15 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
         // Add comparison comments (choose_reason)
         variantComparision.forEach((comment, index) => {
+          // For comparisons: competitor_id is the chosen product (competitor they chose)
+          const chosenProduct = comment.competitor_id 
+            ? testData?.competitors.find(comp => comp.id === comment.competitor_id)
+            : null;
           allComments.push({
             'Comment Type': 'Comparison - Choose Reason',
             Comment: comment.choose_reason || '',
+            'Chosen Product': chosenProduct?.title || 'N/A',
+            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
             Age: comment.tester_id?.shopper_demographic?.age || '',
             Sex: comment.tester_id?.shopper_demographic?.sex || '',
             Country: comment.tester_id?.shopper_demographic?.country_residence || '',
@@ -235,6 +310,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             title={`Suggested improvement for your buyers (${currentSurveys.length})`}
             comments={currentSurveys}
             field="improve_suggestions"
+            testData={testData}
           />
         </div>
       )}
@@ -245,6 +321,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             title={`Suggested improvements from competitive buyers (${currentComparision.length})`}
             comments={currentComparision}
             field="choose_reason"
+            testData={testData}
           />
         </div>
       )}
