@@ -21,13 +21,13 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
     const result = await continueTest(testId);
 
     if (result) {
-      // Si hay un callback personalizado, usarlo
+      // If there's a custom callback, use it
       if (onTestLoaded) {
         onTestLoaded(result.testData, result.nextStep);
         return;
       }
 
-      // Navegación automática basada en el paso
+      // Automatic navigation based on the step
       const stepRoutes: Record<string, string> = {
         objective: '/create-test',
         search: '/create-test/search',
@@ -40,7 +40,7 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
 
       const route = stepRoutes[result.nextStep] || '/create-test';
 
-      // Navegar al paso correspondiente con los datos cargados
+      // Navigate to the corresponding step with loaded data
       navigate(route, {
         state: {
           testData: result.testData,
@@ -59,7 +59,7 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
       className={`inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors ${className}`}
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-      {loading ? 'Cargando...' : 'Continuar'}
+      {loading ? 'Loading...' : 'Continue'}
     </button>
   );
 };
