@@ -112,7 +112,7 @@ const CommentSection: React.FC<{
                     </div>
                     <p className={`text-xs font-medium mt-1 ${
                       comment.competitor_id 
-                        ? 'text-red-600' // Red text for competitor products
+                        ? 'text-red-400' // Red text for competitor products
                         : 'text-green-600' // Green text for your products
                     }`}>
                       ✓ Chosen Product
