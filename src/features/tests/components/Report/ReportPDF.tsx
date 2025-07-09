@@ -85,8 +85,6 @@ const generateExcelFile = (exportData: TestExportData, testName: string) => {
 
 const getTestExportData = async (testId: string): Promise<TestExportData | null> => {
   try {
-    console.log('Calling RPC get_test_export_data with input_test_id:', testId);
-
     const { data, error } = await supabase.rpc('get_test_export_data', {
       input_test_id: testId,
     });
@@ -103,25 +101,8 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
 
     // Verify that the response has the expected structure
     const exportData = data as TestExportData;
-
-    // Print each array of results
-    console.log('=== SUMMARY RESULTS ===');
-    console.log('Count:', exportData.summary_results?.length || 0);
-    console.log('Data:', exportData.summary_results);
-
-    console.log('=== PURCHASE DRIVERS ===');
-    console.log('Count:', exportData.purchase_drivers?.length || 0);
-    console.log('Data:', exportData.purchase_drivers);
-
-    console.log('=== COMPETITIVE RATINGS ===');
-    console.log('Count:', exportData.competitive_ratings?.length || 0);
-    console.log('Data:', exportData.competitive_ratings);
-
-    console.log('=== SHOPPER COMMENTS ===');
-    console.log('Count:', exportData.shopper_comments?.length || 0);
-    console.log('Data:', exportData.shopper_comments);
-
     return exportData;
+
   } catch (error) {
     console.error('Failed to get test export data:', error);
     throw error;
@@ -236,16 +217,6 @@ const PDFDocument = ({
           testDetails.responses?.comparisons ||
           testDetails.responses?.surveys;
 
-        console.log('ShopperCommentsPDFSection condition check:', {
-          hasSummary: !!safeInsights?.comment_summary,
-          hasComments: !!(
-            safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0
-          ),
-          hasComparisons: !!testDetails.responses?.comparisons,
-          hasSurveys: !!testDetails.responses?.surveys,
-          shouldShow: shouldShowComments,
-        });
-
         return shouldShowComments;
       })() && (
         <ShopperCommentsPDFSection
@@ -323,14 +294,10 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     setIsExportingExcel(true);
 
     try {
-      console.log('Starting Excel export for test:', testDetails.id);
-
       const exportData = await getTestExportData(testDetails.id);
 
       if (exportData) {
-        console.log('Export data ready for Excel generation');
         toast.success('Export data retrieved successfully');
-
         generateExcelFile(exportData, testDetails.name);
       } else {
         toast.error('No data available for export');
@@ -356,15 +323,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       }
 
       // Improved data validation
-      console.log('Validating data for PDF generation:', {
-        testDetails: !!testDetails,
-        summaryData: !!summaryData,
-        insights: !!insights,
-        competitiveinsights: !!competitiveinsights,
-        averagesurveys: !!averagesurveys,
-        orientation: selectedOrientation,
-      });
-
       if (!testDetails) {
         console.error('Missing testDetails');
         toast.error('Missing test details');
@@ -402,19 +360,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             },
       };
 
-      console.log('Generating PDF with data:', {
-        testDetailsName: pdfData.testDetails.name,
-        summaryDataRows: pdfData.summaryData?.rows?.length || 0,
-        insightsKeys: Object.keys(pdfData.insights),
-        competitiveInsightsCount: pdfData.competitiveinsights?.summaryData?.length || 0,
-        averageSurveysCount: pdfData.averagesurveys?.summaryData?.length || 0,
-        shopperCommentsCount: pdfData.insights?.shopper_comments?.length || 0,
-        shopperCommentsSummary: !!pdfData.insights?.comment_summary,
-        hasComparisons: !!pdfData.testDetails.responses?.comparisons,
-        hasSurveys: !!pdfData.testDetails.responses?.surveys,
-        orientation: selectedOrientation,
-      });
-
       const blob = await pdf(
         <PDFDocument
           testDetails={pdfData.testDetails}
@@ -430,7 +375,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       setPdfUrl(url);
       setIsPreviewOpen(true);
 
-      console.log('PDF generated successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(
