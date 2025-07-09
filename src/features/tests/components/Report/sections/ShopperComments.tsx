@@ -59,7 +59,8 @@ const CommentSection: React.FC<{
   comments: Comment[];
   field: keyof Comment;
   testData?: ShopperCommentsProps['testData'];
-}> = ({ title, comments, field, testData }) => (
+  onProductClick: (product: { title: string; image_url: string; price: number }) => void;
+}> = ({ title, comments, field, testData, onProductClick }) => (
   <div className="mb-6">
     <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
     {comments.length > 0 ? (
@@ -84,7 +85,14 @@ const CommentSection: React.FC<{
               >
                 {/* Display chosen product information at the top */}
                 {chosenProduct && (
-                  <div className="mb-3 p-3 bg-white rounded border-l-4 border-green-500">
+                  <div 
+                    className={`mb-3 p-3 bg-white rounded border-l-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      comment.competitor_id 
+                        ? 'border-red-400' // Red for competitor products
+                        : 'border-green-500' // Green for your products
+                    }`}
+                    onClick={() => onProductClick(chosenProduct)}
+                  >
                     <div className="flex items-center space-x-3">
                       {chosenProduct.image_url && (
                         <img 
@@ -102,7 +110,11 @@ const CommentSection: React.FC<{
                         </p>
                       </div>
                     </div>
-                    <p className="text-xs text-green-600 font-medium mt-1">
+                    <p className={`text-xs font-medium mt-1 ${
+                      comment.competitor_id 
+                        ? 'text-red-600' // Red text for competitor products
+                        : 'text-green-600' // Green text for your products
+                    }`}>
                       ✓ Chosen Product
                     </p>
                   </div>
@@ -141,6 +153,18 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 }) => {
   const { insight } = useInsightStore();
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<{ title: string; image_url: string; price: number } | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+
+  const handleProductClick = (product: { title: string; image_url: string; price: number }) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+    setSelectedProduct(null);
+  };
 
   const availableVariants = Object.entries(comparision)
     .filter(([_, comments]) => comments && comments.length > 0)
@@ -311,6 +335,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             comments={currentSurveys}
             field="improve_suggestions"
             testData={testData}
+            onProductClick={handleProductClick}
           />
         </div>
       )}
@@ -322,9 +347,63 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             comments={currentComparision}
             field="choose_reason"
             testData={testData}
+            onProductClick={handleProductClick}
           />
         </div>
       )}
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={handleCloseProductModal}
+        product={selectedProduct}
+      />
+    </div>
+  );
+};
+
+// Product Modal Component
+const ProductModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  product: { title: string; image_url: string; price: number } | null;
+}> = ({ isOpen, onClose, product }) => {
+  if (!isOpen || !product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Product Details</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-shrink-0">
+              <img
+                src={product.image_url}
+                alt={product.title}
+                className="w-64 h-64 object-cover rounded-lg"
+              />
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {product.title}
+              </h3>
+              <p className="text-2xl font-bold text-green-600 mb-4">
+                ${product.price.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
