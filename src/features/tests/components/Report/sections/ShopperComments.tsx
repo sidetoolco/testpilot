@@ -54,6 +54,28 @@ interface ShopperCommentsProps {
   };
 }
 
+// Helper functions to determine product and styling
+const getChosenProduct = (comment: Comment, testData?: ShopperCommentsProps['testData']) => {
+  if (comment.competitor_id) {
+    // For comparisons: competitor_id is the chosen product (competitor they chose)
+    return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
+  } else {
+    // For surveys: product_id is the chosen product (your product)
+    return comment.products || null;
+  }
+};
+
+const getProductStyling = (isCompetitor: boolean) => {
+  const baseClasses = "mb-3 p-3 bg-white rounded border-l-4 cursor-pointer hover:bg-gray-50 transition-colors";
+  const borderClass = isCompetitor ? 'border-red-400' : 'border-green-500';
+  const textClass = isCompetitor ? 'text-red-400' : 'text-green-600';
+  
+  return {
+    containerClass: `${baseClasses} ${borderClass}`,
+    textClass: `text-xs font-medium mt-1 ${textClass}`
+  };
+};
+
 const CommentSection: React.FC<{
   title: string;
   comments: Comment[];
@@ -66,77 +88,61 @@ const CommentSection: React.FC<{
     {comments.length > 0 ? (
       <div className="grid grid-cols-2 gap-4">
         {comments.map((comment, index) => {
-          // Determine which product was chosen
-          let chosenProduct = null;
+          const chosenProduct = getChosenProduct(comment, testData);
+          const isCompetitor = !!comment.competitor_id;
+          const styling = getProductStyling(isCompetitor);
           
-          if (comment.competitor_id) {
-            // For comparisons: competitor_id is the chosen product (competitor they chose)
-            // Find the competitor product by ID
-            chosenProduct = testData?.competitors.find(comp => comp.id === comment.competitor_id);
-          } else {
-            // For surveys: product_id is the chosen product (your product)
-            chosenProduct = comment.products;
-          }
-          
-                      return (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
-              >
-                {/* Display chosen product information at the top */}
-                {chosenProduct && (
-                  <div 
-                    className={`mb-3 p-3 bg-white rounded border-l-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      comment.competitor_id 
-                        ? 'border-red-400' // Red for competitor products
-                        : 'border-green-500' // Green for your products
-                    }`}
-                    onClick={() => onProductClick(chosenProduct)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {chosenProduct.image_url && (
-                        <img 
-                          src={chosenProduct.image_url} 
-                          alt={chosenProduct.title}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {chosenProduct.title}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          ${chosenProduct.price?.toFixed(2) || 'N/A'}
-                        </p>
-                      </div>
+          return (
+            <div
+              key={index}
+              className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
+            >
+              {/* Display chosen product information at the top */}
+              {chosenProduct && (
+                <div 
+                  className={styling.containerClass}
+                  onClick={() => onProductClick(chosenProduct)}
+                >
+                  <div className="flex items-center space-x-3">
+                    {chosenProduct.image_url && (
+                      <img 
+                        src={chosenProduct.image_url} 
+                        alt={chosenProduct.title}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {chosenProduct.title}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        ${chosenProduct.price?.toFixed(2) || 'N/A'}
+                      </p>
                     </div>
-                    <p className={`text-xs font-medium mt-1 ${
-                      comment.competitor_id 
-                        ? 'text-red-400' // Red text for competitor products
-                        : 'text-green-600' // Green text for your products
-                    }`}>
-                      ✓ Chosen Product
-                    </p>
                   </div>
-                )}
-                
-                <p className="text-gray-700">
-                  {typeof comment[field] === 'string' ? comment[field] : ''}
-                </p>
-                
-                <div className="mt-2 text-sm text-gray-500">
-                  {comment.tester_id?.shopper_demographic?.age && (
-                    <p>Age: {comment.tester_id.shopper_demographic.age}</p>
-                  )}
-                  {comment.tester_id?.shopper_demographic?.sex && (
-                    <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
-                  )}
-                  {comment.tester_id?.shopper_demographic?.country_residence && (
-                    <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
-                  )}
+                  <p className={styling.textClass}>
+                    ✓ Chosen Product
+                  </p>
                 </div>
+              )}
+              
+              <p className="text-gray-700">
+                {typeof comment[field] === 'string' ? comment[field] : ''}
+              </p>
+              
+              <div className="mt-2 text-sm text-gray-500">
+                {comment.tester_id?.shopper_demographic?.age && (
+                  <p>Age: {comment.tester_id.shopper_demographic.age}</p>
+                )}
+                {comment.tester_id?.shopper_demographic?.sex && (
+                  <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
+                )}
+                {comment.tester_id?.shopper_demographic?.country_residence && (
+                  <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
+                )}
               </div>
-            );
+            </div>
+          );
         })}
       </div>
     ) : (
@@ -193,8 +199,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
         // Add survey comments (improve_suggestions)
         variantSurveys.forEach((comment, index) => {
-          // For surveys: product_id is the chosen product (your product)
-          const chosenProduct = comment.products;
+          const chosenProduct = getChosenProduct(comment, testData);
           allComments.push({
             'Comment Type': 'Survey - Improvement Suggestion',
             Comment: comment.improve_suggestions || '',
@@ -209,10 +214,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
         // Add comparison comments (choose_reason)
         variantComparision.forEach((comment, index) => {
-          // For comparisons: competitor_id is the chosen product (competitor they chose)
-          const chosenProduct = comment.competitor_id 
-            ? testData?.competitors.find(comp => comp.id === comment.competitor_id)
-            : null;
+          const chosenProduct = getChosenProduct(comment, testData);
           allComments.push({
             'Comment Type': 'Comparison - Choose Reason',
             Comment: comment.choose_reason || '',
