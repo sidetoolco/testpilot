@@ -3,7 +3,7 @@ import { useCredits } from '../features/credits/hooks/useCredits';
 import { RefreshCw } from 'lucide-react';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { TransactionsTable } from '../features/credits/components/TransactionsTable';
-import { BalanceCard } from '../features/credits/components/BalanceCard';
+import { AvailableCreditsCard } from '../features/credits/components/AvailableCreditsCard';
 
 const MAX_TRANSACTIONS_PER_PAGE = 20;
 
@@ -23,7 +23,7 @@ export default function Balance() {
     return (
       <div className="space-y-6 p-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Balance & Transactions</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Available Credits & Transactions</h1>
           <button
             onClick={handleRefresh}
             className="flex items-center space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
@@ -41,7 +41,7 @@ export default function Balance() {
     <div className="space-y-6 p-8">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Balance & Transactions</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Available Credits & Transactions</h1>
         <button
           onClick={handleRefresh}
           disabled={isLoading}
@@ -53,7 +53,7 @@ export default function Balance() {
       </div>
 
       {/* Balance Card */}
-      <BalanceCard balance={data?.balance || 0} isLoading={isLoading} />
+      <AvailableCreditsCard totalCredits={data?.total || 0} isLoading={isLoading} />
 
       {/* Transactions Table */}
       {data?.transactions && (

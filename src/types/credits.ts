@@ -9,7 +9,7 @@ export interface Transaction {
 }
 
 export interface CreditsData {
-  balance: number;
+  total: number;
   transactions: {
     data: Transaction[];
     total: number;
