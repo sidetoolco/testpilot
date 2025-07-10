@@ -435,7 +435,7 @@ const ProductModal: React.FC<{
                 {product.title}
               </h3>
               <p className="text-2xl font-bold text-green-600 mb-4">
-                ${product.price.toFixed(2)}
+                {product.price ? `$${product.price.toFixed(2)}` : 'Price not available'}
               </p>
             </div>
           </div>

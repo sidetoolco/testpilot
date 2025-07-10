@@ -1,9 +1,10 @@
 import React from 'react';
 
 interface Product {
+  id: string;
   title: string;
   image_url: string;
-  price: number;
+  price?: number;
 }
 
 interface ChosenProductCardProps {
