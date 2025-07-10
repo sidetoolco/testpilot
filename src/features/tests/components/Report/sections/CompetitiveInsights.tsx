@@ -186,7 +186,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2">
-                  {item.count > 0 ? `${item.share_of_buy}%` : '-'}
+                  {item.count > 0 ? `${Number(item.share_of_buy).toFixed(1)}%` : '-'}
                 </td>
                 {renderCell(Number(item.value), item.count, !!item.product)}
                 {renderCell(
