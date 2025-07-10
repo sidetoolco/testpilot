@@ -1,5 +1,6 @@
-import { Star } from 'lucide-react';
+import { Star, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Product } from '../../../types';
 
 interface ProductGridProps {
@@ -9,14 +10,56 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, onEdit, onDelete }: ProductGridProps) {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [deletedProducts, setDeletedProducts] = useState<Set<string>>(new Set());
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setOpenDropdown(null);
+    };
+
+    if (openDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown]);
+
+  const handleDropdownToggle = (productId: string | undefined) => {
+    if (!productId) return;
+    setOpenDropdown(openDropdown === productId ? null : productId);
+  };
+
+  const handleOptionClick = (action: 'edit' | 'delete', product: Product) => {
+    setOpenDropdown(null);
+    
+    switch (action) {
+      case 'edit':
+        onEdit(product);
+        break;
+      case 'delete':
+        if (product.id) {
+          // Optimistic update - immediately hide the product
+          setDeletedProducts(prev => new Set(prev).add(product.id!));
+          // Call the delete function
+          onDelete(product.id);
+        }
+        break;
+    }
+  };
+
+  // Filter out deleted products for optimistic updates
+  const visibleProducts = products.filter(product => !deletedProducts.has(product.id || ''));
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6">
-      {products.map(product => (
+      {visibleProducts.map(product => (
         <motion.div
           key={product.id}
           whileHover={{ y: -4 }}
-          className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col"
+          className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
         >
+
           <div
             className="h-48 mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer flex items-center justify-center"
             onClick={() => onEdit(product)}
@@ -64,7 +107,45 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
 
             <div className="flex items-center justify-between mt-auto">
               <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
-              <p className="text-sm text-gray-500">{product.brand}</p>
+              
+              {/* Three dots menu button */}
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDropdownToggle(product.id);
+                  }}
+                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <MoreVertical className="h-4 w-4 text-gray-500" />
+                </button>
+                
+                {/* Dropdown menu */}
+                {openDropdown === product.id && (
+                  <div className="absolute right-0 bottom-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px] z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOptionClick('edit', product);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOptionClick('delete', product);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
