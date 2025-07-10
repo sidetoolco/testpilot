@@ -48,6 +48,7 @@ export default function AllProducts() {
       setProductToDelete(null);
     } catch (err) {
       console.error('Failed to delete product:', err);
+      throw err;
     }
   };
 
