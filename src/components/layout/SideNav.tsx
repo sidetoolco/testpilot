@@ -133,13 +133,13 @@ export default function SideNav() {
                       to="/settings/balance"
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/settings/balance')
+                        isActive('/settings/billing')
                           ? 'bg-[#008F6B] text-white'
                           : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                       }`}
                     >
                       <DollarSign className="h-4 w-4" />
-                      <span className="font-medium">Balance</span>
+                      <span className="font-medium">Billing</span>
                     </Link>
                   </li>
                 </ul>

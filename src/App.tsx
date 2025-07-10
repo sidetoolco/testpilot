@@ -28,7 +28,7 @@ import { Adminpanel } from './pages/Adminpanel';
 import SentryErrorTest from './pages/SentryErrorTest';
 import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
-import Balance from './pages/Balance';
+import Billing from './pages/Billing';
 
 const queryClient = new QueryClient();
 
@@ -165,11 +165,11 @@ function App() {
               />
 
               <Route
-                path="/settings/balance"
+                path="/settings/billing"
                 element={
                   <ProtectedRoute>
                     <MainLayout>
-                      <Balance />
+                      <Billing />
                     </MainLayout>
                   </ProtectedRoute>
                 }

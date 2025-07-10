@@ -7,7 +7,7 @@ import { AvailableCreditsCard } from '../features/credits/components/AvailableCr
 
 const MAX_TRANSACTIONS_PER_PAGE = 20;
 
-export default function Balance() {
+export default function Billing() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, error, refetch } = useCredits(currentPage, MAX_TRANSACTIONS_PER_PAGE);
 
@@ -52,7 +52,7 @@ export default function Balance() {
         </button>
       </div>
 
-      {/* Balance Card */}
+      {/* Available Credits Card */}
       <AvailableCreditsCard totalCredits={data?.total || 0} isLoading={isLoading} />
 
       {/* Transactions Table */}
