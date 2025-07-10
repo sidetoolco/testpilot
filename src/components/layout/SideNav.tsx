@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users } from 'lucide-react';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users, DollarSign } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const menuItems = [
@@ -102,7 +102,7 @@ export default function SideNav() {
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                 className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
-                  isActive('/settings') || isActive('/settings/team')
+                  isActive('/settings') || isActive('/settings/team') || isActive('/settings/balance')
                     ? 'bg-[#008F6B] text-white'
                     : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                 }`}
@@ -126,6 +126,20 @@ export default function SideNav() {
                     >
                       <Users className="h-4 w-4" />
                       <span className="font-medium">Team</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/settings/balance"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                        isActive('/settings/balance')
+                          ? 'bg-[#008F6B] text-white'
+                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                      }`}
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span className="font-medium">Balance</span>
                     </Link>
                   </li>
                 </ul>
