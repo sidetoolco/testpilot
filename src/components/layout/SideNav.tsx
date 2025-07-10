@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users, DollarSign } from 'lucide-react';
+import {
+  Beaker,
+  Package,
+  LogOut,
+  Menu,
+  X,
+  HelpCircle,
+  Settings,
+  Users,
+  DollarSign,
+} from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const menuItems = [
@@ -102,7 +112,9 @@ export default function SideNav() {
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                 className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
-                  isActive('/settings') || isActive('/settings/team') || isActive('/settings/balance')
+                  isActive('/settings') ||
+                  isActive('/settings/team') ||
+                  isActive('/settings/balance')
                     ? 'bg-[#008F6B] text-white'
                     : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                 }`}
