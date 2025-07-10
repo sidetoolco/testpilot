@@ -7,6 +7,7 @@ import ProductGrid from '../features/products/components/ProductGrid';
 import ProductModal from '../features/products/components/ProductModal';
 import ComingSoonModal from '../components/ComingSoonModal';
 import ModalLayout from '../layouts/ModalLayout';
+import { toast } from 'sonner';
 
 export default function AllProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -70,15 +71,17 @@ export default function AllProducts() {
       };
       
       await addProduct(duplicatedProduct);
+      toast.success('Product duplicated successfully');
     } catch (err) {
       console.error('Failed to duplicate product:', err);
+      toast.error('Failed to duplicate product. Please try again.');
     }
   };
 
   const filteredProducts = products.filter(
     product =>
       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+      (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
