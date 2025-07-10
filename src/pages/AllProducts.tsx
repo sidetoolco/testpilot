@@ -51,6 +51,29 @@ export default function AllProducts() {
     }
   };
 
+  const handleDuplicate = async (product: Product) => {
+    try {
+      const duplicatedProduct: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+        title: `${product.title} (Copy)`,
+        description: product.description,
+        bullet_points: product.bullet_points,
+        price: product.price,
+        image_url: product.image_url,
+        images: product.images,
+        brand: product.brand,
+        rating: product.rating,
+        reviews_count: product.reviews_count,
+        isCompetitor: product.isCompetitor,
+        loads: product.loads,
+        product_url: product.product_url,
+      };
+      
+      await addProduct(duplicatedProduct);
+    } catch (err) {
+      console.error('Failed to duplicate product:', err);
+    }
+  };
+
   const filteredProducts = products.filter(
     product =>
       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,7 +95,12 @@ export default function AllProducts() {
           <p className="mt-4 text-gray-600">Loading products...</p>
         </div>
       ) : (
-        <ProductGrid products={filteredProducts} onEdit={setEditProduct} onDelete={handleDelete} />
+        <ProductGrid 
+          products={filteredProducts} 
+          onEdit={setEditProduct} 
+          onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
+        />
       )}
 
       <ProductModal

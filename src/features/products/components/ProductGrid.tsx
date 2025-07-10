@@ -1,4 +1,4 @@
-import { Star, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Star, MoreVertical, Edit, Trash2, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Product } from '../../../types';
@@ -7,9 +7,10 @@ interface ProductGridProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (productId: string) => void;
+  onDuplicate?: (product: Product) => void;
 }
 
-export default function ProductGrid({ products, onEdit, onDelete }: ProductGridProps) {
+export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }: ProductGridProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [deletedProducts, setDeletedProducts] = useState<Set<string>>(new Set());
 
@@ -30,12 +31,15 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
     setOpenDropdown(openDropdown === productId ? null : productId);
   };
 
-  const handleOptionClick = (action: 'edit' | 'delete', product: Product) => {
+  const handleOptionClick = (action: 'edit' | 'delete' | 'duplicate', product: Product) => {
     setOpenDropdown(null);
     
     switch (action) {
       case 'edit':
         onEdit(product);
+        break;
+      case 'duplicate':
+        onDuplicate?.(product);
         break;
       case 'delete':
         if (product.id) {
@@ -132,6 +136,16 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
                     >
                       <Edit className="h-4 w-4" />
                       <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOptionClick('duplicate', product);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span>Duplicate</span>
                     </button>
                     <button
                       onClick={(e) => {
