@@ -80,8 +80,7 @@ export default function AllProducts() {
 
   const filteredProducts = products.filter(
     product =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
+      product.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
