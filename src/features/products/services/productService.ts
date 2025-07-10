@@ -131,8 +131,8 @@ export const productService = {
   },
 
   async deleteProduct(id: string) {
-    // First check if the product is being used in any test sessions
-    const { data: testTimesData, error: checkError } = await supabase
+    // Check if the product is being used in any test sessions or variations in a single query
+    const { data: dependencies, error: checkError } = await supabase
       .from('test_times')
       .select('id')
       .eq('product_id', id as any)
@@ -143,11 +143,11 @@ export const productService = {
       throw new Error('Failed to check if product can be deleted');
     }
 
-    if (testTimesData && testTimesData.length > 0) {
+    if (dependencies && dependencies.length > 0) {
       throw new Error('Cannot delete product: It is currently being used in active test sessions. Please wait for all tests to complete or contact support.');
     }
 
-    // Also check test_variations table
+    // Check test_variations table
     const { data: testVariationsData, error: variationsCheckError } = await supabase
       .from('test_variations')
       .select('id')

@@ -1,6 +1,6 @@
 import { Star, MoreVertical, Edit, Trash2, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product } from '../../../types';
 import { toast } from 'sonner';
 
@@ -11,30 +11,39 @@ interface ProductGridProps {
   onDuplicate?: (product: Product) => void;
 }
 
+const STAR_ARRAY = Array.from({ length: 5 }, (_, i) => i);
+
 export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }: ProductGridProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [deletedProducts, setDeletedProducts] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
-  // Close dropdown when clicking outside
+ 
   useEffect(() => {
+    if (!openDropdown) return;
+
     const handleClickOutside = () => {
       setOpenDropdown(null);
     };
 
-    if (openDropdown) {
+    // Use a small delay to avoid immediate closure
+    const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside);
+    };
   }, [openDropdown]);
 
-  const handleDropdownToggle = (productId: string | undefined) => {
+  const handleDropdownToggle = useCallback((productId: string | undefined) => {
     if (!productId) return;
-    setOpenDropdown(openDropdown === productId ? null : productId);
-  };
+    setOpenDropdown(prev => prev === productId ? null : productId);
+  }, []);
 
-  const handleOptionClick = (action: 'edit' | 'delete' | 'duplicate', product: Product) => {
+  const handleOptionClick = useCallback((action: 'edit' | 'delete' | 'duplicate', product: Product) => {
     setOpenDropdown(null);
     
     switch (action) {
@@ -49,9 +58,9 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
         setShowDeleteConfirm(true);
         break;
     }
-  };
+  }, [onEdit, onDuplicate]);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!productToDelete?.id) return;
 
     try {
@@ -61,7 +70,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
       // Call the delete function
       await onDelete(productToDelete.id);
       
-      // If successful, keep the product hidden
+      // If successful, keep the product hidden and close modal
       setShowDeleteConfirm(false);
       setProductToDelete(null);
       toast.success('Product deleted successfully');
@@ -94,10 +103,44 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
       setShowDeleteConfirm(false);
       setProductToDelete(null);
     }
-  };
+  }, [productToDelete, onDelete]);
 
-  // Filter out deleted products for optimistic updates
-  const visibleProducts = products.filter(product => !deletedProducts.has(product.id || ''));
+  const closeDeleteModal = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setProductToDelete(null);
+  }, []);
+
+  // Memoize filtered products to avoid unnecessary re-renders
+  const visibleProducts = useMemo(() => 
+    products.filter(product => !deletedProducts.has(product.id || '')),
+    [products, deletedProducts]
+  );
+
+  // Memoize star rendering function
+  const renderStars = useCallback((rating: number) => {
+    const fullStars = Math.round(rating || 5);
+    
+    return STAR_ARRAY.map(i => {
+      const isFullStar = i < fullStars;
+      const isHalfStar = !isFullStar && i < rating;
+      
+      return (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${
+            isFullStar
+              ? 'text-[#dd8433] fill-[#dd8433]'
+              : isHalfStar
+              ? 'text-[#dd8433] fill-current'
+              : 'text-gray-200 fill-gray-200'
+          }`}
+          style={{
+            clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
+          }}
+        />
+      );
+    });
+  }, []);
 
   return (
     <>
@@ -130,26 +173,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
 
               <div className="flex items-center space-x-2">
                 <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => {
-                    const fullStars = Math.round(product.rating || 5);
-                    const isFullStar = i < fullStars;
-                    const isHalfStar = !isFullStar && i < product.rating;
-                    return (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          isFullStar
-                            ? 'text-[#dd8433] fill-[#dd8433]'
-                            : isHalfStar
-                            ? 'text-[#dd8433] fill-current'
-                            : 'text-gray-200 fill-gray-200'
-                        }`}
-                        style={{
-                          clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
-                        }}
-                      />
-                    );
-                  })}
+                  {renderStars(product.rating)}
                 </div>
                 <span className="text-sm text-gray-500">({product.reviews_count})</span>
               </div>
@@ -221,10 +245,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
             </p>
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setProductToDelete(null);
-                }}
+                onClick={closeDeleteModal}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 Cancel
