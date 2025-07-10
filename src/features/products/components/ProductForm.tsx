@@ -180,7 +180,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               data-tooltip-id="image-tooltip"
             />
             <Tooltip id="image-tooltip">
-              Upload up to 5 high-quality product images. The first image will be used as the main product image.
+              Upload up to 5 images. First image becomes the main product image.
             </Tooltip>
           </label>
           <ImageUpload
@@ -199,7 +199,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               data-tooltip-id="title-tooltip"
             />
             <Tooltip id="title-tooltip">
-              Enter a clear, descriptive name for your product that customers will see.
+              Clear, descriptive product name customers will see.
             </Tooltip>
           </label>
           <input
@@ -221,7 +221,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               data-tooltip-id="description-tooltip"
             />
             <Tooltip id="description-tooltip">
-              Provide a detailed description of your product. Must be at least 50 characters long.
+              At least 50 characters describing your product.
             </Tooltip>
           </label>
           <textarea
@@ -242,7 +242,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               data-tooltip-id="bullet-points-tooltip"
             />
             <Tooltip id="bullet-points-tooltip">
-              List 5 key features or benefits of your product. These will be displayed as bullet points.
+              5 key features or benefits displayed as bullet points.
             </Tooltip>
           </label>
           <div className="space-y-2">
@@ -278,7 +278,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 data-tooltip-id="price-tooltip"
               />
               <Tooltip id="price-tooltip">
-                Enter the price of your product in USD. Use the currency format with commas and decimals.
+                Product price in USD with currency formatting.
               </Tooltip>
             </label>
             <input
@@ -299,7 +299,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 data-tooltip-id="reviews-tooltip"
               />
               <Tooltip id="reviews-tooltip">
-                Enter the total number of customer reviews for this product.
+                Total number of customer reviews.
               </Tooltip>
             </label>
             <input
@@ -331,7 +331,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 data-tooltip-id="rating-tooltip"
               />
               <Tooltip id="rating-tooltip">
-                Set the average star rating for your product (0.0 to 5.0 stars).
+                Average star rating (0.0 to 5.0 stars).
               </Tooltip>
             </label>
             <div className="flex items-center">
