@@ -56,7 +56,15 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       return;
     }
 
-    const numericValue = sanitizedValue ? parseFloat(sanitizedValue) : undefined;
+    // Handle empty or invalid input
+    let numericValue: number | undefined;
+    if (sanitizedValue === '' || sanitizedValue === '.') {
+      numericValue = undefined;
+    } else {
+      const parsed = parseFloat(sanitizedValue);
+      numericValue = isNaN(parsed) ? undefined : parsed;
+    }
+    
     setFormData({ ...formData, price: numericValue });
 
     if (sanitizedValue === '') {
@@ -100,14 +108,14 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       return;
     }
     // Convert numeric values
-    const numericPrice = parseFloat((formData.price || 0).toString());
-    const numericReviewCount = parseInt((formData.reviews_count || 0).toString());
+    const numericPrice = formData.price !== undefined ? formData.price : 0;
+    const numericReviewCount = formData.reviews_count !== undefined ? formData.reviews_count : 0;
 
-    if (isNaN(numericPrice) || numericPrice <= 0) {
+    if (formData.price === undefined || formData.price <= 0) {
       toast.error('Please enter a valid price');
       return;
     }
-    if (isNaN(numericReviewCount) || numericReviewCount < 0) {
+    if (formData.reviews_count === undefined || formData.reviews_count < 0) {
       toast.error('Please enter a valid number of reviews');
       return;
     }
@@ -147,11 +155,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       title: formData.title,
       description: formData.description,
       bullet_points: bulletPointsArray,
-      price: parseFloat((formData.price || 0).toString()) || 0,
+      price: formData.price || 0,
       image_url: formData.images[0] || '',
       images: formData.images,
       rating: formData.rating,
-      reviews_count: parseInt((formData.reviews_count || 0).toString()) || 0,
+      reviews_count: formData.reviews_count || 0,
     };
   };
 
@@ -313,7 +321,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 if (sanitizedValue === '') {
                   setFormData({
                     ...formData,
-                    reviews_count: 0,
+                    reviews_count: undefined,
                   });
                 } else {
                   const numericValue = parseInt(sanitizedValue);
