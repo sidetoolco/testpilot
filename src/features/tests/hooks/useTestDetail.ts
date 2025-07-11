@@ -122,6 +122,7 @@ export function useTestDetail(id: string) {
           improve_suggestions,
           likes_most,
           choose_reason,
+          competitor_id,
           products(id, title, image_url, price),
           amazon_products(id, title, image_url, price),
           tester_id(

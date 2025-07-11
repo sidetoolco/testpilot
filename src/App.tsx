@@ -28,6 +28,7 @@ import { Adminpanel } from './pages/Adminpanel';
 import SentryErrorTest from './pages/SentryErrorTest';
 import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
+import Billing from './pages/Billing';
 
 const queryClient = new QueryClient();
 
@@ -158,6 +159,17 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <TeamSettings />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings/billing"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Billing />
                     </MainLayout>
                   </ProtectedRoute>
                 }

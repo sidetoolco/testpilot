@@ -61,6 +61,11 @@ const ReportContent: React.FC<ReportContentProps> = ({
             <ShopperComments
               comparision={variant.responses.comparisons}
               surveys={variant.responses.surveys}
+              testName={variant.name}
+              testData={{
+                competitors: variant.competitors || [],
+                variations: variant.variations || { a: null, b: null, c: null }
+              }}
             />
           </div>
           <div
