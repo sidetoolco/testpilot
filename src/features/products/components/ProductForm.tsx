@@ -303,14 +303,27 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               </Tooltip>
             </label>
             <input
-              type="number"
-              value={formData.reviews_count === undefined ? '' : formData.reviews_count}
+              type="text"
+              inputMode="numeric"
+              value={formData.reviews_count === undefined || formData.reviews_count === 0 ? '' : formData.reviews_count.toString()}
               onChange={e => {
                 const value = e.target.value;
-                setFormData({
-                  ...formData,
-                  reviews_count: value === '' ? 0 : parseInt(value),
-                });
+                const sanitizedValue = value.replace(/[^0-9]/g, '');
+                
+                if (sanitizedValue === '') {
+                  setFormData({
+                    ...formData,
+                    reviews_count: 0,
+                  });
+                } else {
+                  const numericValue = parseInt(sanitizedValue);
+                  if (!isNaN(numericValue)) {
+                    setFormData({
+                      ...formData,
+                      reviews_count: numericValue,
+                    });
+                  }
+                }
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               placeholder="e.g., 1250"
