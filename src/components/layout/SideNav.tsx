@@ -35,9 +35,18 @@ export default function SideNav() {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Use the test creation context state and functions
-  const testState = useTestCreationState();
-  const { saveIncompleteTest } = useTestCreation();
+  // Safely use the test creation context state and functions
+  let testState = null;
+  let saveIncompleteTest = null;
+
+  try {
+    testState = useTestCreationState();
+    const testCreationContext = useTestCreation();
+    saveIncompleteTest = testCreationContext.saveIncompleteTest;
+  } catch (error) {
+    // If we're not in the TestCreationProvider context, that's fine
+    // The component will work without test creation functionality
+  }
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -84,7 +93,7 @@ export default function SideNav() {
   };
 
   const handleSaveTest = async (testName?: string) => {
-    if (!testState) return;
+    if (!testState || !saveIncompleteTest) return;
 
     setIsSaving(true);
     try {

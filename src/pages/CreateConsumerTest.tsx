@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
@@ -93,10 +93,10 @@ export default function CreateConsumerTest() {
         setContextStep(testState.currentStep);
       }
     }
-  }, [testState.isIncompleteTest, testState.testData, testState.testId, testState.currentStep, currentTestId, setContextTestData, setContextStep, setContextTestId]);
+  }, [testState.isIncompleteTest, testState.testData, testState.testId, testState.currentStep, currentTestId]);
 
-  // Function to save incomplete test
-  const saveIncompleteTest = async () => {
+  // Function to save incomplete test - memoized with useCallback
+  const saveIncompleteTest = useCallback(async () => {
     try {
       const savedTest = await testService.saveIncompleteTest(
         testData,
@@ -112,25 +112,25 @@ export default function CreateConsumerTest() {
       console.error('Error saving incomplete test:', error);
       throw error;
     }
-  };
+  }, [testData, currentTestId, currentStep, setContextTestId]);
 
   // Register saveIncompleteTest function with context
   useEffect(() => {
     setSaveIncompleteTest(saveIncompleteTest);
-  }, [setSaveIncompleteTest, testData, currentTestId, currentStep]);
+  }, [setSaveIncompleteTest, saveIncompleteTest]);
 
-  // Update context state when local state changes
+  // Update context state when local state changes - only when values actually change
   useEffect(() => {
     setContextTestData(testData);
-  }, [testData, setContextTestData]);
+  }, [testData]);
 
   useEffect(() => {
     setContextStep(currentStep);
-  }, [currentStep, setContextStep]);
+  }, [currentStep]);
 
   useEffect(() => {
     setContextTestId(currentTestId);
-  }, [currentTestId, setContextTestId]);
+  }, [currentTestId]);
 
   // Set in progress when on create-test page
   useEffect(() => {
@@ -138,7 +138,7 @@ export default function CreateConsumerTest() {
     return () => {
       setIsInProgress(false);
     };
-  }, [setIsInProgress]);
+  }, []);
 
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);

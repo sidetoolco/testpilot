@@ -481,18 +481,10 @@ export default function MyTests() {
 
       {/* Error Modal */}
       {errorModal && (
-        <ModalLayout
-          isOpen={errorModal.isOpen}
-          onClose={() => setErrorModal(null)}
-          title="Error"
-        >
+        <ModalLayout isOpen={errorModal.isOpen} onClose={() => setErrorModal(null)} title="Error">
           <div className="space-y-4">
-            <p className="text-lg font-medium text-gray-900 mb-2">
-              Failed to publish test
-            </p>
-            <p className="text-gray-500 text-sm">
-              {errorModal.message}
-            </p>
+            <p className="text-lg font-medium text-gray-900 mb-2">Failed to publish test</p>
+            <p className="text-gray-500 text-sm">{errorModal.message}</p>
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setErrorModal(null)}

@@ -7,6 +7,7 @@ import ProductGrid from '../features/products/components/ProductGrid';
 import ProductModal from '../features/products/components/ProductModal';
 import ComingSoonModal from '../components/ComingSoonModal';
 import ModalLayout from '../layouts/ModalLayout';
+import { toast } from 'sonner';
 
 export default function AllProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -48,13 +49,38 @@ export default function AllProducts() {
       setProductToDelete(null);
     } catch (err) {
       console.error('Failed to delete product:', err);
+      throw err;
+    }
+  };
+
+  const handleDuplicate = async (product: Product) => {
+    try {
+      const duplicatedProduct: Omit<Product, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+        title: `${product.title} (Copy)`,
+        description: product.description,
+        bullet_points: product.bullet_points,
+        price: product.price,
+        image_url: product.image_url,
+        images: product.images,
+        brand: product.brand,
+        rating: product.rating,
+        reviews_count: product.reviews_count,
+        isCompetitor: product.isCompetitor,
+        loads: product.loads,
+        product_url: product.product_url,
+      };
+      
+      await addProduct(duplicatedProduct);
+      toast.success('Product duplicated successfully');
+    } catch (err) {
+      console.error('Failed to duplicate product:', err);
+      toast.error('Failed to duplicate product. Please try again.');
     }
   };
 
   const filteredProducts = products.filter(
     product =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+      product.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -72,7 +98,12 @@ export default function AllProducts() {
           <p className="mt-4 text-gray-600">Loading products...</p>
         </div>
       ) : (
-        <ProductGrid products={filteredProducts} onEdit={setEditProduct} onDelete={handleDelete} />
+        <ProductGrid 
+          products={filteredProducts} 
+          onEdit={setEditProduct} 
+          onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
+        />
       )}
 
       <ProductModal

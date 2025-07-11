@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 import { FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import ChosenProductCard, { Product } from './ChosenProductCard';
 
 interface Comment {
   likes_most?: string;
@@ -16,6 +17,19 @@ interface Comment {
       country_residence: null | string;
     };
   };
+  products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  amazon_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  competitor_id?: string;
 }
 
 interface ShopperCommentsProps {
@@ -30,83 +44,214 @@ interface ShopperCommentsProps {
     c: Comment[];
   };
   testName?: string;
+  testData?: {
+    competitors: Array<{ id: string; title: string; image_url: string; price: number }>;
+    variations: {
+      a: { id: string; title: string; image_url: string; price: number } | null;
+      b: { id: string; title: string; image_url: string; price: number } | null;
+      c: { id: string; title: string; image_url: string; price: number } | null;
+    };
+  };
 }
+
+const getChosenProduct = (comment: Comment, testData?: ShopperCommentsProps['testData']): Product | null => {
+  if (comment.competitor_id) {
+    return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
+  } else {
+    return comment.products || null;
+  }
+};
+
+const sortCommentsByCompetitorPopularity = (comments: Comment[], testData?: ShopperCommentsProps['testData']): Comment[] => {
+  const competitorCounts: { [competitorId: string]: number } = {};
+  
+  comments.forEach(comment => {
+    if (comment.competitor_id) {
+      competitorCounts[comment.competitor_id] = (competitorCounts[comment.competitor_id] || 0) + 1;
+    }
+  });
+  
+  return [...comments].sort((a, b) => {
+    const aCount = a.competitor_id ? competitorCounts[a.competitor_id] || 0 : 0;
+    const bCount = b.competitor_id ? competitorCounts[b.competitor_id] || 0 : 0;
+    
+    if (aCount !== bCount) {
+      return bCount - aCount;
+    }
+    
+    const aProduct = getChosenProduct(a, testData);
+    const bProduct = getChosenProduct(b, testData);
+    const aName = aProduct?.title || '';
+    const bName = bProduct?.title || '';
+    
+    return aName.localeCompare(bName);
+  });
+};
+
+const CommentItem: React.FC<{
+  comment: Comment;
+  field: keyof Comment;
+  testData?: ShopperCommentsProps['testData'];
+  onProductClick: (product: Product) => void;
+  competitorCounts?: { [competitorId: string]: number };
+  index: number;
+}> = React.memo(({ comment, field, testData, onProductClick, competitorCounts, index }) => {
+  const chosenProduct = getChosenProduct(comment, testData);
+  const isCompetitor = !!comment.competitor_id;
+  const count = comment.competitor_id ? competitorCounts?.[comment.competitor_id] : undefined;
+  
+  return (
+    <div
+      key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
+      className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
+    >
+      {chosenProduct && (
+        <ChosenProductCard
+          product={chosenProduct}
+          isCompetitor={isCompetitor}
+          onProductClick={onProductClick}
+          count={count}
+        />
+      )}
+      
+      <p className="text-gray-700">
+        {typeof comment[field] === 'string' ? comment[field] : ''}
+      </p>
+      
+      <div className="mt-2 text-sm text-gray-500">
+        {comment.tester_id?.shopper_demographic?.age && (
+          <p>Age: {comment.tester_id.shopper_demographic.age}</p>
+        )}
+        {comment.tester_id?.shopper_demographic?.sex && (
+          <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
+        )}
+        {comment.tester_id?.shopper_demographic?.country_residence && (
+          <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
+        )}
+      </div>
+    </div>
+  );
+});
+
+CommentItem.displayName = 'CommentItem';
 
 const CommentSection: React.FC<{
   title: string;
   comments: Comment[];
   field: keyof Comment;
-}> = ({ title, comments, field }) => (
-  <div className="mb-6">
-    <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
-    {comments.length > 0 ? (
-      <div className="grid grid-cols-2 gap-4">
-        {comments.map((comment, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
-          >
-            <p className="text-gray-700">
-              {typeof comment[field] === 'string' ? comment[field] : ''}
-            </p>
-            <div className="mt-2 text-sm text-gray-500">
-              {comment.tester_id?.shopper_demographic?.age && (
-                <p>Age: {comment.tester_id.shopper_demographic.age}</p>
-              )}
-              {comment.tester_id?.shopper_demographic?.sex && (
-                <p>Sex: {comment.tester_id.shopper_demographic.sex}</p>
-              )}
-              {comment.tester_id?.shopper_demographic?.country_residence && (
-                <p>Country: {comment.tester_id.shopper_demographic.country_residence}</p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p className="text-gray-500">No comments available.</p>
-    )}
-  </div>
-);
+  testData?: ShopperCommentsProps['testData'];
+  onProductClick: (product: Product) => void;
+  sortByCompetitor?: boolean;
+}> = React.memo(({ title, comments, field, testData, onProductClick, sortByCompetitor = false }) => {
+  const { sortedComments, competitorCounts } = useMemo(() => {
+    const sorted = sortByCompetitor ? sortCommentsByCompetitorPopularity(comments, testData) : comments;
+    
+    const counts: { [competitorId: string]: number } = {};
+    if (sortByCompetitor) {
+      comments.forEach(comment => {
+        if (comment.competitor_id) {
+          counts[comment.competitor_id] = (counts[comment.competitor_id] || 0) + 1;
+        }
+      });
+    }
+    
+    return { sortedComments: sorted, competitorCounts: counts };
+  }, [comments, testData, sortByCompetitor]);
+  
+  return (
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
+      {sortedComments.length > 0 ? (
+        <div className="grid grid-cols-2 gap-4">
+          {sortedComments.map((comment, index) => (
+            <CommentItem
+              key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
+              comment={comment}
+              field={field}
+              testData={testData}
+              onProductClick={onProductClick}
+              competitorCounts={competitorCounts}
+              index={index}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500">No comments available.</p>
+      )}
+    </div>
+  );
+});
+
+CommentSection.displayName = 'CommentSection';
 
 const ShopperComments: React.FC<ShopperCommentsProps> = ({
   comparision,
   surveys,
   testName = 'Test',
+  testData,
 }) => {
   const { insight } = useInsightStore();
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
-  const availableVariants = Object.entries(comparision)
-    .filter(([_, comments]) => comments && comments.length > 0)
-    .map(([variant]) => variant as 'a' | 'b' | 'c')
-    .sort();
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  }, []);
+
+  const handleCloseProductModal = useCallback(() => {
+    setIsProductModalOpen(false);
+    setSelectedProduct(null);
+  }, []);
+
+  const availableVariants = useMemo(() => {
+    return Object.entries(comparision)
+      .filter(([_, comments]) => comments && comments.length > 0)
+      .map(([variant]) => variant as 'a' | 'b' | 'c')
+      .sort();
+  }, [comparision]);
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
 
-  const hasComparision = variant !== 'summary' && comparision[variant]?.length > 0;
-  const hasSurveys = variant !== 'summary' && surveys[variant]?.length > 0;
+  const { currentComparision, currentSurveys, hasComparision, hasSurveys } = useMemo(() => {
+    const currentComp = variant === 'summary' ? [] : comparision[variant];
+    const currentSurv = variant === 'summary' ? [] : surveys[variant];
+    const hasComp = variant !== 'summary' && currentComp?.length > 0;
+    const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
+    
+    return {
+      currentComparision: currentComp,
+      currentSurveys: currentSurv,
+      hasComparision: hasComp,
+      hasSurveys: hasSurv
+    };
+  }, [variant, comparision, surveys]);
 
-  const exportCommentsToExcel = () => {
+  const hasAnyComments = useMemo(() => {
+    return Object.values(comparision).some(comments => comments.length > 0) ||
+           Object.values(surveys).some(comments => comments.length > 0);
+  }, [comparision, surveys]);
+
+  const exportCommentsToExcel = useCallback(() => {
     setIsExporting(true);
 
     try {
-      // Create a new workbook
       const workbook = XLSX.utils.book_new();
 
-      // Process each variant
       ['a', 'b', 'c'].forEach(variantKey => {
         const variantComparision = comparision[variantKey as keyof typeof comparision] || [];
         const variantSurveys = surveys[variantKey as keyof typeof surveys] || [];
 
-        // Combine all comments for this variant
         const allComments: any[] = [];
 
-        // Add survey comments (improve_suggestions)
         variantSurveys.forEach((comment, index) => {
+          const chosenProduct = getChosenProduct(comment, testData);
           allComments.push({
             'Comment Type': 'Survey - Improvement Suggestion',
             Comment: comment.improve_suggestions || '',
+            'Chosen Product': chosenProduct?.title || 'N/A',
+            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
             Age: comment.tester_id?.shopper_demographic?.age || '',
             Sex: comment.tester_id?.shopper_demographic?.sex || '',
             Country: comment.tester_id?.shopper_demographic?.country_residence || '',
@@ -114,11 +259,13 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
           });
         });
 
-        // Add comparison comments (choose_reason)
         variantComparision.forEach((comment, index) => {
+          const chosenProduct = getChosenProduct(comment, testData);
           allComments.push({
             'Comment Type': 'Comparison - Choose Reason',
             Comment: comment.choose_reason || '',
+            'Chosen Product': chosenProduct?.title || 'N/A',
+            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
             Age: comment.tester_id?.shopper_demographic?.age || '',
             Sex: comment.tester_id?.shopper_demographic?.sex || '',
             Country: comment.tester_id?.shopper_demographic?.country_residence || '',
@@ -126,14 +273,12 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
           });
         });
 
-        // Only create sheet if there are comments
         if (allComments.length > 0) {
           const sheet = XLSX.utils.json_to_sheet(allComments);
           XLSX.utils.book_append_sheet(workbook, sheet, `Variant ${variantKey.toUpperCase()}`);
         }
       });
 
-      // Generate and download the file
       const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_shopper_comments.xlsx`;
       XLSX.writeFile(workbook, fileName);
 
@@ -144,7 +289,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     } finally {
       setIsExporting(false);
     }
-  };
+  }, [comparision, surveys, testData, testName]);
 
   if (variant !== 'summary' && !hasComparision && !hasSurveys) {
     return (
@@ -172,14 +317,6 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       </div>
     );
   }
-
-  const currentComparision = variant === 'summary' ? [] : comparision[variant];
-  const currentSurveys = variant === 'summary' ? [] : surveys[variant];
-
-  // Check if there are any comments to export
-  const hasAnyComments =
-    Object.values(comparision).some(comments => comments.length > 0) ||
-    Object.values(surveys).some(comments => comments.length > 0);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
@@ -232,9 +369,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       {hasSurveys && (
         <div className="mb-8">
           <CommentSection
-            title={`Suggested improvement for your buyers (${currentSurveys.length})`}
+            title={`Suggested improvement from your buyers (${currentSurveys.length})`}
             comments={currentSurveys}
             field="improve_suggestions"
+            testData={testData}
+            onProductClick={handleProductClick}
           />
         </div>
       )}
@@ -245,9 +384,63 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             title={`Suggested improvements from competitive buyers (${currentComparision.length})`}
             comments={currentComparision}
             field="choose_reason"
+            testData={testData}
+            onProductClick={handleProductClick}
+            sortByCompetitor={true}
           />
         </div>
       )}
+
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={handleCloseProductModal}
+        product={selectedProduct}
+      />
+    </div>
+  );
+};
+
+const ProductModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product | null;
+}> = ({ isOpen, onClose, product }) => {
+  if (!isOpen || !product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Product Details</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-shrink-0">
+              <img
+                src={product.image_url}
+                alt={product.title}
+                className="w-64 h-64 object-cover rounded-lg"
+              />
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {product.title}
+              </h3>
+              <p className="text-2xl font-bold text-green-600 mb-4">
+                {product.price ? `$${product.price.toFixed(2)}` : 'Price not available'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

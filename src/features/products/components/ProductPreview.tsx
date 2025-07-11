@@ -8,10 +8,7 @@ const RatingStars = ({ rating }: { rating: number }) => {
     return (
       <div className="flex">
         {[...Array(5)].map((_, i) => (
-          <Star
-            key={`empty-star-${i}`}
-            className="h-4 w-4 text-gray-200 fill-gray-200"
-          />
+          <Star key={`empty-star-${i}`} className="h-4 w-4 text-gray-200 fill-gray-200" />
         ))}
       </div>
     );
@@ -23,7 +20,7 @@ const RatingStars = ({ rating }: { rating: number }) => {
         const starPosition = i + 1;
         const isFullStar = starPosition <= Math.floor(rating);
         const isHalfStar = !isFullStar && starPosition <= Math.ceil(rating) && rating % 1 !== 0;
-        
+
         return (
           <Star
             key={`star-${i}-${rating}`}
@@ -57,9 +54,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
 
   return (
     <div className="max-w-screen-xl mx-auto w-full">
-      <div
-        className="grid grid-cols-1 md:grid-cols-[350px_1fr_260px] gap-6 md:gap-4 items-start w-full"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-[350px_1fr_260px] gap-6 md:gap-4 items-start w-full">
         {/* Left: Images (thumbnails + main image) */}
         <div className="w-full md:w-[350px] flex flex-col md:flex-row gap-2 pt-2">
           {/* Thumbnails sidebar (desktop only) */}
@@ -110,12 +105,6 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
           <h1 className="text-[24px] font-medium text-[#0F1111] mb-1 leading-tight pt-2 break-words overflow-wrap break-word">
             {product.title}
           </h1>
-          <a
-            href="#"
-            className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200 break-all"
-          >
-            Visit the {product?.brand} Store
-          </a>
           <div className="flex items-center pb-2 flex-wrap gap-2">
             <small className="text-[14px] text-[#0F1111] pr-2">{product.rating}</small>
             <div className="flex items-center p-1">
@@ -134,7 +123,10 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
             <ul className="list-disc pl-5 py-2">
               {product.bullet_points &&
                 product.bullet_points.map((bullet: string, idx: number) => (
-                  <li key={`bullet-${bullet}-${idx}`} className="text-[14px] text-[#0F1111] break-words overflow-wrap break-word">
+                  <li
+                    key={`bullet-${bullet}-${idx}`}
+                    className="text-[14px] text-[#0F1111] break-words overflow-wrap break-word"
+                  >
                     {bullet}
                   </li>
                 ))}
@@ -165,11 +157,6 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
                 {(product.price % 1).toFixed(2).substring(1)}
               </span>
             </div>
-            {product.loads && (
-              <div className="text-[14px] text-[#565959]">
-                ${(product.price / product.loads).toFixed(2)}/Fl Oz
-              </div>
-            )}
           </div>
           <div className="text-[14px] text-[#007185]">
             FREE delivery
@@ -210,14 +197,7 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
         <p className="mb-4 pb-4 break-words overflow-wrap break-word">
           {product?.description ? product.description : 'No description available'}
         </p>
-        <table className="w-full text-left border-collapse">
-          <tbody>
-            <tr className="border-b border-[#DDD] border-t">
-              <td className="py-2 font-semibold">Brand</td>
-              <td className="py-2 break-all">{product.brand || 'No brand available'}</td>
-            </tr>
-          </tbody>
-        </table>
+
         <div className="border-t border-[#DDD] py-6">
           <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
           <div className="bg-[#F3F3F3] p-6 rounded-lg">
@@ -235,4 +215,4 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
       </div>
     </div>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { TestData } from '../types';
 
 interface TestCreationState {
@@ -37,34 +37,34 @@ export const TestCreationProvider: React.FC<TestCreationProviderProps> = ({ chil
     (() => Promise<void>) | null
   >(null);
 
-  const setTestData = (testData: TestData) => {
+  const setTestData = useCallback((testData: TestData) => {
     setState(prev => ({ ...prev, testData }));
-  };
+  }, []);
 
-  const setCurrentStep = (step: string) => {
+  const setCurrentStep = useCallback((step: string) => {
     setState(prev => ({ ...prev, currentStep: step }));
-  };
+  }, []);
 
-  const setCurrentTestId = (id: string | null) => {
+  const setCurrentTestId = useCallback((id: string | null) => {
     setState(prev => ({ ...prev, currentTestId: id }));
-  };
+  }, []);
 
-  const setIsInProgress = (inProgress: boolean) => {
+  const setIsInProgress = useCallback((inProgress: boolean) => {
     setState(prev => ({ ...prev, isInProgress: inProgress }));
-  };
+  }, []);
 
-  const setSaveIncompleteTest = (saveFunction: () => Promise<void>) => {
+  const setSaveIncompleteTest = useCallback((saveFunction: () => Promise<void>) => {
     setSaveIncompleteTestFunction(() => saveFunction);
-  };
+  }, []);
 
-  const saveIncompleteTest = async () => {
+  const saveIncompleteTest = useCallback(async () => {
     if (saveIncompleteTestFunction) {
       return saveIncompleteTestFunction();
     }
     throw new Error('saveIncompleteTest function not set');
-  };
+  }, [saveIncompleteTestFunction]);
 
-  const clearState = () => {
+  const clearState = useCallback(() => {
     setState({
       testData: null,
       currentStep: null,
@@ -72,9 +72,9 @@ export const TestCreationProvider: React.FC<TestCreationProviderProps> = ({ chil
       isInProgress: false,
     });
     setSaveIncompleteTestFunction(null);
-  };
+  }, []);
 
-  const value: TestCreationContextType = {
+  const value = useMemo<TestCreationContextType>(() => ({
     state,
     setTestData,
     setCurrentStep,
@@ -83,7 +83,16 @@ export const TestCreationProvider: React.FC<TestCreationProviderProps> = ({ chil
     setSaveIncompleteTest,
     saveIncompleteTest,
     clearState,
-  };
+  }), [
+    state,
+    setTestData,
+    setCurrentStep,
+    setCurrentTestId,
+    setIsInProgress,
+    setSaveIncompleteTest,
+    saveIncompleteTest,
+    clearState,
+  ]);
 
   return <TestCreationContext.Provider value={value}>{children}</TestCreationContext.Provider>;
 };
