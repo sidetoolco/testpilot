@@ -12,7 +12,7 @@ export default function ModalLayout({ isOpen, onClose, title, children }: ModalL
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 px-2 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">

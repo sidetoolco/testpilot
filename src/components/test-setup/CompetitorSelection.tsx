@@ -67,6 +67,8 @@ export default function CompetitorSelection({
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
+  const isAllSelected = selectedCompetitors.length === MAX_COMPETITORS;
+
   if (loading) return <LoadingState showProgress message="Gathering competitive products..." />;
   if (error) return <ErrorState error={error} onRetry={() => window.location.reload()} />;
 
@@ -74,7 +76,7 @@ export default function CompetitorSelection({
     <div className="max-w-6xl mx-auto">
       <SearchHeader
         title="Select Competitor Products"
-        subtitle={`We've pre-selected the top ${MAX_COMPETITORS} selling products in your category. You can modify this selection to include different competitors in your test.`}
+        subtitle={`Select ${MAX_COMPETITORS} selling products in your category. This will help us improve the test results.`}
       />
 
       <div className="mb-6">
@@ -92,7 +94,7 @@ export default function CompetitorSelection({
           <div className="flex items-center space-x-2 ml-4">
             <Info className="h-5 w-5 text-gray-400" />
             <span
-              className={`text-sm ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-600' : 'text-gray-500'}`}
+              className={`text-sm ${isAllSelected ? 'text-green-600' : 'text-gray-500'}`}
             >
               Selected: {selectedCompetitors.length} of {MAX_COMPETITORS}
             </span>
@@ -101,10 +103,16 @@ export default function CompetitorSelection({
       </div>
 
       {/* Floating counter */}
-      <div className="fixed bottom-8 right-8 bg-white rounded-lg shadow-lg p-4 z-50 border border-gray-200">
+      <div 
+        className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
+          isAllSelected 
+            ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse' 
+            : 'bg-white text-gray-700 border-gray-200 scale-100'
+        }`}
+      >
         <div className="flex items-center space-x-2">
           <CheckCircle2
-            className={`h-5 w-5 ${selectedCompetitors.length === MAX_COMPETITORS ? 'text-green-500' : 'text-gray-400'}`}
+            className={`h-5 w-5 ${isAllSelected ? 'text-white' : 'text-gray-400'}`}
           />
           <span className="text-sm font-medium">
             {selectedCompetitors.length} of {MAX_COMPETITORS} selected
