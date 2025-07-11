@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Info, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../../features/auth/stores/authStore';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
@@ -27,9 +27,11 @@ export default function CompetitorSelection({
   onNext,
 }: CompetitorSelectionProps) {
   const [searchFilter, setSearchFilter] = useState('');
+  const [isPopping, setIsPopping] = useState(false);
   const { user } = useAuthStore();
   const { products, loading, error } = useProductFetch(searchTerm, user?.id);
   const isInitialLoad = useRef(true);
+  const prevCount = useRef(selectedCompetitors.length);
 
   const handleProductSelect = async (product: AmazonProduct) => {
     if (selectedCompetitors.find(p => p.asin === product.asin)) {
@@ -62,6 +64,16 @@ export default function CompetitorSelection({
       isInitialLoad.current = false;
     }
   }, [searchTerm, products.length]);
+
+  // Simple pop animation when item is added
+  useEffect(() => {
+    if (selectedCompetitors.length > prevCount.current) {
+      setIsPopping(true);
+      const timer = setTimeout(() => setIsPopping(false), 400);
+      return () => clearTimeout(timer);
+    }
+    prevCount.current = selectedCompetitors.length;
+  }, [selectedCompetitors.length]);
 
   const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
@@ -103,9 +115,11 @@ export default function CompetitorSelection({
       {/* Floating counter */}
       <div
         className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
-          isAllSelected
-            ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse'
-            : 'bg-white text-gray-700 border-gray-200 scale-100'
+          isPopping
+            ? 'bg-white text-gray-700 border-[#00A67E] scale-110'
+            : isAllSelected 
+              ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse' 
+              : 'bg-white text-gray-700 border-gray-200 scale-100'
         }`}
       >
         <div className="flex items-center space-x-2">
