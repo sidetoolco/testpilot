@@ -216,7 +216,10 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 const inputValue = e.target.value;
                 // Allow empty string or valid numbers
                 if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
-                  setFormData({ ...formData, price: inputValue === '' ? 0 : parseFloat(inputValue) });
+                  setFormData({
+                    ...formData,
+                    price: inputValue === '' ? 0 : parseFloat(inputValue),
+                  });
                 }
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
@@ -238,7 +241,9 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         {/* Reviews Count and Loads */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reviews</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Number of Reviews
+            </label>
             <input
               type="number"
               value={formData.reviews_count === undefined ? '' : formData.reviews_count}

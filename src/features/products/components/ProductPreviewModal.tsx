@@ -9,7 +9,11 @@ interface ProductPreviewModalProps {
   product: Product;
 }
 
-export default function ProductPreviewModal({ isOpen, onClose, product }: ProductPreviewModalProps) {
+export default function ProductPreviewModal({
+  isOpen,
+  onClose,
+  product,
+}: ProductPreviewModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -23,7 +27,7 @@ export default function ProductPreviewModal({ isOpen, onClose, product }: Produc
             </button>
           </div>
           <p className="text-sm text-gray-500 mt-2">
-          This is a preview of what the tester will see when they click on the product.
+            This is a preview of what the tester will see when they click on the product.
           </p>
         </div>
 
@@ -33,4 +37,4 @@ export default function ProductPreviewModal({ isOpen, onClose, product }: Produc
       </div>
     </div>
   );
-} 
+}
