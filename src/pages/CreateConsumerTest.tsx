@@ -73,58 +73,27 @@ export default function CreateConsumerTest() {
     setSaveIncompleteTest,
   } = useTestCreation();
 
-  // Log to verify hook state
-  console.log(
-    'CreateConsumerTest rendered - currentStep:',
-    currentStep,
-    'canProceed:',
-    canProceed()
-  );
-
   // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
-    console.log('TestState received:', testState);
-    console.log('isIncompleteTest:', testState.isIncompleteTest);
-    console.log('testData:', testState.testData);
-    console.log('currentStep:', testState.currentStep);
-
     // Only initialize if it's an incomplete test AND hasn't been initialized yet
     if (testState.isIncompleteTest && testState.testData && !currentTestId) {
-      console.log('Initializing incomplete test:', testState);
-
       // Load test data
       setTestData(testState.testData);
       setContextTestData(testState.testData);
-      console.log('TestData set:', testState.testData);
 
       // Set test ID
       if (testState.testId) {
         setCurrentTestId(testState.testId);
         setContextTestId(testState.testId);
-        console.log('TestId set:', testState.testId);
       }
 
       // Set the correct step
       if (testState.currentStep) {
-        console.log('Setting step to:', testState.currentStep);
         setCurrentStep(testState.currentStep);
         setContextStep(testState.currentStep);
-        console.log('Step set successfully');
-
-        // Force a re-render to ensure state updates
-        setTimeout(() => {
-          console.log('Final state - currentStep:', testState.currentStep);
-        }, 100);
       }
     }
-  }, [
-    testState,
-    setCurrentStep,
-    currentTestId,
-    setContextTestData,
-    setContextStep,
-    setContextTestId,
-  ]);
+  }, [testState.isIncompleteTest, testState.testData, testState.testId, testState.currentStep, currentTestId, setContextTestData, setContextStep, setContextTestId]);
 
   // Function to save incomplete test
   const saveIncompleteTest = async () => {
@@ -172,7 +141,6 @@ export default function CreateConsumerTest() {
   }, [setIsInProgress]);
 
   const handleBack = () => {
-    console.log('handleBack executed - currentStep:', currentStep);
     const currentIndex = steps.findIndex(s => s.key === currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
@@ -209,12 +177,9 @@ export default function CreateConsumerTest() {
 
       // Check if it's an existing incomplete test
       if (testState.isIncompleteTest && currentTestId) {
-        console.log('Updating existing incomplete test to draft:', currentTestId);
-
         try {
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
-          console.log('Incomplete test successfully updated to draft');
 
           // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
@@ -244,7 +209,6 @@ export default function CreateConsumerTest() {
   };
 
   const handleContinue = () => {
-    console.log('handleContinue executed - currentStep:', currentStep);
     if (handleNext()) {
       const currentIndex = steps.findIndex(s => s.key === currentStep);
       if (currentIndex < steps.length - 1) {
@@ -260,7 +224,7 @@ export default function CreateConsumerTest() {
         setLoadingMessageIndex((current: number) =>
           current < LoadingMessages.length - 1 ? current + 1 : current
         );
-      }, 4000); // Change every 2 seconds
+      }, 4000); // Change every 4 seconds
 
       return () => {
         clearInterval(interval);
