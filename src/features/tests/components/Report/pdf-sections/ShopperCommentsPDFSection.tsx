@@ -16,6 +16,20 @@ interface Comment {
       country_residence: null | string;
     };
   };
+  // Add product information
+  products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  amazon_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
+  competitor_id?: string;
 }
 
 interface ShopperCommentsPDFSectionProps {

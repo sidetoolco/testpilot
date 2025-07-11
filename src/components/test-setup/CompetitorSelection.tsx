@@ -105,9 +105,7 @@ export default function CompetitorSelection({
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <Info className="h-5 w-5 text-gray-400" />
-            <span
-              className={`text-sm ${isAllSelected ? 'text-green-600' : 'text-gray-500'}`}
-            >
+            <span className={`text-sm ${isAllSelected ? 'text-green-600' : 'text-gray-500'}`}>
               Selected: {selectedCompetitors.length} of {MAX_COMPETITORS}
             </span>
           </div>
@@ -115,7 +113,7 @@ export default function CompetitorSelection({
       </div>
 
       {/* Floating counter */}
-      <div 
+      <div
         className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
           isPopping
             ? 'bg-white text-gray-700 border-[#00A67E] scale-110'
@@ -125,9 +123,7 @@ export default function CompetitorSelection({
         }`}
       >
         <div className="flex items-center space-x-2">
-          <CheckCircle2
-            className={`h-5 w-5 ${isAllSelected ? 'text-white' : 'text-gray-400'}`}
-          />
+          <CheckCircle2 className={`h-5 w-5 ${isAllSelected ? 'text-white' : 'text-gray-400'}`} />
           <span className="text-sm font-medium">
             {selectedCompetitors.length} of {MAX_COMPETITORS} selected
           </span>
