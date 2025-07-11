@@ -157,11 +157,6 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
                 {(product.price % 1).toFixed(2).substring(1)}
               </span>
             </div>
-            {product.loads && (
-              <div className="text-[14px] text-[#565959]">
-                ${(product.price / product.loads).toFixed(2)}/Fl Oz
-              </div>
-            )}
           </div>
           <div className="text-[14px] text-[#007185]">
             FREE delivery

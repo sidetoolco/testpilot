@@ -313,7 +313,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
             <input
               type="text"
               inputMode="numeric"
-              value={formData.reviews_count === undefined || formData.reviews_count === 0 ? '' : formData.reviews_count.toString()}
+              value={formData.reviews_count === undefined ? '' : formData.reviews_count.toString()}
               onChange={e => {
                 const value = e.target.value;
                 const sanitizedValue = value.replace(/[^0-9]/g, '');
