@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import { PriceCalculator } from './PriceCalculator';
 import CustomScreening from './CustomScreening';
 import { CustomScreening as CustomScreeningType } from '../../features/tests/types';
+import Checkbox from '../ui/Checkbox';
 
 type Demographics = {
   ageRanges: string[];
@@ -102,17 +103,17 @@ export default function DemographicSelection({
     onChange(prev => ({ ...prev, ageRanges: [newMinAge.toString(), newMaxAge.toString()] }));
   };
 
-  const handleGenderSelect = (gender: string) => {
-    const newGenders = demographics.gender.includes(gender)
-      ? demographics.gender.filter(g => g !== gender)
-      : [...demographics.gender, gender];
+  const handleGenderSelect = (gender: string, checked: boolean) => {
+    const newGenders = checked
+      ? [...demographics.gender, gender]
+      : demographics.gender.filter(g => g !== gender);
     onChange(prev => ({ ...prev, gender: newGenders }));
   };
 
-  const handleCountrySelect = (country: string) => {
-    const newLocations = demographics.locations.includes(country)
-      ? demographics.locations.filter(l => l !== country)
-      : [...demographics.locations, country];
+  const handleCountrySelect = (country: string, checked: boolean) => {
+    const newLocations = checked
+      ? [...demographics.locations, country]
+      : demographics.locations.filter(l => l !== country);
     onChange(prev => ({ ...prev, locations: newLocations }));
   };
 
@@ -227,43 +228,38 @@ export default function DemographicSelection({
           {ageError && <p className="text-red-500 text-sm mt-1">{ageError}</p>}
         </div>
 
-        {/* Gender */}
-        <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Gender</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {genders.map(gender => (
-              <button
-                key={gender}
-                onClick={() => handleGenderSelect(gender)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.gender.includes(gender)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
-              >
-                {gender}
-              </button>
-            ))}
+        {/* Gender and Country */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Gender */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Gender</h4>
+            <div className="space-y-3">
+              {genders.map(gender => (
+                <Checkbox
+                  key={gender}
+                  id={`gender-${gender.toLowerCase()}`}
+                  label={gender}
+                  checked={demographics.gender.includes(gender)}
+                  onChange={(checked) => handleGenderSelect(gender, checked)}
+                />
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Country */}
-        <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Country</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {countries.map(country => (
-              <button
-                key={country}
-                onClick={() => handleCountrySelect(country)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  demographics.locations.includes(country)
-                    ? 'border-[#00A67E] bg-[#00A67E]/5'
-                    : 'border-gray-200 hover:border-[#00A67E]/30'
-                }`}
-              >
-                {country}
-              </button>
-            ))}
+          {/* Country */}
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Country</h4>
+            <div className="space-y-3">
+              {countries.map(country => (
+                <Checkbox
+                  key={country}
+                  id={`country-${country.toLowerCase()}`}
+                  label={country}
+                  checked={demographics.locations.includes(country)}
+                  onChange={(checked) => handleCountrySelect(country, checked)}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
