@@ -54,7 +54,10 @@ interface ShopperCommentsProps {
   };
 }
 
-const getChosenProduct = (comment: Comment, testData?: ShopperCommentsProps['testData']): Product | null => {
+const getChosenProduct = (
+  comment: Comment,
+  testData?: ShopperCommentsProps['testData']
+): Product | null => {
   if (comment.competitor_id) {
     return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
   } else {
@@ -62,28 +65,31 @@ const getChosenProduct = (comment: Comment, testData?: ShopperCommentsProps['tes
   }
 };
 
-const sortCommentsByCompetitorPopularity = (comments: Comment[], testData?: ShopperCommentsProps['testData']): Comment[] => {
+const sortCommentsByCompetitorPopularity = (
+  comments: Comment[],
+  testData?: ShopperCommentsProps['testData']
+): Comment[] => {
   const competitorCounts: { [competitorId: string]: number } = {};
-  
+
   comments.forEach(comment => {
     if (comment.competitor_id) {
       competitorCounts[comment.competitor_id] = (competitorCounts[comment.competitor_id] || 0) + 1;
     }
   });
-  
+
   return [...comments].sort((a, b) => {
     const aCount = a.competitor_id ? competitorCounts[a.competitor_id] || 0 : 0;
     const bCount = b.competitor_id ? competitorCounts[b.competitor_id] || 0 : 0;
-    
+
     if (aCount !== bCount) {
       return bCount - aCount;
     }
-    
+
     const aProduct = getChosenProduct(a, testData);
     const bProduct = getChosenProduct(b, testData);
     const aName = aProduct?.title || '';
     const bName = bProduct?.title || '';
-    
+
     return aName.localeCompare(bName);
   });
 };
@@ -99,7 +105,7 @@ const CommentItem: React.FC<{
   const chosenProduct = getChosenProduct(comment, testData);
   const isCompetitor = !!comment.competitor_id;
   const count = comment.competitor_id ? competitorCounts?.[comment.competitor_id] : undefined;
-  
+
   return (
     <div
       key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
@@ -113,11 +119,9 @@ const CommentItem: React.FC<{
           count={count}
         />
       )}
-      
-      <p className="text-gray-700">
-        {typeof comment[field] === 'string' ? comment[field] : ''}
-      </p>
-      
+
+      <p className="text-gray-700">{typeof comment[field] === 'string' ? comment[field] : ''}</p>
+
       <div className="mt-2 text-sm text-gray-500">
         {comment.tester_id?.shopper_demographic?.age && (
           <p>Age: {comment.tester_id.shopper_demographic.age}</p>
@@ -142,45 +146,49 @@ const CommentSection: React.FC<{
   testData?: ShopperCommentsProps['testData'];
   onProductClick: (product: Product) => void;
   sortByCompetitor?: boolean;
-}> = React.memo(({ title, comments, field, testData, onProductClick, sortByCompetitor = false }) => {
-  const { sortedComments, competitorCounts } = useMemo(() => {
-    const sorted = sortByCompetitor ? sortCommentsByCompetitorPopularity(comments, testData) : comments;
-    
-    const counts: { [competitorId: string]: number } = {};
-    if (sortByCompetitor) {
-      comments.forEach(comment => {
-        if (comment.competitor_id) {
-          counts[comment.competitor_id] = (counts[comment.competitor_id] || 0) + 1;
-        }
-      });
-    }
-    
-    return { sortedComments: sorted, competitorCounts: counts };
-  }, [comments, testData, sortByCompetitor]);
-  
-  return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
-      {sortedComments.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4">
-          {sortedComments.map((comment, index) => (
-            <CommentItem
-              key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
-              comment={comment}
-              field={field}
-              testData={testData}
-              onProductClick={onProductClick}
-              competitorCounts={competitorCounts}
-              index={index}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500">No comments available.</p>
-      )}
-    </div>
-  );
-});
+}> = React.memo(
+  ({ title, comments, field, testData, onProductClick, sortByCompetitor = false }) => {
+    const { sortedComments, competitorCounts } = useMemo(() => {
+      const sorted = sortByCompetitor
+        ? sortCommentsByCompetitorPopularity(comments, testData)
+        : comments;
+
+      const counts: { [competitorId: string]: number } = {};
+      if (sortByCompetitor) {
+        comments.forEach(comment => {
+          if (comment.competitor_id) {
+            counts[comment.competitor_id] = (counts[comment.competitor_id] || 0) + 1;
+          }
+        });
+      }
+
+      return { sortedComments: sorted, competitorCounts: counts };
+    }, [comments, testData, sortByCompetitor]);
+
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
+        {sortedComments.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {sortedComments.map((comment, index) => (
+              <CommentItem
+                key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
+                comment={comment}
+                field={field}
+                testData={testData}
+                onProductClick={onProductClick}
+                competitorCounts={competitorCounts}
+                index={index}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No comments available.</p>
+        )}
+      </div>
+    );
+  }
+);
 
 CommentSection.displayName = 'CommentSection';
 
@@ -219,18 +227,20 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     const currentSurv = variant === 'summary' ? [] : surveys[variant];
     const hasComp = variant !== 'summary' && currentComp?.length > 0;
     const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
-    
+
     return {
       currentComparision: currentComp,
       currentSurveys: currentSurv,
       hasComparision: hasComp,
-      hasSurveys: hasSurv
+      hasSurveys: hasSurv,
     };
   }, [variant, comparision, surveys]);
 
   const hasAnyComments = useMemo(() => {
-    return Object.values(comparision).some(comments => comments.length > 0) ||
-           Object.values(surveys).some(comments => comments.length > 0);
+    return (
+      Object.values(comparision).some(comments => comments.length > 0) ||
+      Object.values(surveys).some(comments => comments.length > 0)
+    );
   }, [comparision, surveys]);
 
   const exportCommentsToExcel = useCallback(() => {
@@ -420,7 +430,7 @@ const ProductModal: React.FC<{
               ×
             </button>
           </div>
-          
+
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-shrink-0">
               <img
@@ -429,11 +439,9 @@ const ProductModal: React.FC<{
                 className="w-64 h-64 object-cover rounded-lg"
               />
             </div>
-            
+
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {product.title}
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.title}</h3>
               <p className="text-2xl font-bold text-green-600 mb-4">
                 {product.price ? `$${product.price.toFixed(2)}` : 'Price not available'}
               </p>

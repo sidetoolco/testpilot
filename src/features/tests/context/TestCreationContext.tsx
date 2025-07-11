@@ -74,25 +74,28 @@ export const TestCreationProvider: React.FC<TestCreationProviderProps> = ({ chil
     setSaveIncompleteTestFunction(null);
   }, []);
 
-  const value = useMemo<TestCreationContextType>(() => ({
-    state,
-    setTestData,
-    setCurrentStep,
-    setCurrentTestId,
-    setIsInProgress,
-    setSaveIncompleteTest,
-    saveIncompleteTest,
-    clearState,
-  }), [
-    state,
-    setTestData,
-    setCurrentStep,
-    setCurrentTestId,
-    setIsInProgress,
-    setSaveIncompleteTest,
-    saveIncompleteTest,
-    clearState,
-  ]);
+  const value = useMemo<TestCreationContextType>(
+    () => ({
+      state,
+      setTestData,
+      setCurrentStep,
+      setCurrentTestId,
+      setIsInProgress,
+      setSaveIncompleteTest,
+      saveIncompleteTest,
+      clearState,
+    }),
+    [
+      state,
+      setTestData,
+      setCurrentStep,
+      setCurrentTestId,
+      setIsInProgress,
+      setSaveIncompleteTest,
+      saveIncompleteTest,
+      clearState,
+    ]
+  );
 
   return <TestCreationContext.Provider value={value}>{children}</TestCreationContext.Provider>;
 };

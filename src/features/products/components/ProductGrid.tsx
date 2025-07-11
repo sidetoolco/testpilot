@@ -19,7 +19,6 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
- 
   useEffect(() => {
     if (!openDropdown) return;
 
@@ -40,25 +39,28 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
 
   const handleDropdownToggle = useCallback((productId: string | undefined) => {
     if (!productId) return;
-    setOpenDropdown(prev => prev === productId ? null : productId);
+    setOpenDropdown(prev => (prev === productId ? null : productId));
   }, []);
 
-  const handleOptionClick = useCallback((action: 'edit' | 'delete' | 'duplicate', product: Product) => {
-    setOpenDropdown(null);
-    
-    switch (action) {
-      case 'edit':
-        onEdit(product);
-        break;
-      case 'duplicate':
-        onDuplicate?.(product);
-        break;
-      case 'delete':
-        setProductToDelete(product);
-        setShowDeleteConfirm(true);
-        break;
-    }
-  }, [onEdit, onDuplicate]);
+  const handleOptionClick = useCallback(
+    (action: 'edit' | 'delete' | 'duplicate', product: Product) => {
+      setOpenDropdown(null);
+
+      switch (action) {
+        case 'edit':
+          onEdit(product);
+          break;
+        case 'duplicate':
+          onDuplicate?.(product);
+          break;
+        case 'delete':
+          setProductToDelete(product);
+          setShowDeleteConfirm(true);
+          break;
+      }
+    },
+    [onEdit, onDuplicate]
+  );
 
   const handleConfirmDelete = useCallback(async () => {
     if (!productToDelete?.id) return;
@@ -66,10 +68,10 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
     try {
       // Optimistic update - immediately hide the product
       setDeletedProducts(prev => new Set(prev).add(productToDelete.id!));
-      
+
       // Call the delete function
       await onDelete(productToDelete.id);
-      
+
       // If successful, keep the product hidden and close modal
       setShowDeleteConfirm(false);
       setProductToDelete(null);
@@ -81,24 +83,29 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
         newSet.delete(productToDelete.id!);
         return newSet;
       });
-      
+
       console.error('Failed to delete product:', error);
-      
+
       // Show user-friendly error message based on the error type
       let errorMessage = 'Failed to delete product. Please try again.';
-      
+
       if (error?.message) {
-        if (error.message.includes('foreign key constraint') || error.message.includes('test_times')) {
-          errorMessage = 'Cannot delete this product because it is currently being used in active test sessions. Please wait for all tests to complete or contact support.';
+        if (
+          error.message.includes('foreign key constraint') ||
+          error.message.includes('test_times')
+        ) {
+          errorMessage =
+            'Cannot delete this product because it is currently being used in active test sessions. Please wait for all tests to complete or contact support.';
         } else if (error.message.includes('test_variations')) {
-          errorMessage = 'Cannot delete this product because it is currently being used in active tests. Please remove it from all tests first.';
+          errorMessage =
+            'Cannot delete this product because it is currently being used in active tests. Please remove it from all tests first.';
         } else {
           errorMessage = error.message;
         }
       }
-      
+
       toast.error(errorMessage);
-      
+
       // Close the confirmation dialog
       setShowDeleteConfirm(false);
       setProductToDelete(null);
@@ -111,19 +118,19 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
   }, []);
 
   // Memoize filtered products to avoid unnecessary re-renders
-  const visibleProducts = useMemo(() => 
-    products.filter(product => !deletedProducts.has(product.id || '')),
+  const visibleProducts = useMemo(
+    () => products.filter(product => !deletedProducts.has(product.id || '')),
     [products, deletedProducts]
   );
 
   // Memoize star rendering function
   const renderStars = useCallback((rating: number) => {
     const fullStars = Math.round(rating || 5);
-    
+
     return STAR_ARRAY.map(i => {
       const isFullStar = i < fullStars;
       const isHalfStar = !isFullStar && i < rating;
-      
+
       return (
         <Star
           key={i}
@@ -131,8 +138,8 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
             isFullStar
               ? 'text-[#dd8433] fill-[#dd8433]'
               : isHalfStar
-              ? 'text-[#dd8433] fill-current'
-              : 'text-gray-200 fill-gray-200'
+                ? 'text-[#dd8433] fill-current'
+                : 'text-gray-200 fill-gray-200'
           }`}
           style={{
             clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
@@ -151,7 +158,6 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
             whileHover={{ y: -4 }}
             className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
           >
-
             <div
               className="h-48 mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer flex items-center justify-center"
               onClick={() => onEdit(product)}
@@ -172,19 +178,17 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
               </h3>
 
               <div className="flex items-center space-x-2">
-                <div className="flex items-center">
-                  {renderStars(product.rating)}
-                </div>
+                <div className="flex items-center">{renderStars(product.rating)}</div>
                 <span className="text-sm text-gray-500">({product.reviews_count})</span>
               </div>
 
               <div className="flex items-center justify-between mt-auto">
                 <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
-                
+
                 {/* Three dots menu button */}
                 <div className="relative">
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       handleDropdownToggle(product.id);
                     }}
@@ -192,12 +196,12 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
                   >
                     <MoreVertical className="h-4 w-4 text-gray-500" />
                   </button>
-                  
+
                   {/* Dropdown menu */}
                   {openDropdown === product.id && (
                     <div className="absolute right-0 bottom-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px] z-20">
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleOptionClick('edit', product);
                         }}
@@ -207,7 +211,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
                         <span>Edit</span>
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleOptionClick('duplicate', product);
                         }}
@@ -217,7 +221,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
                         <span>Duplicate</span>
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleOptionClick('delete', product);
                         }}
@@ -241,7 +245,8 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Delete Product</h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete "{productToDelete.title}"? This action cannot be undone.
+              Are you sure you want to delete "{productToDelete.title}"? This action cannot be
+              undone.
             </p>
             <div className="flex justify-end gap-3">
               <button

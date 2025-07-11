@@ -28,7 +28,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Age Ranges</div>
               <div className="flex flex-wrap gap-2">
-                {test.demographics.ageRanges.map((age) => (
+                {test.demographics.ageRanges.map(age => (
                   <span
                     key={`age-${age}`}
                     className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200"
@@ -42,7 +42,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Gender</div>
               <div className="flex flex-wrap gap-2">
-                {test.demographics.gender.map((g) => (
+                {test.demographics.gender.map(g => (
                   <span
                     key={`gender-${g}`}
                     className="px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-100 transition-colors duration-200"
@@ -56,7 +56,7 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
             <div>
               <div className="text-sm font-medium text-gray-600 mb-2">Locations</div>
               <div className="flex flex-wrap gap-2">
-                {test.demographics.locations.map((location) => (
+                {test.demographics.locations.map(location => (
                   <span
                     key={`location-${location}`}
                     className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium hover:bg-green-100 transition-colors duration-200"
@@ -123,8 +123,11 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {Object.values(test.variations)
                     .filter((v): v is NonNullable<typeof v> => v !== null)
-                    .map((variation) => (
-                      <tr key={`variant-${variation.id || variation.title || Math.random()}`} className="hover:bg-gray-50">
+                    .map(variation => (
+                      <tr
+                        key={`variant-${variation.id || variation.title || Math.random()}`}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <img
                             src={variation.image_url || '/placeholder-image.jpg'}
@@ -182,8 +185,11 @@ export default function TestConfiguration({ test }: TestConfigurationProps) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {test.competitors.map((competitor) => (
-                    <tr key={`competitor-${competitor.id || competitor.title || Math.random()}`} className="hover:bg-gray-50">
+                  {test.competitors.map(competitor => (
+                    <tr
+                      key={`competitor-${competitor.id || competitor.title || Math.random()}`}
+                      className="hover:bg-gray-50"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <img
                           src={competitor.image_url || '/placeholder-image.jpg'}

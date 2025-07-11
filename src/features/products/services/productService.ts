@@ -144,7 +144,9 @@ export const productService = {
     }
 
     if (dependencies && dependencies.length > 0) {
-      throw new Error('Cannot delete product: It is currently being used in active test sessions. Please wait for all tests to complete or contact support.');
+      throw new Error(
+        'Cannot delete product: It is currently being used in active test sessions. Please wait for all tests to complete or contact support.'
+      );
     }
 
     // Check test_variations table
@@ -160,11 +162,16 @@ export const productService = {
     }
 
     if (testVariationsData && testVariationsData.length > 0) {
-      throw new Error('Cannot delete product: It is currently being used in active tests. Please remove it from all tests first.');
+      throw new Error(
+        'Cannot delete product: It is currently being used in active tests. Please remove it from all tests first.'
+      );
     }
 
     // If no dependencies found, proceed with deletion
-    const { error } = await supabase.from('products').delete().eq('id', id as any);
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id as any);
 
     if (error) throw error;
   },

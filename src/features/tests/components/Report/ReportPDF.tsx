@@ -102,7 +102,6 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
     // Verify that the response has the expected structure
     const exportData = data as TestExportData;
     return exportData;
-
   } catch (error) {
     console.error('Failed to get test export data:', error);
     throw error;
@@ -374,7 +373,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(

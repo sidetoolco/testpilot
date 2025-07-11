@@ -280,7 +280,7 @@ export default function DemographicSelection({
                   id={`gender-${gender.toLowerCase()}`}
                   label={gender}
                   checked={demographics.gender.includes(gender)}
-                  onChange={(checked) => handleGenderSelect(gender, checked)}
+                  onChange={checked => handleGenderSelect(gender, checked)}
                 />
               ))}
             </div>
@@ -296,7 +296,7 @@ export default function DemographicSelection({
                   id={`country-${country.toLowerCase()}`}
                   label={country}
                   checked={demographics.locations.includes(country)}
-                  onChange={(checked) => handleCountrySelect(country, checked)}
+                  onChange={checked => handleCountrySelect(country, checked)}
                 />
               ))}
             </div>

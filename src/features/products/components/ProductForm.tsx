@@ -30,7 +30,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: false,
   });
 
-   const [displayPrice, setDisplayPrice] = useState(() => {
+  const [displayPrice, setDisplayPrice] = useState(() => {
     if (initialData?.price) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -64,15 +64,13 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       const parsed = parseFloat(sanitizedValue);
       numericValue = isNaN(parsed) ? undefined : parsed;
     }
-    
+
     setFormData({ ...formData, price: numericValue });
 
     if (sanitizedValue === '') {
       setDisplayPrice('');
     } else if (sanitizedValue) {
-      const formattedInteger = new Intl.NumberFormat('en-US').format(
-        parseInt(parts[0] || '0')
-      );
+      const formattedInteger = new Intl.NumberFormat('en-US').format(parseInt(parts[0] || '0'));
       let newDisplayValue = '$' + formattedInteger;
 
       if (parts.length > 1) {
@@ -183,10 +181,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
             Product Images <span className="text-red-500">*</span>
-            <Info 
-              className="h-4 w-4 text-gray-400 cursor-help" 
-              data-tooltip-id="image-tooltip"
-            />
+            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="image-tooltip" />
             <Tooltip id="image-tooltip">
               Upload up to 5 images. First image becomes the main product image.
             </Tooltip>
@@ -202,10 +197,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
             Product Name <span className="text-red-500">*</span>
-            <Info 
-              className="h-4 w-4 text-gray-400 cursor-help" 
-              data-tooltip-id="title-tooltip"
-            />
+            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="title-tooltip" />
             <Tooltip id="title-tooltip">
               Clear, descriptive product name customers will see.
             </Tooltip>
@@ -224,8 +216,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
             Description <span className="text-red-500">*</span>
-            <Info 
-              className="h-4 w-4 text-gray-400 cursor-help" 
+            <Info
+              className="h-4 w-4 text-gray-400 cursor-help"
               data-tooltip-id="description-tooltip"
             />
             <Tooltip id="description-tooltip">
@@ -245,8 +237,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
             About the product (Enter 5 key points) <span className="text-red-500">*</span>
-            <Info 
-              className="h-4 w-4 text-gray-400 cursor-help" 
+            <Info
+              className="h-4 w-4 text-gray-400 cursor-help"
               data-tooltip-id="bullet-points-tooltip"
             />
             <Tooltip id="bullet-points-tooltip">
@@ -281,13 +273,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
               Price <span className="text-red-500">*</span>
-              <Info 
-                className="h-4 w-4 text-gray-400 cursor-help" 
-                data-tooltip-id="price-tooltip"
-              />
-              <Tooltip id="price-tooltip">
-                Product price in USD with currency formatting.
-              </Tooltip>
+              <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="price-tooltip" />
+              <Tooltip id="price-tooltip">Product price in USD with currency formatting.</Tooltip>
             </label>
             <input
               type="text"
@@ -302,13 +289,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
               Number of Reviews <span className="text-red-500">*</span>
-              <Info 
-                className="h-4 w-4 text-gray-400 cursor-help" 
+              <Info
+                className="h-4 w-4 text-gray-400 cursor-help"
                 data-tooltip-id="reviews-tooltip"
               />
-              <Tooltip id="reviews-tooltip">
-                Total number of customer reviews.
-              </Tooltip>
+              <Tooltip id="reviews-tooltip">Total number of customer reviews.</Tooltip>
             </label>
             <input
               type="text"
@@ -317,7 +302,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
               onChange={e => {
                 const value = e.target.value;
                 const sanitizedValue = value.replace(/[^0-9]/g, '');
-                
+
                 if (sanitizedValue === '') {
                   setFormData({
                     ...formData,
@@ -340,20 +325,19 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           </div>
         </div>
 
-
-
         {/* Star Rating and Reviews */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            <label
+              htmlFor="ratingRange"
+              className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2"
+            >
               Star Rating <span className="text-red-500">*</span>
-              <Info 
-                className="h-4 w-4 text-gray-400 cursor-help" 
+              <Info
+                className="h-4 w-4 text-gray-400 cursor-help"
                 data-tooltip-id="rating-tooltip"
               />
-              <Tooltip id="rating-tooltip">
-                Average star rating (0.0 to 5.0 stars).
-              </Tooltip>
+              <Tooltip id="rating-tooltip">Average star rating (0.0 to 5.0 stars).</Tooltip>
             </label>
             <div className="flex items-center">
               <div className="relative w-full">

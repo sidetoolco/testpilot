@@ -69,7 +69,7 @@ export default function AllProducts() {
         loads: product.loads,
         product_url: product.product_url,
       };
-      
+
       await addProduct(duplicatedProduct);
       toast.success('Product duplicated successfully');
     } catch (err) {
@@ -78,9 +78,8 @@ export default function AllProducts() {
     }
   };
 
-  const filteredProducts = products.filter(
-    product =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -98,9 +97,9 @@ export default function AllProducts() {
           <p className="mt-4 text-gray-600">Loading products...</p>
         </div>
       ) : (
-        <ProductGrid 
-          products={filteredProducts} 
-          onEdit={setEditProduct} 
+        <ProductGrid
+          products={filteredProducts}
+          onEdit={setEditProduct}
           onDelete={handleDelete}
           onDuplicate={handleDuplicate}
         />

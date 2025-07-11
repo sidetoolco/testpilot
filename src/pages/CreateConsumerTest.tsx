@@ -93,7 +93,13 @@ export default function CreateConsumerTest() {
         setContextStep(testState.currentStep);
       }
     }
-  }, [testState.isIncompleteTest, testState.testData, testState.testId, testState.currentStep, currentTestId]);
+  }, [
+    testState.isIncompleteTest,
+    testState.testData,
+    testState.testId,
+    testState.currentStep,
+    currentTestId,
+  ]);
 
   // Function to save incomplete test - memoized with useCallback
   const saveIncompleteTest = useCallback(async () => {
