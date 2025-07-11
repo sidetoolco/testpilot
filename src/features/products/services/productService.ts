@@ -131,7 +131,40 @@ export const productService = {
   },
 
   async deleteProduct(id: string) {
-    const { error } = await supabase.from('products').delete().eq('id', id);
+    // Check if the product is being used in any test sessions or variations in a single query
+    const { data: dependencies, error: checkError } = await supabase
+      .from('test_times')
+      .select('id')
+      .eq('product_id', id as any)
+      .limit(1);
+
+    if (checkError) {
+      console.error('Error checking product dependencies:', checkError);
+      throw new Error('Failed to check if product can be deleted');
+    }
+
+    if (dependencies && dependencies.length > 0) {
+      throw new Error('Cannot delete product: It is currently being used in active test sessions. Please wait for all tests to complete or contact support.');
+    }
+
+    // Check test_variations table
+    const { data: testVariationsData, error: variationsCheckError } = await supabase
+      .from('test_variations')
+      .select('id')
+      .eq('product_id', id as any)
+      .limit(1);
+
+    if (variationsCheckError) {
+      console.error('Error checking test variations:', variationsCheckError);
+      throw new Error('Failed to check if product can be deleted');
+    }
+
+    if (testVariationsData && testVariationsData.length > 0) {
+      throw new Error('Cannot delete product: It is currently being used in active tests. Please remove it from all tests first.');
+    }
+
+    // If no dependencies found, proceed with deletion
+    const { error } = await supabase.from('products').delete().eq('id', id as any);
 
     if (error) throw error;
   },
