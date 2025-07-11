@@ -8,13 +8,9 @@ export interface Product {
   price: number;
   image_url: string; // Cambiado de 'image' a 'image_url'
   images: string[];
-  brand: string;
   position?: { row: number; column: number };
   rating: number; // Cambiado de 'starRating' a 'rating'
   reviews_count: number; // Cambiado de 'reviewCount' a 'reviews_count'
-  isCompetitor?: boolean;
-  loads?: number;
-  product_url?: string; // Cambiado de 'amazonUrl' a 'product_url'
   userId?: string;
   company_id?: string;
   createdAt?: Date;

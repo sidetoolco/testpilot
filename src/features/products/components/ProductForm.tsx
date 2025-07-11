@@ -3,6 +3,8 @@ import { Product } from '../../../types';
 import ImageUpload from './ImageUpload';
 import ProductPreviewModal from './ProductPreviewModal';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
+import { Tooltip } from 'react-tooltip';
 
 interface ProductFormProps {
   onSubmit: (product: Omit<Product, 'userId' | 'createdAt' | 'updatedAt'>) => void;
@@ -16,12 +18,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: initialData?.description || '',
     bullet_points: initialData?.bullet_points || [],
     price: initialData?.price,
-    brand: initialData?.brand || '',
     image_url: initialData?.image_url || '',
     images: initialData?.images || [],
-    isCompetitor: initialData?.isCompetitor || false,
-    loads: initialData?.loads || undefined,
-    product_url: initialData?.product_url || '',
     rating: initialData?.rating || 5,
     reviews_count: initialData?.reviews_count,
     id: initialData?.id || undefined,
@@ -32,8 +30,57 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
     description: false,
   });
 
+   const [displayPrice, setDisplayPrice] = useState(() => {
+    if (initialData?.price) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(initialData.price);
+    }
+    return '';
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+
+    const parts = sanitizedValue.split('.');
+    if (parts.length > 2) {
+      return;
+    }
+
+    if (parts[1] && parts[1].length > 2) {
+      return;
+    }
+
+    // Handle empty or invalid input
+    let numericValue: number | undefined;
+    if (sanitizedValue === '' || sanitizedValue === '.') {
+      numericValue = undefined;
+    } else {
+      const parsed = parseFloat(sanitizedValue);
+      numericValue = isNaN(parsed) ? undefined : parsed;
+    }
+    
+    setFormData({ ...formData, price: numericValue });
+
+    if (sanitizedValue === '') {
+      setDisplayPrice('');
+    } else if (sanitizedValue) {
+      const formattedInteger = new Intl.NumberFormat('en-US').format(
+        parseInt(parts[0] || '0')
+      );
+      let newDisplayValue = '$' + formattedInteger;
+
+      if (parts.length > 1) {
+        newDisplayValue += '.' + (parts[1] || '');
+      }
+      setDisplayPrice(newDisplayValue);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,18 +107,16 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       alert('Please upload at least one product image');
       return;
     }
-
     // Convert numeric values
-    const numericPrice = parseFloat((formData.price || 0).toString());
-    const numericReviewCount = parseInt((formData.reviews_count || 0).toString());
+    const numericPrice = formData.price !== undefined ? formData.price : 0;
+    const numericReviewCount = formData.reviews_count !== undefined ? formData.reviews_count : 0;
 
-    if (isNaN(numericPrice) || numericPrice <= 0) {
-      alert('Please enter a valid price');
+    if (formData.price === undefined || formData.price <= 0) {
+      toast.error('Please enter a valid price');
       return;
     }
-
-    if (isNaN(numericReviewCount) || numericReviewCount < 0) {
-      alert('Please enter a valid number of reviews');
+    if (formData.reviews_count === undefined || formData.reviews_count < 0) {
+      toast.error('Please enter a valid number of reviews');
       return;
     }
 
@@ -86,12 +131,8 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       description: formData.description,
       bullet_points: bulletPointsArray,
       price: numericPrice,
-      brand: formData.brand,
       image_url: formData.images[0],
       images: formData.images,
-      isCompetitor: formData.isCompetitor,
-      loads: formData.loads ? formData.loads : undefined,
-      product_url: formData.product_url,
       rating: formData.rating,
       reviews_count: numericReviewCount,
       id: initialData?.id || undefined,
@@ -114,15 +155,11 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       title: formData.title,
       description: formData.description,
       bullet_points: bulletPointsArray,
-      price: parseFloat((formData.price || 0).toString()) || 0,
-      brand: formData.brand,
+      price: formData.price || 0,
       image_url: formData.images[0] || '',
       images: formData.images,
-      isCompetitor: formData.isCompetitor,
-      loads: formData.loads,
-      product_url: formData.product_url,
       rating: formData.rating,
-      reviews_count: parseInt((formData.reviews_count || 0).toString()) || 0,
+      reviews_count: formData.reviews_count || 0,
     };
   };
 
@@ -144,41 +181,77 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Product Images <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="image-tooltip"
+            />
+            <Tooltip id="image-tooltip">
+              Upload up to 5 images. First image becomes the main product image.
+            </Tooltip>
+          </label>
           <ImageUpload
             images={formData.images}
             onChange={images => setFormData({ ...formData, images })}
-            maxImages={4}
+            maxImages={5}
           />
         </div>
 
         {/* Product Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Product Name <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="title-tooltip"
+            />
+            <Tooltip id="title-tooltip">
+              Clear, descriptive product name customers will see.
+            </Tooltip>
+          </label>
           <input
             type="text"
             value={formData.title}
             onChange={e => setFormData({ ...formData, title: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+            placeholder="e.g., Premium Organic Coffee Beans, 12oz"
             required
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            Description <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="description-tooltip"
+            />
+            <Tooltip id="description-tooltip">
+              At least 50 characters describing your product.
+            </Tooltip>
+          </label>
           <textarea
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
             rows={3}
+            placeholder="Describe your product's features, benefits, and what makes it special..."
           />
         </div>
 
         {/* Bullet Points */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            About the product (Enter 5 key points)
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            About the product (Enter 5 key points) <span className="text-red-500">*</span>
+            <Info 
+              className="h-4 w-4 text-gray-400 cursor-help" 
+              data-tooltip-id="bullet-points-tooltip"
+            />
+            <Tooltip id="bullet-points-tooltip">
+              5 key features or benefits displayed as bullet points.
+            </Tooltip>
           </label>
           <div className="space-y-2">
             {[0, 1, 2, 3, 4].map(index => (
@@ -194,7 +267,7 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
                 className={`w-full px-4 py-2 border ${
                   errors.bulletPoints ? 'border-red-500' : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400`}
-                placeholder={`Key point ${index + 1}`}
+                placeholder={`Key point ${index + 1} (e.g., High-quality materials, Easy to use, etc.)`}
               />
             ))}
           </div>
@@ -203,111 +276,84 @@ export default function ProductForm({ onSubmit, onClose, initialData }: ProductF
           )}
         </div>
 
-        {/* Price and Brand */}
+        {/* Price and Reviews Count */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Price <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="price-tooltip"
+              />
+              <Tooltip id="price-tooltip">
+                Product price in USD with currency formatting.
+              </Tooltip>
+            </label>
             <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={formData.price === undefined ? '' : formData.price}
+              type="text"
+              inputMode="decimal"
+              value={displayPrice}
+              onChange={handlePriceChange}
+              placeholder="$0.00"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Number of Reviews <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="reviews-tooltip"
+              />
+              <Tooltip id="reviews-tooltip">
+                Total number of customer reviews.
+              </Tooltip>
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formData.reviews_count === undefined ? '' : formData.reviews_count.toString()}
               onChange={e => {
-                const inputValue = e.target.value;
-                // Allow empty string or valid numbers
-                if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+                const value = e.target.value;
+                const sanitizedValue = value.replace(/[^0-9]/g, '');
+                
+                if (sanitizedValue === '') {
                   setFormData({
                     ...formData,
-                    price: inputValue === '' ? 0 : parseFloat(inputValue),
+                    reviews_count: undefined,
                   });
+                } else {
+                  const numericValue = parseInt(sanitizedValue);
+                  if (!isNaN(numericValue)) {
+                    setFormData({
+                      ...formData,
+                      reviews_count: numericValue,
+                    });
+                  }
                 }
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-            <input
-              type="text"
-              value={formData.brand}
-              onChange={e => setFormData({ ...formData, brand: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              placeholder="e.g., 1250"
               required
             />
           </div>
         </div>
 
-        {/* Reviews Count and Loads */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Number of Reviews
-            </label>
-            <input
-              type="number"
-              value={formData.reviews_count === undefined ? '' : formData.reviews_count}
-              onChange={e => {
-                const value = e.target.value;
-                setFormData({
-                  ...formData,
-                  reviews_count: value === '' ? 0 : parseInt(value),
-                });
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Loads (Fl Oz)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.loads === undefined ? '' : formData.loads}
-              onChange={e => {
-                const value = e.target.value;
-                setFormData({
-                  ...formData,
-                  loads: value === '' ? undefined : parseFloat(value),
-                });
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-              placeholder="Optional"
-            />
-          </div>
-        </div>
 
-        {/* Product URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product URL</label>
-          <input
-            type="url"
-            value={formData.product_url}
-            onChange={e => setFormData({ ...formData, product_url: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-            placeholder="https://example.com/product"
-          />
-        </div>
-
-        {/* Is Competitor */}
-        <div>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.isCompetitor}
-              onChange={e => setFormData({ ...formData, isCompetitor: e.target.checked })}
-              className="rounded border-gray-300 text-primary-400 focus:ring-primary-400"
-            />
-            <span className="text-sm font-medium text-gray-700">This is a competitor product</span>
-          </label>
-        </div>
 
         {/* Star Rating and Reviews */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1">
-              Star Rating
+            <label htmlFor="ratingRange" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              Star Rating <span className="text-red-500">*</span>
+              <Info 
+                className="h-4 w-4 text-gray-400 cursor-help" 
+                data-tooltip-id="rating-tooltip"
+              />
+              <Tooltip id="rating-tooltip">
+                Average star rating (0.0 to 5.0 stars).
+              </Tooltip>
             </label>
             <div className="flex items-center">
               <div className="relative w-full">
