@@ -49,8 +49,8 @@ export default function ProductGrid({ products, onEdit, onDelete }: ProductGridP
                         isFullStar
                           ? 'text-[#dd8433] fill-[#dd8433]'
                           : isHalfStar
-                          ? 'text-[#dd8433] fill-current'
-                          : 'text-gray-200 fill-gray-200'
+                            ? 'text-[#dd8433] fill-current'
+                            : 'text-gray-200 fill-gray-200'
                       }`}
                       style={{
                         clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',

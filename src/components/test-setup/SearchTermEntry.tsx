@@ -34,11 +34,8 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
 
   const filteredSuggestions =
     value.trim() && !isExactMatch
-      ? allSuggestions.filter(suggestion =>
-          suggestion.toLowerCase().includes(value.toLowerCase())
-        )
+      ? allSuggestions.filter(suggestion => suggestion.toLowerCase().includes(value.toLowerCase()))
       : [];
-
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
