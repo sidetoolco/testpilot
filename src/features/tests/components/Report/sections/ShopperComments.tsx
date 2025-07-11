@@ -369,7 +369,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       {hasSurveys && (
         <div className="mb-8">
           <CommentSection
-            title={`Suggested improvement for your buyers (${currentSurveys.length})`}
+            title={`Suggested improvement from your buyers (${currentSurveys.length})`}
             comments={currentSurveys}
             field="improve_suggestions"
             testData={testData}
