@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './features/auth/stores/authStore';
+import { TestCreationProvider } from './features/tests/context/TestCreationContext';
 
 // Import components
 import MainLayout from './components/layout/MainLayout';
@@ -145,9 +146,11 @@ function App() {
                 path="/create-test"
                 element={
                   <ProtectedRoute>
-                    <MainLayout>
-                      <CreateConsumerTest />
-                    </MainLayout>
+                    <TestCreationProvider>
+                      <MainLayout>
+                        <CreateConsumerTest />
+                      </MainLayout>
+                    </TestCreationProvider>
                   </ProtectedRoute>
                 }
               />

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useTests } from '../../features/tests/hooks/useTests';
 
@@ -19,23 +19,32 @@ const defaultSuggestions = [
 
 export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
   const { tests, loading } = useTests();
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
+  // Obtener todas las sugerencias disponibles - memoizado para evitar recreación
   const allSuggestions = useMemo(() => {
     if (loading) return [];
+
     if (tests.length === 0) return defaultSuggestions;
+
     return Array.from(
       new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
     );
   }, [loading, tests]);
 
-  const isExactMatch = allSuggestions.some(
-    suggestion => suggestion.toLowerCase() === value.toLowerCase()
-  );
+  // Filtrar sugerencias basadas en el input del usuario
+  useEffect(() => {
+    if (!value.trim()) {
+      setFilteredSuggestions([]);
+      return;
+    }
 
-  const filteredSuggestions =
-    value.trim() && !isExactMatch
-      ? allSuggestions.filter(suggestion => suggestion.toLowerCase().includes(value.toLowerCase()))
-      : [];
+    const filtered = allSuggestions.filter(suggestion =>
+      suggestion.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFilteredSuggestions(filtered);
+  }, [value, allSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);

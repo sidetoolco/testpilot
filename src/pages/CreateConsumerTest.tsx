@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
 import { testService } from '../features/tests/services/testService';
 import { TestCreationSteps } from '../features/tests/components/TestCreationSteps';
 import { TestCreationContent } from '../features/tests/components/TestCreationContent';
 import { TestData } from '../features/tests/types';
+import {
+  useTestStateFromLocation,
+  initializeTestFromState,
+} from '../features/tests/utils/testStateManager';
+import { useTestCreation } from '../features/tests/context/TestCreationContext';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -38,6 +43,7 @@ const initialTestData: TestData = {
     },
   },
 };
+
 const LoadingMessages = [
   'Creating your test...',
   'Analyzing demographics...',
@@ -48,10 +54,97 @@ const LoadingMessages = [
 
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [currentTestId, setCurrentTestId] = useState<string | null>(null);
+
+  // Get incomplete test state from navigation
+  const testState = useTestStateFromLocation();
+
+  // Use the test creation context
+  const {
+    setTestData: setContextTestData,
+    setCurrentStep: setContextStep,
+    setCurrentTestId: setContextTestId,
+    setIsInProgress,
+    setSaveIncompleteTest,
+  } = useTestCreation();
+
+  // Effect to initialize incomplete test if coming from navigation
+  useEffect(() => {
+    // Only initialize if it's an incomplete test AND hasn't been initialized yet
+    if (testState.isIncompleteTest && testState.testData && !currentTestId) {
+      // Load test data
+      setTestData(testState.testData);
+      setContextTestData(testState.testData);
+
+      // Set test ID
+      if (testState.testId) {
+        setCurrentTestId(testState.testId);
+        setContextTestId(testState.testId);
+      }
+
+      // Set the correct step
+      if (testState.currentStep) {
+        setCurrentStep(testState.currentStep);
+        setContextStep(testState.currentStep);
+      }
+    }
+  }, [
+    testState.isIncompleteTest,
+    testState.testData,
+    testState.testId,
+    testState.currentStep,
+    currentTestId,
+  ]);
+
+  // Function to save incomplete test - memoized with useCallback
+  const saveIncompleteTest = useCallback(async () => {
+    try {
+      const savedTest = await testService.saveIncompleteTest(
+        testData,
+        currentTestId || undefined,
+        currentStep
+      );
+      if (!currentTestId) {
+        setCurrentTestId((savedTest as any).id);
+        setContextTestId((savedTest as any).id);
+      }
+      toast.success('Test saved successfully');
+    } catch (error) {
+      console.error('Error saving incomplete test:', error);
+      throw error;
+    }
+  }, [testData, currentTestId, currentStep, setContextTestId]);
+
+  // Register saveIncompleteTest function with context
+  useEffect(() => {
+    setSaveIncompleteTest(saveIncompleteTest);
+  }, [setSaveIncompleteTest, saveIncompleteTest]);
+
+  // Update context state when local state changes - only when values actually change
+  useEffect(() => {
+    setContextTestData(testData);
+  }, [testData]);
+
+  useEffect(() => {
+    setContextStep(currentStep);
+  }, [currentStep]);
+
+  useEffect(() => {
+    setContextTestId(currentTestId);
+  }, [currentTestId]);
+
+  // Set in progress when on create-test page
+  useEffect(() => {
+    setIsInProgress(true);
+    return () => {
+      setIsInProgress(false);
+    };
+  }, []);
 
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);
@@ -88,7 +181,26 @@ export default function CreateConsumerTest() {
 
       setIsLoading(true);
 
-      // Create test
+      // Check if it's an existing incomplete test
+      if (testState.isIncompleteTest && currentTestId) {
+        try {
+          // Update incomplete test to draft and update data
+          await testService.updateIncompleteTestToDraft(currentTestId, testData);
+
+          // Proceed with normal launch (create Prolific projects)
+          await testService.createProlificProjectsForTest(currentTestId, testData);
+
+          toast.success('Test launched successfully');
+          navigate('/my-tests');
+          return;
+        } catch (updateError) {
+          console.error('Error updating incomplete test:', updateError);
+          toast.error('Failed to update incomplete test. Creating new test instead.');
+          // If update fails, continue with normal flow to create new test
+        }
+      }
+
+      // Create test (normal flow for new tests)
       await testService.createTest(testData);
 
       toast.success('Test created successfully');
@@ -110,18 +222,19 @@ export default function CreateConsumerTest() {
       }
     }
   };
-  // Efecto para cambiar los mensajes
+
+  // Effect to change messages
   useEffect(() => {
     if (isLoading) {
       const interval = setInterval(() => {
         setLoadingMessageIndex((current: number) =>
           current < LoadingMessages.length - 1 ? current + 1 : current
         );
-      }, 4000); // Cambia cada 2 segundos
+      }, 4000); // Change every 4 seconds
 
       return () => {
         clearInterval(interval);
-        setLoadingMessageIndex(0); // Reset al cerrar
+        setLoadingMessageIndex(0); // Reset on close
       };
     }
   }, [isLoading]);

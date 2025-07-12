@@ -1,6 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, PlayCircle, Users2, Clock, CheckCircle, Pencil } from 'lucide-react';
+import {
+  Plus,
+  PlayCircle,
+  Users2,
+  Clock,
+  CheckCircle,
+  Pencil,
+  Play,
+  Pause,
+  FileText,
+  TrendingUp,
+  Calendar,
+  BarChart3,
+} from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useState, useEffect, useMemo } from 'react';
@@ -10,6 +23,7 @@ import ModalLayout from '../layouts/ModalLayout';
 import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import SearchInput from '../components/ui/SearchInput';
+import { useContinueTest } from '../features/tests/hooks/useContinueTest';
 
 interface Variation {
   id: string;
@@ -52,6 +66,11 @@ const statusConfig = {
     textColor: 'text-[#eabd31]',
     icon: Pencil,
   },
+  incomplete: {
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-500',
+    icon: Pause,
+  },
   'in progress': {
     bgColor: 'bg-gray-300',
     textColor: 'text-gray-600',
@@ -69,6 +88,7 @@ export default function MyTests() {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
   const [errorModal, setErrorModal] = useState<ErrorModal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { continueTest } = useContinueTest();
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -179,6 +199,25 @@ export default function MyTests() {
     const variantsArray = [test.variations.a, test.variations.b, test.variations.c].filter(v => v);
 
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
+  };
+
+  // Nueva función para manejar la continuación de tests incompletos
+  const handleContinueTest = async (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se active el onClick del contenedor
+
+    const result = await continueTest(testId);
+
+    if (result) {
+      // Navegar directamente a /create-test con los datos del test incompleto
+      navigate('/create-test', {
+        state: {
+          testData: result.testData,
+          testId: result.testId,
+          isIncompleteTest: true,
+          currentStep: result.currentStep,
+        },
+      });
+    }
   };
 
   // Filtrar tests basado en la búsqueda
@@ -325,47 +364,58 @@ export default function MyTests() {
                   <div className="flex items-center text-gray-500 sm:text-center">
                     {new Date(test.createdAt).toLocaleDateString()}
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-4 sm:justify-end">
+                  {(test.status as any) === 'incomplete' ? (
+                    <div className="flex items-center sm:justify-end">
                       <button
-                        onClick={e => handleGetData(test.id, e)}
-                        disabled={gettingDataTests.includes(test.id)}
-                        className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                          gettingDataTests.includes(test.id)
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:bg-blue-600'
-                        }`}
+                        onClick={e => handleContinueTest(test.id, e)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
                       >
-                        {gettingDataTests.includes(test.id) ? (
-                          <span className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Getting Data...
-                          </span>
-                        ) : (
-                          'Get Data'
-                        )}
+                        Continue
                       </button>
-                      {test.status !== 'complete' && (
+                    </div>
+                  ) : (
+                    isAdmin && (
+                      <div className="flex items-center gap-4 sm:justify-end">
                         <button
-                          onClick={e => handlePublish(test.id, e, test)}
-                          disabled={publishingTests.includes(test.id)}
-                          className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
-                            publishingTests.includes(test.id)
+                          onClick={e => handleGetData(test.id, e)}
+                          disabled={gettingDataTests.includes(test.id)}
+                          className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
+                            gettingDataTests.includes(test.id)
                               ? 'opacity-50 cursor-not-allowed'
-                              : 'hover:bg-green-600'
+                              : 'hover:bg-blue-600'
                           }`}
                         >
-                          {publishingTests.includes(test.id) ? (
+                          {gettingDataTests.includes(test.id) ? (
                             <span className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Publishing...
+                              Getting Data...
                             </span>
                           ) : (
-                            'Publish'
+                            'Get Data'
                           )}
                         </button>
-                      )}
-                    </div>
+                        {test.status !== 'complete' && (
+                          <button
+                            onClick={e => handlePublish(test.id, e, test)}
+                            disabled={publishingTests.includes(test.id)}
+                            className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
+                              publishingTests.includes(test.id)
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-green-600'
+                            }`}
+                          >
+                            {publishingTests.includes(test.id) ? (
+                              <span className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Publishing...
+                              </span>
+                            ) : (
+                              'Publish'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
               </motion.div>

@@ -64,7 +64,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
               testName={variant.name}
               testData={{
                 competitors: variant.competitors || [],
-                variations: variant.variations || { a: null, b: null, c: null }
+                variations: variant.variations || { a: null, b: null, c: null },
               }}
             />
           </div>

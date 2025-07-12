@@ -87,7 +87,7 @@ jobs:
 
       # Construye la aplicación
       - name: Build
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
       # Guarda en caché los archivos de construcción para futuras ejecuciones
       - name: Cache build output

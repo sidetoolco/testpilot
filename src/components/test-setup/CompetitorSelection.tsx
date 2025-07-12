@@ -117,8 +117,8 @@ export default function CompetitorSelection({
         className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
           isPopping
             ? 'bg-white text-gray-700 border-[#00A67E] scale-110'
-            : isAllSelected 
-              ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse' 
+            : isAllSelected
+              ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse'
               : 'bg-white text-gray-700 border-gray-200 scale-100'
         }`}
       >
