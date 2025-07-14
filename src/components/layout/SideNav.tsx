@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users } from 'lucide-react';
+import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users, DollarSign } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import {
   useTestCreationState,
@@ -217,7 +217,9 @@ export default function SideNav() {
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                 className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
-                  isActive('/settings') || isActive('/settings/team')
+                  isActive('/settings') ||
+                  isActive('/settings/team') ||
+                  isActive('/settings/billing')
                     ? 'bg-[#008F6B] text-white'
                     : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                 }`}
@@ -241,6 +243,20 @@ export default function SideNav() {
                     >
                       <Users className="h-4 w-4" />
                       <span className="font-medium">Team</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="/settings/billing"
+                      onClick={e => handleNavigation('/settings/billing', e)}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                        isActive('/settings/billing')
+                          ? 'bg-[#008F6B] text-white'
+                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                      }`}
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span className="font-medium">Billing</span>
                     </a>
                   </li>
                 </ul>

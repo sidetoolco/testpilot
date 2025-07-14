@@ -18,3 +18,8 @@ export interface CreditsData {
     totalPages: number;
   };
 }
+
+export interface PaymentIntentResponse {
+  clientSecret: string;
+  paymentIntentId: string;
+}
