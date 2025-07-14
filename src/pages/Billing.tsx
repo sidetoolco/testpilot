@@ -6,7 +6,7 @@ import { TransactionsTable } from '../features/credits/components/TransactionsTa
 import { AvailableCreditsCard } from '../features/credits/components/AvailableCreditsCard';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
-import { stripe } from '../lib/stripe';
+import { stripePromise } from '../lib/stripe';
 
 const MAX_TRANSACTIONS_PER_PAGE = 20;
 
@@ -33,7 +33,7 @@ export default function Billing() {
   }
 
   return (
-    <Elements stripe={stripe}>
+    <Elements stripe={stripePromise}>
       <div className="space-y-6 p-8">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -74,12 +74,11 @@ export default function Billing() {
             </p>
           </div>
         )}
-
-        <PurchaseCreditsModal
-          isOpen={isPurchaseModalOpen}
-          onClose={() => setIsPurchaseModalOpen(false)}
-        />
       </div>
+      <PurchaseCreditsModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+      />
     </Elements>
   );
 }
