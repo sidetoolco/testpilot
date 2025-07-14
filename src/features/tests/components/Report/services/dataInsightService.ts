@@ -177,3 +177,47 @@ export const getCompetitiveInsights = async (
     };
   }
 };
+
+// Function to fetch AI insights from the existing ia_insights table
+export const getAiInsights = async (
+  testId: string
+): Promise<{
+  insights: any[];
+  error: string | null;
+}> => {
+  if (!testId) {
+    return {
+      insights: [],
+      error: 'Test ID is required.',
+    };
+  }
+
+  try {
+    console.log('Fetching AI insights from ia_insights table for test:', testId);
+
+    // Fetch all insights for the test from the ia_insights table
+    const { data: insights, error } = await supabase
+      .from('ia_insights')
+      .select('*')
+      .eq('test_id', testId as any)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching AI insights:', error);
+      throw new Error(error.message || 'Failed to fetch AI insights');
+    }
+
+    console.log('AI insights fetched successfully:', insights);
+    
+    return {
+      insights: insights || [],
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error fetching AI insights:', error);
+    return {
+      insights: [],
+      error: error instanceof Error ? error.message : 'Failed to load AI insights. Please try again.',
+    };
+  }
+};
