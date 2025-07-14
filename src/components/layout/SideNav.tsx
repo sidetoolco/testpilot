@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Beaker, Package, LogOut, Menu, X, HelpCircle, Settings, Users, DollarSign } from 'lucide-react';
+import {
+  Beaker,
+  Package,
+  LogOut,
+  Menu,
+  X,
+  HelpCircle,
+  Settings,
+  Users,
+  DollarSign,
+} from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import {
   useTestCreationState,
