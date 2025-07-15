@@ -5,7 +5,6 @@ import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
 import {
   getSummaryData,
-  checkIdInIaInsights,
   getAveragesurveys,
   getCompetitiveInsights,
   getAiInsights,
@@ -100,8 +99,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
         console.log('Starting data fetch for test:', testInfo.id);
 
-        const [existingInsights, data, averagesurveys, competitiveinsights, aiInsightsData] = await Promise.all([
-          checkIdInIaInsights(id),
+        const [data, averagesurveys, competitiveinsights, aiInsightsData] = await Promise.all([
           getSummaryData(id),
           getAveragesurveys(id),
           getCompetitiveInsights(id),
@@ -109,7 +107,6 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         ]);
 
         console.log('Data fetched successfully:', {
-          insights: !!existingInsights,
           summaryData: !!data,
           averagesurveys: !!averagesurveys,
           competitiveinsights: !!competitiveinsights,
@@ -121,14 +118,16 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         setSummaryData(data);
         setAveragesurveys(averagesurveys);
         setCompetitiveinsights(competitiveinsights);
-        setInsight(existingInsights);
         
-        // Only set AI insights if there's no error and we have data
+        // Set both insight and aiInsights from the same data
         if (!aiInsightsData.error && aiInsightsData.insights) {
           setAiInsights(aiInsightsData.insights);
+          // Set the first insight as the main insight (for backward compatibility)
+          setInsight(aiInsightsData.insights.length > 0 ? aiInsightsData.insights[0] : null);
           console.log('AI insights set successfully:', aiInsightsData.insights);
         } else if (aiInsightsData.error) {
           console.warn('AI insights error:', aiInsightsData.error);
+          setInsight(null);
         }
         
         setDataLoaded(true);

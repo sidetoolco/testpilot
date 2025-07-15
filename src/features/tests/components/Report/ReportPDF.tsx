@@ -393,8 +393,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
     apiClient
       .post(`/insights/${testDetails.id}`)
-      .then(() => window.location.reload())
-      .catch(() => {
+      .then(() => {
+        toast.success('Insights regenerated successfully');
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error('Failed to regenerate insights:', error);
         toast.error('Failed to regenerate insights');
         setLoadingInsights(false);
       });

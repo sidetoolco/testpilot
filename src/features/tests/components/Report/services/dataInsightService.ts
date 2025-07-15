@@ -1,24 +1,31 @@
 import { supabase } from '../../../../../lib/supabase';
+import apiClient from '../../../../../lib/api';
 
-// Checks if a given ID exists in the ia_insights table.
+// Checks if AI insights exist for a given test ID using the backend API.
 // Parameters:
 //   - id (string): The ID to be checked.
 // Returns: The first matching record or false if no match is found.
 export const checkIdInIaInsights = async (id: string) => {
   try {
-    const { data, error } = await supabase
-      .from('ia_insights')
-      .select('*') // Select all columns
-      .eq('test_id', id);
+    console.log('Checking if AI insights exist for test:', id);
 
-    if (error) {
-      console.error('Error fetching data:', error);
-      return false;
+    // Check if AI insights exist using the backend API
+    const response = await apiClient.get(`/insights/${id}/ai-insights`);
+
+    // If we get a successful response with data, return the first insight
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      console.log('AI insights found:', response.data[0]);
+      return response.data[0];
     }
 
-    return data.length > 0 ? data[0] : false; // Return the first match or false
-  } catch (error) {
-    console.error('Error checking ID:', error);
+    console.log('No AI insights found for test:', id);
+    return false;
+  } catch (error: any) {
+    console.error('Error checking AI insights:', error);
+    // If it's a 404 error, it means no insights exist, which is not an error
+    if (error.response?.status === 404) {
+      return false;
+    }
     return false;
   }
 };
@@ -178,7 +185,7 @@ export const getCompetitiveInsights = async (
   }
 };
 
-// Function to fetch AI insights from the existing ia_insights table
+// Function to fetch AI insights from the backend API
 export const getAiInsights = async (
   testId: string
 ): Promise<{
@@ -193,31 +200,22 @@ export const getAiInsights = async (
   }
 
   try {
-    console.log('Fetching AI insights from ia_insights table for test:', testId);
+    console.log('Fetching AI insights from backend API for test:', testId);
 
-    // Fetch all insights for the test from the ia_insights table
-    const { data: insights, error } = await supabase
-      .from('ia_insights')
-      .select('*')
-      .eq('test_id', testId as any)
-      .order('created_at', { ascending: false });
+    // Fetch AI insights from the backend API
+    const response = await apiClient.get(`/insights/${testId}/ai-insights`);
 
-    if (error) {
-      console.error('Error fetching AI insights:', error);
-      throw new Error(error.message || 'Failed to fetch AI insights');
-    }
-
-    console.log('AI insights fetched successfully:', insights);
+    console.log('AI insights fetched successfully from backend:', response.data);
     
     return {
-      insights: insights || [],
+      insights: response.data || [],
       error: null,
     };
-  } catch (error) {
-    console.error('Error fetching AI insights:', error);
+  } catch (error: any) {
+    console.error('Error fetching AI insights from backend:', error);
     return {
       insights: [],
-      error: error instanceof Error ? error.message : 'Failed to load AI insights. Please try again.',
+      error: error.response?.data?.message || error.message || 'Failed to load AI insights. Please try again.',
     };
   }
 };
