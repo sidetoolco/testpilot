@@ -124,6 +124,73 @@ const getColorStyle = (value: number) => {
   return { backgroundColor: '#FEF9C3', color: '#854D0E', padding: '4px 8px' }; // amarillo para valor cero
 };
 
+// Normalize share_of_buy values so total equals 100%
+// Deduplicate competitors by product ID and sum their share_of_buy values
+const deduplicateCompetitors = (competitors: Competitor[]): Competitor[] => {
+  const uniqueMap = new Map<string, Competitor>();
+  
+  competitors.forEach(competitor => {
+    const productId = competitor.competitor_product_id.title; // Using title as unique identifier
+    
+    if (uniqueMap.has(productId)) {
+      // If duplicate found, sum the share_of_buy values
+      const existing = uniqueMap.get(productId)!;
+      existing.share_of_buy += competitor.share_of_buy;
+      console.log(`Deduplicating ${productId}: combining ${competitor.share_of_buy}% with existing ${existing.share_of_buy - competitor.share_of_buy}% = ${existing.share_of_buy}%`);
+    } else {
+      uniqueMap.set(productId, { ...competitor });
+    }
+  });
+  
+  return Array.from(uniqueMap.values());
+};
+
+const normalizeShareOfBuy = (competitors: Competitor[]): Competitor[] => {
+  if (!competitors.length) return competitors;
+  
+  // First, deduplicate competitors
+  const deduplicatedCompetitors = deduplicateCompetitors(competitors);
+  
+  // Filter out any competitors with invalid share_of_buy values
+  const validCompetitors = deduplicatedCompetitors.filter(competitor => 
+    typeof competitor.share_of_buy === 'number' && 
+    !isNaN(competitor.share_of_buy) && 
+    competitor.share_of_buy > 0
+  );
+  
+  if (validCompetitors.length === 0) return competitors;
+  
+  const totalShare = validCompetitors.reduce((sum, competitor) => sum + competitor.share_of_buy, 0);
+  
+  // Debug logging
+  console.log('Normalization Debug:', {
+    originalCompetitors: competitors.length,
+    deduplicatedCompetitors: deduplicatedCompetitors.length,
+    validCompetitors: validCompetitors.length,
+    totalShare: totalShare,
+    needsNormalization: Math.abs(totalShare - 100) > 0.01
+  });
+  
+  // If total is 0 or very small, return original data
+  if (totalShare <= 0) return competitors;
+  
+  // If total is already 100% or very close, return as is
+  if (Math.abs(totalShare - 100) < 0.01) return deduplicatedCompetitors;
+  
+  // Normalize each competitor's share
+  return deduplicatedCompetitors.map(competitor => {
+    if (typeof competitor.share_of_buy === 'number' && !isNaN(competitor.share_of_buy) && competitor.share_of_buy > 0) {
+      const normalizedShare = (competitor.share_of_buy / totalShare) * 100;
+      console.log(`Normalizing ${competitor.competitor_product_id.title}: ${competitor.share_of_buy}% -> ${normalizedShare.toFixed(2)}%`);
+      return {
+        ...competitor,
+        share_of_buy: normalizedShare
+      };
+    }
+    return competitor;
+  });
+};
+
 const calculateAverageMetrics = (competitors: Competitor[]) => {
   if (!competitors.length) return null;
 
@@ -240,7 +307,8 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
     );
   }
 
-  const averageMetrics = calculateAverageMetrics(competitiveinsights);
+  const normalizedCompetitors = normalizeShareOfBuy(competitiveinsights);
+  const averageMetrics = calculateAverageMetrics(normalizedCompetitors);
 
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
@@ -320,11 +388,11 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               <Text style={tableStyles.headerText}>Confidence</Text>
             </View>
           </View>
-          {competitiveinsights.map((competitor, index) => (
+          {normalizedCompetitors.map((competitor, index) => (
             <View
               key={index}
               style={
-                index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
+                index === normalizedCompetitors.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
               }
             >
               <Text style={tableStyles.productCell}>

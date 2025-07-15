@@ -53,6 +53,70 @@ const renderCell = (value: number, count: number, isProductCell: boolean) => {
   );
 };
 
+// Deduplicate competitors by product title and sum their share_of_buy values
+const deduplicateCompetitors = (competitors: InsightItem[]): InsightItem[] => {
+  const uniqueMap = new Map<string, InsightItem>();
+  
+  competitors.forEach(competitor => {
+    const productTitle = competitor.competitor_product_id.title;
+    
+    if (uniqueMap.has(productTitle)) {
+      // If duplicate found, sum the share_of_buy values
+      const existing = uniqueMap.get(productTitle)!;
+      existing.share_of_buy += competitor.share_of_buy;
+    } else {
+      uniqueMap.set(productTitle, { ...competitor });
+    }
+  });
+  
+  return Array.from(uniqueMap.values());
+};
+
+// Normalize share_of_buy values so total equals 100% (only for competitors, not user's product)
+const normalizeShareOfBuy = (insights: InsightItem[]): InsightItem[] => {
+  if (!insights.length) return insights;
+  
+  // Separate user's product (first item) from competitors
+  const userProduct = insights[0];
+  const competitors = insights.slice(1);
+  
+  if (competitors.length === 0) return insights;
+  
+  // First, deduplicate competitors
+  const deduplicatedCompetitors = deduplicateCompetitors(competitors);
+  
+  // Filter out any competitors with invalid share_of_buy values
+  const validCompetitors = deduplicatedCompetitors.filter(insight => 
+    typeof insight.share_of_buy === 'number' && 
+    !isNaN(insight.share_of_buy) && 
+    insight.share_of_buy > 0
+  );
+  
+  if (validCompetitors.length === 0) return insights;
+  
+  const totalCompetitorShare = validCompetitors.reduce((sum, insight) => sum + insight.share_of_buy, 0);
+  
+  // If total is 0 or very small, return original data
+  if (totalCompetitorShare <= 0) return insights;
+  
+  // If total is already 100% or very close, return as is
+  if (Math.abs(totalCompetitorShare - 100) < 0.01) return [userProduct, ...deduplicatedCompetitors];
+  
+  // Normalize only competitor shares
+  const normalizedCompetitors = deduplicatedCompetitors.map(insight => {
+    if (typeof insight.share_of_buy === 'number' && !isNaN(insight.share_of_buy) && insight.share_of_buy > 0) {
+      return {
+        ...insight,
+        share_of_buy: (insight.share_of_buy / totalCompetitorShare) * 100
+      };
+    }
+    return insight;
+  });
+  
+  // Return user's product + normalized competitors
+  return [userProduct, ...normalizedCompetitors];
+};
+
 const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   competitiveinsights,
   variants,
@@ -83,6 +147,9 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
     .sort((a, b) => b.share_of_buy - a.share_of_buy);
 
   const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
+  
+  // Normalize share_of_buy values to ensure total equals 100%
+  const normalizedInsights = normalizeShareOfBuy(filteredInsights);
 
   return (
     <div className="w-full p-6 bg-white rounded-xl shadow-sm">
@@ -114,7 +181,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         <MarkdownContent content={insight?.competitive_insights || ''} />
       </div>
 
-      {filteredInsights.length === 0 ? (
+      {normalizedInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
       ) : (
         <table className="min-w-full border-collapse max-w-screen-md">
@@ -142,7 +209,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             </tr>
           </thead>
           <tbody>
-            {filteredInsights.map((item, index) => (
+            {normalizedInsights.map((item, index) => (
               <tr key={index}>
                 <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
                   <div className="relative group">
