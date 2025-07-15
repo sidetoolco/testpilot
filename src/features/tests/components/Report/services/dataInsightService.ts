@@ -156,17 +156,48 @@ export const getCompetitiveInsights = async (
   }
 
   try {
+    // Fetch competitive insights with proper variant filtering
     const { data: summaryData, error: summaryError } = await supabase
       .from('competitive_insights')
       .select(
         '*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)'
       )
-      .eq('test_id', id);
+      .eq('test_id', id)
+      .order('variant_type');
 
     if (summaryError) throw summaryError;
 
+    // Group by variant and recalculate share of buy percentages per variant
+    const groupedByVariant = summaryData.reduce((acc: any, item: any) => {
+      const variant = item.variant_type;
+      if (!acc[variant]) {
+        acc[variant] = [];
+      }
+      acc[variant].push(item);
+      return acc;
+    }, {});
+
+    // Recalculate share of buy percentages per variant
+    const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]: [string, any]) => {
+      const variantItems = items as any[];
+      const totalSelections = variantItems.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
+      
+      return variantItems.map((item: any) => ({
+        ...item,
+        share_of_buy: totalSelections > 0 ? ((item.count || 0) / totalSelections) * 100 : 0
+      }));
+    });
+
+    // Sort by variant and then by share of buy (descending)
+    const sortedData = recalculatedData.sort((a: any, b: any) => {
+      if (a.variant_type !== b.variant_type) {
+        return a.variant_type.localeCompare(b.variant_type);
+      }
+      return (b.share_of_buy || 0) - (a.share_of_buy || 0);
+    });
+
     return {
-      summaryData,
+      summaryData: sortedData,
       error: null,
     };
   } catch (error) {
