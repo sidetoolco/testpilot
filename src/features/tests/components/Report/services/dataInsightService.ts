@@ -177,14 +177,13 @@ export const getCompetitiveInsights = async (
       return acc;
     }, {});
 
-    // Recalculate share of buy percentages per variant
-    const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]: [string, any]) => {
+    const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
-      const totalSelections = variantItems.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
+      const totalSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
       
       return variantItems.map((item: any) => ({
         ...item,
-        share_of_buy: totalSelections > 0 ? ((item.count || 0) / totalSelections) * 100 : 0
+        share_of_buy: totalSelections > 0 ? (Number(item.count || 0) / totalSelections) * 100 : 0
       }));
     });
 
