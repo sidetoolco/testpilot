@@ -78,15 +78,24 @@ const Summary: React.FC<{
   return (
     <div className="p-3">
       <h1 className="text-2xl font-bold mb-4">Summary Results</h1>
-      <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
-          <div>
-            <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-              <ReactMarkdown>{insights.comparison_between_variants}</ReactMarkdown>
+      {insights?.comparison_between_variants && (
+        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
+            <div>
+              <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                <ReactMarkdown>{insights.comparison_between_variants}</ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+      {!insights?.comparison_between_variants && (
+        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="text-gray-500 text-center">
+            No comparison insights available for this test.
+          </div>
+        </div>
+      )}
       <div className="p-6 bg-white rounded-xl shadow-md">
         <div className="overflow-x-auto mt-6">
           <table className="w-full border-collapse bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
