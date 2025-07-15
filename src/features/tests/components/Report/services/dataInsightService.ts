@@ -1,18 +1,12 @@
 import { supabase } from '../../../../../lib/supabase';
 import apiClient from '../../../../../lib/api';
 
-// Checks if AI insights exist for a given test ID using the backend API.
-// Parameters:
-//   - id (string): The ID to be checked.
-// Returns: The first matching record or false if no match is found.
 export const checkIdInIaInsights = async (id: string) => {
   try {
     console.log('Checking if AI insights exist for test:', id);
 
-    // Check if AI insights exist using the backend API
-    const response = await apiClient.get(`/insights/${id}/ai-insights`);
+    const response = await apiClient.get(`/insights/${id}?type=ai`);
 
-    // If we get a successful response with data, return the first insight
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       console.log('AI insights found:', response.data[0]);
       return response.data[0];
@@ -22,7 +16,6 @@ export const checkIdInIaInsights = async (id: string) => {
     return false;
   } catch (error: any) {
     console.error('Error checking AI insights:', error);
-    // If it's a 404 error, it means no insights exist, which is not an error
     if (error.response?.status === 404) {
       return false;
     }
@@ -202,8 +195,7 @@ export const getAiInsights = async (
   try {
     console.log('Fetching AI insights from backend API for test:', testId);
 
-    // Fetch AI insights from the backend API
-    const response = await apiClient.get(`/insights/${testId}/ai-insights`);
+    const response = await apiClient.get(`/insights/${testId}?type=ai`);
 
     console.log('AI insights fetched successfully from backend:', response.data);
     
