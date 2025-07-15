@@ -118,21 +118,6 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         <p className="text-red-500">No data available for this variant</p>
       ) : (
         <>
-          {/* Summary section showing total percentage */}
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-blue-800">
-                Variant {selectedVariant.toUpperCase()} Summary:
-              </span>
-              <span className="text-sm text-blue-600">
-                Total Share of Buy: {filtered.reduce((sum, item) => sum + Number(item.share_of_buy || 0), 0).toFixed(1)}%
-              </span>
-            </div>
-            <div className="text-xs text-blue-600 mt-1">
-              {filtered.length} products • {filtered.reduce((sum, item) => sum + item.count, 0)} total selections
-            </div>
-          </div>
-          
           <table className="min-w-full border-collapse max-w-screen-md">
           <thead>
             <tr className="bg-gray-100 border-none">
