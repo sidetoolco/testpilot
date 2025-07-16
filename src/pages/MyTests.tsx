@@ -138,9 +138,10 @@ export default function MyTests() {
         throw new Error('No access token available');
       }
 
+      // Use the configured API client instead of hardcoded URL
       const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
       console.log('Making request to:', apiUrl);
-
+     
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
