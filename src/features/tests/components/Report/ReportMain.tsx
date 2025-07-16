@@ -76,7 +76,7 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
 
 const Report: React.FC<ReportProps> = ({ id }) => {
   const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
-  const { insight, loading: insightLoading, setInsight, setAiInsights, setLoading } = useInsightStore();
+  const { insight, aiInsights, loading: insightLoading, setInsight, setAiInsights, setLoading } = useInsightStore();
   const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
@@ -271,6 +271,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             disabled={testInfo?.status !== 'complete'}
             competitiveinsights={competitiveinsights}
             averagesurveys={averagesurveys}
+            aiInsights={aiInsights}
           />
         </div>
         <ReportTabs
