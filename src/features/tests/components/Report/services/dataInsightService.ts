@@ -1,24 +1,24 @@
 import { supabase } from '../../../../../lib/supabase';
+import apiClient from '../../../../../lib/api';
 
-// Checks if a given ID exists in the ia_insights table.
-// Parameters:
-//   - id (string): The ID to be checked.
-// Returns: The first matching record or false if no match is found.
 export const checkIdInIaInsights = async (id: string) => {
   try {
-    const { data, error } = await supabase
-      .from('ia_insights')
-      .select('*') // Select all columns
-      .eq('test_id', id);
+    console.log('Checking if AI insights exist for test:', id);
 
-    if (error) {
-      console.error('Error fetching data:', error);
-      return false;
+    const response = await apiClient.get(`/insights/${id}?type=ai`);
+
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      console.log('AI insights found:', response.data[0]);
+      return response.data[0];
     }
 
-    return data.length > 0 ? data[0] : false; // Return the first match or false
-  } catch (error) {
-    console.error('Error checking ID:', error);
+    console.log('No AI insights found for test:', id);
+    return false;
+  } catch (error: any) {
+    console.error('Error checking AI insights:', error);
+    if (error.response?.status === 404) {
+      return false;
+    }
     return false;
   }
 };
@@ -174,6 +174,40 @@ export const getCompetitiveInsights = async (
     return {
       summaryData: [],
       error: 'Failed to load summary data. Please try again.',
+    };
+  }
+};
+
+// Function to fetch AI insights from the backend API
+export const getAiInsights = async (
+  testId: string
+): Promise<{
+  insights: any[];
+  error: string | null;
+}> => {
+  if (!testId) {
+    return {
+      insights: [],
+      error: 'Test ID is required.',
+    };
+  }
+
+  try {
+    console.log('Fetching AI insights from backend API for test:', testId);
+
+    const response = await apiClient.get(`/insights/${testId}?type=ai`);
+
+    console.log('AI insights fetched successfully from backend:', response.data);
+    
+    return {
+      insights: response.data || [],
+      error: null,
+    };
+  } catch (error: any) {
+    console.error('Error fetching AI insights from backend:', error);
+    return {
+      insights: [],
+      error: error.response?.data?.message || error.message || 'Failed to load AI insights. Please try again.',
     };
   }
 };

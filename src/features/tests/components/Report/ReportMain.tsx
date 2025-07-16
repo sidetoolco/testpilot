@@ -5,9 +5,9 @@ import ReportPDF from './ReportPDF';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
 import {
   getSummaryData,
-  checkIdInIaInsights,
   getAveragesurveys,
   getCompetitiveInsights,
+  getAiInsights,
 } from './services/dataInsightService';
 import { useTestDetail } from '../../hooks/useTestDetail';
 import { useInsightStore } from '../../hooks/useIaInsight';
@@ -76,9 +76,9 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
 
 const Report: React.FC<ReportProps> = ({ id }) => {
   const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
-  const { insight, loading: insightLoading, setInsight, setLoading } = useInsightStore();
+  const { insight, aiInsights, loading: insightLoading, setInsight, setAiInsights, setLoading } = useInsightStore();
   const [activeTab, setActiveTab] = useState('test-details');
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
@@ -99,24 +99,37 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
         console.log('Starting data fetch for test:', testInfo.id);
 
-        const [existingInsights, data, averagesurveys, competitiveinsights] = await Promise.all([
-          checkIdInIaInsights(id),
+        const [data, averagesurveys, competitiveinsights, aiInsightsData] = await Promise.all([
           getSummaryData(id),
           getAveragesurveys(id),
           getCompetitiveInsights(id),
+          getAiInsights(id),
         ]);
 
         console.log('Data fetched successfully:', {
-          insights: !!existingInsights,
           summaryData: !!data,
           averagesurveys: !!averagesurveys,
           competitiveinsights: !!competitiveinsights,
+          aiInsights: !!aiInsightsData.insights,
+          aiInsightsCount: aiInsightsData.insights?.length || 0,
+          aiInsightsError: aiInsightsData.error,
         });
 
         setSummaryData(data);
         setAveragesurveys(averagesurveys);
         setCompetitiveinsights(competitiveinsights);
-        setInsight(existingInsights);
+        
+        // Set both insight and aiInsights from the same data
+        if (!aiInsightsData.error && aiInsightsData.insights) {
+          setAiInsights(aiInsightsData.insights);
+          // Set the first insight as the main insight (for backward compatibility)
+          setInsight(aiInsightsData.insights.length > 0 ? aiInsightsData.insights[0] : null);
+          console.log('AI insights set successfully:', aiInsightsData.insights);
+        } else if (aiInsightsData.error) {
+          console.warn('AI insights error:', aiInsightsData.error);
+          setInsight(null);
+        }
+        
         setDataLoaded(true);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -127,7 +140,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
     };
 
     fetchSummaryData();
-  }, [testInfo?.id, id, setInsight, setLoading, dataLoaded]);
+  }, [testInfo?.id, id, setInsight, setAiInsights, setLoading, dataLoaded]);
 
   // Limpiar estado cuando cambia el ID del test
   useEffect(() => {
@@ -258,6 +271,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             disabled={testInfo?.status !== 'complete'}
             competitiveinsights={competitiveinsights}
             averagesurveys={averagesurveys}
+            aiInsights={aiInsights}
           />
         </div>
         <ReportTabs
