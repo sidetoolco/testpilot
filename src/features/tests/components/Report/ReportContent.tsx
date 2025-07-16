@@ -42,7 +42,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
             id="content-purchase-drivers"
             className={clsx(activeTab !== 'purchase-drivers' && 'hidden')}
           >
-            <PurchaseDrivers surveys={averagesurveys} />
+            <PurchaseDrivers surveys={averagesurveys} insights={insights} />
           </div>
           <div
             id="content-competitive-insights"

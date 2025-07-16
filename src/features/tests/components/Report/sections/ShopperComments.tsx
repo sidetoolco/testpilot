@@ -374,7 +374,14 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
         </div>
       </div>
 
-      {variant === 'summary' && <MarkdownContent content={insight.comment_summary} />}
+      {variant === 'summary' && insight?.comment_summary && (
+        <MarkdownContent content={insight.comment_summary} />
+      )}
+      {variant === 'summary' && !insight?.comment_summary && (
+        <div className="text-gray-500 text-center py-8">
+          No comment summary available for this test.
+        </div>
+      )}
 
       {hasSurveys && (
         <div className="mb-8">

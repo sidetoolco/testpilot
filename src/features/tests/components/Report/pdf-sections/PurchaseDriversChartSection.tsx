@@ -92,7 +92,17 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
   const datasets = getChartData(averagesurveys);
 
   if (!averagesurveys) {
-    return null;
+    return (
+      <Page size="A4" orientation={orientation} style={styles.page}>
+        <View style={styles.section}>
+          <Header title={`Purchase Drivers - Variant ${variantKey.toUpperCase()}`} />
+          <Text style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+            No purchase drivers data available for this variant
+          </Text>
+        </View>
+        <Footer />
+      </Page>
+    );
   }
 
   // Ajustar dimensiones para landscape

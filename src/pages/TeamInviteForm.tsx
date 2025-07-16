@@ -31,8 +31,6 @@ export default function TeamInviteForm() {
           .eq('token', token as any)
           .maybeSingle();
 
-        console.log({ data });
-
         if (inviteError || !data) {
           setFormError('Invalid or expired invitation link');
           return;

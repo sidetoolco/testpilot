@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
-import { useInsightStore } from '../../../hooks/useIaInsight';
+
 import { MarkdownContent } from '../utils/MarkdownContent';
 
 const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
@@ -21,10 +21,9 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
-  const { insight, loading } = useInsightStore();
+const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({ surveys, insights }) => {
 
-  if (loading) return <p>Loading insights...</p>;
+  if (!insights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
   const datasets = surveys.map((product, productIndex) => {
@@ -63,13 +62,22 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[] }> = ({ surveys }) => {
 
   return (
     <div className="p-3">
-      <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
-          <div className="text-gray-700 leading-relaxed">
-            <MarkdownContent content={insight.purchase_drivers} />
+      {insights?.purchase_drivers && (
+        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
+            <div className="text-gray-700 leading-relaxed">
+              <MarkdownContent content={insights.purchase_drivers} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
+      {!insights?.purchase_drivers && (
+        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="text-gray-500 text-center">
+            No purchase drivers insights available for this test.
+          </div>
+        </div>
+      )}
 
       <div className="p-6 bg-white rounded-xl shadow-md">
         <h2 className="text-2xl font-bold mb-16">Purchase Drivers</h2>
