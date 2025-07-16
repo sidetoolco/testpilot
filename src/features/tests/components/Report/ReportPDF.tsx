@@ -470,7 +470,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     setLoadingInsights(true);
 
     apiClient
-      .post(`/tests/${testDetails.id}`)
+      .post(`/insights/${testDetails.id}`)
       .then(() => {
         toast.success('Insights regenerated successfully');
         window.location.reload();
