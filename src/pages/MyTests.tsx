@@ -116,7 +116,7 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
-      await apiClient.post(`/insights/${testId}/publish`);
+      await apiClient.post(`/tests/${testId}/publish`);
 
       toast.success('Test published successfully');
     } catch (error: any) {
