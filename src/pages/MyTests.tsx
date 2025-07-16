@@ -116,7 +116,7 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
-      await apiClient.post(`/tests/${testId}/publish`);
+      await apiClient.post(`/insights/${testId}/publish`);
 
       toast.success('Test published successfully');
     } catch (error: any) {
@@ -138,9 +138,9 @@ export default function MyTests() {
         throw new Error('No access token available');
       }
 
-      const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
-      console.log('Making request to:', apiUrl);
-
+      // Use the configured API client instead of hardcoded URL
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/insights/${testId}`;
+     
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
