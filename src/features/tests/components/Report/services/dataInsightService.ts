@@ -25,14 +25,14 @@ export const checkIdInIaInsights = async (id: string) => {
 
 export const checkTestStatus = async (id: string) => {
   try {
-    const { data, error } = await supabase.from('tests').select('status').eq('id', id);
+    const { data, error } = await supabase.from('tests').select('status').eq('id', id as any);
 
     if (error) {
       console.error('Error fetching data:', error);
       return false;
     }
 
-    return data.length > 0 && data[0].status === 'complete';
+    return data && data.length > 0 && (data[0] as any)?.status === 'complete';
   } catch (error) {
     console.error('Error checking ID:', error);
     return false;
@@ -85,7 +85,7 @@ export const getSummaryData = async (
     const { data: summaryData, error: summaryError } = await supabase
       .from('summary')
       .select('*, product:product_id(title)')
-      .eq('test_id', id)
+      .eq('test_id', id as any)
       .order('variant_type');
 
     if (summaryError) throw summaryError;
@@ -120,7 +120,7 @@ export const getAveragesurveys = async (
     const { data: summaryData, error: summaryError } = await supabase
       .from('purchase_drivers')
       .select('*, product:product_id(title, image_url, price)')
-      .eq('test_id', id)
+      .eq('test_id', id as any)
       .order('variant_type');
 
     if (summaryError) throw summaryError;
@@ -157,7 +157,7 @@ export const getCompetitiveInsights = async (
       .select(
         '*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)'
       )
-      .eq('test_id', id)
+      .eq('test_id', id as any)
       .order('variant_type');
 
     if (summaryError) throw summaryError;
@@ -165,7 +165,7 @@ export const getCompetitiveInsights = async (
     const { data: testProductData, error: testProductError } = await supabase
       .from('summary')
       .select('*, product:product_id(title, image_url, price)')
-      .eq('test_id', id)
+      .eq('test_id', id as any)
       .order('variant_type');
 
     if (testProductError) throw testProductError;
@@ -187,11 +187,14 @@ export const getCompetitiveInsights = async (
       const competitorSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
       
       let testProductSelections = 0;
-      if (testProduct && testProduct.share_of_buy) {
-        const testProductPercentage = Number(testProduct.share_of_buy);
+      if (testProduct && (testProduct as any).share_of_buy) {
+        const testProductPercentage = Number((testProduct as any).share_of_buy);
         
-        if (testProductPercentage >= 100) {
-          testProductSelections = competitorSelections;
+        if (testProductPercentage >= 99.5) {
+          testProductSelections = Math.max(competitorSelections * 100, 1000); 
+        } else if (testProductPercentage <= 0.5) {
+
+          testProductSelections = Math.max(1, Math.round(competitorSelections * (testProductPercentage / 100)));
         } else {
           const estimatedTotalShoppers = competitorSelections / (100 - testProductPercentage) * 100;
           testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotalShoppers);
