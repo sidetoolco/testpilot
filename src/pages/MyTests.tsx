@@ -139,7 +139,8 @@ export default function MyTests() {
       }
 
       // Use the configured API client instead of hardcoded URL
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/insights/${testId}`;
+      const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
+      console.log('Making request to:', apiUrl);
      
       const response = await fetch(apiUrl, {
         method: 'GET',
