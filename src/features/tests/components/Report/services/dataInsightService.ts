@@ -23,10 +23,6 @@ export const checkIdInIaInsights = async (id: string) => {
   }
 };
 
-// Checks the status of a test by its ID.
-// Parameters:
-//   - id (string): The ID of the test to be checked.
-// Returns: true if the test status is 'complete', otherwise false.
 export const checkTestStatus = async (id: string) => {
   try {
     const { data, error } = await supabase.from('tests').select('status').eq('id', id);
@@ -64,11 +60,11 @@ interface SummaryRow {
 
 export const transformDataToSummaryRow = (data: any): SummaryRow => {
   return {
-    title: `Variant ${data.variant_type.toUpperCase()} - ${data.product.title}`, // Ajusta esto según sea necesario
+    title: `Variant ${data.variant_type.toUpperCase()} - ${data.product.title}`,
     shareOfClicks: data.share_of_click.toString(),
     shareOfBuy: data.share_of_buy.toString(),
     valueScore: data.value_score.toString(),
-    isWinner: data.win ? 'Yes' : 'No', // Ajusta según la lógica de tu aplicación
+    isWinner: data.win ? 'Yes' : 'No',
   };
 };
 
@@ -156,7 +152,6 @@ export const getCompetitiveInsights = async (
   }
 
   try {
-    // Fetch competitive insights with proper variant filtering
     const { data: summaryData, error: summaryError } = await supabase
       .from('competitive_insights')
       .select(
@@ -167,7 +162,6 @@ export const getCompetitiveInsights = async (
 
     if (summaryError) throw summaryError;
 
-    // Fetch test product data to include in share of buy calculation
     const { data: testProductData, error: testProductError } = await supabase
       .from('summary')
       .select('*, product:product_id(title, image_url, price)')
@@ -176,7 +170,6 @@ export const getCompetitiveInsights = async (
 
     if (testProductError) throw testProductError;
 
-    // Group by variant and recalculate share of buy percentages per variant
     const groupedByVariant = summaryData.reduce((acc: any, item: any) => {
       const variant = item.variant_type;
       if (!acc[variant]) {
@@ -189,41 +182,34 @@ export const getCompetitiveInsights = async (
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
       
-      // Find the test product for this variant
       const testProduct = testProductData?.find((item: any) => item.variant_type === variant);
       
-      // Calculate total selections including test product
       const competitorSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
       
-      // Get test product selections - we need to calculate this from the share_of_buy percentage
-      // and the total number of shoppers for this variant
       let testProductSelections = 0;
       if (testProduct && testProduct.share_of_buy) {
-        // If we have the share_of_buy percentage, we can estimate the count
-        // For now, let's use a reasonable estimate based on the percentage
         const testProductPercentage = Number(testProduct.share_of_buy);
-        const estimatedTotalShoppers = competitorSelections / (100 - testProductPercentage) * 100;
-        testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotalShoppers);
+        
+        if (testProductPercentage >= 100) {
+          testProductSelections = competitorSelections;
+        } else {
+          const estimatedTotalShoppers = competitorSelections / (100 - testProductPercentage) * 100;
+          testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotalShoppers);
+        }
       }
       
       const totalSelections = competitorSelections + testProductSelections;
       
       return variantItems.map((item: any) => {
-        // FIX: Create unique competitor_product_id by appending variant type
-        // This ensures that the same competitor in different variants is treated as separate entities
-        // This prevents share of buy percentages from exceeding 100% when the same tester
-        // selects the same competitor in different variants
         const originalCompetitorProduct = item.competitor_product_id;
         
-        // Fallback: if competitor_product_id is undefined, use the item's own ID
-        const competitorId = originalCompetitorProduct?.id || item.competitor_product_id || item.id || 'unknown';
+        const competitorId = originalCompetitorProduct?.id || item.id || 'unknown';
         
         const uniqueCompetitorProduct = {
           ...originalCompetitorProduct,
           id: `${competitorId}_${variant}`,
         };
 
-        // Recalculate share of buy based on total selections for this variant only (including test product)
         const shareOfBuy = totalSelections > 0 ? ((Number(item.count || 0) / totalSelections) * 100) : 0;
 
         return {
@@ -234,7 +220,6 @@ export const getCompetitiveInsights = async (
       });
     });
 
-    // Sort by variant and then by share of buy (descending)
     const sortedData = recalculatedData.sort((a: any, b: any) => {
       if (a.variant_type !== b.variant_type) {
         return a.variant_type.localeCompare(b.variant_type);
@@ -255,7 +240,6 @@ export const getCompetitiveInsights = async (
   }
 };
 
-// Function to fetch AI insights from the backend API
 export const getAiInsights = async (
   testId: string
 ): Promise<{
