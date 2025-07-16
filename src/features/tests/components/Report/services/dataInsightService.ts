@@ -167,6 +167,15 @@ export const getCompetitiveInsights = async (
 
     if (summaryError) throw summaryError;
 
+    // Fetch test product data to include in share of buy calculation
+    const { data: testProductData, error: testProductError } = await supabase
+      .from('summary')
+      .select('*, product:product_id(title, image_url, price)')
+      .eq('test_id', id)
+      .order('variant_type');
+
+    if (testProductError) throw testProductError;
+
     // Group by variant and recalculate share of buy percentages per variant
     const groupedByVariant = summaryData.reduce((acc: any, item: any) => {
       const variant = item.variant_type;
@@ -179,12 +188,50 @@ export const getCompetitiveInsights = async (
 
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
-      const totalSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
       
-      return variantItems.map((item: any) => ({
-        ...item,
-        share_of_buy: totalSelections > 0 ? (Number(item.count || 0) / totalSelections) * 100 : 0
-      }));
+      // Find the test product for this variant
+      const testProduct = testProductData?.find((item: any) => item.variant_type === variant);
+      
+      // Calculate total selections including test product
+      const competitorSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
+      
+      // Get test product selections - we need to calculate this from the share_of_buy percentage
+      // and the total number of shoppers for this variant
+      let testProductSelections = 0;
+      if (testProduct && testProduct.share_of_buy) {
+        // If we have the share_of_buy percentage, we can estimate the count
+        // For now, let's use a reasonable estimate based on the percentage
+        const testProductPercentage = Number(testProduct.share_of_buy);
+        const estimatedTotalShoppers = competitorSelections / (100 - testProductPercentage) * 100;
+        testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotalShoppers);
+      }
+      
+      const totalSelections = competitorSelections + testProductSelections;
+      
+      return variantItems.map((item: any) => {
+        // FIX: Create unique competitor_product_id by appending variant type
+        // This ensures that the same competitor in different variants is treated as separate entities
+        // This prevents share of buy percentages from exceeding 100% when the same tester
+        // selects the same competitor in different variants
+        const originalCompetitorProduct = item.competitor_product_id;
+        
+        // Fallback: if competitor_product_id is undefined, use the item's own ID
+        const competitorId = originalCompetitorProduct?.id || item.competitor_product_id || item.id || 'unknown';
+        
+        const uniqueCompetitorProduct = {
+          ...originalCompetitorProduct,
+          id: `${competitorId}_${variant}`,
+        };
+
+        // Recalculate share of buy based on total selections for this variant only (including test product)
+        const shareOfBuy = totalSelections > 0 ? ((Number(item.count || 0) / totalSelections) * 100) : 0;
+
+        return {
+          ...item,
+          competitor_product_id: uniqueCompetitorProduct,
+          share_of_buy: shareOfBuy,
+        };
+      });
     });
 
     // Sort by variant and then by share of buy (descending)

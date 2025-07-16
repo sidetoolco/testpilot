@@ -330,7 +330,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               <Text style={tableStyles.productCell}>
                 {truncateTitle(competitor.competitor_product_id.title, isLandscape ? 20 : 25)}
               </Text>
-              <Text style={tableStyles.metricCell}>{competitor.share_of_buy.toFixed(1)}%</Text>
+              <Text style={tableStyles.metricCell}>{competitor.share_of_buy.toFixed(2)}%</Text>
               <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value) }}>
                 {competitor.value.toFixed(1)}
               </Text>
