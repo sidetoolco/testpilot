@@ -17,7 +17,7 @@ import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChart
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
-import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
+
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
 import * as XLSX from 'xlsx';
@@ -253,24 +253,7 @@ const PDFDocument = ({
           );
         })}
 
-        {/* Shopper Comments Analysis */}
-        {(() => {
-          const shouldShowComments =
-            safeInsights?.comment_summary ||
-            (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
-            testDetails.responses?.comparisons ||
-            testDetails.responses?.surveys;
 
-          return shouldShowComments;
-        })() && (
-          <ShopperCommentsPDFSection
-            comments={safeInsights?.shopper_comments || []}
-            comparision={testDetails.responses?.comparisons}
-            surveys={testDetails.responses?.surveys}
-            shopperCommentsSummary={safeInsights?.comment_summary || ''}
-            orientation={orientation}
-          />
-        )}
 
         {safeInsights?.recommendations && (
           <RecommendationsPDFSection
