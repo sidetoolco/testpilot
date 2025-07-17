@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, ChevronDown } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
@@ -337,14 +337,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
-  // Cleanup effect to prevent memory leaks (simplified)
-  useEffect(() => {
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
-  }, [pdfUrl]);
+
+
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
@@ -450,11 +444,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
-    // Clean up URL when closing (simplified)
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(null);
-    }
+    // Don't clear URL immediately to allow reopening
   };
 
   const handleRegenerateInsights = () => {
@@ -474,7 +464,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
         <button
           onClick={handleExportToExcel}
-          disabled={isExportingExcel}
+          disabled={!isTestActiveOrComplete || isExportingExcel}
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <FileSpreadsheet size={20} />
