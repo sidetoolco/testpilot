@@ -192,13 +192,7 @@ const processAgeData = (responses: any): ChartDataItem[] => {
     }
   });
 
-  console.log('Age Data Processing Debug:', {
-    totalUsersProcessed,
-    usersWithoutAge,
-    ageCounts,
-    hasComparisons: !!responses?.comparisons,
-    comparisonsKeys: responses?.comparisons ? Object.keys(responses.comparisons) : []
-  });
+
 
   // Convertir a formato de gráfica con colores originales
   const colors = [
@@ -255,28 +249,13 @@ const processGenderData = (responses: any): ChartDataItem[] => {
         } else {
           // Contar usuarios sin datos de género
           usersWithoutGender++;
-          // Debug: Log the structure of users without gender data
-          if (usersWithoutGender <= 3) { // Only log first 3 for debugging
-            console.log('User without gender data:', {
-              tester_id: response?.tester_id,
-              shopper_demographic: response?.tester_id?.shopper_demographic,
-              hasSex: !!response?.tester_id?.shopper_demographic?.sex,
-              hasGender: !!response?.tester_id?.shopper_demographic?.gender,
-              allKeys: response?.tester_id?.shopper_demographic ? Object.keys(response.tester_id.shopper_demographic) : []
-            });
-          }
+
         }
       });
     }
   });
 
-  console.log('Gender Data Processing Debug:', {
-    totalUsersProcessed,
-    usersWithoutGender,
-    genderCounts,
-    hasComparisons: !!responses?.comparisons,
-    comparisonsKeys: responses?.comparisons ? Object.keys(responses.comparisons) : []
-  });
+
 
   // Convertir a formato de gráfica con colores del estilo de la app
   const genderColors = [COLORS.primary, COLORS.secondary, '#9CA3AF']; // Verde principal, secundario y gris para "Non-informed"
@@ -388,9 +367,6 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   testDetails,
   orientation = 'landscape',
 }) => {
-  console.log('Test Details:', testDetails);
-  console.log('Created At:', testDetails.createdAt);
-  console.log('Date Object:', new Date(testDetails.createdAt));
 
   // Calcular el número de variaciones
   const variationCount = Object.values(testDetails.variations).filter(v => v !== null).length;
@@ -408,14 +384,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   const totalAgeData = ageData.reduce((sum, item) => sum + item.value, 0);
   const totalGenderData = genderData.reduce((sum, item) => sum + item.value, 0);
 
-  console.log('PDF Debug - Total Users:', {
-    expectedTotal: totalPossibleSessions,
-    actualFromResponses: totalUsersFromResponses,
-    totalAgeData,
-    totalGenderData,
-    ageData,
-    genderData
-  });
+
 
   // Fallback a datos originales si no hay datos de responses_comparisons
   const fallbackGenderData =
@@ -448,19 +417,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
     ? ageData 
     : fallbackAgeData;
 
-  console.log('Final Data Selection:', {
-    genderDataLength: genderData.length,
-    ageDataLength: ageData.length,
-    totalGenderFromProcessed,
-    totalAgeFromProcessed,
-    totalUsersFromResponses,
-    finalGenderData,
-    finalAgeData,
-    usingProcessedGender: genderData.length > 0 && totalGenderFromProcessed === totalUsersFromResponses,
-    usingProcessedAge: ageData.length > 0 && totalAgeFromProcessed === totalUsersFromResponses,
-    fallbackGenderData,
-    fallbackAgeData
-  });
+
 
   // En landscape, dividir en dos páginas para evitar cortes
   if (orientation === 'landscape') {
@@ -495,7 +452,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                     {'\uf0c0'}
                   </Text>
                 }
-                label="Total Testers"
+                label="Total Sessions"
                 value={testDetails.demographics.testerCount * variationCount}
                 color={COLORS.primary}
               />
@@ -740,7 +697,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                 {'\uf0c0'}
               </Text>
             }
-            label="Total Testers"
+            label="Total Sessions"
             value={testDetails.demographics.testerCount * variationCount}
             color={COLORS.primary}
           />
