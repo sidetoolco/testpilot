@@ -164,121 +164,140 @@ const PDFDocument = ({
     .map(([key, variation]) => ({ key, variation }))
     .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
 
-  return (
-    <Document>
-      <CoverPageSection
-        testDetails={testDetails}
-        variantsArray={variantsArray}
-        orientation={orientation}
-      />
-      <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
-      <SummaryPDFSection
-        summaryData={summaryData}
-        insights={safeInsights}
-        orientation={orientation}
-      />
-
-      {/* New structure: Purchase Drivers with general text first */}
-      {safeInsights?.purchase_drivers && (
-        <PurchaseDriversTextSection
-          insights={safeInsights.purchase_drivers}
+  try {
+    return (
+      <Document>
+        <CoverPageSection
+          testDetails={testDetails}
+          variantsArray={variantsArray}
           orientation={orientation}
         />
-      )}
+        <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
+        <SummaryPDFSection
+          summaryData={summaryData}
+          insights={safeInsights}
+          orientation={orientation}
+        />
 
-      {/* Purchase Drivers Charts - only for variants with data */}
-      {availableVariants.map(({ key, variation }) => {
-        const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
-        
-        if (!hasPurchaseData || !variation) return null;
-        
-        return (
-          <PurchaseDriversChartSection
-            key={`purchase-${key}`}
-            variantKey={key}
-            variantTitle={variation.title}
-            averagesurveys={hasPurchaseData}
+        {/* New structure: Purchase Drivers with general text first */}
+        {safeInsights?.purchase_drivers && (
+          <PurchaseDriversTextSection
+            insights={safeInsights.purchase_drivers}
             orientation={orientation}
           />
-        );
-      })}
+        )}
 
-      {/* New structure: Competitive Insights with general text first */}
-      {safeInsights?.competitive_insights && (
-        <CompetitiveInsightsTextSection
-          insights={safeInsights.competitive_insights}
-          orientation={orientation}
-        />
-      )}
+        {/* Purchase Drivers Charts - only for variants with data */}
+        {availableVariants.map(({ key, variation }) => {
+          const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+          
+          if (!hasPurchaseData || !variation) return null;
+          
+          return (
+            <PurchaseDriversChartSection
+              key={`purchase-${key}`}
+              variantKey={key}
+              variantTitle={variation.title}
+              averagesurveys={hasPurchaseData}
+              orientation={orientation}
+            />
+          );
+        })}
 
-      {/* Competitive Insights Tables - only for variants with data */}
-      {availableVariants.map(({ key, variation }) => {
-        const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
-        
-        if (!hasCompetitiveData || !variation) return null;
-        
-        return (
-          <CompetitiveInsightsTableSection
-            key={`competitive-table-${key}`}
-            variantKey={key}
-            variantTitle={variation.title}
-            competitiveinsights={
-              safeCompetitiveInsights.summaryData?.filter(
-                (item: any) => item.variant_type === key
-              ) || []
-            }
+        {/* New structure: Competitive Insights with general text first */}
+        {safeInsights?.competitive_insights && (
+          <CompetitiveInsightsTextSection
+            insights={safeInsights.competitive_insights}
             orientation={orientation}
           />
-        );
-      })}
+        )}
 
-      {/* Variant-specific AI Insights - only for variants with data */}
-      {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
-        const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
-        
-        if (!variantInsight || !variation) return null;
-        
-        return (
-          <VariantAIInsightsSection
-            key={`ai-insights-${key}`}
-            variantKey={key}
-            variantTitle={variation.title}
-            insights={{
-              purchase_drivers: variantInsight?.purchase_drivers || '',
-              competitive_insights: variantInsight?.competitive_insights || '',
-            }}
+        {/* Competitive Insights Tables - only for variants with data */}
+        {availableVariants.map(({ key, variation }) => {
+          const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+          
+          if (!hasCompetitiveData || !variation) return null;
+          
+          return (
+            <CompetitiveInsightsTableSection
+              key={`competitive-table-${key}`}
+              variantKey={key}
+              variantTitle={variation.title}
+              competitiveinsights={
+                safeCompetitiveInsights.summaryData?.filter(
+                  (item: any) => item.variant_type === key
+                ) || []
+              }
+              orientation={orientation}
+            />
+          );
+        })}
+
+        {/* Variant-specific AI Insights - only for variants with data */}
+        {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
+          const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
+          
+          if (!variantInsight || !variation) return null;
+          
+          return (
+            <VariantAIInsightsSection
+              key={`ai-insights-${key}`}
+              variantKey={key}
+              variantTitle={variation.title}
+              insights={{
+                purchase_drivers: variantInsight?.purchase_drivers || '',
+                competitive_insights: variantInsight?.competitive_insights || '',
+              }}
+              orientation={orientation}
+            />
+          );
+        })}
+
+        {/* Shopper Comments Analysis */}
+        {(() => {
+          const shouldShowComments =
+            safeInsights?.comment_summary ||
+            (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
+            testDetails.responses?.comparisons ||
+            testDetails.responses?.surveys;
+
+          return shouldShowComments;
+        })() && (
+          <ShopperCommentsPDFSection
+            comments={safeInsights?.shopper_comments || []}
+            comparision={testDetails.responses?.comparisons}
+            surveys={testDetails.responses?.surveys}
+            shopperCommentsSummary={safeInsights?.comment_summary || ''}
             orientation={orientation}
           />
-        );
-      })}
+        )}
 
-      {/* Shopper Comments Analysis */}
-      {(() => {
-        const shouldShowComments =
-          safeInsights?.comment_summary ||
-          (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
-          testDetails.responses?.comparisons ||
-          testDetails.responses?.surveys;
-
-        return shouldShowComments;
-      })() && (
-        <ShopperCommentsPDFSection
-          comments={safeInsights?.shopper_comments || []}
-          comparision={testDetails.responses?.comparisons}
-          surveys={testDetails.responses?.surveys}
-          shopperCommentsSummary={safeInsights?.comment_summary || ''}
-          orientation={orientation}
-        />
-      )}
-
-      {safeInsights?.recommendations && (
-        <RecommendationsPDFSection
-          insights={safeInsights.recommendations}
-          orientation={orientation}
-        />
-      )}
-    </Document>
-  );
+        {safeInsights?.recommendations && (
+          <RecommendationsPDFSection
+            insights={safeInsights.recommendations}
+            orientation={orientation}
+          />
+        )}
+      </Document>
+    );
+  } catch (error) {
+    console.error('PDFDocument render error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return (
+      <Document>
+        <Page size="A4" orientation={orientation} style={{ padding: 40, fontFamily: 'Helvetica' }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginBottom: 20 }}>
+              Error rendering PDF: {error instanceof Error ? error.message : 'Unknown error'}
+            </Text>
+            <Text style={{ color: '#666', fontSize: 12, textAlign: 'center' }}>
+              Please check that all required data is available and try again.
+            </Text>
+          </View>
+        </Page>
+      </Document>
+    );
+  }
 };
 
 const PDFPreviewModal = ({
