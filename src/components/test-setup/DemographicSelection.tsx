@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Info } from 'lucide-react';
+import { toast } from 'sonner';
+import { Tooltip } from 'react-tooltip';
 import { PriceCalculator } from './PriceCalculator';
 import CustomScreening from './CustomScreening';
 import { CustomScreening as CustomScreeningType } from '../../features/tests/types';
@@ -206,7 +208,13 @@ export default function DemographicSelection({
         </div>
         {/* Number of Testers per Variant */}
         <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4"># of Testers per Variant</h4>
+          <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+            # of Testers per Variant <span className="text-red-500">*</span>
+            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="tester-count-tooltip" />
+            <Tooltip id="tester-count-tooltip" className="!px-2 !py-1 !text-sm">
+              Number of testers per variation
+            </Tooltip>
+          </h4>
           <div className="flex items-center space-x-4">
             <div className="relative flex-1 max-w-xs">
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -232,7 +240,13 @@ export default function DemographicSelection({
 
         {/* Age Range Inputs */}
         <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Age Range</h4>
+          <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+            Age Range <span className="text-red-500">*</span>
+            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="age-range-tooltip" />
+            <Tooltip id="age-range-tooltip" className="!px-2 !py-1 !text-sm">
+              Age range for participants
+            </Tooltip>
+          </h4>
           <div className="flex items-center space-x-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Age</label>
@@ -272,7 +286,13 @@ export default function DemographicSelection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Gender */}
           <div>
-            <h4 className="text-lg font-medium text-gray-900 mb-4">Gender</h4>
+            <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              Gender <span className="text-red-500">*</span>
+              <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="gender-tooltip" />
+              <Tooltip id="gender-tooltip" className="!px-2 !py-1 !text-sm">
+                Select participant gender
+              </Tooltip>
+            </h4>
             <div className="space-y-3">
               {genders.map(gender => (
                 <Checkbox
@@ -288,7 +308,13 @@ export default function DemographicSelection({
 
           {/* Country */}
           <div>
-            <h4 className="text-lg font-medium text-gray-900 mb-4">Country</h4>
+            <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              Country <span className="text-red-500">*</span>
+              <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="country-tooltip" />
+              <Tooltip id="country-tooltip" className="!px-2 !py-1 !text-sm">
+                Select participant location
+              </Tooltip>
+            </h4>
             <div className="space-y-3">
               {countries.map(country => (
                 <Checkbox

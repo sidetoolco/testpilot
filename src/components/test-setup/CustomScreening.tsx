@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Tooltip } from 'react-tooltip';
 import { CustomScreening as CustomScreeningInterface } from '../../features/tests/types';
 import apiClient from '../../lib/api';
 
@@ -122,7 +123,13 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-medium text-gray-900">Custom Screening</h4>
+        <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+          Custom Screening
+          <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="custom-screening-tooltip" />
+          <Tooltip id="custom-screening-tooltip" className="!px-2 !py-1 !text-sm">
+            Add a Yes/No question to screen participants
+          </Tooltip>
+        </h4>
         <button
           onClick={() => onChange('enabled', !value.enabled)}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:ring-offset-2 ${

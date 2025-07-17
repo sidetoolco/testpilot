@@ -19,15 +19,29 @@ export const useStepValidation = (testData: TestData) => {
       case 'variations':
         return 'Please select at least Variation A';
       case 'demographics':
-        return testData.demographics.customScreening.enabled
-          ? 'Please wait until your screening question is validated before proceeding'
-          : 'Please complete all demographic selections';
+        // Check for specific validation failures
+        if (testData.demographics.customScreening.enabled) {
+          return 'Please wait until your screening question is validated before proceeding';
+        }
+        if (testData.demographics.gender.length === 0) {
+          return 'Please select at least one gender to continue';
+        }
+        if (testData.demographics.locations.length === 0) {
+          return 'Please select at least one country to continue';
+        }
+        if (testData.demographics.ageRanges.length !== 2) {
+          return 'Please set both minimum and maximum age';
+        }
+        if (testData.demographics.testerCount < 25 || testData.demographics.testerCount > 500) {
+          return 'Please enter a valid number of testers (25-500)';
+        }
+        return 'Please complete all demographic selections';
       case 'review':
         return 'Please enter a test name';
       default:
         return 'Please complete all required fields';
     }
-  }, [currentStep]);
+  }, [currentStep, testData.demographics]);
 
   const handleNext = useCallback(() => {
     if (!canProceed()) {
