@@ -320,7 +320,9 @@ export const CompetitiveInsightsPDFSection: React.FC<CompetitiveInsightsPDFSecti
                 <Text style={TABLE_STYLES.productCell}>
                   {truncateTitle(competitor.competitor_product_id.title)}
                 </Text>
-                <Text style={TABLE_STYLES.metricCell}>{Math.round(competitor.share_of_buy)}%</Text>
+                <Text style={TABLE_STYLES.metricCell}>
+                  {competitor.share_of_buy != null ? competitor.share_of_buy.toFixed(2) : '0.00'}%
+                </Text>
                 <Text style={{ ...TABLE_STYLES.metricCell, ...getColorStyle(competitor.value) }}>
                   {competitor.value.toFixed(1)}
                 </Text>

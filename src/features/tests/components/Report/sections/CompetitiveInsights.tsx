@@ -83,7 +83,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   const filtered = competitiveinsights
     .filter(item => item.variant_type === selectedVariant)
-    .sort((a, b) => b.share_of_buy - a.share_of_buy);
+    .sort((a, b) => Number(b.share_of_buy || 0) - Number(a.share_of_buy || 0));
 
   const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
 
@@ -139,7 +139,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       {filteredInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
       ) : (
-        <table className="min-w-full border-collapse max-w-screen-md">
+        <>
+          <table className="min-w-full border-collapse max-w-screen-md">
           <thead>
             <tr className="bg-gray-100 border-none">
               <th colSpan={2} className="p-2 bg-white"></th>
@@ -208,7 +209,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 p-2">
-                  {item.count > 0 ? `${Number(item.share_of_buy).toFixed(1)}%` : '-'}
+                  {item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-'}
                 </td>
                 {renderCell(Number(item.value), item.count, !!item.product)}
                 {renderCell(
@@ -227,6 +228,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             ))}
           </tbody>
         </table>
+        </>
       )}
 
       <div className="space-y-2 mt-4 text-sm text-gray-600">
@@ -238,6 +240,10 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           have only one observation.
         </p>
         <p>Click on the product image to see details.</p>
+        <p className="text-xs text-gray-500 mt-2">
+          <strong>Note:</strong> Share of Buy represents the percentage of participants who selected each product within this variant. 
+          Percentages may not sum to exactly 100% due to rounding or participants who didn't make a selection.
+        </p>
       </div>
     </div>
   );
