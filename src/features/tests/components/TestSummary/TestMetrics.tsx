@@ -13,10 +13,7 @@ export default function TestMetrics({ test }: TestMetricsProps) {
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: 'Completions',
-      value:
-        test.completed_sessions > test.demographics.testerCount * variationCount
-          ? `${test.demographics.testerCount * variationCount} / ${test.demographics.testerCount * variationCount}`
-          : `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
+      value: `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
       subtitle: 'Completed Sessions / Total Testers',
     },
     // {
