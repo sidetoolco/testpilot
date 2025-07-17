@@ -57,11 +57,11 @@ export const testService = {
       // Step 2: Crear test principal
       const test = await this.insertTest(testData, user.id, typedProfile.company_id);
 
-      // Step 3: Insertar competidores
-      await this.saveAmazonProducts(test.id, testData.competitors);
-
-      // Step 4: Insertar variaciones
+      // Step 3: Insertar variaciones
       await this.insertVariations(test.id, testData.variations);
+
+      // Step 4: Insertar competidores
+      await this.saveAmazonProducts(test.id, testData.competitors);
 
       // Step 5: Insertar datos demográficos
       await this.insertDemographics(test.id, testData.demographics);
@@ -354,10 +354,10 @@ export const testService = {
             return 'search_term'; // El primer paso se mapea a search_term
           case 'search':
             return 'search_term';
-          case 'competitors':
-            return 'competitors';
           case 'variations':
             return 'variants';
+          case 'competitors':
+            return 'competitors';
           case 'demographics':
             return 'demographics';
           case 'preview':
@@ -723,10 +723,10 @@ export const testService = {
         switch (step) {
           case 'search_term':
             return 'search';
-          case 'competitors':
-            return 'competitors';
           case 'variants':
             return 'variations';
+          case 'competitors':
+            return 'competitors';
           case 'demographics':
             return 'demographics';
           case 'preview':
@@ -744,11 +744,11 @@ export const testService = {
       if ((test as any).search_term) {
         lastCompletedStep = 'search';
       }
-      if (competitors.length > 0) {
-        lastCompletedStep = 'competitors';
-      }
       if (variations.a || variations.b || variations.c) {
         lastCompletedStep = 'variations';
+      }
+      if (competitors.length > 0) {
+        lastCompletedStep = 'competitors';
       }
       if (demographics.ageRanges.length > 0 || demographics.gender.length > 0) {
         lastCompletedStep = 'demographics';
@@ -791,8 +791,8 @@ export const testService = {
     const steps = [
       'objective',
       'search',
-      'competitors',
       'variations',
+      'competitors',
       'demographics',
       'preview',
       'review',

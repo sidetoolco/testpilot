@@ -15,8 +15,8 @@ import { useTestCreation } from '../features/tests/context/TestCreationContext';
 const steps = [
   { key: 'objective', label: 'Objective' },
   { key: 'search', label: 'Search Term' },
-  { key: 'competitors', label: 'Competitors' },
   { key: 'variations', label: 'Variants' },
+  { key: 'competitors', label: 'Competitors' },
   { key: 'demographics', label: 'Demographics' },
   { key: 'preview', label: 'Preview' },
   { key: 'review', label: 'Review' },
