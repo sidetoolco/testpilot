@@ -95,29 +95,6 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
   useEffect(() => {
     if (value.enabled && componentRef.current) {
       setTimeout(() => {
-        componentRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }, 100); 
-    }
-  }, [value.enabled]);
-
-  useEffect(() => {
-    if (value.enabled && componentRef.current) {
-      setTimeout(() => {
-        componentRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }, 100); 
-    }
-  }, [value.enabled]);
-
-
-  useEffect(() => {
-    if (value.enabled && componentRef.current) {
-      setTimeout(() => {
         const element = componentRef.current;
         if (element) {
           const elementTop = element.offsetTop;
