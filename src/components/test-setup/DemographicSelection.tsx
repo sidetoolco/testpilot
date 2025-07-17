@@ -212,7 +212,7 @@ export default function DemographicSelection({
             # of Testers per Variant <span className="text-red-500">*</span>
             <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="tester-count-tooltip" />
             <Tooltip id="tester-count-tooltip" className="!px-2 !py-1 !text-sm">
-              Number of testers per variation
+              Number of testers per variation from 25 to 500
             </Tooltip>
           </h4>
           <div className="flex items-center space-x-4">
@@ -290,7 +290,7 @@ export default function DemographicSelection({
               Gender <span className="text-red-500">*</span>
               <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="gender-tooltip" />
               <Tooltip id="gender-tooltip" className="!px-2 !py-1 !text-sm">
-                Select participant gender
+                Select at least one participant gender
               </Tooltip>
             </h4>
             <div className="space-y-3">
@@ -312,7 +312,7 @@ export default function DemographicSelection({
               Country <span className="text-red-500">*</span>
               <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="country-tooltip" />
               <Tooltip id="country-tooltip" className="!px-2 !py-1 !text-sm">
-                Select participant location
+                Select at least one participant location
               </Tooltip>
             </h4>
             <div className="space-y-3">
