@@ -291,12 +291,25 @@ const PDFPreviewModal = ({
     }
   };
 
+  const handleOpenInNewWindow = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl h-[90vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">PDF Preview</h2>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={handleOpenInNewWindow}
+              className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <FilePdf size={16} />
+              Open in New Window
+            </button>
             <button 
               onClick={handleDownload}
               className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
@@ -309,8 +322,57 @@ const PDFPreviewModal = ({
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden">
-        <iframe src={pdfUrl} className="w-full h-full" title="PDF Preview" />
+        <div className="flex-1 overflow-hidden bg-gray-100 p-4">
+          {/* Warning message about iframe restrictions */}
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                <span className="text-yellow-800 text-xs font-bold">!</span>
+              </div>
+              <div>
+                <p className="text-sm text-yellow-800 font-medium">
+                  PDF Preview may be blocked by browser security
+                </p>
+                <p className="text-xs text-yellow-700">
+                  If the preview appears blank, use "Open in New Window" to view the PDF
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Try object tag first (better PDF support) */}
+          <object
+            data={pdfUrl}
+            type="application/pdf"
+            className="w-full h-full"
+            style={{ 
+              border: '2px solid #ccc',
+              backgroundColor: '#ffffff',
+              minHeight: '400px'
+            }}
+          >
+            {/* Fallback content if object doesn't work */}
+            <div className="w-full h-full flex flex-col items-center justify-center bg-white border-2 border-dashed border-gray-300 rounded-lg">
+              <FilePdf size={48} className="text-gray-400 mb-4" />
+              <p className="text-gray-600 text-center mb-4">
+                PDF preview is not available in this browser
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleOpenInNewWindow}
+                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Open in New Window
+                </button>
+                <button 
+                  onClick={handleDownload}
+                  className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                >
+                  Download PDF
+                </button>
+              </div>
+            </div>
+          </object>
         </div>
       </div>
     </div>
@@ -336,9 +398,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
-
-
-
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
@@ -366,26 +425,24 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   };
 
   const handleExportPDF = async (selectedOrientation: PDFOrientation = orientation) => {
-    if (isGenerating) return; // Prevent multiple simultaneous generations
+    if (isGenerating) return;
 
     try {
       setIsGenerating(true);
 
-      // Clear previous URL if it exists (simplified)
+      // Clear previous URL if it exists
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
         setPdfUrl(null);
       }
 
-      // Improved data validation
+      // Data validation
       if (!testDetails) {
-        console.error('Missing testDetails');
         toast.error('Missing test details');
         return;
       }
 
       if (!summaryData) {
-        console.error('Missing summaryData');
         toast.error('Missing summary data');
         return;
       }
@@ -428,6 +485,11 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         />
       ).toBlob();
 
+      if (blob.size === 0) {
+        toast.error('Generated PDF is empty');
+        return;
+      }
+
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
@@ -444,7 +506,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
-    // Don't clear URL immediately to allow reopening
   };
 
   const handleRegenerateInsights = () => {
