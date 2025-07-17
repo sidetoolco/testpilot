@@ -149,6 +149,21 @@ const PDFDocument = ({
   const safeAveragesurveys = averagesurveys || { summaryData: [] };
   const safeAiInsights = aiInsights || [];
 
+  // Get all available variant keys that have data
+  const availableVariants = Object.entries(testDetails.variations || {})
+    .filter(([key, variation]) => {
+      if (!variation) return false;
+      
+      // Check if this variant has any data
+      const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+      const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+      const hasAIInsights = safeAiInsights.find((insight: any) => insight.variant_type === key);
+      
+      return hasPurchaseData || hasCompetitiveData || hasAIInsights;
+    })
+    .map(([key, variation]) => ({ key, variation }))
+    .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
+
   return (
     <Document>
       <CoverPageSection
@@ -171,22 +186,22 @@ const PDFDocument = ({
         />
       )}
 
-      {/* Then charts for each variant */}
-      {Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) =>
-          variation &&
-          safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key) && (
-            <PurchaseDriversChartSection
-              key={key}
-              variantKey={key}
-              variantTitle={variation.title}
-              averagesurveys={safeAveragesurveys.summaryData.find(
-                (item: any) => item.variant_type === key
-              )}
-              orientation={orientation}
-            />
-          )
-      )}
+      {/* Purchase Drivers Charts - only for variants with data */}
+      {availableVariants.map(({ key, variation }) => {
+        const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+        
+        if (!hasPurchaseData || !variation) return null;
+        
+        return (
+          <PurchaseDriversChartSection
+            key={`purchase-${key}`}
+            variantKey={key}
+            variantTitle={variation.title}
+            averagesurveys={hasPurchaseData}
+            orientation={orientation}
+          />
+        );
+      })}
 
       {/* New structure: Competitive Insights with general text first */}
       {safeInsights?.competitive_insights && (
@@ -196,44 +211,46 @@ const PDFDocument = ({
         />
       )}
 
-      {/* Then tables for each variant */}
-      {Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) =>
-          variation && (
-            <CompetitiveInsightsTableSection
-              key={`competitive-table-${key}`}
-              variantKey={key}
-              variantTitle={variation.title}
-              competitiveinsights={
-                safeCompetitiveInsights.summaryData?.filter(
-                  (item: any) => item.variant_type === key
-                ) || []
-              }
-              orientation={orientation}
-            />
-          )
-      )}
+      {/* Competitive Insights Tables - only for variants with data */}
+      {availableVariants.map(({ key, variation }) => {
+        const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+        
+        if (!hasCompetitiveData || !variation) return null;
+        
+        return (
+          <CompetitiveInsightsTableSection
+            key={`competitive-table-${key}`}
+            variantKey={key}
+            variantTitle={variation.title}
+            competitiveinsights={
+              safeCompetitiveInsights.summaryData?.filter(
+                (item: any) => item.variant_type === key
+              ) || []
+            }
+            orientation={orientation}
+          />
+        );
+      })}
 
-      {/* Variant-specific AI Insights */}
-      {safeAiInsights && safeAiInsights.length > 0 && Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) => {
-          const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
-          return (
-            variation && (
-              <VariantAIInsightsSection
-                key={`ai-insights-${key}`}
-                variantKey={key}
-                variantTitle={variation.title}
-                insights={{
-                  purchase_drivers: variantInsight?.purchase_drivers || '',
-                  competitive_insights: variantInsight?.competitive_insights || '',
-                }}
-                orientation={orientation}
-              />
-            )
-          );
-        }
-      )}
+      {/* Variant-specific AI Insights - only for variants with data */}
+      {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
+        const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
+        
+        if (!variantInsight || !variation) return null;
+        
+        return (
+          <VariantAIInsightsSection
+            key={`ai-insights-${key}`}
+            variantKey={key}
+            variantTitle={variation.title}
+            insights={{
+              purchase_drivers: variantInsight?.purchase_drivers || '',
+              competitive_insights: variantInsight?.competitive_insights || '',
+            }}
+            orientation={orientation}
+          />
+        );
+      })}
 
       {/* Shopper Comments Analysis */}
       {(() => {
