@@ -21,7 +21,7 @@ export interface Product {
 export interface Test {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'complete';
+  status: 'draft' | 'active' | 'complete' | 'incomplete';
   searchTerm: string;
   objective?: string;
   competitors: Product[];

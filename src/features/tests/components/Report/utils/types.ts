@@ -16,7 +16,7 @@ export interface Recommendation {
 export interface TestDetails {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'complete';
+  status: 'draft' | 'active' | 'complete' | 'incomplete';
   updatedAt?: string;
   createdAt: string;
   searchTerm: string;
