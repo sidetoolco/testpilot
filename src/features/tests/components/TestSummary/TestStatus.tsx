@@ -16,7 +16,7 @@ export default function TestStatus({ status }: TestStatusProps) {
       case 'complete':
         return {
           icon: <CheckCircle className="h-5 w-5" />,
-          text: 'Completed',
+          text: 'Complete',
           color: 'bg-green-50 text-green-600',
         };
       default:
