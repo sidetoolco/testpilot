@@ -17,7 +17,7 @@ interface CustomScreeningProps {
 
 export default function CustomScreening({ onChange, value }: CustomScreeningProps) {
   const [error, setError] = useState<string | null>(null);
-  const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null);
+  // const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -36,7 +36,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     // Set loading state immediately
     setIsValidating(true);
     onChange('isValidating', true);
-    setSuggestedQuestion(null);
+    // setSuggestedQuestion(null);
 
     // Make the API call immediately (no debounce for manual button click)
     apiClient
@@ -51,9 +51,9 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
               'This question may be too narrow and could limit participant availability.'
           );
           onChange('valid', false);
-          if (data.suggestedQuestion) {
-            setSuggestedQuestion(data.suggestedQuestion);
-          }
+          // if (data.suggestedQuestion) {
+          //   setSuggestedQuestion(data.suggestedQuestion);
+          // }
         } else {
           onChange('valid', true);
           setError(null);
@@ -97,7 +97,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     const newQuestion = e.target.value;
     onChange('question', newQuestion);
     setError(null);
-    setSuggestedQuestion(null);
+    // setSuggestedQuestion(null);
     // Clear validation when question changes
     onChange('valid', false);
   };
@@ -106,11 +106,11 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     // Remove automatic validation on blur
   };
 
-  const useSuggestedQuestion = () => {
-    if (suggestedQuestion) {
-      onChange('question', suggestedQuestion);
-    }
-  };
+  // const useSuggestedQuestion = () => {
+  //   if (suggestedQuestion) {
+  //     onChange('question', suggestedQuestion);
+  //   }
+  // };
 
   const handleCheckAvailability = () => {
     if (value.question) {
@@ -228,24 +228,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
               {error && (
                 <div className="flex items-start space-x-2 mt-2 text-sm text-red-600">
                   <AlertCircle className="h-4 w-4 flex-shrink-0 mt-px" />
-                  <p>
-                    {error}
-                    {suggestedQuestion && (
-                      <>
-                        {' '}
-                        <span className="text-black italic">
-                          <br />
-                          Try: "{suggestedQuestion}"
-                          <button
-                            onClick={useSuggestedQuestion}
-                            className="font-medium underline ml-1"
-                          >
-                            Use
-                          </button>
-                        </span>
-                      </>
-                    )}
-                  </p>
+                  <p>{error}</p>
                 </div>
               )}
             </div>
