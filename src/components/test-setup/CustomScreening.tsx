@@ -20,6 +20,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
   // const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const componentRef = useRef<HTMLDivElement>(null);
 
   const validateQuestion = (question: string, desiredAnswer?: string) => {
     if (!question.trim()) {
@@ -91,6 +92,55 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     };
   }, []);
 
+  useEffect(() => {
+    if (value.enabled && componentRef.current) {
+      setTimeout(() => {
+        componentRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100); 
+    }
+  }, [value.enabled]);
+
+  useEffect(() => {
+    if (value.enabled && componentRef.current) {
+      setTimeout(() => {
+        componentRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100); 
+    }
+  }, [value.enabled]);
+
+
+  useEffect(() => {
+    if (value.enabled && componentRef.current) {
+      setTimeout(() => {
+        const element = componentRef.current;
+        if (element) {
+          const elementTop = element.offsetTop;
+          const windowHeight = window.innerHeight;
+          const elementHeight = element.offsetHeight;
+          
+          const scrollPosition = Math.max(0, elementTop - 20); 
+          
+          const currentScroll = window.pageYOffset;
+          const isElementVisible = currentScroll <= scrollPosition && 
+            currentScroll + windowHeight >= elementTop + elementHeight;
+          
+          if (!isElementVisible) {
+            window.scrollTo({
+              top: scrollPosition,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 100); 
+    }
+  }, [value.enabled]);
+
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuestion = e.target.value;
     onChange('question', newQuestion);
@@ -114,7 +164,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
   };
 
   return (
-    <div>
+    <div ref={componentRef}>
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
           Custom Screening
