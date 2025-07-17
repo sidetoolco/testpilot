@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, ChevronDown } from 'lucide-react';
-import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
+import { Document, pdf } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
@@ -8,7 +8,6 @@ import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSect
 import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
 import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
 import { CoverPageSection } from './pdf-sections/CoverPageSection';
-import { styles } from './utils/styles';
 import { TestDetails } from './utils/types';
 import { VariantCover } from './sections/VariantCover';
 import apiClient from '../../../../lib/api';
@@ -17,7 +16,6 @@ import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSe
 import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
-import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
 import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
@@ -49,7 +47,6 @@ interface PDFDocumentProps {
   };
   competitiveinsights: any;
   averagesurveys: any;
-  aiInsights?: any[];
   disabled?: boolean;
 }
 
@@ -105,6 +102,7 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
     // Verify that the response has the expected structure
     const exportData = data as TestExportData;
     return exportData;
+
   } catch (error) {
     console.error('Failed to get test export data:', error);
     throw error;
@@ -117,7 +115,6 @@ const PDFDocument = ({
   insights,
   competitiveinsights,
   averagesurveys,
-  aiInsights,
   orientation = 'portrait',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
@@ -125,7 +122,6 @@ const PDFDocument = ({
   insights: PDFDocumentProps['insights'];
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
-  aiInsights?: PDFDocumentProps['aiInsights'];
   orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
@@ -148,9 +144,8 @@ const PDFDocument = ({
   const safeCompetitiveInsights = competitiveinsights || { summaryData: [] };
   const safeAveragesurveys = averagesurveys || { summaryData: [] };
 
-  try {
-    return (
-      <Document>
+  return (
+    <Document>
       <CoverPageSection
         testDetails={testDetails}
         variantsArray={variantsArray}
@@ -174,12 +169,13 @@ const PDFDocument = ({
       {/* Then charts for each variant */}
       {Object.entries(testDetails.variations || {}).map(
         ([key, variation]) =>
-          variation && (
+          variation &&
+          safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key) && (
             <PurchaseDriversChartSection
               key={key}
               variantKey={key}
               variantTitle={variation.title}
-              averagesurveys={safeAveragesurveys.summaryData?.find(
+              averagesurveys={safeAveragesurveys.summaryData.find(
                 (item: any) => item.variant_type === key
               )}
               orientation={orientation}
@@ -213,27 +209,6 @@ const PDFDocument = ({
           )
       )}
 
-      {/* Variant-specific AI Insights */}
-      {aiInsights && aiInsights.length > 0 && Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) => {
-          const variantInsight = aiInsights.find((insight: any) => insight.variant_type === key);
-          return (
-            variation && (
-              <VariantAIInsightsSection
-                key={`ai-insights-${key}`}
-                variantKey={key}
-                variantTitle={variation.title}
-                insights={{
-                  purchase_drivers: variantInsight?.purchase_drivers || '',
-                  competitive_insights: variantInsight?.competitive_insights || '',
-                }}
-                orientation={orientation}
-              />
-            )
-          );
-        }
-      )}
-
       {/* Shopper Comments Analysis */}
       {(() => {
         const shouldShowComments =
@@ -260,34 +235,35 @@ const PDFDocument = ({
         />
       )}
     </Document>
-    );
-  } catch (error) {
-    console.error('PDFDocument render error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    return (
-      <Document>
-        <Page size="A4" orientation={orientation} style={styles.page}>
-          <View style={styles.section}>
-            <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
-              Error rendering PDF: {error instanceof Error ? error.message : 'Unknown error'}
-            </Text>
-          </View>
-        </Page>
-      </Document>
-    );
-  }
+  );
 };
 
 const PDFPreviewModal = ({
   isOpen,
   onClose,
   pdfUrl,
+  testName,
 }: {
   isOpen: boolean;
   onClose: () => void;
   pdfUrl: string;
+  testName?: string;
 }) => {
   if (!isOpen) return null;
+
+  const handleDownload = () => {
+    if (pdfUrl) {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      const filename = testName 
+        ? `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf`
+        : 'test_report.pdf';
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -296,18 +272,10 @@ const PDFPreviewModal = ({
           <h2 className="text-xl font-semibold">PDF Preview</h2>
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => {
-                if (pdfUrl) {
-                  const link = document.createElement('a');
-                  link.href = pdfUrl;
-                  link.download = 'test_report.pdf';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }
-              }}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+              onClick={handleDownload}
+              className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
             >
+              <FilePdf size={16} />
               Download PDF
             </button>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -334,7 +302,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   summaryData,
   insights,
   competitiveinsights,
-  aiInsights,
   disabled,
 }) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -347,6 +314,15 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
+
+  // Cleanup effect to prevent memory leaks (simplified)
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
@@ -379,7 +355,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     try {
       setIsGenerating(true);
 
-      // Clear previous URL if it exists
+      // Clear previous URL if it exists (simplified)
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
         setPdfUrl(null);
@@ -421,36 +397,23 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           : {
               summaryData: [],
             },
-        aiInsights: aiInsights ? JSON.parse(JSON.stringify(aiInsights)) : [],
       };
 
-      const pdfDocument = (
+      const blob = await pdf(
         <PDFDocument
           testDetails={pdfData.testDetails}
           summaryData={pdfData.summaryData}
           insights={pdfData.insights}
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
-          aiInsights={pdfData.aiInsights}
           orientation={selectedOrientation}
         />
-      );
-
-      const blob = await pdf(pdfDocument).toBlob();
+      ).toBlob();
 
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-      
-      // Also provide a direct download option
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${testDetails.name.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(
@@ -463,7 +426,11 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
-    // Don't clear URL immediately to allow reopening
+    // Clean up URL when closing (simplified)
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
   };
 
   const handleRegenerateInsights = () => {
@@ -471,12 +438,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
     apiClient
       .post(`/insights/${testDetails.id}`)
-      .then(() => {
-        toast.success('Insights regenerated successfully');
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error('Failed to regenerate insights:', error);
+      .then(() => window.location.reload())
+      .catch(() => {
         toast.error('Failed to regenerate insights');
         setLoadingInsights(false);
       });
@@ -550,7 +513,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       )}
 
       {isPreviewOpen && pdfUrl && (
-        <PDFPreviewModal isOpen={isPreviewOpen} onClose={handleClosePreview} pdfUrl={pdfUrl} />
+        <PDFPreviewModal 
+          isOpen={isPreviewOpen} 
+          onClose={handleClosePreview} 
+          pdfUrl={pdfUrl} 
+          testName={testDetails?.name}
+        />
       )}
     </>
   );
