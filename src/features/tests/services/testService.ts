@@ -101,8 +101,6 @@ export const testService = {
         user_id: userId,
         settings: {},
         objective: testData.objective,
-        target_participant_count: testData.demographics.testerCount,
-        custom_screening_enabled: testData.demographics.customScreening.enabled
       })
       .select()
       .single();
@@ -164,6 +162,7 @@ export const testService = {
       locations: demographics.locations,
       interests: demographics.interests,
       tester_count: demographics.testerCount,
+      custom_screening_enabled: demographics.customScreening.enabled,
     } as any);
 
     if (error) {
