@@ -78,7 +78,7 @@ const GradientLine: React.FC = () => {
 export const CoverPageSection: React.FC<CoverPageSectionProps> = ({
   testDetails,
   variantsArray,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   const validVariants = variantsArray.filter(
     (v): v is { image_url: string; title: string } => v !== null

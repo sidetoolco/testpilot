@@ -175,7 +175,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   variantKey,
   variantTitle,
   competitiveinsights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   const isLandscape = orientation === 'landscape';
 

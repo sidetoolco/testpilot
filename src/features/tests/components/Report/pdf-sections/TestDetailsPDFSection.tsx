@@ -386,7 +386,7 @@ const GenderBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
 
 export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   testDetails,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   console.log('Test Details:', testDetails);
   console.log('Created At:', testDetails.createdAt);

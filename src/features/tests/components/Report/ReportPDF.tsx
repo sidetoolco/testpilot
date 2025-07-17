@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, ChevronDown } from 'lucide-react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
@@ -118,7 +118,7 @@ const PDFDocument = ({
   competitiveinsights,
   averagesurveys,
   aiInsights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
   summaryData: PDFDocumentProps['summaryData'];
@@ -410,8 +410,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
-  const [orientation, setOrientation] = useState<PDFOrientation>('portrait');
-  const [showOrientationMenu, setShowOrientationMenu] = useState(false);
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
@@ -441,7 +439,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     }
   };
 
-  const handleExportPDF = async (selectedOrientation: PDFOrientation = orientation) => {
+  const handleExportPDF = async () => {
     if (isGenerating) return;
 
     try {
@@ -498,7 +496,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
           aiInsights={pdfData.aiInsights}
-          orientation={selectedOrientation}
+          orientation={'landscape' as PDFOrientation}
         />
       ).toBlob();
 
@@ -557,52 +555,22 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
         </button>
 
-        {/* Dropdown for Export to PDF */}
+        {/* Export to PDF button */}
         <div className="relative">
           <button
-            onClick={() => setShowOrientationMenu(!showOrientationMenu)}
+            onClick={handleExportPDF}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={!isTestActiveOrComplete || isGenerating}
           >
             <FilePdf size={20} />
             {isGenerating ? 'Generating PDF...' : 'Export to PDF'}
-            <ChevronDown size={16} />
           </button>
 
-          {showOrientationMenu && (
-            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-full">
-              <button
-                onClick={() => {
-                  setOrientation('portrait' as PDFOrientation);
-                  setShowOrientationMenu(false);
-                  handleExportPDF('portrait' as PDFOrientation);
-                }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
-              >
-                <span>Portrait</span>
-                {orientation === 'portrait' && <span className="text-green-600 font-bold">✓</span>}
-              </button>
-              <div className="border-t border-gray-100"></div>
-              <button
-                onClick={() => {
-                  setOrientation('landscape' as PDFOrientation);
-                  setShowOrientationMenu(false);
-                  handleExportPDF('landscape' as PDFOrientation);
-                }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between first:rounded-t-md last:rounded-b-md"
-              >
-                <span>Landscape</span>
-                {orientation === 'landscape' && <span className="text-green-600 font-bold">✓</span>}
-              </button>
-            </div>
-          )}
+          {/* Removed orientation menu */}
         </div>
       </div>
 
-      {/* Close menu when clicking outside */}
-      {showOrientationMenu && (
-        <div className="fixed inset-0 z-5" onClick={() => setShowOrientationMenu(false)} />
-      )}
+      {/* Removed orientation menu */}
 
       {isPreviewOpen && pdfUrl && (
         <PDFPreviewModal 
