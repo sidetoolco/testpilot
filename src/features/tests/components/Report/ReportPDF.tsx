@@ -310,12 +310,7 @@ const PDFPreviewModal = ({
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <iframe 
-            src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-            className="w-full h-full" 
-            title="PDF Preview"
-            style={{ border: 'none' }}
-          />
+        <iframe src={pdfUrl} className="w-full h-full" title="PDF Preview" />
         </div>
       </div>
     </div>
