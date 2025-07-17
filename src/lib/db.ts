@@ -33,7 +33,7 @@ export interface Product {
 export interface Test {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'completed';
+  status: 'draft' | 'active' | 'complete' | 'incomplete';
   searchTerm: string;
   userId: string;
   createdAt: Date;

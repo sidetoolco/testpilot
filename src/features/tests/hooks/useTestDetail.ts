@@ -7,8 +7,9 @@ import { useAuth } from '../../auth/hooks/useAuth';
 type TestResponse = {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'completed';
+  status: 'draft' | 'active' | 'complete' | 'incomplete';
   search_term: string;
+  objective?: string;
   created_at: string;
   updated_at: string;
   competitors: Array<{ product: any }>;
@@ -156,7 +157,7 @@ export function useTestDetail(id: string) {
         const transformedTest: Test = {
           id: typedTestData.id,
           name: typedTestData.name,
-          status: typedTestData.status as 'draft' | 'active' | 'complete',
+          status: typedTestData.status,
           searchTerm: typedTestData.search_term,
           competitors: typedTestData.competitors?.map(c => c.product) || [],
           objective: typedTestData.objective,
@@ -172,7 +173,6 @@ export function useTestDetail(id: string) {
             interests: typedTestData.demographics?.[0]?.interests || [],
             testerCount: typedTestData.demographics?.[0]?.tester_count || 0,
             customScreening: {
-              enabled: !!typedTestData.custom_screening?.[0],
               question: typedTestData.custom_screening?.[0]?.question || '',
               validAnswer:
                 (typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No') || undefined,

@@ -33,7 +33,7 @@ const objectiveMap = {
 };
 
 const getObjectiveConfig = (objective: string | undefined) => {
-  return objectiveMap[objective || ''] || null;
+  return objectiveMap[objective as TestObjective] || null;
 };
 
 export default function TestSummary({ test }: TestSummaryProps) {
@@ -61,7 +61,7 @@ export default function TestSummary({ test }: TestSummaryProps) {
             </div>
           )}
         </div>
-        <TestStatus status={status as 'draft' | 'active' | 'complete'} />
+        <TestStatus status={status} />
       </div>
 
       <TestMetrics test={test} />
