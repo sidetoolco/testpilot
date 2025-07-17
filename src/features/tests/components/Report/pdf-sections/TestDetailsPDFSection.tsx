@@ -385,7 +385,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                   </Text>
                 }
                 label="Total Testers"
-                value={testDetails.demographics.testerCount}
+                value={testDetails.demographics.testerCount * variationCount}
                 color={COLORS.primary}
               />
               <MetricCard
@@ -630,7 +630,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
               </Text>
             }
             label="Total Testers"
-            value={testDetails.demographics.testerCount}
+            value={testDetails.demographics.testerCount * variationCount}
             color={COLORS.primary}
           />
           <MetricCard
