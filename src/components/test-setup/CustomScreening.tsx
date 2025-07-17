@@ -36,13 +36,11 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     // Set loading state immediately
     setIsValidating(true);
     onChange('isValidating', true);
-    // setSuggestedQuestion(null);
 
-    // Make the API call immediately (no debounce for manual button click)
     apiClient
       .post<ValidateQuestionResponse>('/screening/validate-question', {
         question,
-        desiredAnswer: desiredAnswer || 'Yes', // Default to 'Yes' for validation
+        desiredAnswer: desiredAnswer || 'Yes', 
       })
       .then(({ data }) => {
         if (!data.isValid || data.error) {
@@ -102,10 +100,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     onChange('valid', false);
   };
 
-  const handleQuestionBlur = () => {
-    // Remove automatic validation on blur
-  };
-
+ 
   // const useSuggestedQuestion = () => {
   //   if (suggestedQuestion) {
   //     onChange('question', suggestedQuestion);
