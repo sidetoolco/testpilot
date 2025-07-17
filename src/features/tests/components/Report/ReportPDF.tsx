@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, ChevronDown } from 'lucide-react';
-import { Document, pdf } from '@react-pdf/renderer';
+import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
@@ -16,6 +16,7 @@ import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSe
 import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
+import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
 import { ShopperCommentsPDFSection } from './pdf-sections/ShopperCommentsPDFSection';
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
@@ -47,6 +48,7 @@ interface PDFDocumentProps {
   };
   competitiveinsights: any;
   averagesurveys: any;
+  aiInsights?: any[];
   disabled?: boolean;
 }
 
@@ -115,6 +117,7 @@ const PDFDocument = ({
   insights,
   competitiveinsights,
   averagesurveys,
+  aiInsights,
   orientation = 'portrait',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
@@ -122,6 +125,7 @@ const PDFDocument = ({
   insights: PDFDocumentProps['insights'];
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
+  aiInsights?: PDFDocumentProps['aiInsights'];
   orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
@@ -143,6 +147,7 @@ const PDFDocument = ({
 
   const safeCompetitiveInsights = competitiveinsights || { summaryData: [] };
   const safeAveragesurveys = averagesurveys || { summaryData: [] };
+  const safeAiInsights = aiInsights || [];
 
   return (
     <Document>
@@ -207,6 +212,27 @@ const PDFDocument = ({
               orientation={orientation}
             />
           )
+      )}
+
+      {/* Variant-specific AI Insights */}
+      {safeAiInsights && safeAiInsights.length > 0 && Object.entries(testDetails.variations || {}).map(
+        ([key, variation]) => {
+          const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
+          return (
+            variation && (
+              <VariantAIInsightsSection
+                key={`ai-insights-${key}`}
+                variantKey={key}
+                variantTitle={variation.title}
+                insights={{
+                  purchase_drivers: variantInsight?.purchase_drivers || '',
+                  competitive_insights: variantInsight?.competitive_insights || '',
+                }}
+                orientation={orientation}
+              />
+            )
+          );
+        }
       )}
 
       {/* Shopper Comments Analysis */}
@@ -302,6 +328,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   summaryData,
   insights,
   competitiveinsights,
+  aiInsights,
   disabled,
 }) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -397,6 +424,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           : {
               summaryData: [],
             },
+        aiInsights: aiInsights ? JSON.parse(JSON.stringify(aiInsights)) : [],
       };
 
       const blob = await pdf(
@@ -406,6 +434,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           insights={pdfData.insights}
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
+          aiInsights={pdfData.aiInsights}
           orientation={selectedOrientation}
         />
       ).toBlob();
