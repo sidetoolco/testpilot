@@ -101,6 +101,8 @@ export const testService = {
         user_id: userId,
         settings: {},
         objective: testData.objective,
+        target_participant_count: testData.demographics.testerCount,
+        custom_screening_enabled: testData.demographics.customScreening.enabled
       })
       .select()
       .single();
