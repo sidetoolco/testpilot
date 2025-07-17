@@ -12,7 +12,7 @@ interface RecommendationsPDFSectionProps {
 
 export const RecommendationsPDFSection: React.FC<RecommendationsPDFSectionProps> = ({
   insights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   if (!insights) return null;
   return (

@@ -90,7 +90,7 @@ const Footer: React.FC = () => (
 
 export const CompetitiveInsightsTextSection: React.FC<CompetitiveInsightsTextSectionProps> = ({
   insights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>

@@ -108,7 +108,7 @@ const SimpleMarkdownText: React.FC<{ text: string }> = ({ text }) => {
 export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
   summaryData,
   insights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   // Procesar los datos directamente sin estado
   const rows = formatSummaryData(summaryData);

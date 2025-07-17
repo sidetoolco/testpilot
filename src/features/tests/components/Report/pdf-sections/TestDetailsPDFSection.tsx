@@ -143,16 +143,32 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
   </View>
 );
 
+// Función para calcular el total de usuarios procesados desde responses
+const calculateTotalUsersFromResponses = (responses: any): number => {
+  if (!responses?.comparisons) return 0;
+
+  let totalUsers = 0;
+  Object.values(responses.comparisons).forEach((variationResponses: any) => {
+    if (Array.isArray(variationResponses)) {
+      totalUsers += variationResponses.length;
+    }
+  });
+  return totalUsers;
+};
+
 // Función para procesar datos de edad desde responses_comparisons
 const processAgeData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const ageCounts: { [key: string]: number } = {};
+  let usersWithoutAge = 0;
+  let totalUsersProcessed = 0;
 
   // Procesar datos de edad desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
+        totalUsersProcessed++;
         if (response?.tester_id?.shopper_demographic?.age) {
           const age = response.tester_id.shopper_demographic.age;
           // Crear rangos de edad
@@ -168,10 +184,15 @@ const processAgeData = (responses: any): ChartDataItem[] => {
           if (range) {
             ageCounts[range] = (ageCounts[range] || 0) + 1;
           }
+        } else {
+          // Contar usuarios sin datos de edad
+          usersWithoutAge++;
         }
       });
     }
   });
+
+
 
   // Convertir a formato de gráfica con colores originales
   const colors = [
@@ -182,8 +203,10 @@ const processAgeData = (responses: any): ChartDataItem[] => {
     '#F59E0B',
     '#EF4444',
     '#8B5CF6',
+    '#9CA3AF', // Color gris más claro para "Non-informed age"
   ];
-  return Object.entries(ageCounts)
+  
+  const result = Object.entries(ageCounts)
     .sort(([a], [b]) => {
       const aStart = parseInt(a.split('-')[0]);
       const bStart = parseInt(b.split('-')[0]);
@@ -194,6 +217,17 @@ const processAgeData = (responses: any): ChartDataItem[] => {
       value: count,
       color: colors[index % colors.length],
     }));
+
+  // Agregar categoría "Non-informed age" si hay usuarios sin datos de edad
+  if (usersWithoutAge > 0) {
+    result.push({
+      label: 'Not informed',
+      value: usersWithoutAge,
+      color: colors[colors.length - 1], // Usar el último color (gris)
+    });
+  }
+
+  return result;
 };
 
 // Función para procesar datos de género desde responses_comparisons
@@ -201,26 +235,47 @@ const processGenderData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const genderCounts: { [key: string]: number } = {};
+  let usersWithoutGender = 0;
+  let totalUsersProcessed = 0;
 
   // Procesar datos de género desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
-        if (response?.tester_id?.shopper_demographic?.sex) {
-          const gender = response.tester_id.shopper_demographic.sex;
+        totalUsersProcessed++;
+        if (response?.tester_id?.shopper_demographic?.sex || response?.tester_id?.shopper_demographic?.gender) {
+          const gender = response.tester_id.shopper_demographic.sex || response.tester_id.shopper_demographic.gender;
           genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+        } else {
+          // Contar usuarios sin datos de género
+          usersWithoutGender++;
+
         }
       });
     }
   });
 
+
+
   // Convertir a formato de gráfica con colores del estilo de la app
-  const genderColors = [COLORS.primary, COLORS.secondary]; // Verde principal y secundario
-  return Object.entries(genderCounts).map(([gender, count], index) => ({
+  const genderColors = [COLORS.primary, COLORS.secondary, '#9CA3AF']; // Verde principal, secundario y gris para "Non-informed"
+  
+  const result = Object.entries(genderCounts).map(([gender, count], index) => ({
     label: gender.charAt(0).toUpperCase() + gender.slice(1),
     value: count,
     color: genderColors[index % genderColors.length],
   }));
+
+  // Agregar categoría "Non-informed gender" si hay usuarios sin datos de género
+  if (usersWithoutGender > 0) {
+    result.push({
+      label: 'Not informed',
+      value: usersWithoutGender,
+      color: genderColors[genderColors.length - 1], // Usar el último color (gris)
+    });
+  }
+
+  return result;
 };
 
 // Componente para gráfica de barras verticales
@@ -310,11 +365,8 @@ const GenderBarChart: React.FC<{ data: ChartDataItem[]; height?: number }> = ({
 
 export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   testDetails,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
-  console.log('Test Details:', testDetails);
-  console.log('Created At:', testDetails.createdAt);
-  console.log('Date Object:', new Date(testDetails.createdAt));
 
   // Calcular el número de variaciones
   const variationCount = Object.values(testDetails.variations).filter(v => v !== null).length;
@@ -326,6 +378,13 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
   // Procesar datos de demografía desde responses_comparisons
   const ageData = processAgeData(testDetails.responses);
   const genderData = processGenderData(testDetails.responses);
+
+  // Debugging: Verificar totales
+  const totalUsersFromResponses = calculateTotalUsersFromResponses(testDetails.responses);
+  const totalAgeData = ageData.reduce((sum, item) => sum + item.value, 0);
+  const totalGenderData = genderData.reduce((sum, item) => sum + item.value, 0);
+
+
 
   // Fallback a datos originales si no hay datos de responses_comparisons
   const fallbackGenderData =
@@ -347,9 +406,18 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
       label: range,
     })) || [];
 
-  // Usar datos procesados si están disponibles, sino usar fallback
-  const finalGenderData = genderData.length > 0 ? genderData : fallbackGenderData;
-  const finalAgeData = ageData.length > 0 ? ageData : fallbackAgeData;
+  // Usar datos procesados si están disponibles y tienen el total correcto, sino usar fallback
+  const totalGenderFromProcessed = genderData.reduce((sum, item) => sum + item.value, 0);
+  const totalAgeFromProcessed = ageData.reduce((sum, item) => sum + item.value, 0);
+  
+  const finalGenderData = (genderData.length > 0 && totalGenderFromProcessed === totalUsersFromResponses) 
+    ? genderData 
+    : fallbackGenderData;
+  const finalAgeData = (ageData.length > 0 && totalAgeFromProcessed === totalUsersFromResponses) 
+    ? ageData 
+    : fallbackAgeData;
+
+
 
   // En landscape, dividir en dos páginas para evitar cortes
   if (orientation === 'landscape') {
@@ -384,8 +452,8 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                     {'\uf0c0'}
                   </Text>
                 }
-                label="Total Testers"
-                value={testDetails.demographics.testerCount}
+                label="Total Sessions"
+                value={testDetails.demographics.testerCount * variationCount}
                 color={COLORS.primary}
               />
               <MetricCard
@@ -629,8 +697,8 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                 {'\uf0c0'}
               </Text>
             }
-            label="Total Testers"
-            value={testDetails.demographics.testerCount}
+            label="Total Sessions"
+            value={testDetails.demographics.testerCount * variationCount}
             color={COLORS.primary}
           />
           <MetricCard

@@ -87,7 +87,7 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
   variantKey,
   variantTitle,
   averagesurveys,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   const datasets = getChartData(averagesurveys);
 

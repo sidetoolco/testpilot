@@ -77,7 +77,7 @@ export const ShopperCommentsPDFSection: React.FC<ShopperCommentsPDFSectionProps>
   comparision,
   surveys,
   shopperCommentsSummary,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   console.log('ShopperCommentsPDFSection - Received data:', {
     commentsCount: comments.length,
