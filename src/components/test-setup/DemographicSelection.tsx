@@ -210,7 +210,10 @@ export default function DemographicSelection({
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
             # of Testers per Variant <span className="text-red-500">*</span>
-            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="tester-count-tooltip" />
+            <Info
+              className="h-4 w-4 text-gray-400 cursor-help"
+              data-tooltip-id="tester-count-tooltip"
+            />
             <Tooltip id="tester-count-tooltip" className="!px-2 !py-1 !text-sm">
               Number of testers per variation from 25 to 500
             </Tooltip>
@@ -242,7 +245,10 @@ export default function DemographicSelection({
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
             Age Range <span className="text-red-500">*</span>
-            <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="age-range-tooltip" />
+            <Info
+              className="h-4 w-4 text-gray-400 cursor-help"
+              data-tooltip-id="age-range-tooltip"
+            />
             <Tooltip id="age-range-tooltip" className="!px-2 !py-1 !text-sm">
               Age range for participants
             </Tooltip>
@@ -288,7 +294,10 @@ export default function DemographicSelection({
           <div>
             <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
               Gender <span className="text-red-500">*</span>
-              <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="gender-tooltip" />
+              <Info
+                className="h-4 w-4 text-gray-400 cursor-help"
+                data-tooltip-id="gender-tooltip"
+              />
               <Tooltip id="gender-tooltip" className="!px-2 !py-1 !text-sm">
                 Select at least one participant gender
               </Tooltip>
@@ -310,7 +319,10 @@ export default function DemographicSelection({
           <div>
             <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
               Country <span className="text-red-500">*</span>
-              <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="country-tooltip" />
+              <Info
+                className="h-4 w-4 text-gray-400 cursor-help"
+                data-tooltip-id="country-tooltip"
+              />
               <Tooltip id="country-tooltip" className="!px-2 !py-1 !text-sm">
                 Select at least one participant location
               </Tooltip>

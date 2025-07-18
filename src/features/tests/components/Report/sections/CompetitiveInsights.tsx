@@ -67,7 +67,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   // Get variant-specific AI insights
   const currentVariantInsight = getInsightForVariant(selectedVariant);
-  
+
   // Filter insights for selected variant
   const shareOfBuy = sumaryvariations?.find((variation: any) =>
     variation.title.includes('Variant ' + selectedVariant.toUpperCase())
@@ -88,12 +88,14 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
 
   // Get available variants from both competitive insights and AI insights
-  const availableVariants = [...new Set([
-    ...competitiveinsights.map(item => item.variant_type),
-    ...aiInsights
-      .map(insight => insight.variant_type)
-      .filter((variant): variant is string => variant !== null && variant !== undefined)
-  ])].sort();
+  const availableVariants = [
+    ...new Set([
+      ...competitiveinsights.map(item => item.variant_type),
+      ...aiInsights
+        .map(insight => insight.variant_type)
+        .filter((variant): variant is string => variant !== null && variant !== undefined),
+    ]),
+  ].sort();
 
   return (
     <div className="w-full p-6 bg-white rounded-xl shadow-sm">
@@ -141,93 +143,94 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       ) : (
         <>
           <table className="min-w-full border-collapse max-w-screen-md">
-          <thead>
-            <tr className="bg-gray-100 border-none">
-              <th colSpan={2} className="p-2 bg-white"></th>
-              <th colSpan={5} className="border border-gray-300 p-2">
-                Your Item vs Competitor
-              </th>
-            </tr>
-            <tr className="bg-gray-100">
-              {[
-                'Product',
-                'Share of Buy',
-                'Value',
-                'Aesthetics',
-                'Utility',
-                'Trust',
-                'Convenience',
-              ].map(header => (
-                <th key={header} className="border border-gray-300 p-2 text-left">
-                  {header}
+            <thead>
+              <tr className="bg-gray-100 border-none">
+                <th colSpan={2} className="p-2 bg-white"></th>
+                <th colSpan={5} className="border border-gray-300 p-2">
+                  Your Item vs Competitor
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredInsights.map((item, index) => (
-              <tr key={index}>
-                <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
-                  <div className="relative group">
-                    <a
-                      href={item.competitor_product_id?.product_url || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3"
-                    >
-                      <img
-                        src={item.competitor_product_id?.image_url || item.product?.image_url}
-                        alt={item.competitor_product_id?.title || item.product?.title}
-                        className="w-16 h-16 rounded object-cover shadow-sm"
-                      />
-                      <span className="text-xs font-semibold text-gray-700">
-                        ${item.competitor_product_id?.price || item.product?.price}
-                      </span>
-                    </a>
-
-                    <div
-                      className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
-                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                    >
-                      {(item.competitor_product_id?.title || item.product?.title || '').slice(
-                        0,
-                        40
-                      )}
-                      {(item.competitor_product_id?.title || item.product?.title || '').length > 40
-                        ? '...'
-                        : ''}
-                    </div>
-
-                    {item.count === 1 && (
-                      <span
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
-                        rounded-full flex items-center justify-center text-[10px] shadow"
-                      >
-                        🔍
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="border border-gray-300 p-2">
-                  {item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-'}
-                </td>
-                {renderCell(Number(item.value), item.count, !!item.product)}
-                {renderCell(
-                  Number(item.aesthetics || item.appearance || 0),
-                  item.count,
-                  !!item.product
-                )}
-                {renderCell(
-                  Number(item.utility || item.confidence || 0),
-                  item.count,
-                  !!item.product
-                )}
-                {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
-                {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
               </tr>
-            ))}
-          </tbody>
-        </table>
+              <tr className="bg-gray-100">
+                {[
+                  'Product',
+                  'Share of Buy',
+                  'Value',
+                  'Aesthetics',
+                  'Utility',
+                  'Trust',
+                  'Convenience',
+                ].map(header => (
+                  <th key={header} className="border border-gray-300 p-2 text-left">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInsights.map((item, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
+                    <div className="relative group">
+                      <a
+                        href={item.competitor_product_id?.product_url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3"
+                      >
+                        <img
+                          src={item.competitor_product_id?.image_url || item.product?.image_url}
+                          alt={item.competitor_product_id?.title || item.product?.title}
+                          className="w-16 h-16 rounded object-cover shadow-sm"
+                        />
+                        <span className="text-xs font-semibold text-gray-700">
+                          ${item.competitor_product_id?.price || item.product?.price}
+                        </span>
+                      </a>
+
+                      <div
+                        className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
+                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                      >
+                        {(item.competitor_product_id?.title || item.product?.title || '').slice(
+                          0,
+                          40
+                        )}
+                        {(item.competitor_product_id?.title || item.product?.title || '').length >
+                        40
+                          ? '...'
+                          : ''}
+                      </div>
+
+                      {item.count === 1 && (
+                        <span
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
+                        rounded-full flex items-center justify-center text-[10px] shadow"
+                        >
+                          🔍
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-'}
+                  </td>
+                  {renderCell(Number(item.value), item.count, !!item.product)}
+                  {renderCell(
+                    Number(item.aesthetics || item.appearance || 0),
+                    item.count,
+                    !!item.product
+                  )}
+                  {renderCell(
+                    Number(item.utility || item.confidence || 0),
+                    item.count,
+                    !!item.product
+                  )}
+                  {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
+                  {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </>
       )}
 
@@ -241,8 +244,9 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         </p>
         <p>Click on the product image to see details.</p>
         <p className="text-xs text-gray-500 mt-2">
-          <strong>Note:</strong> Share of Buy represents the percentage of participants who selected each product within this variant. 
-          Percentages may not sum to exactly 100% due to rounding or participants who didn't make a selection.
+          <strong>Note:</strong> Share of Buy represents the percentage of participants who selected
+          each product within this variant. Percentages may not sum to exactly 100% due to rounding
+          or participants who didn't make a selection.
         </p>
       </div>
     </div>

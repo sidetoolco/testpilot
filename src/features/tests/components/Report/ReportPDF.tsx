@@ -151,115 +151,115 @@ const PDFDocument = ({
   try {
     return (
       <Document>
-      <CoverPageSection
-        testDetails={testDetails}
-        variantsArray={variantsArray}
-        orientation={orientation}
-      />
-      <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
-      <SummaryPDFSection
-        summaryData={summaryData}
-        insights={safeInsights}
-        orientation={orientation}
-      />
-
-      {/* New structure: Purchase Drivers with general text first */}
-      {safeInsights?.purchase_drivers && (
-        <PurchaseDriversTextSection
-          insights={safeInsights.purchase_drivers}
+        <CoverPageSection
+          testDetails={testDetails}
+          variantsArray={variantsArray}
           orientation={orientation}
         />
-      )}
-
-      {/* Then charts for each variant */}
-      {Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) =>
-          variation && (
-            <PurchaseDriversChartSection
-              key={key}
-              variantKey={key}
-              variantTitle={variation.title}
-              averagesurveys={safeAveragesurveys.summaryData?.find(
-                (item: any) => item.variant_type === key
-              )}
-              orientation={orientation}
-            />
-          )
-      )}
-
-      {/* New structure: Competitive Insights with general text first */}
-      {safeInsights?.competitive_insights && (
-        <CompetitiveInsightsTextSection
-          insights={safeInsights.competitive_insights}
+        <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
+        <SummaryPDFSection
+          summaryData={summaryData}
+          insights={safeInsights}
           orientation={orientation}
         />
-      )}
 
-      {/* Then tables for each variant */}
-      {Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) =>
-          variation && (
-            <CompetitiveInsightsTableSection
-              key={`competitive-table-${key}`}
-              variantKey={key}
-              variantTitle={variation.title}
-              competitiveinsights={
-                safeCompetitiveInsights.summaryData?.filter(
-                  (item: any) => item.variant_type === key
-                ) || []
-              }
-              orientation={orientation}
-            />
-          )
-      )}
+        {/* New structure: Purchase Drivers with general text first */}
+        {safeInsights?.purchase_drivers && (
+          <PurchaseDriversTextSection
+            insights={safeInsights.purchase_drivers}
+            orientation={orientation}
+          />
+        )}
 
-      {/* Variant-specific AI Insights */}
-      {aiInsights && aiInsights.length > 0 && Object.entries(testDetails.variations || {}).map(
-        ([key, variation]) => {
-          const variantInsight = aiInsights.find((insight: any) => insight.variant_type === key);
-          return (
+        {/* Then charts for each variant */}
+        {Object.entries(testDetails.variations || {}).map(
+          ([key, variation]) =>
             variation && (
-              <VariantAIInsightsSection
-                key={`ai-insights-${key}`}
+              <PurchaseDriversChartSection
+                key={key}
                 variantKey={key}
                 variantTitle={variation.title}
-                insights={{
-                  purchase_drivers: variantInsight?.purchase_drivers || '',
-                  competitive_insights: variantInsight?.competitive_insights || '',
-                }}
+                averagesurveys={safeAveragesurveys.summaryData?.find(
+                  (item: any) => item.variant_type === key
+                )}
                 orientation={orientation}
               />
             )
-          );
-        }
-      )}
+        )}
 
-      {/* Shopper Comments Analysis */}
-      {(() => {
-        const shouldShowComments =
-          safeInsights?.comment_summary ||
-          (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
-          testDetails.responses?.comparisons ||
-          testDetails.responses?.surveys;
+        {/* New structure: Competitive Insights with general text first */}
+        {safeInsights?.competitive_insights && (
+          <CompetitiveInsightsTextSection
+            insights={safeInsights.competitive_insights}
+            orientation={orientation}
+          />
+        )}
 
-        return shouldShowComments;
-      })() && (
-        <ShopperCommentsPDFSection
-          comments={safeInsights?.shopper_comments || []}
-          comparision={testDetails.responses?.comparisons}
-          surveys={testDetails.responses?.surveys}
-          shopperCommentsSummary={safeInsights?.comment_summary || ''}
-          orientation={orientation}
-        />
-      )}
+        {/* Then tables for each variant */}
+        {Object.entries(testDetails.variations || {}).map(
+          ([key, variation]) =>
+            variation && (
+              <CompetitiveInsightsTableSection
+                key={`competitive-table-${key}`}
+                variantKey={key}
+                variantTitle={variation.title}
+                competitiveinsights={
+                  safeCompetitiveInsights.summaryData?.filter(
+                    (item: any) => item.variant_type === key
+                  ) || []
+                }
+                orientation={orientation}
+              />
+            )
+        )}
 
-      {safeInsights?.recommendations && (
-        <RecommendationsPDFSection
-          insights={safeInsights.recommendations}
-          orientation={orientation}
-        />
-      )}
-    </Document>
+        {/* Variant-specific AI Insights */}
+        {aiInsights &&
+          aiInsights.length > 0 &&
+          Object.entries(testDetails.variations || {}).map(([key, variation]) => {
+            const variantInsight = aiInsights.find((insight: any) => insight.variant_type === key);
+            return (
+              variation && (
+                <VariantAIInsightsSection
+                  key={`ai-insights-${key}`}
+                  variantKey={key}
+                  variantTitle={variation.title}
+                  insights={{
+                    purchase_drivers: variantInsight?.purchase_drivers || '',
+                    competitive_insights: variantInsight?.competitive_insights || '',
+                  }}
+                  orientation={orientation}
+                />
+              )
+            );
+          })}
+
+        {/* Shopper Comments Analysis */}
+        {(() => {
+          const shouldShowComments =
+            safeInsights?.comment_summary ||
+            (safeInsights?.shopper_comments && safeInsights.shopper_comments.length > 0) ||
+            testDetails.responses?.comparisons ||
+            testDetails.responses?.surveys;
+
+          return shouldShowComments;
+        })() && (
+          <ShopperCommentsPDFSection
+            comments={safeInsights?.shopper_comments || []}
+            comparision={testDetails.responses?.comparisons}
+            surveys={testDetails.responses?.surveys}
+            shopperCommentsSummary={safeInsights?.comment_summary || ''}
+            orientation={orientation}
+          />
+        )}
+
+        {safeInsights?.recommendations && (
+          <RecommendationsPDFSection
+            insights={safeInsights.recommendations}
+            orientation={orientation}
+          />
+        )}
+      </Document>
     );
   } catch (error) {
     console.error('PDFDocument render error:', error);
@@ -295,7 +295,7 @@ const PDFPreviewModal = ({
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">PDF Preview</h2>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => {
                 if (pdfUrl) {
                   const link = document.createElement('a');
@@ -316,9 +316,9 @@ const PDFPreviewModal = ({
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <iframe 
+          <iframe
             src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-            className="w-full h-full" 
+            className="w-full h-full"
             title="PDF Preview"
             style={{ border: 'none' }}
           />
@@ -441,7 +441,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-      
+
       // Also provide a direct download option
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -475,7 +475,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         toast.success('Insights regenerated successfully');
         window.location.reload();
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Failed to regenerate insights:', error);
         toast.error('Failed to regenerate insights');
         setLoadingInsights(false);
