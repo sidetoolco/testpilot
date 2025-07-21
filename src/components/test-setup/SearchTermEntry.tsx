@@ -48,6 +48,7 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
+    setFilteredSuggestions([]);
   };
 
   return (
