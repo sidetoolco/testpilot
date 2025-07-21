@@ -156,17 +156,26 @@ export const PurchaseDriversChartSection: React.FC<PurchaseDriversChartSectionPr
                     flex: 1,
                     marginLeft: 35,
                     justifyContent: 'space-between',
+                    alignItems: 'flex-end',
                   }}
                 >
                   {LABELS.map((label, labelIndex) => (
-                    <View key={label} style={[styles.barGroup, { width: '18%' }]}>
+                    <View key={label} style={[styles.barGroup, { width: '18%', height: '100%', paddingHorizontal: '4px' }]}>
                       {datasets.map((dataset: Dataset, datasetIndex: number) => {
                         const value = dataset.data[labelIndex];
-                        const height = `${(value / 5) * 100}%`;
+                        const barHeight = Math.max(20, (value / 5) * chartHeight * 0.8);
                         return (
                           <View
                             key={datasetIndex}
-                            style={[styles.bar, { height, backgroundColor: dataset.color }]}
+                            style={[
+                              styles.bar, 
+                              { 
+                                height: barHeight,
+                                backgroundColor: dataset.color,
+                                minHeight: 20,
+                                maxHeight: chartHeight * 0.8
+                              }
+                            ]}
                           >
                             <Text style={styles.barValue}>{value.toFixed(1)}</Text>
                           </View>

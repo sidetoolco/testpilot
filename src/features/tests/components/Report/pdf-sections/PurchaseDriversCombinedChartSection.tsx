@@ -41,13 +41,17 @@ const getChartData = (surveys: Survey[]): Dataset[] => {
     return [];
   }
 
+  // Ensure data mapping is correct by aligning with LABELS array
+  // The desired order is: 'Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'
+  // The survey object has: 'value', 'appearance', 'confidence', 'brand', 'convenience'
+  // Let's assume: Aesthetics -> appearance, Utility -> confidence, Trust -> brand
   return surveys.map((survey, index) => {
     const data = [
-      survey.value,       
-      survey.appearance,   
-      survey.confidence,   
-      survey.brand,        
-      survey.convenience,  
+      survey.value,
+      survey.appearance, // Aesthetics
+      survey.confidence,  // Utility
+      survey.brand,       // Trust
+      survey.convenience,
     ];
 
     return {
@@ -109,8 +113,7 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
   const containerHeight = isLandscape ? 250 : 300;
   const padding = isLandscape ? '12px 16px 30px 16px' : '16px 16px 40px 16px';
 
-  // Calculate bar width based on number of variants
-  const barWidth = `${100 / datasets.length}%`;
+  // Calculate width for each category group
   const groupWidth = `${100 / LABELS.length}%`;
 
   return (
@@ -140,7 +143,14 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
 
               {/* Chart */}
               <View
-                style={[styles.chartGrid, { height: chartHeight, marginTop: isLandscape ? 5 : 10 }]}
+                style={[
+                  styles.chartGrid,
+                  {
+                    height: chartHeight,
+                    marginTop: isLandscape ? 5 : 10,
+                    position: 'relative'
+                  }
+                ]}
               >
                 {/* Y Axis */}
                 <View style={styles.yAxis}>
@@ -151,31 +161,49 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
                   ))}
                 </View>
 
-                {/* Bars */}
+                {/* Bars Container */}
                 <View
                   style={{
                     flexDirection: 'row',
                     flex: 1,
                     marginLeft: 35,
-                    justifyContent: 'space-between',
+                    justifyContent: 'space-between', // This creates space BETWEEN the groups
+                    alignItems: 'flex-end',
+                    height: '100%',
+                    position: 'relative',
                   }}
                 >
                   {LABELS.map((label, labelIndex) => (
-                    <View key={label} style={[styles.barGroup, { width: groupWidth }]}>
-                      <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                    // This is the container for a single group (e.g., "Value")
+                    // It centers the inner bar container.
+                    <View
+                      key={label}
+                      style={{
+                        width: groupWidth,
+                        height: '100%',
+                        justifyContent: 'flex-end', 
+                        alignItems: 'center'      
+                      }}
+                    >
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'flex-end',
+                        width: '75%', 
+                        height: '100%',
+                        gap: 2,
+                      }}>
                         {datasets.map((dataset: Dataset, datasetIndex: number) => {
                           const value = dataset.data[labelIndex];
-                          const height = `${(value / 5) * 100}%`;
+                          const barHeight = Math.max(1, (value / 5) * 100);
                           return (
                             <View
                               key={datasetIndex}
                               style={[
-                                styles.bar, 
-                                { 
-                                  height, 
+                                styles.bar,
+                                {
+                                  height: `${barHeight}%`,
                                   backgroundColor: dataset.color,
-                                  width: barWidth,
-                                  marginHorizontal: '1px'
+                                  flex: 1, 
                                 }
                               ]}
                             >
@@ -191,7 +219,18 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
 
               {/* X Axis Labels */}
               <View
-                style={[styles.xAxis, { paddingHorizontal: '2%', bottom: isLandscape ? -15 : -20 }]}
+                style={[
+                  styles.xAxis,
+                  {
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    bottom: isLandscape ? -15 : -20,
+                    marginLeft: 30,
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                  },
+                ]}
               >
                 {LABELS.map(label => (
                   <View key={label} style={{ width: groupWidth, alignItems: 'center' }}>
@@ -206,4 +245,4 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
       <Footer />
     </Page>
   );
-}; 
+};

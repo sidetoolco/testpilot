@@ -101,7 +101,8 @@ export const VariantAIInsightsSection: React.FC<VariantAIInsightsSectionProps> =
 }) => {
   const isLandscape = orientation === 'landscape';
   const hasPurchaseDrivers = insights?.purchase_drivers && insights.purchase_drivers.trim();
-  const hasCompetitiveInsights = insights?.competitive_insights && insights.competitive_insights.trim();
+  const hasCompetitiveInsights =
+    insights?.competitive_insights && insights.competitive_insights.trim();
 
   if (!hasPurchaseDrivers && !hasCompetitiveInsights) {
     return (
@@ -157,4 +158,4 @@ export const VariantAIInsightsSection: React.FC<VariantAIInsightsSectionProps> =
       <Footer />
     </Page>
   );
-}; 
+};

@@ -41,7 +41,7 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     apiClient
       .post<ValidateQuestionResponse>('/screening/validate-question', {
         question,
-        desiredAnswer: desiredAnswer || 'Yes', 
+        desiredAnswer: desiredAnswer || 'Yes',
       })
       .then(({ data }) => {
         if (!data.isValid || data.error) {
@@ -100,21 +100,22 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
           const elementTop = element.offsetTop;
           const windowHeight = window.innerHeight;
           const elementHeight = element.offsetHeight;
-          
-          const scrollPosition = Math.max(0, elementTop - 20); 
-          
+
+          const scrollPosition = Math.max(0, elementTop - 20);
+
           const currentScroll = window.pageYOffset;
-          const isElementVisible = currentScroll <= scrollPosition && 
+          const isElementVisible =
+            currentScroll <= scrollPosition &&
             currentScroll + windowHeight >= elementTop + elementHeight;
-          
+
           if (!isElementVisible) {
             window.scrollTo({
               top: scrollPosition,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }
         }
-      }, 100); 
+      }, 100);
     }
   }, [value.enabled]);
 
@@ -127,7 +128,6 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
     onChange('valid', false);
   };
 
- 
   // const useSuggestedQuestion = () => {
   //   if (suggestedQuestion) {
   //     onChange('question', suggestedQuestion);
@@ -145,7 +145,10 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
           Custom Screening
-          <Info className="h-4 w-4 text-gray-400 cursor-help" data-tooltip-id="custom-screening-tooltip" />
+          <Info
+            className="h-4 w-4 text-gray-400 cursor-help"
+            data-tooltip-id="custom-screening-tooltip"
+          />
           <Tooltip id="custom-screening-tooltip" className="!px-2 !py-1 !text-sm">
             Add a Yes/No question to screen participants
           </Tooltip>

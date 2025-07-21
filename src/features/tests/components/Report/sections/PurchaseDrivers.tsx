@@ -21,8 +21,10 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({ surveys, insights }) => {
-
+const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({
+  surveys,
+  insights,
+}) => {
   if (!insights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 

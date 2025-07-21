@@ -13,12 +13,10 @@ import { VariantCover } from './sections/VariantCover';
 import apiClient from '../../../../lib/api';
 import { toast } from 'sonner';
 import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSection';
-import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
 import { PurchaseDriversCombinedChartSection } from './pdf-sections/PurchaseDriversCombinedChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
-
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
 import * as XLSX from 'xlsx';
@@ -258,8 +256,6 @@ const PDFDocument = ({
           );
         })}
 
-
-
         {safeInsights?.recommendations && (
           <RecommendationsPDFSection
             insights={safeInsights.recommendations}
@@ -360,6 +356,7 @@ const PDFPreviewModal = ({
                 <p className="text-xs text-yellow-700">
                   If the preview appears blank, use "Open in New Window" to view the PDF
                 </p>
+                
               </div>
             </div>
           </div>
@@ -515,7 +512,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(
@@ -572,12 +568,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             <FilePdf size={20} />
             {isGenerating ? 'Generating PDF...' : 'Export to PDF'}
           </button>
-
-          {/* Removed orientation menu */}
         </div>
       </div>
-
-      {/* Removed orientation menu */}
 
       {isPreviewOpen && pdfUrl && (
         <PDFPreviewModal 

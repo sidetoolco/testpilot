@@ -25,7 +25,10 @@ export const checkIdInIaInsights = async (id: string) => {
 
 export const checkTestStatus = async (id: string) => {
   try {
-    const { data, error } = await supabase.from('tests').select('status').eq('id', id as any);
+    const { data, error } = await supabase
+      .from('tests')
+      .select('status')
+      .eq('id', id as any);
 
     if (error) {
       console.error('Error fetching data:', error);
@@ -181,39 +184,48 @@ export const getCompetitiveInsights = async (
 
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
-      
+
       const testProduct = testProductData?.find((item: any) => item.variant_type === variant);
-      
-      const competitorSelections = variantItems.reduce((sum: number, item: any) => sum + Number(item.count || 0), 0);
-      
+
+      const competitorSelections = variantItems.reduce(
+        (sum: number, item: any) => sum + Number(item.count || 0),
+        0
+      );
+
       let testProductSelections = 0;
       if (testProduct && (testProduct as any).share_of_buy) {
         const testProductPercentage = Number((testProduct as any).share_of_buy);
-        
-        if (testProductPercentage >= 99.5) {
-          testProductSelections = Math.max(competitorSelections * 100, 1000); 
-        } else if (testProductPercentage <= 0.5) {
 
-          testProductSelections = Math.max(1, Math.round(competitorSelections * (testProductPercentage / 100)));
+        if (testProductPercentage >= 99.5) {
+          testProductSelections = Math.max(competitorSelections * 100, 1000);
+        } else if (testProductPercentage <= 0.5) {
+          testProductSelections = Math.max(
+            1,
+            Math.round(competitorSelections * (testProductPercentage / 100))
+          );
         } else {
-          const estimatedTotalShoppers = competitorSelections / (100 - testProductPercentage) * 100;
-          testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotalShoppers);
+          const estimatedTotalShoppers =
+            (competitorSelections / (100 - testProductPercentage)) * 100;
+          testProductSelections = Math.round(
+            (testProductPercentage / 100) * estimatedTotalShoppers
+          );
         }
       }
-      
+
       const totalSelections = competitorSelections + testProductSelections;
-      
+
       return variantItems.map((item: any) => {
         const originalCompetitorProduct = item.competitor_product_id;
-        
+
         const competitorId = originalCompetitorProduct?.id || item.id || 'unknown';
-        
+
         const uniqueCompetitorProduct = {
           ...originalCompetitorProduct,
           id: `${competitorId}_${variant}`,
         };
 
-        const shareOfBuy = totalSelections > 0 ? ((Number(item.count || 0) / totalSelections) * 100) : 0;
+        const shareOfBuy =
+          totalSelections > 0 ? (Number(item.count || 0) / totalSelections) * 100 : 0;
 
         return {
           ...item,
@@ -262,7 +274,7 @@ export const getAiInsights = async (
     const response = await apiClient.get(`/insights/${testId}?type=ai`);
 
     console.log('AI insights fetched successfully from backend:', response.data);
-    
+
     return {
       insights: response.data || [],
       error: null,
@@ -271,7 +283,10 @@ export const getAiInsights = async (
     console.error('Error fetching AI insights from backend:', error);
     return {
       insights: [],
-      error: error.response?.data?.message || error.message || 'Failed to load AI insights. Please try again.',
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to load AI insights. Please try again.',
     };
   }
 };

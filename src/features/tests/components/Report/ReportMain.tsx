@@ -76,7 +76,14 @@ const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variant
 
 const Report: React.FC<ReportProps> = ({ id }) => {
   const { test: testInfo, loading, error: testError } = useTestDetail(id || '');
-  const { insight, aiInsights, loading: insightLoading, setInsight, setAiInsights, setLoading } = useInsightStore();
+  const {
+    insight,
+    aiInsights,
+    loading: insightLoading,
+    setInsight,
+    setAiInsights,
+    setLoading,
+  } = useInsightStore();
   const [activeTab, setActiveTab] = useState('test-details');
   const [isPrinting] = useState(false);
   const [summaryData, setSummaryData] = useState<any>(null);
@@ -118,7 +125,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
         setSummaryData(data);
         setAveragesurveys(averagesurveys);
         setCompetitiveinsights(competitiveinsights);
-        
+
         // Set both insight and aiInsights from the same data
         if (!aiInsightsData.error && aiInsightsData.insights) {
           setAiInsights(aiInsightsData.insights);
@@ -129,7 +136,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           console.warn('AI insights error:', aiInsightsData.error);
           setInsight(null);
         }
-        
+
         setDataLoaded(true);
       } catch (error) {
         console.error('Error fetching data:', error);
