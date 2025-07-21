@@ -97,7 +97,7 @@ export const VariantAIInsightsSection: React.FC<VariantAIInsightsSectionProps> =
   variantKey,
   variantTitle,
   insights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   const isLandscape = orientation === 'landscape';
   const hasPurchaseDrivers = insights?.purchase_drivers && insights.purchase_drivers.trim();

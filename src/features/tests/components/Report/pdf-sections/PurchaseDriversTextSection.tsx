@@ -78,7 +78,7 @@ const Footer: React.FC = () => (
 
 export const PurchaseDriversTextSection: React.FC<PurchaseDriversTextSectionProps> = ({
   insights,
-  orientation = 'portrait',
+  orientation = 'landscape',
 }) => {
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>

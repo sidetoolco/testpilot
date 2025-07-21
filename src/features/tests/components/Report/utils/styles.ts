@@ -165,7 +165,9 @@ export const styles = StyleSheet.create({
     borderRadius: 2,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    position: 'relative',
+    minHeight: 20,
   },
   barValue: {
     fontSize: 10,
