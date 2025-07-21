@@ -43,10 +43,10 @@ const getChartData = (surveys: Survey[]): Dataset[] => {
 
   return surveys.map((survey, index) => {
     const data = [
-      survey.appearance,
       survey.value,
-      survey.confidence,
+      survey.appearance,
       survey.brand,
+      survey.confidence,
       survey.convenience,
     ];
 
