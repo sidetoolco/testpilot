@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
-import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSection';
-import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
 import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
 import { CoverPageSection } from './pdf-sections/CoverPageSection';
 import { TestDetails } from './utils/types';
-import { VariantCover } from './sections/VariantCover';
-import apiClient from '../../../../lib/api';
-import { toast } from 'sonner';
 import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSection';
 import { PurchaseDriversCombinedChartSection } from './pdf-sections/PurchaseDriversCombinedChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
+
 
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
@@ -105,6 +100,7 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
     const exportData = data as TestExportData;
     return exportData;
 
+
   } catch (error) {
     console.error('Failed to get test export data:', error);
     throw error;
@@ -118,6 +114,7 @@ const PDFDocument = ({
   competitiveinsights,
   averagesurveys,
   aiInsights,
+  orientation = 'landscape',
   orientation = 'landscape',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
@@ -163,6 +160,22 @@ const PDFDocument = ({
     })
     .map(([key, variation]) => ({ key, variation }))
     .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
+  const safeAiInsights = aiInsights || [];
+
+  // Get all available variant keys that have data
+  const availableVariants = Object.entries(testDetails.variations || {})
+    .filter(([key, variation]) => {
+      if (!variation) return false;
+      
+      // Check if this variant has any data
+      const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+      const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+      const hasAIInsights = safeAiInsights.find((insight: any) => insight.variant_type === key);
+      
+      return hasPurchaseData || hasCompetitiveData || hasAIInsights;
+    })
+    .map(([key, variation]) => ({ key, variation }))
+    .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
 
   try {
     return (
@@ -178,7 +191,25 @@ const PDFDocument = ({
           insights={safeInsights}
           orientation={orientation}
         />
+        <CoverPageSection
+          testDetails={testDetails}
+          variantsArray={variantsArray}
+          orientation={orientation}
+        />
+        <TestDetailsPDFSection testDetails={testDetails} orientation={orientation} />
+        <SummaryPDFSection
+          summaryData={summaryData}
+          insights={safeInsights}
+          orientation={orientation}
+        />
 
+        {/* New structure: Purchase Drivers with general text first */}
+        {safeInsights?.purchase_drivers && (
+          <PurchaseDriversTextSection
+            insights={safeInsights.purchase_drivers}
+            orientation={orientation}
+          />
+        )}
         {/* New structure: Purchase Drivers with general text first */}
         {safeInsights?.purchase_drivers && (
           <PurchaseDriversTextSection
@@ -207,6 +238,26 @@ const PDFDocument = ({
           }
           return null;
         })()}
+        {/* Purchase Drivers Combined Chart - all variants in one chart */}
+        {(() => {
+          const purchaseDataVariants = availableVariants
+            .map(({ key, variation }) => {
+              const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+              return hasPurchaseData ? hasPurchaseData : null;
+            })
+            .filter(Boolean);
+
+          if (purchaseDataVariants.length > 0) {
+            return (
+              <PurchaseDriversCombinedChartSection
+                key="purchase-drivers-combined"
+                averagesurveys={purchaseDataVariants}
+                orientation={orientation}
+              />
+            );
+          }
+          return null;
+        })()}
 
         {/* New structure: Competitive Insights with general text first */}
         {safeInsights?.competitive_insights && (
@@ -215,7 +266,21 @@ const PDFDocument = ({
             orientation={orientation}
           />
         )}
+        {/* New structure: Competitive Insights with general text first */}
+        {safeInsights?.competitive_insights && (
+          <CompetitiveInsightsTextSection
+            insights={safeInsights.competitive_insights}
+            orientation={orientation}
+          />
+        )}
 
+        {/* Competitive Insights Tables - only for variants with data */}
+        {availableVariants.map(({ key, variation }) => {
+          const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+          
+          if (!hasCompetitiveData || !variation) return null;
+          
+          return (
         {/* Competitive Insights Tables - only for variants with data */}
         {availableVariants.map(({ key, variation }) => {
           const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
@@ -236,7 +301,15 @@ const PDFDocument = ({
             />
           );
         })}
+          );
+        })}
 
+        {/* Variant-specific AI Insights - only for variants with data */}
+        {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
+          const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
+          
+          if (!variantInsight || !variation) return null;
+          
         {/* Variant-specific AI Insights - only for variants with data */}
         {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
           const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
@@ -254,11 +327,31 @@ const PDFDocument = ({
               }}
               orientation={orientation}
             />
+            <VariantAIInsightsSection
+              key={`ai-insights-${key}`}
+              variantKey={key}
+              variantTitle={variation.title}
+              insights={{
+                purchase_drivers: variantInsight?.purchase_drivers || '',
+                competitive_insights: variantInsight?.competitive_insights || '',
+              }}
+              orientation={orientation}
+            />
           );
         })}
 
 
+        })}
 
+
+
+        {safeInsights?.recommendations && (
+          <RecommendationsPDFSection
+            insights={safeInsights.recommendations}
+            orientation={orientation}
+          />
+        )}
+      </Document>
         {safeInsights?.recommendations && (
           <RecommendationsPDFSection
             insights={safeInsights.recommendations}
@@ -275,7 +368,13 @@ const PDFDocument = ({
         <Page size="A4" orientation={orientation} style={{ padding: 40, fontFamily: 'Helvetica' }}>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginBottom: 20 }}>
+        <Page size="A4" orientation={orientation} style={{ padding: 40, fontFamily: 'Helvetica' }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginBottom: 20 }}>
               Error rendering PDF: {error instanceof Error ? error.message : 'Unknown error'}
+            </Text>
+            <Text style={{ color: '#666', fontSize: 12, textAlign: 'center' }}>
+              Please check that all required data is available and try again.
             </Text>
             <Text style={{ color: '#666', fontSize: 12, textAlign: 'center' }}>
               Please check that all required data is available and try again.
@@ -292,13 +391,35 @@ const PDFPreviewModal = ({
   onClose,
   pdfUrl,
   testName,
+  testName,
 }: {
   isOpen: boolean;
   onClose: () => void;
   pdfUrl: string;
   testName?: string;
+  testName?: string;
 }) => {
   if (!isOpen) return null;
+
+  const handleDownload = () => {
+    if (pdfUrl) {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      const filename = testName 
+        ? `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf`
+        : 'test_report.pdf';
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleOpenInNewWindow = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
+    }
+  };
 
   const handleDownload = () => {
     if (pdfUrl) {
@@ -336,7 +457,17 @@ const PDFPreviewModal = ({
             <button 
               onClick={handleDownload}
               className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
+              onClick={handleOpenInNewWindow}
+              className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
+              <FilePdf size={16} />
+              Open in New Window
+            </button>
+            <button 
+              onClick={handleDownload}
+              className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <FilePdf size={16} />
               <FilePdf size={16} />
               Download PDF
             </button>
@@ -345,6 +476,57 @@ const PDFPreviewModal = ({
             </button>
           </div>
         </div>
+        <div className="flex-1 overflow-hidden bg-gray-100 p-4">
+          {/* Warning message about iframe restrictions */}
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                <span className="text-yellow-800 text-xs font-bold">!</span>
+              </div>
+              <div>
+                <p className="text-sm text-yellow-800 font-medium">
+                  PDF Preview may be blocked by browser security
+                </p>
+                <p className="text-xs text-yellow-700">
+                  If the preview appears blank, use "Open in New Window" to view the PDF
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Try object tag first (better PDF support) */}
+          <object
+            data={pdfUrl}
+            type="application/pdf"
+            className="w-full h-full"
+            style={{ 
+              border: '2px solid #ccc',
+              backgroundColor: '#ffffff',
+              minHeight: '400px'
+            }}
+          >
+            {/* Fallback content if object doesn't work */}
+            <div className="w-full h-full flex flex-col items-center justify-center bg-white border-2 border-dashed border-gray-300 rounded-lg">
+              <FilePdf size={48} className="text-gray-400 mb-4" />
+              <p className="text-gray-600 text-center mb-4">
+                PDF preview is not available in this browser
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleOpenInNewWindow}
+                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Open in New Window
+                </button>
+                <button 
+                  onClick={handleDownload}
+                  className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                >
+                  Download PDF
+                </button>
+              </div>
+            </div>
+          </object>
         <div className="flex-1 overflow-hidden bg-gray-100 p-4">
           {/* Warning message about iframe restrictions */}
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -447,6 +629,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
   const handleExportPDF = async () => {
     if (isGenerating) return;
+  const handleExportPDF = async () => {
+    if (isGenerating) return;
 
     try {
       setIsGenerating(true);
@@ -457,6 +641,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         setPdfUrl(null);
       }
 
+      // Data validation
       // Data validation
       if (!testDetails) {
         toast.error('Missing test details');
@@ -495,6 +680,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       };
 
       const blob = await pdf(
+      const blob = await pdf(
         <PDFDocument
           testDetails={pdfData.testDetails}
           summaryData={pdfData.summaryData}
@@ -503,9 +689,15 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           averagesurveys={pdfData.averagesurveys}
           aiInsights={pdfData.aiInsights}
           orientation={'landscape' as PDFOrientation}
+          orientation={'landscape' as PDFOrientation}
         />
       ).toBlob();
+      ).toBlob();
 
+      if (blob.size === 0) {
+        toast.error('Generated PDF is empty');
+        return;
+      }
       if (blob.size === 0) {
         toast.error('Generated PDF is empty');
         return;
@@ -535,6 +727,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       .post(`/insights/${testDetails.id}`)
       .then(() => window.location.reload())
       .catch(() => {
+      .then(() => window.location.reload())
+      .catch(() => {
         toast.error('Failed to regenerate insights');
         setLoadingInsights(false);
       });
@@ -545,6 +739,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
         <button
           onClick={handleExportToExcel}
+          disabled={!isTestActiveOrComplete || isExportingExcel}
           disabled={!isTestActiveOrComplete || isExportingExcel}
           className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
@@ -561,8 +756,10 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         </button>
 
         {/* Export to PDF button */}
+        {/* Export to PDF button */}
         <div className="relative">
           <button
+            onClick={handleExportPDF}
             onClick={handleExportPDF}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={!isTestActiveOrComplete || isGenerating}
@@ -572,12 +769,20 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           </button>
 
           {/* Removed orientation menu */}
+          {/* Removed orientation menu */}
         </div>
       </div>
 
       {/* Removed orientation menu */}
+      {/* Removed orientation menu */}
 
       {isPreviewOpen && pdfUrl && (
+        <PDFPreviewModal 
+          isOpen={isPreviewOpen} 
+          onClose={handleClosePreview} 
+          pdfUrl={pdfUrl} 
+          testName={testDetails?.name}
+        />
         <PDFPreviewModal 
           isOpen={isPreviewOpen} 
           onClose={handleClosePreview} 
