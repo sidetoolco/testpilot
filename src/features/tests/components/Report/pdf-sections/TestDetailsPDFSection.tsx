@@ -452,7 +452,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                     {'\uf0c0'}
                   </Text>
                 }
-                label="Total Sessions"
+                label="Total Testers"
                 value={testDetails.demographics.testerCount * variationCount}
                 color={COLORS.primary}
               />

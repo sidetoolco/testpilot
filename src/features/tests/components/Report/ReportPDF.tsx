@@ -14,6 +14,7 @@ import apiClient from '../../../../lib/api';
 import { toast } from 'sonner';
 import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSection';
 import { PurchaseDriversChartSection } from './pdf-sections/PurchaseDriversChartSection';
+import { PurchaseDriversCombinedChartSection } from './pdf-sections/PurchaseDriversCombinedChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
 import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
@@ -187,22 +188,26 @@ const PDFDocument = ({
           />
         )}
 
-        {/* Purchase Drivers Charts - only for variants with data */}
-        {availableVariants.map(({ key, variation }) => {
-          const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
-          
-          if (!hasPurchaseData || !variation) return null;
-          
-          return (
-            <PurchaseDriversChartSection
-              key={`purchase-${key}`}
-              variantKey={key}
-              variantTitle={variation.title}
-              averagesurveys={hasPurchaseData}
-              orientation={orientation}
-            />
-          );
-        })}
+        {/* Purchase Drivers Combined Chart - all variants in one chart */}
+        {(() => {
+          const purchaseDataVariants = availableVariants
+            .map(({ key, variation }) => {
+              const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
+              return hasPurchaseData ? hasPurchaseData : null;
+            })
+            .filter(Boolean);
+
+          if (purchaseDataVariants.length > 0) {
+            return (
+              <PurchaseDriversCombinedChartSection
+                key="purchase-drivers-combined"
+                averagesurveys={purchaseDataVariants}
+                orientation={orientation}
+              />
+            );
+          }
+          return null;
+        })()}
 
         {/* New structure: Competitive Insights with general text first */}
         {safeInsights?.competitive_insights && (
