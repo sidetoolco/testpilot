@@ -67,7 +67,7 @@ export const testService = {
       await this.insertDemographics(test.id, testData.demographics);
 
       // Step 6: Guardar custom screening questions (if applicable)
-      if (testData.demographics.customScreening.enabled) {
+      if (testData.demographics.customScreening?.enabled) {
         await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
       }
 
@@ -162,7 +162,7 @@ export const testService = {
       locations: demographics.locations,
       interests: demographics.interests,
       tester_count: demographics.testerCount,
-      custom_screening_enabled: demographics.customScreening.enabled,
+      custom_screening_enabled: demographics.customScreening?.enabled || false,
     } as any);
 
     if (error) {
@@ -428,7 +428,7 @@ export const testService = {
       // Custom screening
       if (testData.demographics?.customScreening?.enabled) {
         allOperations.push(
-          this.saveCustomScreeningBatch(test.id, testData.demographics.customScreening)
+          this.saveCustomScreeningBatch(test.id, testData.demographics.customScreening!)
         );
       }
 
@@ -583,6 +583,7 @@ export const testService = {
       locations: demographics.locations,
       interests: demographics.interests,
       tester_count: demographics.testerCount,
+      custom_screening_enabled: demographics.customScreening?.enabled || false,
     } as any);
 
     if (error) {
@@ -902,7 +903,7 @@ export const testService = {
       // Custom screening
       if (testData.demographics?.customScreening?.enabled) {
         insertOperations.push(
-          this.saveCustomScreeningBatch(testId, testData.demographics.customScreening)
+          this.saveCustomScreeningBatch(testId, testData.demographics.customScreening!)
         );
       }
 
