@@ -512,16 +512,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setIsPreviewOpen(true);
-      
-      // Also provide a direct download option
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${testDetails.name.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error(
