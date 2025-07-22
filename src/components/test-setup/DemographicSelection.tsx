@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Users, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip } from 'react-tooltip';
@@ -26,12 +26,15 @@ interface DemographicSelectionProps {
   onChange: (updater: (prev: Demographics) => Demographics) => void;
   onNext: () => void;
   onBack: () => void;
+  canProceed?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export default function DemographicSelection({
   demographics,
   variations,
   onChange,
+  onValidationChange,
 }: DemographicSelectionProps) {
   // Calculate number of active variants
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
@@ -52,9 +55,43 @@ export default function DemographicSelection({
   const [minAge, setMinAge] = useState<string>(initialMinAge);
   const [maxAge, setMaxAge] = useState<string>(initialMaxAge);
   const [ageError, setAgeError] = useState<string | null>(null);
+  const [ageBlankError, setAgeBlankError] = useState<string | null>(null);
 
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
+
+  // Validation function to check if tester count is valid
+  const isTesterCountValid = useCallback(() => {
+    if (testerCount === '') return false;
+    const parsedValue = parseInt(testerCount);
+    return !isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 500;
+  }, [testerCount]);
+
+  // Check if all demographics are valid
+  const isDemographicsValid = useCallback(() => {
+    const hasValidTesterCount = isTesterCountValid();
+    const hasValidGender = demographics.gender.length > 0;
+    const hasValidLocations = demographics.locations.length > 0;
+    const hasValidAgeRanges = demographics.ageRanges.length === 2;
+    const hasNoAgeError = !ageError && !ageBlankError;
+    
+    // Check if age inputs are valid (not blank and min <= max)
+    const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
+    
+    const hasValidCustomScreening = !demographics.customScreening.enabled || 
+      (!!demographics.customScreening.question?.trim() && 
+       (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
+       !demographics.customScreening.isValidating);
+    
+    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeRanges && hasNoAgeError && hasValidAgeInputs && hasValidCustomScreening;
+  }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
+
+  // Notify parent of validation state changes
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(isDemographicsValid());
+    }
+  }, [isDemographicsValid, onValidationChange]);
 
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
@@ -71,6 +108,11 @@ export default function DemographicSelection({
 
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
+    }
+
+    // Check for blank age inputs on initialization
+    if (minAge === '' || maxAge === '') {
+      setAgeBlankError('Please enter both minimum and maximum age.');
     }
   }, []); // Only run once on mount
 
@@ -101,6 +143,16 @@ export default function DemographicSelection({
       setMaxAge(value);
       newMaxStr = value;
     }
+
+    // If either input is empty, set blank error and don't update parent state
+    if (newMinStr === '' || newMaxStr === '') {
+      setAgeError(null);
+      setAgeBlankError('Please enter both minimum and maximum age.');
+      return;
+    }
+
+    // Clear blank error since both inputs now have values
+    setAgeBlankError(null);
 
     const numMin = parseInt(newMinStr);
     const numMax = parseInt(newMaxStr);
@@ -148,6 +200,8 @@ export default function DemographicSelection({
 
     if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
       setError('Please enter a number between 25 and 500.');
+      // Don't update parent state when invalid
+      return;
     } else {
       setError(null);
       // Update parent state with the valid number
@@ -202,8 +256,7 @@ export default function DemographicSelection({
               <input
                 id="testerCount"
                 type="number"
-                min="25"
-                max="500"
+               
                 // CHANGED: Value is now the string state
                 value={testerCount}
                 onChange={handleTesterCountChange}
@@ -237,13 +290,10 @@ export default function DemographicSelection({
               <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Age</label>
               <input
                 type="number"
-                min="18"
-                max="100"
-                // CHANGED: Value is now the string state
                 value={minAge}
                 onChange={e => handleAgeChange('min', e.target.value)}
                 className={`w-full px-4 py-3 border ${
-                  ageError
+                  ageError || ageBlankError
                     ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
                 } rounded-xl transition-all`}
@@ -259,7 +309,7 @@ export default function DemographicSelection({
                 value={maxAge}
                 onChange={e => handleAgeChange('max', e.target.value)}
                 className={`w-full px-4 py-3 border ${
-                  ageError
+                  ageError || ageBlankError
                     ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
                 } rounded-xl transition-all`}
@@ -267,6 +317,7 @@ export default function DemographicSelection({
             </div>
           </div>
           {ageError && <p className="text-red-500 text-sm mt-1">{ageError}</p>}
+          {ageBlankError && <p className="text-red-500 text-sm mt-1">{ageBlankError}</p>}
         </div>
 
         {/* Gender and Country */}
