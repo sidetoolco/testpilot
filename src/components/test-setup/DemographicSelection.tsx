@@ -89,27 +89,7 @@ export default function DemographicSelection({
     }
   }, [isDemographicsValid, onValidationChange]);
 
-  useEffect(() => {
-    const updates: Partial<typeof demographics> = {};
 
-    if (!demographics.locations?.length) {
-      updates.locations = ['US', 'CA'];
-    }
-    if (!demographics.gender?.length) {
-      updates.gender = ['Male', 'Female'];
-    }
-    if (!demographics.ageRanges?.length) {
-      updates.ageRanges = [minAge, maxAge];
-    }
-
-    if (Object.keys(updates).length > 0) {
-      onChange(prev => ({ ...prev, ...updates }));
-    }
-
-    if (minAge === '' || maxAge === '') {
-      setAgeBlankError('Please enter both minimum and maximum age.');
-    }
-  }, []); 
   useEffect(() => {
     if (demographics.testerCount !== parseInt(testerCount)) {
       setTesterCount((demographics.testerCount || 25).toString());
@@ -235,9 +215,10 @@ export default function DemographicSelection({
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 id="testerCount"
+                min="25"
+                max="500"
                 type="number"
                
-                // CHANGED: Value is now the string state
                 value={testerCount}
                 onChange={handleTesterCountChange}
                 className={`w-full pl-10 pr-4 py-3 border ${
