@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Star } from 'lucide-react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
@@ -11,6 +11,7 @@ import { formatPrice } from '../../../utils/format';
 interface PurchaseCreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  creditsNeeded?: number; // Optional prop for pre-filling custom amount
 }
 
 interface CreditOption {
@@ -41,7 +42,7 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-export function PurchaseCreditsModal({ isOpen, onClose }: PurchaseCreditsModalProps) {
+export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: PurchaseCreditsModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [selectedCredits, setSelectedCredits] = useState<number>(1000); // Default to popular option
@@ -50,6 +51,25 @@ export function PurchaseCreditsModal({ isOpen, onClose }: PurchaseCreditsModalPr
   const stripe = useStripe();
   const elements = useElements();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (isOpen && creditsNeeded !== undefined && creditsNeeded > 0) {
+      // Check if creditsNeeded matches any predefined option
+      const matchingOption = CREDIT_OPTIONS.find(option => option.credits === creditsNeeded);
+      
+      if (matchingOption) {
+        // If it matches a predefined option, select that option
+        setSelectedCredits(creditsNeeded);
+        setIsCustomAmount(false);
+        setCustomCredits('');
+      } else {
+        // If it doesn't match, set as custom amount
+        setCustomCredits(creditsNeeded.toString());
+        setIsCustomAmount(true);
+        setSelectedCredits(0);
+      }
+    }
+  }, [isOpen, creditsNeeded]);
 
   const handleCreditSelection = (credits: number) => {
     setSelectedCredits(credits);

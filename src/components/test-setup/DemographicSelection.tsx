@@ -33,116 +33,90 @@ export default function DemographicSelection({
   variations,
   onChange,
 }: DemographicSelectionProps) {
-  // Log para debugging
-  console.log('DemographicSelection - Datos recibidos:', {
-    demographics,
-    testerCount: demographics.testerCount,
-    ageRanges: demographics.ageRanges,
-    gender: demographics.gender,
-    locations: demographics.locations,
-  });
+  // Calculate number of active variants
+  const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
 
-  // Inicializar estados locales con los datos cargados
-  const [testerCount, setTesterCount] = useState<number>(demographics.testerCount || 25);
+  // --- STATE MANAGEMENT CHANGES ---
+  // CHANGED: State is now string to allow for empty inputs
+  const [testerCount, setTesterCount] = useState<string>(
+    (demographics.testerCount || 25).toString()
+  );
   const [error, setError] = useState<string | null>(null);
 
-  // Inicializar minAge y maxAge con los valores cargados
   const initialMinAge =
-    demographics.ageRanges?.length >= 2 ? parseInt(demographics.ageRanges[0]) : 18;
+    demographics.ageRanges?.length >= 2 ? demographics.ageRanges[0] : '18';
   const initialMaxAge =
-    demographics.ageRanges?.length >= 2 ? parseInt(demographics.ageRanges[1]) : 55;
+    demographics.ageRanges?.length >= 2 ? demographics.ageRanges[1] : '55';
 
-  const [minAge, setMinAge] = useState<number>(initialMinAge);
-  const [maxAge, setMaxAge] = useState<number>(initialMaxAge);
+  // CHANGED: State is now string to allow for empty inputs
+  const [minAge, setMinAge] = useState<string>(initialMinAge);
+  const [maxAge, setMaxAge] = useState<string>(initialMaxAge);
   const [ageError, setAgeError] = useState<string | null>(null);
 
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
 
-  // const screeningCriteria = [
-  //   "Health & Fitness",
-  //   "Actively Religious",
-  //   "Environmentally Conscious",
-  //   "College Graduate",
-  //   "Military Veteran",
-  //   "Lower Income"
-  // ];
-
-  // Calculate number of active variants
-  const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
-
-  // Set default values on component mount ONLY if no data exists
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
 
-    // Solo establecer valores por defecto si no hay datos existentes
     if (!demographics.locations?.length) {
       updates.locations = ['US', 'CA'];
     }
-
     if (!demographics.gender?.length) {
       updates.gender = ['Male', 'Female'];
     }
-
     if (!demographics.ageRanges?.length) {
-      updates.ageRanges = [minAge.toString(), maxAge.toString()];
+      updates.ageRanges = [minAge, maxAge];
     }
 
-    // Solo aplicar updates si hay cambios necesarios
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
     }
-  }, []); // Solo ejecutar una vez al montar el componente
+  }, []); // Only run once on mount
 
-  // Sincronizar estados locales cuando cambien los datos demográficos
+  // Sync local state when props change
   useEffect(() => {
-    // Actualizar testerCount si cambia en demographics
-    if (demographics.testerCount !== testerCount) {
-      setTesterCount(demographics.testerCount || 25);
+    // CHANGED: Parse local string state for comparison
+    if (demographics.testerCount !== parseInt(testerCount)) {
+      setTesterCount((demographics.testerCount || 25).toString());
     }
-
-    // Actualizar minAge y maxAge si cambian en demographics
     if (demographics.ageRanges?.length >= 2) {
-      const newMinAge = parseInt(demographics.ageRanges[0]);
-      const newMaxAge = parseInt(demographics.ageRanges[1]);
-
-      if (newMinAge !== minAge) {
-        setMinAge(newMinAge);
-      }
-      if (newMaxAge !== maxAge) {
-        setMaxAge(newMaxAge);
-      }
+      const [newMinAge, newMaxAge] = demographics.ageRanges;
+      if (newMinAge !== minAge) setMinAge(newMinAge);
+      if (newMaxAge !== maxAge) setMaxAge(newMaxAge);
     }
-  }, [demographics.testerCount, demographics.ageRanges, testerCount, minAge, maxAge]);
+  }, [demographics.testerCount, demographics.ageRanges]);
+
+  // --- HANDLER CHANGES ---
 
   const handleAgeChange = (type: 'min' | 'max', value: string) => {
-    const numValue = parseInt(value);
-    if (isNaN(numValue)) return;
-
-    let newMinAge = minAge;
-    let newMaxAge = maxAge;
+    // CHANGED: Directly update the local string state
+    let newMinStr = minAge;
+    let newMaxStr = maxAge;
 
     if (type === 'min') {
-      newMinAge = numValue;
-      if (numValue > maxAge) {
-        setAgeError('Minimum age cannot be greater than maximum age');
-      } else {
-        setAgeError(null);
-      }
+      setMinAge(value);
+      newMinStr = value;
     } else {
-      newMaxAge = numValue;
-      if (numValue < minAge) {
-        setAgeError('Maximum age cannot be less than minimum age');
-      } else {
-        setAgeError(null);
-      }
+      setMaxAge(value);
+      newMaxStr = value;
     }
 
-    setMinAge(newMinAge);
-    setMaxAge(newMaxAge);
+    const numMin = parseInt(newMinStr);
+    const numMax = parseInt(newMaxStr);
 
-    // Update the ageRanges array with the new range
-    onChange(prev => ({ ...prev, ageRanges: [newMinAge.toString(), newMaxAge.toString()] }));
+    // Validate only if both values are valid numbers
+    if (!isNaN(numMin) && !isNaN(numMax)) {
+      if (numMin > numMax) {
+        setAgeError('Minimum age cannot be greater than maximum age.');
+      } else {
+        setAgeError(null);
+        // Update parent state if valid
+        onChange(prev => ({ ...prev, ageRanges: [newMinStr, newMaxStr] }));
+      }
+    } else {
+      setAgeError(null); // Clear error for intermediate empty states
+    }
   };
 
   const handleGenderSelect = (gender: string, checked: boolean) => {
@@ -159,33 +133,30 @@ export default function DemographicSelection({
     onChange(prev => ({ ...prev, locations: newLocations }));
   };
 
-  // const handleScreeningSelect = (criterion: string) => {
-  //   const newScreening = demographics.interests.includes(criterion)
-  //     ? demographics.interests.filter(i => i !== criterion)
-  //     : [...demographics.interests, criterion];
-  //   onChange({ ...demographics, interests: newScreening });
-  // };
-
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value; // Cambiado para permitir valor vacío
+    const value = e.target.value;
+    // CHANGED: Directly update the local string state
+    setTesterCount(value);
 
+    // If input is empty, clear error and do nothing else
     if (value === '') {
-      setTesterCount(0);
+      setError(null);
       return;
     }
+
     const parsedValue = parseInt(value);
 
     if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
       setError('Please enter a number between 25 and 500.');
     } else {
       setError(null);
-    }
-    if (!isNaN(parsedValue)) {
-      const updatedDemographics = { ...demographics, testerCount: parsedValue };
-      onChange(prev => ({ ...prev, ...updatedDemographics }));
-      setTesterCount(parsedValue);
+      // Update parent state with the valid number
+      onChange(prev => ({ ...prev, testerCount: parsedValue }));
     }
   };
+  
+  // Parse testerCount for PriceCalculator, defaulting to 0 if empty/invalid
+  const numericTesterCount = parseInt(testerCount) || 0;
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -198,7 +169,13 @@ export default function DemographicSelection({
 
       <div className="space-y-8">
         {/* Price Calculator */}
-        <PriceCalculator testerCount={testerCount} variantCount={activeVariantCount} />
+        {/* CHANGED: Pass parsed numeric value and custom screening state */}
+        <PriceCalculator 
+          testerCount={numericTesterCount} 
+          variantCount={activeVariantCount} 
+          hasCustomScreening={demographics.customScreening.enabled}
+        />
+        
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
             ⚠️ Warning: Applying too many filters may limit the number of available shoppers and
@@ -206,6 +183,7 @@ export default function DemographicSelection({
             essential criteria.
           </p>
         </div>
+
         {/* Number of Testers per Variant */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
@@ -226,7 +204,8 @@ export default function DemographicSelection({
                 type="number"
                 min="25"
                 max="500"
-                value={testerCount || ''}
+                // CHANGED: Value is now the string state
+                value={testerCount}
                 onChange={handleTesterCountChange}
                 className={`w-full pl-10 pr-4 py-3 border ${
                   error
@@ -260,6 +239,7 @@ export default function DemographicSelection({
                 type="number"
                 min="18"
                 max="100"
+                // CHANGED: Value is now the string state
                 value={minAge}
                 onChange={e => handleAgeChange('min', e.target.value)}
                 className={`w-full px-4 py-3 border ${
@@ -275,6 +255,7 @@ export default function DemographicSelection({
                 type="number"
                 min="18"
                 max="100"
+                // CHANGED: Value is now the string state
                 value={maxAge}
                 onChange={e => handleAgeChange('max', e.target.value)}
                 className={`w-full px-4 py-3 border ${
@@ -340,25 +321,6 @@ export default function DemographicSelection({
             </div>
           </div>
         </div>
-
-        {/* Screening Criteria */}
-        {/* <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Screening Criteria</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {screeningCriteria.map((criterion) => (
-              <button
-                key={criterion}
-                onClick={() => handleScreeningSelect(criterion)}
-                className={`p-4 rounded-xl border-2 transition-all ${demographics.interests.includes(criterion)
-                  ? 'border-[#00A67E] bg-[#00A67E]/5'
-                  : 'border-gray-200 hover:border-[#00A67E]/30'
-                  }`}
-              >
-                {criterion}
-              </button>
-            ))}
-          </div>
-        </div> */}
 
         <CustomScreening
           value={demographics.customScreening}
