@@ -36,11 +36,8 @@ export default function DemographicSelection({
   onChange,
   onValidationChange,
 }: DemographicSelectionProps) {
-  // Calculate number of active variants
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
 
-  // --- STATE MANAGEMENT CHANGES ---
-  // CHANGED: State is now string to allow for empty inputs
   const [testerCount, setTesterCount] = useState<string>(
     (demographics.testerCount || 25).toString()
   );
@@ -60,14 +57,14 @@ export default function DemographicSelection({
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
 
-  // Validation function to check if tester count is valid
+
   const isTesterCountValid = useCallback(() => {
     if (testerCount === '') return false;
     const parsedValue = parseInt(testerCount);
     return !isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 500;
   }, [testerCount]);
 
-  // Check if all demographics are valid
+
   const isDemographicsValid = useCallback(() => {
     const hasValidTesterCount = isTesterCountValid();
     const hasValidGender = demographics.gender.length > 0;
@@ -75,7 +72,6 @@ export default function DemographicSelection({
     const hasValidAgeRanges = demographics.ageRanges.length === 2;
     const hasNoAgeError = !ageError && !ageBlankError;
     
-    // Check if age inputs are valid (not blank and min <= max)
     const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
     
     const hasValidCustomScreening = !demographics.customScreening.enabled || 
@@ -110,15 +106,11 @@ export default function DemographicSelection({
       onChange(prev => ({ ...prev, ...updates }));
     }
 
-    // Check for blank age inputs on initialization
     if (minAge === '' || maxAge === '') {
       setAgeBlankError('Please enter both minimum and maximum age.');
     }
-  }, []); // Only run once on mount
-
-  // Sync local state when props change
+  }, []); 
   useEffect(() => {
-    // CHANGED: Parse local string state for comparison
     if (demographics.testerCount !== parseInt(testerCount)) {
       setTesterCount((demographics.testerCount || 25).toString());
     }
@@ -129,10 +121,8 @@ export default function DemographicSelection({
     }
   }, [demographics.testerCount, demographics.ageRanges]);
 
-  // --- HANDLER CHANGES ---
 
   const handleAgeChange = (type: 'min' | 'max', value: string) => {
-    // CHANGED: Directly update the local string state
     let newMinStr = minAge;
     let newMaxStr = maxAge;
 
@@ -144,30 +134,26 @@ export default function DemographicSelection({
       newMaxStr = value;
     }
 
-    // If either input is empty, set blank error and don't update parent state
     if (newMinStr === '' || newMaxStr === '') {
       setAgeError(null);
       setAgeBlankError('Please enter both minimum and maximum age.');
       return;
     }
 
-    // Clear blank error since both inputs now have values
     setAgeBlankError(null);
 
     const numMin = parseInt(newMinStr);
     const numMax = parseInt(newMaxStr);
 
-    // Validate only if both values are valid numbers
     if (!isNaN(numMin) && !isNaN(numMax)) {
       if (numMin > numMax) {
         setAgeError('Minimum age cannot be greater than maximum age.');
       } else {
         setAgeError(null);
-        // Update parent state if valid
         onChange(prev => ({ ...prev, ageRanges: [newMinStr, newMaxStr] }));
       }
     } else {
-      setAgeError(null); // Clear error for intermediate empty states
+      setAgeError(null); 
     }
   };
 
@@ -187,10 +173,8 @@ export default function DemographicSelection({
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // CHANGED: Directly update the local string state
     setTesterCount(value);
 
-    // If input is empty, clear error and do nothing else
     if (value === '') {
       setError(null);
       return;
@@ -200,16 +184,12 @@ export default function DemographicSelection({
 
     if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
       setError('Please enter a number between 25 and 500.');
-      // Don't update parent state when invalid
-      return;
     } else {
       setError(null);
-      // Update parent state with the valid number
       onChange(prev => ({ ...prev, testerCount: parsedValue }));
     }
   };
   
-  // Parse testerCount for PriceCalculator, defaulting to 0 if empty/invalid
   const numericTesterCount = parseInt(testerCount) || 0;
 
   return (
