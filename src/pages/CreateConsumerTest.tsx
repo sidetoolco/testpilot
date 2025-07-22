@@ -64,6 +64,7 @@ export default function CreateConsumerTest() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
+  const [demographicsValid, setDemographicsValid] = useState(true);
 
   // Get incomplete test state from navigation
   const testState = useTestStateFromLocation();
@@ -247,6 +248,14 @@ export default function CreateConsumerTest() {
     }
   };
 
+  // Custom canProceed function that considers demographics validation
+  const canProceedWithDemographics = () => {
+    if (currentStep === 'demographics') {
+      return demographicsValid;
+    }
+    return canProceed();
+  };
+
   // Effect to change messages
   useEffect(() => {
     if (isLoading) {
@@ -290,7 +299,7 @@ export default function CreateConsumerTest() {
         <TestCreationSteps
           steps={steps.slice(1)}
           currentStep={currentStep}
-          canProceed={canProceed()}
+          canProceed={canProceedWithDemographics()}
           onBack={handleBack}
           onNext={handleContinue}
           onConfirm={handleConfirm}
@@ -303,6 +312,8 @@ export default function CreateConsumerTest() {
         onUpdateTestData={setTestData}
         onNext={handleContinue}
         onBack={handleBack}
+        demographicsValid={demographicsValid}
+        setDemographicsValid={setDemographicsValid}
       />
     </div>
   );

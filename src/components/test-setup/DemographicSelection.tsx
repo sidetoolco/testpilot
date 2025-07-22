@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Users, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip } from 'react-tooltip';
@@ -26,18 +26,18 @@ interface DemographicSelectionProps {
   onChange: (updater: (prev: Demographics) => Demographics) => void;
   onNext: () => void;
   onBack: () => void;
+  canProceed?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export default function DemographicSelection({
   demographics,
   variations,
   onChange,
+  onValidationChange,
 }: DemographicSelectionProps) {
-  // Calculate number of active variants
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
 
-  // --- STATE MANAGEMENT CHANGES ---
-  // CHANGED: State is now string to allow for empty inputs
   const [testerCount, setTesterCount] = useState<string>(
     (demographics.testerCount || 25).toString()
   );
@@ -52,9 +52,42 @@ export default function DemographicSelection({
   const [minAge, setMinAge] = useState<string>(initialMinAge);
   const [maxAge, setMaxAge] = useState<string>(initialMaxAge);
   const [ageError, setAgeError] = useState<string | null>(null);
+  const [ageBlankError, setAgeBlankError] = useState<string | null>(null);
 
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
+
+
+  const isTesterCountValid = useCallback(() => {
+    if (testerCount === '') return false;
+    const parsedValue = parseInt(testerCount);
+    return !isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 500;
+  }, [testerCount]);
+
+
+  const isDemographicsValid = useCallback(() => {
+    const hasValidTesterCount = isTesterCountValid();
+    const hasValidGender = demographics.gender.length > 0;
+    const hasValidLocations = demographics.locations.length > 0;
+    const hasValidAgeRanges = demographics.ageRanges.length === 2;
+    const hasNoAgeError = !ageError && !ageBlankError;
+    
+    const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
+    
+    const hasValidCustomScreening = !demographics.customScreening.enabled || 
+      (!!demographics.customScreening.question?.trim() && 
+       (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
+       !demographics.customScreening.isValidating);
+    
+    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeRanges && hasNoAgeError && hasValidAgeInputs && hasValidCustomScreening;
+  }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
+
+  // Notify parent of validation state changes
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(isDemographicsValid());
+    }
+  }, [isDemographicsValid, onValidationChange]);
 
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
@@ -65,18 +98,13 @@ export default function DemographicSelection({
     if (!demographics.gender?.length) {
       updates.gender = ['Male', 'Female'];
     }
-    if (!demographics.ageRanges?.length) {
-      updates.ageRanges = [minAge, maxAge];
-    }
 
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
     }
-  }, []); // Only run once on mount
-
-  // Sync local state when props change
+  }, []); 
+  
   useEffect(() => {
-    // CHANGED: Parse local string state for comparison
     if (demographics.testerCount !== parseInt(testerCount)) {
       setTesterCount((demographics.testerCount || 25).toString());
     }
@@ -87,10 +115,8 @@ export default function DemographicSelection({
     }
   }, [demographics.testerCount, demographics.ageRanges]);
 
-  // --- HANDLER CHANGES ---
 
   const handleAgeChange = (type: 'min' | 'max', value: string) => {
-    // CHANGED: Directly update the local string state
     let newMinStr = minAge;
     let newMaxStr = maxAge;
 
@@ -102,20 +128,26 @@ export default function DemographicSelection({
       newMaxStr = value;
     }
 
+    if (newMinStr === '' || newMaxStr === '') {
+      setAgeError(null);
+      setAgeBlankError('Please enter both minimum and maximum age.');
+      return;
+    }
+
+    setAgeBlankError(null);
+
     const numMin = parseInt(newMinStr);
     const numMax = parseInt(newMaxStr);
 
-    // Validate only if both values are valid numbers
     if (!isNaN(numMin) && !isNaN(numMax)) {
       if (numMin > numMax) {
         setAgeError('Minimum age cannot be greater than maximum age.');
       } else {
         setAgeError(null);
-        // Update parent state if valid
         onChange(prev => ({ ...prev, ageRanges: [newMinStr, newMaxStr] }));
       }
     } else {
-      setAgeError(null); // Clear error for intermediate empty states
+      setAgeError(null); 
     }
   };
 
@@ -135,10 +167,8 @@ export default function DemographicSelection({
 
   const handleTesterCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // CHANGED: Directly update the local string state
     setTesterCount(value);
 
-    // If input is empty, clear error and do nothing else
     if (value === '') {
       setError(null);
       return;
@@ -150,12 +180,10 @@ export default function DemographicSelection({
       setError('Please enter a number between 25 and 500.');
     } else {
       setError(null);
-      // Update parent state with the valid number
       onChange(prev => ({ ...prev, testerCount: parsedValue }));
     }
   };
   
-  // Parse testerCount for PriceCalculator, defaulting to 0 if empty/invalid
   const numericTesterCount = parseInt(testerCount) || 0;
 
   return (
@@ -201,10 +229,10 @@ export default function DemographicSelection({
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 id="testerCount"
-                type="number"
                 min="25"
                 max="500"
-                // CHANGED: Value is now the string state
+                type="number"
+               
                 value={testerCount}
                 onChange={handleTesterCountChange}
                 className={`w-full pl-10 pr-4 py-3 border ${
@@ -237,13 +265,10 @@ export default function DemographicSelection({
               <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Age</label>
               <input
                 type="number"
-                min="18"
-                max="100"
-                // CHANGED: Value is now the string state
                 value={minAge}
                 onChange={e => handleAgeChange('min', e.target.value)}
                 className={`w-full px-4 py-3 border ${
-                  ageError
+                  ageError || ageBlankError
                     ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
                 } rounded-xl transition-all`}
@@ -259,7 +284,7 @@ export default function DemographicSelection({
                 value={maxAge}
                 onChange={e => handleAgeChange('max', e.target.value)}
                 className={`w-full px-4 py-3 border ${
-                  ageError
+                  ageError || ageBlankError
                     ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]'
                 } rounded-xl transition-all`}
@@ -267,6 +292,7 @@ export default function DemographicSelection({
             </div>
           </div>
           {ageError && <p className="text-red-500 text-sm mt-1">{ageError}</p>}
+          {ageBlankError && <p className="text-red-500 text-sm mt-1">{ageBlankError}</p>}
         </div>
 
         {/* Gender and Country */}

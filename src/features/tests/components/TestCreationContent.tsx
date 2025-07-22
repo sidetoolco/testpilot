@@ -6,6 +6,7 @@ import TestPreview from '../../../components/test-setup/TestPreview';
 import TestReview from '../../../components/test-setup/TestReview';
 import { TestData } from '../types';
 import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelection';
+import { useState } from 'react';
 
 interface TestCreationContentProps {
   currentStep: string;
@@ -13,6 +14,8 @@ interface TestCreationContentProps {
   onUpdateTestData: React.Dispatch<React.SetStateAction<TestData>>;
   onNext: () => void;
   onBack: () => void;
+  demographicsValid?: boolean;
+  setDemographicsValid?: (valid: boolean) => void;
 }
 
 export function TestCreationContent({
@@ -21,6 +24,8 @@ export function TestCreationContent({
   onUpdateTestData,
   onNext,
   onBack,
+  demographicsValid,
+  setDemographicsValid,
 }: TestCreationContentProps) {
   const handleUpdateData = (key: keyof TestData, value: any) => {
     onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
@@ -76,6 +81,7 @@ export function TestCreationContent({
           }
           onNext={onNext}
           onBack={onBack}
+          onValidationChange={setDemographicsValid}
         />
       )}
 
