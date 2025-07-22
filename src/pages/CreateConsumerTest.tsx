@@ -11,6 +11,7 @@ import {
   initializeTestFromState,
 } from '../features/tests/utils/testStateManager';
 import { useTestCreation } from '../features/tests/context/TestCreationContext';
+import { useCredits } from '../features/credits/hooks/useCredits';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -52,6 +53,9 @@ const LoadingMessages = [
   'Finalizing details...',
 ];
 
+const CREDITS_PER_TESTER = 1;
+const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
+
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,6 +76,9 @@ export default function CreateConsumerTest() {
     setIsInProgress,
     setSaveIncompleteTest,
   } = useTestCreation();
+
+  // Get user's available credits
+  const { data: creditsData } = useCredits();
 
   // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
@@ -176,6 +183,23 @@ export default function CreateConsumerTest() {
         !testData.demographics.customScreening.valid
       ) {
         toast.error('Please enter and validate your screening question before proceeding');
+        return;
+      }
+
+      // Check if user has sufficient credits
+      const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
+      const totalTesters = testData.demographics.testerCount * activeVariants;
+      
+      // Calculate credits based on custom screening
+      const hasCustomScreening = testData.demographics.customScreening.enabled;
+      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+      const totalCredits = totalTesters * creditsPerTester;
+      
+      // Check if user has sufficient credits
+      const availableCredits = creditsData?.total || 0;
+      if (availableCredits < totalCredits) {
+        const creditsNeeded = totalCredits - availableCredits;
+        toast.error(`Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to launch this test.`);
         return;
       }
 
