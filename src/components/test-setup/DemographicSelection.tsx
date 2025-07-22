@@ -89,7 +89,21 @@ export default function DemographicSelection({
     }
   }, [isDemographicsValid, onValidationChange]);
 
+  useEffect(() => {
+    const updates: Partial<typeof demographics> = {};
 
+    if (!demographics.locations?.length) {
+      updates.locations = ['US', 'CA'];
+    }
+    if (!demographics.gender?.length) {
+      updates.gender = ['Male', 'Female'];
+    }
+
+    if (Object.keys(updates).length > 0) {
+      onChange(prev => ({ ...prev, ...updates }));
+    }
+  }, []); 
+  
   useEffect(() => {
     if (demographics.testerCount !== parseInt(testerCount)) {
       setTesterCount((demographics.testerCount || 25).toString());
