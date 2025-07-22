@@ -277,6 +277,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
         <PurchaseCreditsModal
           isOpen={isPurchaseModalOpen}
           onClose={() => setIsPurchaseModalOpen(false)}
+          creditsNeeded={!hasSufficientCredits ? creditsNeeded : undefined}
         />
       </div>
     </Elements>
