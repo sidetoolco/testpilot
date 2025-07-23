@@ -371,7 +371,7 @@ export default function MyTests() {
           </div>
         ) : (
           filteredTests.map(test => {
-            const config = statusConfig[test.status as keyof typeof statusConfig];
+            const config = statusConfig[test.status as keyof typeof statusConfig] || statusConfig.incomplete;
             const StatusIcon = config.icon;
 
             return (
@@ -402,7 +402,7 @@ export default function MyTests() {
                   <div className="flex items-center text-gray-500 sm:text-center">
                     {new Date(test.createdAt).toLocaleDateString()}
                   </div>
-                  {(test.status as any) === 'incomplete' ? (
+                  {test.status === 'incomplete' ? (
                     <div className="flex items-center sm:justify-end">
                       <button
                         onClick={e => handleContinueTest(test.id, e)}

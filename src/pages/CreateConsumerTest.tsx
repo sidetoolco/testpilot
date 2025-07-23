@@ -18,6 +18,7 @@ import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
 import { CreditCard, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -172,26 +173,7 @@ export default function CreateConsumerTest() {
   const handleSaveDraft = async () => {
     try {
       // Validate test data before saving
-      if (!testData.name?.trim()) {
-        toast.error('Please enter a test name');
-        return;
-      }
-
-      if (!testData.variations.a) {
-        toast.error('Variation A is required');
-        return;
-      }
-
-      if (testData.competitors.length === 0) {
-        toast.error('Please select at least one competitor');
-        return;
-      }
-
-      if (
-        testData.demographics.customScreening?.enabled &&
-        (!testData.demographics.customScreening.validAnswer || testData.demographics.customScreening.isValidating)
-      ) {
-        toast.error('Please enter and validate your screening question before proceeding');
+      if (!validateTestDataWithToast(testData, toast)) {
         return;
       }
 
@@ -228,26 +210,7 @@ export default function CreateConsumerTest() {
 
   const handlePublishClick = () => {
     // Validate test data before showing modal
-    if (!testData.name?.trim()) {
-      toast.error('Please enter a test name');
-      return;
-    }
-
-    if (!testData.variations.a) {
-      toast.error('Variation A is required');
-      return;
-    }
-
-    if (testData.competitors.length === 0) {
-      toast.error('Please select at least one competitor');
-      return;
-    }
-
-    if (
-      testData.demographics.customScreening?.enabled &&
-      (!testData.demographics.customScreening.validAnswer || testData.demographics.customScreening.isValidating)
-    ) {
-      toast.error('Please enter and validate your screening question before proceeding');
+    if (!validateTestDataWithToast(testData, toast)) {
       return;
     }
 
