@@ -22,19 +22,9 @@ export const useStepValidation = (testData: TestData) => {
       return false;
     }
     
-    // For the review step, also check if user has sufficient credits
+    // For the review step, only check basic validation (no credit validation)
     if (currentStep === 'review') {
-      const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
-      const totalTesters = testData.demographics.testerCount * activeVariants;
-      
-      // Calculate credits based on custom screening
-      const hasCustomScreening = testData.demographics.customScreening.enabled;
-      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-      const totalCredits = totalTesters * creditsPerTester;
-      
-      // Check if user has sufficient credits
-      const availableCredits = creditsData?.total || 0;
-      return availableCredits >= totalCredits;
+      return true; // Credit validation is now handled in the ReviewStep component
     }
     
     return true;
@@ -69,18 +59,6 @@ export const useStepValidation = (testData: TestData) => {
       case 'review':
         if (!testData.name.trim()) {
           return 'Please enter a test name';
-        }
-        // Check for insufficient credits
-        const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
-        const totalTesters = testData.demographics.testerCount * activeVariants;
-        const hasCustomScreening = testData.demographics.customScreening.enabled;
-        const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-        const totalCredits = totalTesters * creditsPerTester;
-        const availableCredits = creditsData?.total || 0;
-        
-        if (availableCredits < totalCredits) {
-          const creditsNeeded = totalCredits - availableCredits;
-          return `Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to launch this test.`;
         }
         return 'Please complete all required fields';
       default:

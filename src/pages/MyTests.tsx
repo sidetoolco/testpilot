@@ -13,9 +13,15 @@ import {
   TrendingUp,
   Calendar,
   BarChart3,
+  CreditCard,
+  AlertTriangle,
 } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
+import { useCredits } from '../features/credits/hooks/useCredits';
+import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
+import { Elements } from '@stripe/react-stripe-js';
+import { stripePromise } from '../lib/stripe';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -24,6 +30,9 @@ import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import SearchInput from '../components/ui/SearchInput';
 import { useContinueTest } from '../features/tests/hooks/useContinueTest';
+
+const CREDITS_PER_TESTER = 1;
+const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
 
 interface Variation {
   id: string;
@@ -39,6 +48,10 @@ interface ConfirmationModal {
     name: string;
     demographics: {
       testerCount: number;
+      customScreening: {
+        question?: string;
+        validAnswer?: 'Yes' | 'No';
+      };
     };
     variations: Variation[];
   };
@@ -82,12 +95,14 @@ export default function MyTests() {
   const navigate = useNavigate();
   const { tests, loading } = useTests();
   const user = useAuth();
+  const { data: creditsData, isLoading: creditsLoading } = useCredits();
   const [isAdmin, setIsAdmin] = useState(false);
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
   const [errorModal, setErrorModal] = useState<ErrorModal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const { continueTest } = useContinueTest();
 
   useEffect(() => {
@@ -110,6 +125,19 @@ export default function MyTests() {
 
   const handlePublishConfirm = async () => {
     if (!confirmationModal) return;
+
+    // Double-check credits before publishing
+    const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
+    const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+    const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+    const totalCredits = totalTesters * creditsPerTester;
+    const availableCredits = creditsData?.total || 0;
+
+    if (availableCredits < totalCredits) {
+      const creditsNeeded = totalCredits - availableCredits;
+      toast.error(`Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to publish this test.`);
+      return;
+    }
 
     const { testId } = confirmationModal;
     setPublishingTests(prev => [...prev, testId]);
@@ -426,59 +454,153 @@ export default function MyTests() {
       </div>
 
       {/* Confirmation Modal */}
-      {confirmationModal && (
-        <ModalLayout
-          isOpen={confirmationModal.isOpen}
-          onClose={() => setConfirmationModal(null)}
-          title="Confirm Publication"
-        >
-          <div className="space-y-4">
-            <p className="text-lg font-medium text-gray-900 mb-2">
-              Are you sure you want to publish the test "{confirmationModal.test.name}"?
-            </p>
-            <p className="text-gray-500 text-sm">
-              {confirmationModal.test.demographics.testerCount *
-                confirmationModal.variantsArray.length}{' '}
-              testers will be invited to participate in the test.
-            </p>
+      {confirmationModal && (() => {
+        // Calculate credits needed for this test
+        const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
+        const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+        const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+        const totalCredits = totalTesters * creditsPerTester;
+        const availableCredits = creditsData?.total || 0;
+        const hasSufficientCredits = availableCredits >= totalCredits;
+        const creditsNeeded = Math.max(0, totalCredits - availableCredits);
 
-            <div className="mt-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
-                  <div key={variation.id} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      {index + 1}
+        return (
+          <ModalLayout
+            isOpen={confirmationModal.isOpen}
+            onClose={() => setConfirmationModal(null)}
+            title="Confirm Publication"
+          >
+            <div className="space-y-4">
+              <p className="text-lg font-medium text-gray-900 mb-2">
+                Are you sure you want to publish the test "{confirmationModal.test.name}"?
+              </p>
+              <p className="text-gray-500 text-sm">
+                {totalTesters} testers will be invited to participate in the test.
+              </p>
+
+              {/* Credit Information */}
+              <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
+                      <CreditCard className="h-4 w-4 text-[#00A67E]" />
                     </div>
                     <div>
-                      <p className="text-gray-700 font-medium">
-                        {variation.title || `Variation ${index + 1}`}
+                      <h4 className="text-sm font-medium text-gray-900">Test Cost</h4>
+                      <p className="text-xs text-gray-500">
+                        {totalTesters} testers × {creditsPerTester} credit{creditsPerTester !== 1 ? 's' : ''} per tester
                       </p>
                     </div>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <div className="text-xl font-semibold text-gray-900">{totalCredits.toFixed(1)}</div>
+                    <div className="text-xs text-gray-500">Credits</div>
+                  </div>
+                </div>
+
+                {/* Available Credits */}
+                <div className="bg-white rounded-lg p-3 mb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Available Credits</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {creditsLoading ? '...' : availableCredits.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {hasSufficientCredits ? (
+                        <div className="flex items-center text-green-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                          <span className="text-sm font-medium">Sufficient</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-red-600">
+                          <AlertTriangle className="h-4 w-4 mr-2" />
+                          <span className="text-sm font-medium">Insufficient</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Insufficient Credits Warning */}
+                {!hasSufficientCredits && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h5 className="text-sm font-medium text-red-800 mb-1">Insufficient Credits</h5>
+                        <p className="text-sm text-red-700 mb-3">
+                          You need {creditsNeeded.toFixed(1)} more credits to publish this test.
+                        </p>
+                        <button
+                          onClick={() => setIsPurchaseModalOpen(true)}
+                          className="inline-flex items-center space-x-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>Buy More Credits</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Screening Indicator */}
+                {hasCustomScreening && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-blue-800">
+                        Custom screening enabled (+0.1 credit per tester)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4">
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
+                    <div key={variation.id} className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-gray-700 font-medium">
+                          {variation.title || `Variation ${index + 1}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-500 mt-4">
+                This action will make the test available on Prolific.
+              </p>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setConfirmationModal(null)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePublishConfirm}
+                  disabled={!hasSufficientCredits}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    hasSufficientCredits
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {hasSufficientCredits ? 'Confirm Publication' : 'Insufficient Credits'}
+                </button>
               </div>
             </div>
-
-            <p className="text-sm text-gray-500 mt-4">
-              This action will make the test available on Prolific.
-            </p>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setConfirmationModal(null)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePublishConfirm}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                Confirm Publication
-              </button>
-            </div>
-          </div>
-        </ModalLayout>
-      )}
+          </ModalLayout>
+        );
+      })()}
 
       {/* Error Modal */}
       {errorModal && (
@@ -497,6 +619,22 @@ export default function MyTests() {
           </div>
         </ModalLayout>
       )}
+
+      {/* Purchase Credits Modal */}
+      <Elements stripe={stripePromise}>
+        <PurchaseCreditsModal
+          isOpen={isPurchaseModalOpen}
+          onClose={() => setIsPurchaseModalOpen(false)}
+          creditsNeeded={confirmationModal ? (() => {
+            const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
+            const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+            const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+            const totalCredits = totalTesters * creditsPerTester;
+            const availableCredits = creditsData?.total || 0;
+            return Math.max(0, totalCredits - availableCredits);
+          })() : undefined}
+        />
+      </Elements>
     </div>
   );
 }
