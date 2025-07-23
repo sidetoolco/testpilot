@@ -189,7 +189,7 @@ export default function CreateConsumerTest() {
 
       if (
         testData.demographics.customScreening.enabled &&
-        !testData.demographics.customScreening.valid
+        (!testData.demographics.customScreening.validAnswer || testData.demographics.customScreening.isValidating)
       ) {
         toast.error('Please enter and validate your screening question before proceeding');
         return;
@@ -245,7 +245,7 @@ export default function CreateConsumerTest() {
 
     if (
       testData.demographics.customScreening.enabled &&
-      !testData.demographics.customScreening.valid
+      (!testData.demographics.customScreening.validAnswer || testData.demographics.customScreening.isValidating)
     ) {
       toast.error('Please enter and validate your screening question before proceeding');
       return;

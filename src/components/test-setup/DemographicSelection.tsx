@@ -70,18 +70,23 @@ export default function DemographicSelection({
     const hasValidGender = demographics.gender.length > 0;
     const hasValidLocations = demographics.locations.length > 0;
     
-    // Validate both local state and demographics object for age ranges
+    // Age validation - check both local state and demographics object
     const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
     const hasValidAgeRanges = demographics.ageRanges.length === 2 && 
       !isNaN(parseInt(demographics.ageRanges[0])) && 
       !isNaN(parseInt(demographics.ageRanges[1]));
+    
+    // For initial state, if local state has valid values but demographics object is empty, consider it valid
+    const hasValidInitialAge = (minAge === '18' && maxAge === '55') && !ageError && !ageBlankError;
     
     const hasValidCustomScreening = !demographics.customScreening.enabled || 
       (!!demographics.customScreening.question?.trim() && 
        (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
        !demographics.customScreening.isValidating);
     
-    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeInputs && hasValidAgeRanges && hasValidCustomScreening;
+    return hasValidTesterCount && hasValidGender && hasValidLocations && 
+           (hasValidAgeInputs || hasValidAgeRanges || hasValidInitialAge) && 
+           hasValidCustomScreening;
   }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
 
   // Notify parent of validation state changes
@@ -91,6 +96,7 @@ export default function DemographicSelection({
     }
   }, [isDemographicsValid, onValidationChange]);
 
+  // Initialize default values immediately if they're missing
   useEffect(() => {
     const updates: Partial<typeof demographics> = {};
 
@@ -100,11 +106,15 @@ export default function DemographicSelection({
     if (!demographics.gender?.length) {
       updates.gender = ['Male', 'Female'];
     }
+    // Fix: Initialize age ranges with default values if they're empty
+    if (!demographics.ageRanges?.length) {
+      updates.ageRanges = [initialMinAge, initialMaxAge];
+    }
 
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
     }
-  }, []); 
+  }, []); // Run only once on mount 
   
   useEffect(() => {
     if (demographics.testerCount !== parseInt(testerCount)) {
