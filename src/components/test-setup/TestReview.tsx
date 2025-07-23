@@ -38,7 +38,9 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
   const totalTesters = testData.demographics.testerCount * activeVariants;
   
   // Calculate credits based on custom screening
-  const hasCustomScreening = testData.demographics.customScreening.enabled;
+  const hasCustomScreening = testData.demographics.customScreening.enabled && 
+    testData.demographics.customScreening.question && 
+    testData.demographics.customScreening.validAnswer;
   const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
   const totalCredits = totalTesters * creditsPerTester;
   const totalCost = totalCredits * DOLLAR_VALUE_PER_CREDIT;

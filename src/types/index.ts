@@ -37,6 +37,7 @@ export interface Test {
     interests: string[];
     testerCount: number;
     customScreening: {
+      enabled?: boolean;
       question?: string;
       validAnswer?: 'Yes' | 'No';
     };

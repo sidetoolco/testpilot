@@ -64,6 +64,7 @@ export function useTests() {
             interests: test.demographics?.[0]?.interests || [],
             testerCount: test.demographics?.[0]?.tester_count || 0,
             customScreening: {
+              enabled: !!test.custom_screening?.[0],
               question: test.custom_screening?.[0]?.question || '',
               validAnswer: (() => {
                 const validOption = test.custom_screening?.[0]?.valid_option;

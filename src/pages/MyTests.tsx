@@ -49,6 +49,7 @@ interface ConfirmationModal {
     demographics: {
       testerCount: number;
       customScreening: {
+        enabled?: boolean;
         question?: string;
         validAnswer?: 'Yes' | 'No';
       };
@@ -128,7 +129,9 @@ export default function MyTests() {
 
     // Double-check credits before publishing
     const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-    const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+    const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+      confirmationModal.test.demographics.customScreening.question && 
+      confirmationModal.test.demographics.customScreening.validAnswer;
     const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
     const totalCredits = totalTesters * creditsPerTester;
     const availableCredits = creditsData?.total || 0;
@@ -457,7 +460,9 @@ export default function MyTests() {
       {confirmationModal && (() => {
         // Calculate credits needed for this test
         const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-        const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+        const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+          confirmationModal.test.demographics.customScreening.question && 
+          confirmationModal.test.demographics.customScreening.validAnswer;
         const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
         const totalCredits = totalTesters * creditsPerTester;
         const availableCredits = creditsData?.total || 0;
@@ -627,7 +632,9 @@ export default function MyTests() {
           onClose={() => setIsPurchaseModalOpen(false)}
           creditsNeeded={confirmationModal ? (() => {
             const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-            const hasCustomScreening = !!confirmationModal.test.demographics.customScreening.question;
+            const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+              confirmationModal.test.demographics.customScreening.question && 
+              confirmationModal.test.demographics.customScreening.validAnswer;
             const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
             const totalCredits = totalTesters * creditsPerTester;
             const availableCredits = creditsData?.total || 0;
