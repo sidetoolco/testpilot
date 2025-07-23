@@ -53,6 +53,7 @@ export default function DemographicSelection({
   const [maxAge, setMaxAge] = useState<string>(initialMaxAge);
   const [ageError, setAgeError] = useState<string | null>(null);
   const [ageBlankError, setAgeBlankError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const genders = ['Male', 'Female'];
   const countries = ['US', 'CA'];
@@ -70,24 +71,26 @@ export default function DemographicSelection({
     const hasValidGender = demographics.gender.length > 0;
     const hasValidLocations = demographics.locations.length > 0;
     
-    // Age validation - check both local state and demographics object
+    // Age validation - ensure both local state and demographics object are valid and consistent
     const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
     const hasValidAgeRanges = demographics.ageRanges.length === 2 && 
       !isNaN(parseInt(demographics.ageRanges[0])) && 
       !isNaN(parseInt(demographics.ageRanges[1]));
     
-    // For initial state, if local state has valid values but demographics object is empty, consider it valid
-    const hasValidInitialAge = (minAge === initialMinAge && maxAge === initialMaxAge) && !ageError && !ageBlankError;
+    // Ensure local state and demographics object are consistent
+    const hasConsistentAgeData = hasValidAgeRanges && 
+      demographics.ageRanges[0] === minAge && 
+      demographics.ageRanges[1] === maxAge;
     
     const hasValidCustomScreening = !demographics.customScreening?.enabled || 
       (!!demographics.customScreening.question?.trim() && 
        (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
        !demographics.customScreening.isValidating);
     
-    return hasValidTesterCount && hasValidGender && hasValidLocations && 
-           (hasValidAgeInputs || hasValidAgeRanges || hasValidInitialAge) && 
+    return isInitialized && hasValidTesterCount && hasValidGender && hasValidLocations && 
+           hasValidAgeInputs && hasValidAgeRanges && hasConsistentAgeData && 
            hasValidCustomScreening;
-  }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
+  }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge, isInitialized]);
 
   // Notify parent of validation state changes
   useEffect(() => {
@@ -114,6 +117,9 @@ export default function DemographicSelection({
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
     }
+    
+    // Mark as initialized after setting up defaults
+    setIsInitialized(true);
   }, []); // Run only once on mount 
   
   useEffect(() => {
