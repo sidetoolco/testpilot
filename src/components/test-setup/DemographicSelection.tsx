@@ -77,7 +77,7 @@ export default function DemographicSelection({
       !isNaN(parseInt(demographics.ageRanges[1]));
     
     // For initial state, if local state has valid values but demographics object is empty, consider it valid
-    const hasValidInitialAge = (minAge === '18' && maxAge === '55') && !ageError && !ageBlankError;
+    const hasValidInitialAge = (minAge === initialMinAge && maxAge === initialMaxAge) && !ageError && !ageBlankError;
     
     const hasValidCustomScreening = !demographics.customScreening.enabled || 
       (!!demographics.customScreening.question?.trim() && 
