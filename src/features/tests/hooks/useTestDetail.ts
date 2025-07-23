@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { useAuth } from '../../auth/hooks/useAuth';
+import { fixIncompleteSessionsWithResponses } from '../services/testersSessionService';
 
 type TestResponse = {
   id: string;
@@ -76,7 +77,7 @@ export function useTestDetail(id: string) {
             )
           `
           )
-          .eq('id', id)
+          .eq('id', id as any)
           .single();
         // .eq('user_id', userId)
 
@@ -84,6 +85,17 @@ export function useTestDetail(id: string) {
         if (!testData) throw new Error('Test not found');
 
         const typedTestData = testData as unknown as TestResponse;
+
+        // Fix any incomplete sessions that have responses but no ended_at timestamp
+        try {
+          const fixedCount = await fixIncompleteSessionsWithResponses(id);
+          if (fixedCount > 0) {
+            console.log(`Fixed ${fixedCount} incomplete sessions for test ${id}`);
+          }
+        } catch (fixError) {
+          console.error('Error fixing incomplete sessions:', fixError);
+          // Continue with the normal flow even if fixing fails
+        }
 
         // Fetch survey responses for the test
         const { data: surveysData, error: surveysError } = await supabase
@@ -101,7 +113,7 @@ export function useTestDetail(id: string) {
             )
           `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (surveysError) throw surveysError;
 
@@ -139,7 +151,7 @@ export function useTestDetail(id: string) {
           )
         `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (comparisonsError) throw comparisonsError;
 

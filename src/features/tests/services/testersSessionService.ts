@@ -214,6 +214,55 @@ export async function recordTimeSpent(
   }
 }
 
+// New function to fix incomplete sessions that have responses
+export async function fixIncompleteSessionsWithResponses(testId: string): Promise<number> {
+  try {
+    // Find sessions that have responses but no ended_at timestamp
+    const { data: incompleteSessions, error: fetchError } = await supabase
+      .from('testers_session')
+      .select(`
+        id,
+        created_at,
+        responses_surveys!inner(test_id),
+        responses_comparisons!inner(test_id)
+      `)
+      .eq('test_id', testId)
+      .is('ended_at', null)
+      .or('responses_surveys.test_id.eq.' + testId + ',responses_comparisons.test_id.eq.' + testId);
+
+    if (fetchError) {
+      console.error('Error fetching incomplete sessions:', fetchError);
+      return 0;
+    }
+
+    if (!incompleteSessions || incompleteSessions.length === 0) {
+      console.log('No incomplete sessions found');
+      return 0;
+    }
+
+    // Mark these sessions as completed
+    const sessionIds = incompleteSessions.map(session => session.id);
+    const { error: updateError } = await supabase
+      .from('testers_session')
+      .update({ 
+        ended_at: new Date().toISOString(),
+        status: 'questions'
+      } as any)
+      .in('id', sessionIds);
+
+    if (updateError) {
+      console.error('Error updating incomplete sessions:', updateError);
+      return 0;
+    }
+
+    console.log(`Fixed ${incompleteSessions.length} incomplete sessions`);
+    return incompleteSessions.length;
+  } catch (error) {
+    console.error('Error fixing incomplete sessions:', error);
+    return 0;
+  }
+}
+
 export const processString = (input: string) => {
   if (input.length < 2) {
     console.error('Input string is too short.');

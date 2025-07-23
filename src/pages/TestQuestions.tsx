@@ -159,6 +159,7 @@ const TestDisplay: React.FC = () => {
 
       const tableName = isComparison ? 'responses_comparisons' : 'responses_surveys';
 
+      // Step 1: Insert the response data
       const { data, error } = await supabase.from(tableName).insert([payload] as any);
 
       if (error) {
@@ -166,21 +167,32 @@ const TestDisplay: React.FC = () => {
         return;
       }
 
+      console.log('Response data saved successfully:', data);
+
+      // Step 2: Mark session as completed (CRITICAL - this is what was missing)
       const { error: updateError } = await supabase
         .from('testers_session')
-        .update({ ended_at: new Date() } as any)
+        .update({ 
+          ended_at: new Date(),
+          status: 'questions'  // Ensure status is updated too
+        } as any)
         .eq('id', shopperId as any);
 
       if (updateError) {
         console.error('Error updating testers session:', updateError);
-        return;
+        // Don't return here - the user completed the main part of the test
+        // Log the error but continue with the completion flow
+      } else {
+        console.log('Session marked as completed successfully');
       }
 
-      console.log('Data saved successfully:', data);
-
+      // Step 3: Show feedback modal regardless of session update success
       setShowFeedbackModal(true);
     } catch (error) {
       console.error('Unexpected error:', error);
+      // Even if there's an error, if we got this far, the user completed the main test
+      // Show the feedback modal to allow them to continue
+      setShowFeedbackModal(true);
     } finally {
       setLoading(false);
     }
