@@ -69,17 +69,19 @@ export default function DemographicSelection({
     const hasValidTesterCount = isTesterCountValid();
     const hasValidGender = demographics.gender.length > 0;
     const hasValidLocations = demographics.locations.length > 0;
-    const hasNoAgeError = !ageError && !ageBlankError;
     
-    // Use local state for age validation since it updates immediately
+    // Validate both local state and demographics object for age ranges
     const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
+    const hasValidAgeRanges = demographics.ageRanges.length === 2 && 
+      !isNaN(parseInt(demographics.ageRanges[0])) && 
+      !isNaN(parseInt(demographics.ageRanges[1]));
     
     const hasValidCustomScreening = !demographics.customScreening.enabled || 
       (!!demographics.customScreening.question?.trim() && 
        (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
        !demographics.customScreening.isValidating);
     
-    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeInputs && hasValidCustomScreening;
+    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeInputs && hasValidAgeRanges && hasValidCustomScreening;
   }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
 
   // Notify parent of validation state changes
@@ -147,7 +149,7 @@ export default function DemographicSelection({
         onChange(prev => ({ ...prev, ageRanges: [newMinStr, newMaxStr] }));
       }
     } else {
-      setAgeError(null); 
+      setAgeError('Please enter valid numeric ages.');
     }
   };
 
