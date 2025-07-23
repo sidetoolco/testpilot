@@ -15,6 +15,7 @@ interface TestResponse {
   competitors: any[];
   variations: any[];
   demographics: any[];
+  custom_screening: any[];
   created_at: string;
   updated_at: string;
 }
@@ -251,7 +252,8 @@ export const testService = {
             company:companies(name)),
             variation_type
                 ),
-                demographics:test_demographics(*)
+                demographics:test_demographics(*),
+                custom_screening:custom_screening(*)
           `
           )
           .eq('company_id', typedProfile.company_id as any)
@@ -281,7 +283,8 @@ export const testService = {
           company:companies(name)),
           variation_type
               ),
-              demographics:test_demographics(*)
+              demographics:test_demographics(*),
+              custom_screening:custom_screening(*)
         `
         )
         .order('created_at', { ascending: false });

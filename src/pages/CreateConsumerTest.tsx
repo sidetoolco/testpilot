@@ -12,6 +12,13 @@ import {
 } from '../features/tests/utils/testStateManager';
 import { useTestCreation } from '../features/tests/context/TestCreationContext';
 import { useCredits } from '../features/credits/hooks/useCredits';
+import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
+import { Elements } from '@stripe/react-stripe-js';
+import { stripePromise } from '../lib/stripe';
+import ModalLayout from '../layouts/ModalLayout';
+import { CreditCard, AlertTriangle } from 'lucide-react';
+import { formatPrice } from '../utils/format';
+import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -65,6 +72,8 @@ export default function CreateConsumerTest() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [demographicsValid, setDemographicsValid] = useState(true);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [publishModal, setPublishModal] = useState<{ isOpen: boolean; testData: TestData } | null>(null);
 
   // Get incomplete test state from navigation
   const testState = useTestStateFromLocation();
@@ -79,7 +88,7 @@ export default function CreateConsumerTest() {
   } = useTestCreation();
 
   // Get user's available credits
-  const { data: creditsData } = useCredits();
+  const { data: creditsData, isLoading: creditsLoading } = useCredits();
 
   // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
@@ -161,46 +170,10 @@ export default function CreateConsumerTest() {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleSaveDraft = async () => {
     try {
-      // Validate test data before submission
-      if (!testData.name?.trim()) {
-        toast.error('Please enter a test name');
-        return;
-      }
-
-      if (!testData.variations.a) {
-        toast.error('Variation A is required');
-        return;
-      }
-
-      if (testData.competitors.length === 0) {
-        toast.error('Please select at least one competitor');
-        return;
-      }
-
-      if (
-        testData.demographics.customScreening.enabled &&
-        !testData.demographics.customScreening.valid
-      ) {
-        toast.error('Please enter and validate your screening question before proceeding');
-        return;
-      }
-
-      // Check if user has sufficient credits
-      const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
-      const totalTesters = testData.demographics.testerCount * activeVariants;
-      
-      // Calculate credits based on custom screening
-      const hasCustomScreening = testData.demographics.customScreening.enabled;
-      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-      const totalCredits = totalTesters * creditsPerTester;
-      
-      // Check if user has sufficient credits
-      const availableCredits = creditsData?.total || 0;
-      if (availableCredits < totalCredits) {
-        const creditsNeeded = totalCredits - availableCredits;
-        toast.error(`Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to launch this test.`);
+      // Validate test data before saving
+      if (!validateTestDataWithToast(testData, toast)) {
         return;
       }
 
@@ -211,11 +184,76 @@ export default function CreateConsumerTest() {
         try {
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
+          toast.success('Test saved as draft successfully');
+          navigate('/my-tests');
+          return;
+        } catch (updateError) {
+          console.error('Error updating incomplete test:', updateError);
+          toast.error('Failed to save test as draft. Creating new test instead.');
+          // If update fails, continue with normal flow to create new test
+        }
+      }
+
+      // Create test as draft (normal flow for new tests)
+      await testService.createTest(testData);
+
+      toast.success('Test saved as draft successfully');
+      navigate('/my-tests');
+    } catch (error: any) {
+      console.error('Test creation error:', error);
+      const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to save test';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePublishClick = () => {
+    // Validate test data before showing modal
+    if (!validateTestDataWithToast(testData, toast)) {
+      return;
+    }
+
+    // Don't proceed if credits are still loading
+    if (creditsLoading) {
+      toast.error('Please wait while we load your credit balance...');
+      return;
+    }
+
+    const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
+    const totalTesters = testData.demographics.testerCount * activeVariants;
+
+    const hasCustomScreening = testData.demographics.customScreening?.enabled && 
+      testData.demographics.customScreening.question && 
+      testData.demographics.customScreening.validAnswer;
+    const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+    const totalCredits = totalTesters * creditsPerTester;
+    
+    const availableCredits = creditsData?.total || 0;
+    if (availableCredits < totalCredits) {
+      const creditsNeeded = totalCredits - availableCredits;
+      toast.error(`Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to publish this test.`);
+      return;
+    }
+
+    setPublishModal({ isOpen: true, testData });
+  };
+
+  const handlePublishConfirm = async () => {
+    try {
+      setIsLoading(true);
+      setPublishModal(null);
+
+      // Check if it's an existing incomplete test
+      if (testState.isIncompleteTest && currentTestId) {
+        try {
+          // Update incomplete test to draft and update data
+          await testService.updateIncompleteTestToDraft(currentTestId, testData);
 
           // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
 
-          toast.success('Test launched successfully');
+          toast.success('Test published successfully');
           navigate('/my-tests');
           return;
         } catch (updateError) {
@@ -228,11 +266,11 @@ export default function CreateConsumerTest() {
       // Create test (normal flow for new tests)
       await testService.createTest(testData);
 
-      toast.success('Test created successfully');
+      toast.success('Test published successfully');
       navigate('/my-tests');
     } catch (error: any) {
       console.error('Test creation error:', error);
-      const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to create test';
+      const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to publish test';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -256,6 +294,29 @@ export default function CreateConsumerTest() {
     return canProceed();
   };
 
+  // Check if user can publish (has sufficient credits)
+  const canPublish = () => {
+    if (currentStep !== 'review') return false;
+    
+    // Don't enable publish button if credits are still loading
+    if (creditsLoading) return false;
+    
+    const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
+    const totalTesters = testData.demographics.testerCount * activeVariants;
+    
+    // Calculate credits based on custom screening
+    const hasCustomScreening = testData.demographics.customScreening?.enabled && 
+      testData.demographics.customScreening.question && 
+      testData.demographics.customScreening.validAnswer;
+    const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+    const totalCredits = totalTesters * creditsPerTester;
+    
+    // Check if user has sufficient credits - only if credits data is available
+    if (!creditsData) return false;
+    const availableCredits = creditsData.total || 0;
+    return availableCredits >= totalCredits;
+  };
+
   // Effect to change messages
   useEffect(() => {
     if (isLoading) {
@@ -273,7 +334,8 @@ export default function CreateConsumerTest() {
   }, [isLoading]);
 
   return (
-    <div className="min-h-screen bg-white relative w-full">
+    <Elements stripe={stripePromise}>
+      <div className="min-h-screen bg-white relative w-full">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 flex flex-col items-center">
@@ -302,7 +364,9 @@ export default function CreateConsumerTest() {
           canProceed={canProceedWithDemographics()}
           onBack={handleBack}
           onNext={handleContinue}
-          onConfirm={handleConfirm}
+          onConfirm={handleSaveDraft}
+          onPublish={handlePublishClick}
+          canPublish={canPublish()}
         />
       )}
 
@@ -315,6 +379,105 @@ export default function CreateConsumerTest() {
         demographicsValid={demographicsValid}
         setDemographicsValid={setDemographicsValid}
       />
+
+      {/* Purchase Credits Modal */}
+      <PurchaseCreditsModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+        creditsNeeded={undefined}
+      />
+
+      {/* Publish Confirmation Modal */}
+      {publishModal && (
+        <ModalLayout
+          isOpen={publishModal.isOpen}
+          onClose={() => setPublishModal(null)}
+          title="Confirm Publication"
+        >
+          <div className="space-y-4">
+            <p className="text-lg font-medium text-gray-900 mb-2">
+              Are you sure you want to publish the test "{publishModal.testData.name}"?
+            </p>
+            <p className="text-gray-500 text-sm">
+              This will make the test available on Prolific and start collecting responses.
+            </p>
+
+            {/* Credit Information */}
+            <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
+                    <CreditCard className="h-4 w-4 text-[#00A67E]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Test Cost</h4>
+                    <p className="text-xs text-gray-500">
+                      {(() => {
+                        const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
+                        const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
+                        const hasCustomScreening = publishModal.testData.demographics.customScreening?.enabled && 
+                          publishModal.testData.demographics.customScreening.question && 
+                          publishModal.testData.demographics.customScreening.validAnswer;
+                        const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+                        const totalCredits = totalTesters * creditsPerTester;
+                        return `${totalTesters} testers × ${creditsPerTester} credit${creditsPerTester !== 1 ? 's' : ''} per tester`;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-semibold text-gray-900">
+                    {(() => {
+                      const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
+                      const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
+                      const hasCustomScreening = publishModal.testData.demographics.customScreening?.enabled && 
+                        publishModal.testData.demographics.customScreening.question && 
+                        publishModal.testData.demographics.customScreening.validAnswer;
+                      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+                      const totalCredits = totalTesters * creditsPerTester;
+                      return totalCredits.toFixed(1);
+                    })()}
+                  </div>
+                  <div className="text-xs text-gray-500">Credits</div>
+                </div>
+              </div>
+
+              {/* Custom Screening Indicator */}
+              {publishModal.testData.demographics.customScreening?.enabled && 
+               publishModal.testData.demographics.customScreening.question && 
+               publishModal.testData.demographics.customScreening.validAnswer && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-blue-800">
+                      Custom screening enabled (+0.1 credit per tester)
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <p className="text-sm text-gray-500 mt-4">
+              This action will make the test available on Prolific.
+            </p>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setPublishModal(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePublishConfirm}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Confirm Publication
+              </button>
+            </div>
+          </div>
+        </ModalLayout>
+      )}
     </div>
+    </Elements>
   );
 }

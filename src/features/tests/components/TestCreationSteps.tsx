@@ -12,6 +12,8 @@ interface TestCreationStepsProps {
   onBack: () => void;
   onNext: () => void;
   onConfirm: () => void;
+  onPublish?: () => void;
+  canPublish?: boolean;
 }
 
 export function TestCreationSteps({
@@ -21,6 +23,8 @@ export function TestCreationSteps({
   onBack,
   onNext,
   onConfirm,
+  onPublish,
+  canPublish,
 }: TestCreationStepsProps) {
   const currentIndex = steps.findIndex(s => s.key === currentStep);
   const isFirstStep = currentIndex === 0;
@@ -77,18 +81,48 @@ export function TestCreationSteps({
             <span>Back</span>
           </button>
 
-          <button
-            onClick={isLastStep ? onConfirm : onNext}
-            disabled={!canProceed}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
-              canProceed
-                ? 'bg-primary-400 text-white hover:bg-primary-500'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <span>{isLastStep ? 'Launch Test' : 'Continue'}</span>
-            {!isLastStep && <ArrowRight className="h-5 w-5" />}
-          </button>
+          {isLastStep ? (
+            <div className="flex space-x-4">
+              <button
+                onClick={onConfirm}
+                disabled={!canProceed}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+                  canProceed
+                    ? 'bg-gray-500 text-white hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <span>Save Draft</span>
+              </button>
+              
+              {onPublish && (
+                <button
+                  onClick={onPublish}
+                  disabled={!canPublish}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+                    canPublish
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <span>Publish Test</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={onNext}
+              disabled={!canProceed}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+                canProceed
+                  ? 'bg-primary-400 text-white hover:bg-primary-500'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <span>Continue</span>
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
     </div>
