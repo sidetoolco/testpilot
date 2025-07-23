@@ -65,7 +65,10 @@ export function useTests() {
             testerCount: test.demographics?.[0]?.tester_count || 0,
             customScreening: {
               question: test.custom_screening?.[0]?.question || '',
-              validAnswer: test.custom_screening?.[0]?.valid_option as 'Yes' | 'No' || undefined,
+              validAnswer: (() => {
+                const validOption = test.custom_screening?.[0]?.valid_option;
+                return validOption === 'Yes' || validOption === 'No' ? validOption : undefined;
+              })(),
             },
           },
           responses: {

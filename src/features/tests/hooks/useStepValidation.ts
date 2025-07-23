@@ -28,7 +28,7 @@ export const useStepValidation = (testData: TestData) => {
     }
     
     return true;
-  }, [currentStep, testData, creditsData?.total]);
+  }, [currentStep, testData]);
 
   const getErrorMessage = useCallback(() => {
     switch (currentStep) {
@@ -64,7 +64,7 @@ export const useStepValidation = (testData: TestData) => {
       default:
         return 'Please complete all required fields';
     }
-  }, [currentStep, testData.demographics, testData.name, testData.variations, creditsData?.total]);
+  }, [currentStep, testData.demographics, testData.name, testData.variations]);
 
   const handleNext = useCallback(() => {
     if (!canProceed()) {
