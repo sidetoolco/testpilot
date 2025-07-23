@@ -69,9 +69,9 @@ export default function DemographicSelection({
     const hasValidTesterCount = isTesterCountValid();
     const hasValidGender = demographics.gender.length > 0;
     const hasValidLocations = demographics.locations.length > 0;
-    const hasValidAgeRanges = demographics.ageRanges.length === 2;
     const hasNoAgeError = !ageError && !ageBlankError;
     
+    // Use local state for age validation since it updates immediately
     const hasValidAgeInputs = minAge !== '' && maxAge !== '' && !ageError && !ageBlankError;
     
     const hasValidCustomScreening = !demographics.customScreening.enabled || 
@@ -79,7 +79,7 @@ export default function DemographicSelection({
        (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
        !demographics.customScreening.isValidating);
     
-    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeRanges && hasNoAgeError && hasValidAgeInputs && hasValidCustomScreening;
+    return hasValidTesterCount && hasValidGender && hasValidLocations && hasValidAgeInputs && hasValidCustomScreening;
   }, [isTesterCountValid, demographics, ageError, ageBlankError, minAge, maxAge]);
 
   // Notify parent of validation state changes
