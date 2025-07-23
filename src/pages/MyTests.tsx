@@ -127,14 +127,20 @@ export default function MyTests() {
   const handlePublishConfirm = async () => {
     if (!confirmationModal) return;
 
-    // Double-check credits before publishing
     const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-    const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+    const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
       confirmationModal.test.demographics.customScreening.question && 
       confirmationModal.test.demographics.customScreening.validAnswer;
     const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
     const totalCredits = totalTesters * creditsPerTester;
-    const availableCredits = creditsData?.total || 0;
+    
+    // Only proceed if credits data is available
+    if (!creditsData) {
+      toast.error('Unable to verify credit balance. Please try again.');
+      return;
+    }
+    
+    const availableCredits = creditsData.total || 0;
 
     if (availableCredits < totalCredits) {
       const creditsNeeded = totalCredits - availableCredits;
@@ -460,13 +466,15 @@ export default function MyTests() {
       {confirmationModal && (() => {
         // Calculate credits needed for this test
         const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-        const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+        const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
           confirmationModal.test.demographics.customScreening.question && 
           confirmationModal.test.demographics.customScreening.validAnswer;
         const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
         const totalCredits = totalTesters * creditsPerTester;
+        
+        // Only calculate if credits data is available
         const availableCredits = creditsData?.total || 0;
-        const hasSufficientCredits = availableCredits >= totalCredits;
+        const hasSufficientCredits = !creditsLoading && availableCredits >= totalCredits;
         const creditsNeeded = Math.max(0, totalCredits - availableCredits);
 
         return (
@@ -632,12 +640,15 @@ export default function MyTests() {
           onClose={() => setIsPurchaseModalOpen(false)}
           creditsNeeded={confirmationModal ? (() => {
             const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-            const hasCustomScreening = confirmationModal.test.demographics.customScreening.enabled && 
+            const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
               confirmationModal.test.demographics.customScreening.question && 
               confirmationModal.test.demographics.customScreening.validAnswer;
             const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
             const totalCredits = totalTesters * creditsPerTester;
-            const availableCredits = creditsData?.total || 0;
+            
+            // Only calculate if credits data is available and not loading
+            if (creditsLoading || !creditsData) return undefined;
+            const availableCredits = creditsData.total || 0;
             return Math.max(0, totalCredits - availableCredits);
           })() : undefined}
         />

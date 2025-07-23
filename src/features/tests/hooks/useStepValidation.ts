@@ -40,7 +40,7 @@ export const useStepValidation = (testData: TestData) => {
         return 'Please select at least Variation A';
       case 'demographics':
         // Check for specific validation failures
-        if (testData.demographics.customScreening.enabled) {
+        if (testData.demographics.customScreening?.enabled) {
           return 'Please wait until your screening question is validated before proceeding';
         }
         if (testData.demographics.gender.length === 0) {

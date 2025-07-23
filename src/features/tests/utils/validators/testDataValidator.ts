@@ -56,7 +56,7 @@ export function validateTestData(testData: TestData): ValidationResult {
         errors.push('Minimum 10 testers required');
       }
 
-      if (testData.demographics.customScreening.enabled) {
+      if (testData.demographics.customScreening?.enabled) {
         if (!testData.demographics.customScreening.question?.trim()) {
           errors.push('Please enter a screening question to filter testers');
         }

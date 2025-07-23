@@ -79,7 +79,7 @@ export default function DemographicSelection({
     // For initial state, if local state has valid values but demographics object is empty, consider it valid
     const hasValidInitialAge = (minAge === initialMinAge && maxAge === initialMaxAge) && !ageError && !ageBlankError;
     
-    const hasValidCustomScreening = !demographics.customScreening.enabled || 
+    const hasValidCustomScreening = !demographics.customScreening?.enabled || 
       (!!demographics.customScreening.question?.trim() && 
        (demographics.customScreening.validAnswer === 'Yes' || demographics.customScreening.validAnswer === 'No') &&
        !demographics.customScreening.isValidating);
@@ -213,7 +213,7 @@ export default function DemographicSelection({
         <PriceCalculator 
           testerCount={numericTesterCount} 
           variantCount={activeVariantCount} 
-          hasCustomScreening={demographics.customScreening.enabled}
+          hasCustomScreening={demographics.customScreening?.enabled}
         />
         
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

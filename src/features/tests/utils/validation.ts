@@ -22,7 +22,7 @@ export const validateStep = (step: string, data: TestData): boolean => {
         data.demographics.testerCount <= 500;
       // && data.demographics.interests.length > 0
 
-      if (data.demographics.customScreening.enabled) {
+      if (data.demographics.customScreening?.enabled) {
         return (
           isValidDemographics &&
           !!data.demographics.customScreening.question?.trim().length &&
