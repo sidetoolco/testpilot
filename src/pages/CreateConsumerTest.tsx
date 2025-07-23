@@ -87,7 +87,7 @@ export default function CreateConsumerTest() {
   } = useTestCreation();
 
   // Get user's available credits
-  const { data: creditsData } = useCredits();
+  const { data: creditsData, isLoading: creditsLoading } = useCredits();
 
   // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
@@ -251,16 +251,21 @@ export default function CreateConsumerTest() {
       return;
     }
 
-    // Check if user has sufficient credits
     const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
     const totalTesters = testData.demographics.testerCount * activeVariants;
-    
-    // Calculate credits based on custom screening
-    const hasCustomScreening = testData.demographics.customScreening.enabled;
+
+    const hasCustomScreening = testData.demographics.customScreening.enabled && 
+      testData.demographics.customScreening.question && 
+      testData.demographics.customScreening.validAnswer;
     const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
     const totalCredits = totalTesters * creditsPerTester;
     
-    // Check if user has sufficient credits
+
+    if (creditsLoading) {
+      toast.error('Please wait while we load your credit balance...');
+      return;
+    }
+    
     const availableCredits = creditsData?.total || 0;
     if (availableCredits < totalCredits) {
       const creditsNeeded = totalCredits - availableCredits;
@@ -330,11 +335,16 @@ export default function CreateConsumerTest() {
   const canPublish = () => {
     if (currentStep !== 'review') return false;
     
+    // Don't enable publish button if credits are still loading
+    if (creditsLoading) return false;
+    
     const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
     const totalTesters = testData.demographics.testerCount * activeVariants;
     
     // Calculate credits based on custom screening
-    const hasCustomScreening = testData.demographics.customScreening.enabled;
+    const hasCustomScreening = testData.demographics.customScreening.enabled && 
+      testData.demographics.customScreening.question && 
+      testData.demographics.customScreening.validAnswer;
     const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
     const totalCredits = totalTesters * creditsPerTester;
     
@@ -441,7 +451,9 @@ export default function CreateConsumerTest() {
                       {(() => {
                         const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
                         const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
-                        const hasCustomScreening = publishModal.testData.demographics.customScreening.enabled;
+                        const hasCustomScreening = publishModal.testData.demographics.customScreening.enabled && 
+                          publishModal.testData.demographics.customScreening.question && 
+                          publishModal.testData.demographics.customScreening.validAnswer;
                         const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
                         const totalCredits = totalTesters * creditsPerTester;
                         return `${totalTesters} testers × ${creditsPerTester} credit${creditsPerTester !== 1 ? 's' : ''} per tester`;
@@ -454,7 +466,9 @@ export default function CreateConsumerTest() {
                     {(() => {
                       const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
                       const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
-                      const hasCustomScreening = publishModal.testData.demographics.customScreening.enabled;
+                      const hasCustomScreening = publishModal.testData.demographics.customScreening.enabled && 
+                        publishModal.testData.demographics.customScreening.question && 
+                        publishModal.testData.demographics.customScreening.validAnswer;
                       const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
                       const totalCredits = totalTesters * creditsPerTester;
                       return totalCredits.toFixed(1);
@@ -465,7 +479,9 @@ export default function CreateConsumerTest() {
               </div>
 
               {/* Custom Screening Indicator */}
-              {publishModal.testData.demographics.customScreening.enabled && (
+              {publishModal.testData.demographics.customScreening.enabled && 
+               publishModal.testData.demographics.customScreening.question && 
+               publishModal.testData.demographics.customScreening.validAnswer && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
