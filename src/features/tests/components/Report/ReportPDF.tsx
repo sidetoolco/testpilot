@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
@@ -19,6 +19,7 @@ import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsig
 import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
+import { useAuth } from '../../../auth/hooks/useAuth';
 import * as XLSX from 'xlsx';
 
 // Configure Buffer for browser
@@ -486,9 +487,30 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const user = useAuth();
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.user.id as any)
+        .single();
+
+      if (!error && data) {
+        setIsAdmin((data as any).role === 'admin');
+      }
+    };
+
+    checkAdminRole();
+  }, [user?.user?.id]);
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
@@ -621,14 +643,16 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           <FileSpreadsheet size={20} />
           {isExportingExcel ? 'Exporting...' : 'Export to Excel'}
         </button>
-        <button
-          disabled={loadingInsights}
-          onClick={handleRegenerateInsights}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          <RefreshCcw size={20} />
-          {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
-        </button>
+        {isAdmin && (
+          <button
+            disabled={loadingInsights}
+            onClick={handleRegenerateInsights}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <RefreshCcw size={20} />
+            {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
+          </button>
+        )}
 
         {/* Export to PDF button */}
         <div className="relative">
