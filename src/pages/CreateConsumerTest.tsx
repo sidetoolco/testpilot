@@ -22,8 +22,8 @@ import { validateTestDataWithToast } from '../features/tests/utils/testValidatio
 
 const steps = [
   { key: 'objective', label: 'Objective' },
-  { key: 'search', label: 'Search Term' },
   { key: 'variations', label: 'Variants' },
+  { key: 'search', label: 'Search Term' },
   { key: 'competitors', label: 'Competitors' },
   { key: 'demographics', label: 'Demographics' },
   { key: 'preview', label: 'Preview' },

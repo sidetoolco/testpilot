@@ -146,6 +146,11 @@ export default function SideNav() {
     }
   };
 
+  const handleCloseModal = () => {
+    setShowIncompleteModal(false);
+    // Don't navigate, just close the modal and stay where the user is
+  };
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -292,6 +297,7 @@ export default function SideNav() {
         isOpen={showIncompleteModal}
         onSave={handleSaveTest}
         onCancel={handleCancelNavigation}
+        onClose={handleCloseModal}
         isSaving={isSaving}
         currentTestName={testState?.testData?.name}
       />

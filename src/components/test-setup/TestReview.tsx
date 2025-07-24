@@ -65,31 +65,6 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
         </div>
 
         <div className="space-y-8">
-          {/* Test Title */}
-          <div>
-            <label htmlFor="testTitle" className="block text-md font-bold text-gray-700 mb-2 flex items-center gap-2">
-              Test Title <span className="text-red-500">*</span>
-              <Info
-                className="h-4 w-4 text-gray-400 cursor-help"
-                data-tooltip-id="test-title-tooltip"
-              />
-              <Tooltip id="test-title-tooltip" className="!px-2 !py-1 !text-sm">
-                Enter a descriptive title that helps you identify your test.
-              </Tooltip>
-            </label>
-            <input
-              id="testTitle"
-              type="text"
-              value={testName}
-              onChange={handleNameChange}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
-              placeholder="Enter a descriptive title for your test"
-              required
-            />
-            <p className="mt-2 text-sm text-gray-500">
-              A clear title helps you identify and manage your tests
-            </p>
-          </div>
 
           {/* Credit Summary */}
           <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-2xl p-8">
