@@ -4,14 +4,14 @@ export const validateStep = (step: string, data: TestData): boolean => {
   switch (step) {
     case 'objective':
       return true; // The only time this function is called is after the user selects an objective, so its never going to be null.
+    case 'variations':
+      return data.variations.a !== null && data.name.trim().length > 0; // At least variation A is required and name is set
+
     case 'search':
       return data.searchTerm.trim().length > 0;
 
     case 'competitors':
       return data.competitors.length === 11; // Require exactly 10 competitors
-
-    case 'variations':
-      return data.variations.a !== null; // At least variation A is required
 
     case 'demographics':
       const isValidDemographics =
@@ -37,7 +37,7 @@ export const validateStep = (step: string, data: TestData): boolean => {
       return true; // Preview can always proceed
 
     case 'review':
-      return data.name.trim().length > 0;
+      return true; // Review can always proceed since name is now validated in variations step
 
     default:
       return false;
