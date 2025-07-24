@@ -42,6 +42,17 @@ export function TestCreationContent({
         />
       )}
 
+      {currentStep === 'variations' && (
+        <TestVariations
+          variations={testData.variations}
+          onChange={variations => handleUpdateData('variations', variations)}
+          onNext={onNext}
+          onBack={onBack}
+          testData={testData}
+          onUpdateTestData={onUpdateTestData}
+        />
+      )}
+
       {currentStep === 'search' && (
         <SearchTermEntry
           value={testData.searchTerm}
@@ -55,15 +66,6 @@ export function TestCreationContent({
           searchTerm={testData.searchTerm}
           selectedCompetitors={testData.competitors}
           onChange={competitors => handleUpdateData('competitors', competitors)}
-          onNext={onNext}
-          onBack={onBack}
-        />
-      )}
-
-      {currentStep === 'variations' && (
-        <TestVariations
-          variations={testData.variations}
-          onChange={variations => handleUpdateData('variations', variations)}
           onNext={onNext}
           onBack={onBack}
         />

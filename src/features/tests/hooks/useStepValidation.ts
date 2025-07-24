@@ -32,12 +32,18 @@ export const useStepValidation = (testData: TestData) => {
 
   const getErrorMessage = useCallback(() => {
     switch (currentStep) {
+      case 'variations':
+        if (!testData.name.trim()) {
+          return 'Please enter a test name';
+        }
+        if (!testData.variations.a) {
+          return 'Please select at least Variation A';
+        }
+        return 'Please complete all required fields';
       case 'search':
         return 'Please enter a search term';
       case 'competitors':
         return 'Please select exactly 10 competitor products';
-      case 'variations':
-        return 'Please select at least Variation A';
       case 'demographics':
         // Check for specific validation failures
         if (testData.demographics.customScreening?.enabled) {
@@ -57,9 +63,6 @@ export const useStepValidation = (testData: TestData) => {
         }
         return 'Please complete all demographic selections';
       case 'review':
-        if (!testData.name.trim()) {
-          return 'Please enter a test name';
-        }
         return 'Please complete all required fields';
       default:
         return 'Please complete all required fields';

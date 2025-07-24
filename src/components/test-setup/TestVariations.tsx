@@ -17,11 +17,13 @@ interface TestVariationsProps {
   onChange: (variations: any) => void;
   onNext: () => void;
   onBack: () => void;
+  testData?: any;
+  onUpdateTestData?: React.Dispatch<React.SetStateAction<any>>;
 }
 
 type Variations = 'a' | 'b' | 'c';
 
-export default function TestVariations({ variations, onChange }: TestVariationsProps) {
+export default function TestVariations({ variations, onChange, testData, onUpdateTestData }: TestVariationsProps) {
   const [showProductSelector, setShowProductSelector] = useState<Variations | null>(null);
   const [showProductForm, setShowProductForm] = useState<Variations | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +33,13 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
   } | null>(null);
   const { products, loading, error } = useProducts();
   const { addProduct, updateProduct } = useProductStore();
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    if (onUpdateTestData && testData) {
+      onUpdateTestData({ ...testData, name: newName });
+    }
+  };
 
   const handleSelectProduct = (variation: Variations, product: Product) => {
     onChange({
@@ -213,6 +222,25 @@ export default function TestVariations({ variations, onChange }: TestVariationsP
         <p className="text-lg text-gray-500">
           Set up to three variants (A/B/C) of your product to test different versions. Variant A is
           required.
+        </p>
+      </div>
+
+      {/* Test Title Input */}
+      <div className="mb-8">
+        <label htmlFor="testTitle" className="block text-md font-bold text-gray-700 mb-2">
+          Test Title <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="testTitle"
+          type="text"
+          value={testData?.name || ''}
+          onChange={handleNameChange}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
+          placeholder="Enter a descriptive title for your test"
+          required
+        />
+        <p className="mt-2 text-sm text-gray-500">
+          A clear title helps you identify and manage your tests
         </p>
       </div>
 

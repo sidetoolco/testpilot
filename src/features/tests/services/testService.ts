@@ -356,10 +356,10 @@ export const testService = {
         switch (step) {
           case 'objective':
             return 'search_term'; // El primer paso se mapea a search_term
-          case 'search':
-            return 'search_term';
           case 'variations':
             return 'variants';
+          case 'search':
+            return 'search_term';
           case 'competitors':
             return 'competitors';
           case 'demographics':
@@ -795,8 +795,8 @@ export const testService = {
   getNextStep(lastCompletedStep: string): string {
     const steps = [
       'objective',
-      'search',
       'variations',
+      'search',
       'competitors',
       'demographics',
       'preview',

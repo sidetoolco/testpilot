@@ -5,6 +5,7 @@ interface IncompleteTestModalProps {
   isOpen: boolean;
   onSave: (testName?: string) => Promise<void>;
   onCancel: () => void;
+  onClose?: () => void; // New prop for X button click
   isSaving: boolean;
   currentTestName?: string;
 }
@@ -13,6 +14,7 @@ export default function IncompleteTestModal({
   isOpen,
   onSave,
   onCancel,
+  onClose,
   isSaving,
   currentTestName,
 }: IncompleteTestModalProps) {
@@ -41,7 +43,7 @@ export default function IncompleteTestModal({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Incomplete Test in Progress</h2>
           <button
-            onClick={onCancel}
+            onClick={onClose || onCancel}
             className="text-gray-400 hover:text-gray-600"
             disabled={isSaving}
           >
