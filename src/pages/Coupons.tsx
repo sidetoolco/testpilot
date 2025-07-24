@@ -233,7 +233,14 @@ export default function Coupons() {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString();
+    const date = new Date(timestamp * 1000);
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+    return `${dateStr} ${timeStr}`;
   };
 
   const getDiscountText = (coupon: Coupon) => {
