@@ -6,6 +6,63 @@ import { toast } from 'sonner';
 import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import ModalLayout from '../layouts/ModalLayout';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
+// Custom styles for DatePicker
+const datePickerStyles = `
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+  .react-datepicker__input-container input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: all 0.2s;
+  }
+  .react-datepicker__input-container input:focus {
+    outline: none;
+    border-color: #00A67E;
+    box-shadow: 0 0 0 2px rgba(0, 166, 126, 0.1);
+  }
+  .react-datepicker {
+    font-family: inherit;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  .react-datepicker__header {
+    background-color: #00A67E;
+    border-bottom: 1px solid #d1d5db;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+  .react-datepicker__current-month,
+  .react-datepicker__day-name {
+    color: white;
+  }
+  .react-datepicker__day:hover {
+    background-color: #00A67E;
+    color: white;
+  }
+  .react-datepicker__day--selected {
+    background-color: #00A67E;
+    color: white;
+  }
+  .react-datepicker__time-container {
+    border-left: 1px solid #d1d5db;
+  }
+  .react-datepicker__time-container .react-datepicker__time {
+    background-color: white;
+  }
+  .react-datepicker__time-list-item--selected {
+    background-color: #00A67E;
+    color: white;
+  }
+`;
 
 interface Coupon {
   id: string;
@@ -30,7 +87,7 @@ interface CreateCouponForm {
   duration: 'once' | 'repeating' | 'forever';
   duration_in_months?: number;
   max_redemptions?: number;
-  redeem_by?: number;
+  redeem_by?: Date;
 }
 
 export default function Coupons() {
@@ -45,6 +102,17 @@ export default function Coupons() {
     currency: 'usd',
     duration: 'once',
   });
+
+  // Inject custom DatePicker styles
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = datePickerStyles;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   // Check if user is admin
   useEffect(() => {
@@ -127,7 +195,7 @@ export default function Coupons() {
       }
 
       if (formData.redeem_by) {
-        couponData.redeem_by = formData.redeem_by;
+        couponData.redeem_by = formData.redeem_by.getTime() / 1000; // Convert Date to Unix timestamp
       }
 
       const response = await apiClient.post('/stripe/coupons', couponData);
@@ -443,19 +511,22 @@ export default function Coupons() {
 
               <div>
                 <label htmlFor="redeem_by" className="block text-sm font-medium text-gray-700 mb-1">
-                  Expires At (timestamp)
+                  Expires At
                 </label>
-                <input
-                  id="redeem_by"
-                  type="number"
-                  min={Math.floor(Date.now() / 1000)}
-                  value={formData.redeem_by || ''}
-                  onChange={(e) => setFormData(prev => ({ 
+                <DatePicker
+                  selected={formData.redeem_by}
+                  onChange={(date) => setFormData(prev => ({ 
                     ...prev, 
-                    redeem_by: e.target.value ? Number(e.target.value) : undefined 
+                    redeem_by: date || undefined 
                   }))}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={15}
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  placeholderText="Select expiration date and time (optional)"
+                  minDate={new Date()}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
-                  placeholder="Unix timestamp (optional)"
+                  isClearable
                 />
               </div>
             </div>
