@@ -49,9 +49,40 @@ interface PDFDocumentProps {
   averagesurveys: any;
   aiInsights?: any[];
   disabled?: boolean;
+  shopperComments?: {
+    comparision: {
+      a: any[];
+      b: any[];
+      c: any[];
+    };
+    surveys: {
+      a: any[];
+      b: any[];
+      c: any[];
+    };
+  };
+  testData?: {
+    competitors: Array<{ id: string; title: string; image_url: string; price: number }>;
+    variations: {
+      a: { id: string; title: string; image_url: string; price: number } | null;
+      b: { id: string; title: string; image_url: string; price: number } | null;
+      c: { id: string; title: string; image_url: string; price: number } | null;
+    };
+  };
 }
 
-const generateExcelFile = (exportData: TestExportData, testName: string) => {
+const getChosenProduct = (
+  comment: any,
+  testData?: PDFDocumentProps['testData']
+): any => {
+  if (comment.competitor_id) {
+    return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
+  } else {
+    return comment.products || null;
+  }
+};
+
+const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData']) => {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
 
@@ -73,10 +104,49 @@ const generateExcelFile = (exportData: TestExportData, testName: string) => {
     XLSX.utils.book_append_sheet(workbook, competitiveSheet, 'Competitive Ratings');
   }
 
-  // 4. Shopper Comments
-  if (exportData.shopper_comments && exportData.shopper_comments.length > 0) {
-    const commentsSheet = XLSX.utils.json_to_sheet(exportData.shopper_comments);
-    XLSX.utils.book_append_sheet(workbook, commentsSheet, 'Shopper Comments');
+  // 4. Shopper Comments - Separate tabs for each variant
+  if (shopperComments) {
+    ['a', 'b', 'c'].forEach(variantKey => {
+      const variantComparision = shopperComments.comparision[variantKey as keyof typeof shopperComments.comparision] || [];
+      const variantSurveys = shopperComments.surveys[variantKey as keyof typeof shopperComments.surveys] || [];
+
+      const allComments: any[] = [];
+
+      // Add survey comments
+      variantSurveys.forEach((comment, index) => {
+        const chosenProduct = getChosenProduct(comment, testData);
+        allComments.push({
+          'Comment Type': 'Survey - Improvement Suggestion',
+          Comment: comment.improve_suggestions || '',
+          'Chosen Product': chosenProduct?.title || 'N/A',
+          'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
+          Age: comment.tester_id?.shopper_demographic?.age || '',
+          Sex: comment.tester_id?.shopper_demographic?.sex || '',
+          Country: comment.tester_id?.shopper_demographic?.country_residence || '',
+          Index: index + 1,
+        });
+      });
+
+      // Add comparison comments
+      variantComparision.forEach((comment, index) => {
+        const chosenProduct = getChosenProduct(comment, testData);
+        allComments.push({
+          'Comment Type': 'Comparison - Choose Reason',
+          Comment: comment.choose_reason || '',
+          'Chosen Product': chosenProduct?.title || 'N/A',
+          'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
+          Age: comment.tester_id?.shopper_demographic?.age || '',
+          Sex: comment.tester_id?.shopper_demographic?.sex || '',
+          Country: comment.tester_id?.shopper_demographic?.country_residence || '',
+          Index: index + 1,
+        });
+      });
+
+      if (allComments.length > 0) {
+        const sheet = XLSX.utils.json_to_sheet(allComments);
+        XLSX.utils.book_append_sheet(workbook, sheet, `Comments Variant ${variantKey.toUpperCase()}`);
+      }
+    });
   }
 
   // Generate file and download it
@@ -408,6 +478,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   competitiveinsights,
   aiInsights,
   disabled,
+  shopperComments,
+  testData,
 }) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -431,7 +503,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
       if (exportData) {
         toast.success('Export data retrieved successfully');
-        generateExcelFile(exportData, testDetails.name);
+        generateExcelFile(exportData, testDetails.name, shopperComments, testData);
       } else {
         toast.error('No data available for export');
       }
