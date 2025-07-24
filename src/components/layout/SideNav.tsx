@@ -40,8 +40,7 @@ const testInProgressSteps = [
 export default function SideNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, loading } = useAuth();
-  const user = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
@@ -52,12 +51,12 @@ export default function SideNav() {
   // Check if user is admin
   useEffect(() => {
     const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
+      if (!user?.id) return;
 
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.user.id as any)
+        .eq('id', user.id as any)
         .single();
 
       if (!error && data) {
@@ -66,7 +65,7 @@ export default function SideNav() {
     };
 
     checkAdminRole();
-  }, [user?.user?.id]);
+  }, [user?.id]);
 
   // Safely use the test creation context state and functions
   let testState = null;

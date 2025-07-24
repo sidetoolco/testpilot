@@ -115,7 +115,7 @@ export default function Coupons() {
       if (formData.percent_off) {
         couponData.percent_off = formData.percent_off;
       } else if (formData.amount_off) {
-        couponData.amount_off = formData.amount_off * 100; // Convert dollars to cents
+        couponData.amount_off = Math.round(formData.amount_off * 100); // Convert dollars to cents
       }
 
       if (formData.duration === 'repeating' && formData.duration_in_months) {
