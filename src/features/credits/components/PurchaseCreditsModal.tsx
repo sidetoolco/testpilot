@@ -146,12 +146,9 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
     setCouponError('');
 
     try {
-      console.log('🔍 Validating coupon:', couponCode.trim());
       const result = await creditsService.validateCoupon(couponCode.trim());
-      console.log('📋 Coupon validation result:', result);
       
       if (result.valid && result.coupon) {
-        console.log('✅ Coupon is valid:', result.coupon);
         setAppliedCoupon(result.coupon);
         setCouponCode('');
         toast.success(`Coupon applied: ${result.coupon.name}`);
