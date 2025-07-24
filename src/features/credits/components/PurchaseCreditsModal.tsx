@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Star } from 'lucide-react';
+import { CheckCircle, Star, Tag, X } from 'lucide-react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { creditsService } from '../services/creditsService';
+import { creditsService, CouponValidationResponse } from '../services/creditsService';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ModalLayout from '../../../layouts/ModalLayout';
@@ -48,6 +48,13 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
   const [selectedCredits, setSelectedCredits] = useState<number>(1000); // Default to popular option
   const [customCredits, setCustomCredits] = useState<string>('');
   const [isCustomAmount, setIsCustomAmount] = useState(false);
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidationResponse['coupon'] | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string>('');
+  
   const stripe = useStripe();
   const elements = useElements();
   const queryClient = useQueryClient();
@@ -97,6 +104,73 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
     return formatPrice(credits * 49);
   };
 
+  const getDiscountedPrice = () => {
+    const credits = getCurrentCredits();
+    const basePrice = credits * 49;
+    
+    if (!appliedCoupon) {
+      return basePrice;
+    }
+
+    if (appliedCoupon.percent_off) {
+      const discount = (basePrice * appliedCoupon.percent_off) / 100;
+      return basePrice - discount;
+    }
+
+    if (appliedCoupon.amount_off) {
+      const discount = appliedCoupon.amount_off / 100; // Convert cents to dollars
+      return Math.max(0, basePrice - discount);
+    }
+
+    return basePrice;
+  };
+
+  const getFormattedDiscountedPrice = () => {
+    return formatPrice(getDiscountedPrice());
+  };
+
+  const getDiscountAmount = () => {
+    const credits = getCurrentCredits();
+    const basePrice = credits * 49;
+    const discountedPrice = getDiscountedPrice();
+    return basePrice - discountedPrice;
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const result = await creditsService.validateCoupon(couponCode.trim());
+      
+      if (result.valid && result.coupon) {
+        setAppliedCoupon(result.coupon);
+        setCouponCode('');
+        toast.success(`Coupon applied: ${result.coupon.name}`);
+      } else {
+        const errorMessage = result.error || 'Invalid coupon code';
+        setCouponError(errorMessage);
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      setCouponError('Failed to validate coupon');
+      toast.error('Failed to validate coupon');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -113,8 +187,11 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
     setIsProcessing(true);
 
     try {
-      // Create payment intent
-      const { clientSecret } = await creditsService.createPaymentIntent(credits);
+      // Create payment intent with coupon if applied
+      const { clientSecret } = await creditsService.createPaymentIntent(
+        credits, 
+        appliedCoupon?.id
+      );
 
       // Confirm payment
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -139,10 +216,12 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
           setSelectedCredits(1000);
           setCustomCredits('');
           setIsCustomAmount(false);
+          setAppliedCoupon(null);
+          setCouponCode('');
+          setCouponError('');
         }, 2000);
       }
     } catch (error) {
-      console.error('Payment error:', error);
       toast.error('Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
@@ -231,10 +310,88 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
             <p className="text-2xl font-bold text-primary-900">
               {currentCredits.toLocaleString()} Credits
             </p>
-            <p className="text-lg text-primary-700">{currentPrice}</p>
+            <div className="flex items-center justify-center gap-2">
+              {appliedCoupon ? (
+                <>
+                  <p className="text-lg text-primary-700 line-through">{getCurrentPrice()}</p>
+                  <p className="text-lg font-bold text-green-600">{getFormattedDiscountedPrice()}</p>
+                </>
+              ) : (
+                <p className="text-lg text-primary-700">{getCurrentPrice()}</p>
+              )}
+            </div>
+            {appliedCoupon && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <Tag className="h-4 w-4 text-green-600" />
+                <span className="text-sm text-green-600 font-medium">
+                  {appliedCoupon.name} applied
+                </span>
+                <button
+                  onClick={handleRemoveCoupon}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {/* Coupon Section */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Have a coupon code?
+        </label>
+        {!appliedCoupon ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder="Enter coupon code"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+            />
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={isValidatingCoupon || !couponCode.trim()}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isValidatingCoupon ? 'Validating...' : 'Apply'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-green-800">
+                {appliedCoupon.name}
+              </span>
+              {appliedCoupon.percent_off && (
+                <span className="text-xs text-green-600">
+                  {appliedCoupon.percent_off}% off
+                </span>
+              )}
+              {appliedCoupon.amount_off && (
+                <span className="text-xs text-green-600">
+                  ${(appliedCoupon.amount_off / 100).toFixed(2)} off
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleRemoveCoupon}
+              className="text-green-600 hover:text-green-800"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        {couponError && (
+          <p className="text-sm text-red-600 mt-1">{couponError}</p>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -249,7 +406,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
           disabled={!stripe || isProcessing || currentCredits <= 0}
           className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isProcessing ? 'Processing...' : `Pay ${currentPrice}`}
+          {isProcessing ? 'Processing...' : `Pay ${getFormattedDiscountedPrice()}`}
         </button>
       </form>
 
