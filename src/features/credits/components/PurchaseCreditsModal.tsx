@@ -157,12 +157,10 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
         toast.success(`Coupon applied: ${result.coupon.name}`);
       } else {
         const errorMessage = result.error || 'Invalid coupon code';
-        console.log('❌ Coupon validation failed:', errorMessage);
         setCouponError(errorMessage);
         toast.error(errorMessage);
       }
     } catch (error) {
-      console.error('💥 Coupon validation error:', error);
       setCouponError('Failed to validate coupon');
       toast.error('Failed to validate coupon');
     } finally {
@@ -227,7 +225,6 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
         }, 2000);
       }
     } catch (error) {
-      console.error('Payment error:', error);
       toast.error('Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
@@ -357,7 +354,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
               onChange={(e) => setCouponCode(e.target.value)}
               placeholder="Enter coupon code"
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+              onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
             />
             <button
               type="button"

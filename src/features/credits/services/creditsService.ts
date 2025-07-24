@@ -36,10 +36,10 @@ export const creditsService = {
   // ✅ FIXED: Validate coupon by code using the new endpoint
   async validateCoupon(couponCode: string): Promise<CouponValidationResponse> {
     try {
-      const { data } = await apiClient.get<CouponValidationResponse>(`/stripe/coupons/validate/${couponCode}`);
+      const safeCode = encodeURIComponent(couponCode);
+      const { data } = await apiClient.get<CouponValidationResponse>(`/stripe/coupons/validate/${safeCode}`);
       return data;
     } catch (error: any) {
-      console.log('Coupon validation error:', error);
       
       // Handle different types of errors
       if (error.response?.status === 404) {
