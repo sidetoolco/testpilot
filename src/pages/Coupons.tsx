@@ -115,7 +115,7 @@ export default function Coupons() {
       if (formData.percent_off) {
         couponData.percent_off = formData.percent_off;
       } else if (formData.amount_off) {
-        couponData.amount_off = formData.amount_off;
+        couponData.amount_off = formData.amount_off * 100; // Convert dollars to cents
       }
 
       if (formData.duration === 'repeating' && formData.duration_in_months) {
@@ -173,7 +173,9 @@ export default function Coupons() {
       return `${coupon.percent_off}% off`;
     } else if (coupon.amount_off) {
       const amount = coupon.amount_off / 100; // Convert cents to dollars
-      return `$${amount} off`;
+      const currency = coupon.currency?.toUpperCase() || 'USD';
+      const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+      return `${symbol}${amount.toFixed(2)} off`;
     }
     return 'No discount';
   };
@@ -268,11 +270,7 @@ export default function Coupons() {
 
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  {coupon.percent_off ? (
-                    <Percent className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                  )}
+                 
                   <span className="font-medium text-green-600">
                     {getDiscountText(coupon)}
                   </span>
@@ -348,12 +346,13 @@ export default function Coupons() {
 
               <div>
                 <label htmlFor="amount_off" className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount Off (cents)
+                  Amount Off ($)
                 </label>
                 <input
                   id="amount_off"
                   type="number"
-                  min="1"
+                  min="0.01"
+                  step="0.01"
                   value={formData.amount_off || ''}
                   onChange={(e) => setFormData(prev => ({ 
                     ...prev, 
@@ -361,7 +360,7 @@ export default function Coupons() {
                     percent_off: undefined 
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
-                  placeholder="1000 (=$10)"
+                  placeholder="10.00"
                 />
               </div>
             </div>
