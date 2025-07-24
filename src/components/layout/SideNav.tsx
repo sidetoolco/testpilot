@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Beaker,
@@ -10,8 +10,10 @@ import {
   Settings,
   Users,
   DollarSign,
+  Percent,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { supabase } from '../../lib/supabase';
 import {
   useTestCreationState,
   useTestCreation,
@@ -39,11 +41,32 @@ export default function SideNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, loading } = useAuth();
+  const user = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.user.id as any)
+        .single();
+
+      if (!error && data) {
+        setIsAdmin((data as any).role === 'admin');
+      }
+    };
+
+    checkAdminRole();
+  }, [user?.user?.id]);
 
   // Safely use the test creation context state and functions
   let testState = null;
@@ -234,7 +257,8 @@ export default function SideNav() {
                 className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
                   isActive('/settings') ||
                   isActive('/settings/team') ||
-                  isActive('/settings/billing')
+                  isActive('/settings/billing') ||
+                  isActive('/settings/coupons')
                     ? 'bg-[#008F6B] text-white'
                     : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                 }`}
@@ -274,6 +298,22 @@ export default function SideNav() {
                       <span className="font-medium">Billing</span>
                     </a>
                   </li>
+                  {isAdmin && (
+                    <li>
+                      <a
+                        href="/settings/coupons"
+                        onClick={e => handleNavigation('/settings/coupons', e)}
+                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                          isActive('/settings/coupons')
+                            ? 'bg-[#008F6B] text-white'
+                            : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                        }`}
+                      >
+                        <Percent className="h-4 w-4" />
+                        <span className="font-medium">Coupons</span>
+                      </a>
+                    </li>
+                  )}
                 </ul>
               )}
             </li>

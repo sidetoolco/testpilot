@@ -30,6 +30,7 @@ import SentryErrorTest from './pages/SentryErrorTest';
 import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
 import Billing from './pages/Billing';
+import Coupons from './pages/Coupons';
 
 const queryClient = new QueryClient();
 
@@ -173,6 +174,17 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <Billing />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings/coupons"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Coupons />
                     </MainLayout>
                   </ProtectedRoute>
                 }
