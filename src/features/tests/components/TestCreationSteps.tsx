@@ -101,7 +101,7 @@ export function TestCreationSteps({
                   disabled={!canPublish}
                   className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
                     canPublish
-                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      ? 'bg-primary-400 text-white hover:bg-primary-500'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   }`}
                 >
