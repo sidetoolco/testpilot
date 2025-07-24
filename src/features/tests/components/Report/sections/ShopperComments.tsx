@@ -1,9 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
-import { FileSpreadsheet } from 'lucide-react';
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 import ChosenProductCard, { Product } from './ChosenProductCard';
 
 interface Comment {
@@ -199,7 +196,6 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   testData,
 }) => {
   const { insight } = useInsightStore();
-  const [isExporting, setIsExporting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
@@ -236,71 +232,6 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     };
   }, [variant, comparision, surveys]);
 
-  const hasAnyComments = useMemo(() => {
-    return (
-      Object.values(comparision).some(comments => comments.length > 0) ||
-      Object.values(surveys).some(comments => comments.length > 0)
-    );
-  }, [comparision, surveys]);
-
-  const exportCommentsToExcel = useCallback(() => {
-    setIsExporting(true);
-
-    try {
-      const workbook = XLSX.utils.book_new();
-
-      ['a', 'b', 'c'].forEach(variantKey => {
-        const variantComparision = comparision[variantKey as keyof typeof comparision] || [];
-        const variantSurveys = surveys[variantKey as keyof typeof surveys] || [];
-
-        const allComments: any[] = [];
-
-        variantSurveys.forEach((comment, index) => {
-          const chosenProduct = getChosenProduct(comment, testData);
-          allComments.push({
-            'Comment Type': 'Survey - Improvement Suggestion',
-            Comment: comment.improve_suggestions || '',
-            'Chosen Product': chosenProduct?.title || 'N/A',
-            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
-            Age: comment.tester_id?.shopper_demographic?.age || '',
-            Sex: comment.tester_id?.shopper_demographic?.sex || '',
-            Country: comment.tester_id?.shopper_demographic?.country_residence || '',
-            Index: index + 1,
-          });
-        });
-
-        variantComparision.forEach((comment, index) => {
-          const chosenProduct = getChosenProduct(comment, testData);
-          allComments.push({
-            'Comment Type': 'Comparison - Choose Reason',
-            Comment: comment.choose_reason || '',
-            'Chosen Product': chosenProduct?.title || 'N/A',
-            'Product Price': chosenProduct?.price ? `$${chosenProduct.price.toFixed(2)}` : 'N/A',
-            Age: comment.tester_id?.shopper_demographic?.age || '',
-            Sex: comment.tester_id?.shopper_demographic?.sex || '',
-            Country: comment.tester_id?.shopper_demographic?.country_residence || '',
-            Index: index + 1,
-          });
-        });
-
-        if (allComments.length > 0) {
-          const sheet = XLSX.utils.json_to_sheet(allComments);
-          XLSX.utils.book_append_sheet(workbook, sheet, `Variant ${variantKey.toUpperCase()}`);
-        }
-      });
-
-      const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_shopper_comments.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-
-      toast.success('Shopper comments exported successfully');
-    } catch (error) {
-      console.error('Error exporting comments:', error);
-      toast.error('Failed to export shopper comments');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [comparision, surveys, testData, testName]);
-
   if (variant !== 'summary' && !hasComparision && !hasSurveys) {
     return (
       <div className="h-80 flex flex-col items-center justify-center bg-white p-6 rounded-xl shadow-md">
@@ -332,16 +263,6 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     <div className="p-6 bg-white rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Shopper comments</h2>
-        {hasAnyComments && (
-          <button
-            onClick={exportCommentsToExcel}
-            disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            <FileSpreadsheet size={20} />
-            {isExporting ? 'Exporting...' : 'Export CSV'}
-          </button>
-        )}
       </div>
 
       <div className="mb-6">

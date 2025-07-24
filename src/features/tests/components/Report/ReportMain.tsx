@@ -279,6 +279,46 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             competitiveinsights={competitiveinsights}
             averagesurveys={averagesurveys}
             aiInsights={aiInsights}
+            shopperComments={{
+              comparision: {
+                a: (testInfo?.responses?.comparisons as any)?.a || [],
+                b: (testInfo?.responses?.comparisons as any)?.b || [],
+                c: (testInfo?.responses?.comparisons as any)?.c || [],
+              },
+              surveys: {
+                a: (testInfo?.responses?.surveys as any)?.a || [],
+                b: (testInfo?.responses?.surveys as any)?.b || [],
+                c: (testInfo?.responses?.surveys as any)?.c || [],
+              },
+            }}
+            testData={{
+              competitors: testInfo?.competitors?.map(comp => ({
+                id: comp.id || '',
+                title: comp.title || '',
+                image_url: comp.image_url || '',
+                price: comp.price || 0,
+              })) || [],
+              variations: {
+                a: testInfo?.variations?.a ? {
+                  id: testInfo.variations.a.id || '',
+                  title: testInfo.variations.a.title || '',
+                  image_url: testInfo.variations.a.image_url || '',
+                  price: testInfo.variations.a.price || 0,
+                } : null,
+                b: testInfo?.variations?.b ? {
+                  id: testInfo.variations.b.id || '',
+                  title: testInfo.variations.b.title || '',
+                  image_url: testInfo.variations.b.image_url || '',
+                  price: testInfo.variations.b.price || 0,
+                } : null,
+                c: testInfo?.variations?.c ? {
+                  id: testInfo.variations.c.id || '',
+                  title: testInfo.variations.c.title || '',
+                  image_url: testInfo.variations.c.image_url || '',
+                  price: testInfo.variations.c.price || 0,
+                } : null,
+              },
+            }}
           />
         </div>
         <ReportTabs
