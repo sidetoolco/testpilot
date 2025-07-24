@@ -355,7 +355,7 @@ export const testService = {
       const mapStepToEnum = (step: string): string => {
         switch (step) {
           case 'objective':
-            return 'search_term'; // El primer paso se mapea a search_term
+            return 'objective'; // Distinguir objective de search
           case 'variations':
             return 'variants';
           case 'search':
@@ -369,7 +369,7 @@ export const testService = {
           case 'review':
             return 'review';
           default:
-            return 'search_term'; // Valor por defecto
+            return 'objective'; // Valor por defecto
         }
       };
 
@@ -382,7 +382,7 @@ export const testService = {
         user_id: user.id,
         objective: testData.objective || null,
         settings: {},
-        step: currentStep ? mapStepToEnum(currentStep) : 'search_term', // Guardar el paso actual en la columna step
+        step: currentStep ? mapStepToEnum(currentStep) : 'objective', // Guardar el paso actual en la columna step
       } as any;
 
       let test;
@@ -726,6 +726,8 @@ export const testService = {
       // Mapear el paso del enum a los valores internos de la UI
       const mapEnumToStep = (step: string): string => {
         switch (step) {
+          case 'objective':
+            return 'objective';
           case 'search_term':
             return 'search';
           case 'variants':
@@ -746,12 +748,21 @@ export const testService = {
       // Determinar el último paso completado basado en los datos disponibles
       let lastCompletedStep = 'objective';
 
-      if ((test as any).search_term) {
-        lastCompletedStep = 'search';
+      // Check if objective is set (this is the first step)
+      if ((test as any).objective) {
+        lastCompletedStep = 'objective';
       }
+      
+      // Check if variations are set (this comes before search in new order)
       if (variations.a || variations.b || variations.c) {
         lastCompletedStep = 'variations';
       }
+      
+      // Check if search term is set (this comes after variations in new order)
+      if ((test as any).search_term) {
+        lastCompletedStep = 'search';
+      }
+      
       if (competitors.length > 0) {
         lastCompletedStep = 'competitors';
       }
