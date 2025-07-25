@@ -280,10 +280,8 @@ export const useUsers = () => {
 
   // Load users after companies are loaded
   useEffect(() => {
-    if (companies.length > 0) {
-      loadUsersForPage(1);
-    }
-  }, [companies.length, loadUsersForPage]);
+    loadUsersForPage(1);
+  }, [companies, loadUsersForPage]);
 
   return {
     users: memoizedUsers,
