@@ -261,10 +261,10 @@ export default function SideNav() {
                 </li>
                 <li>
                   <a
-                    href="/admin"
-                    onClick={e => handleNavigation('/admin', e)}
+                    href="/users"
+                    onClick={e => handleNavigation('/users', e)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/admin')
+                      isActive('/users')
                         ? 'bg-[#008F6B] text-white'
                         : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
                     }`}

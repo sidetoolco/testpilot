@@ -100,6 +100,7 @@ export const Adminpanel = () => {
   }, []);
 
   const handleCreateClick = useCallback(() => {
+    // Clear form data before opening modal
     setFormData({
       email: '',
       password: '',
@@ -108,6 +109,31 @@ export const Adminpanel = () => {
       role: 'user',
     });
     setShowCreateModal(true);
+  }, []);
+
+  const handleCloseCreateModal = useCallback(() => {
+    setShowCreateModal(false);
+    // Clear form data when closing
+    setFormData({
+      email: '',
+      password: '',
+      fullName: '',
+      companyName: '',
+      role: 'user',
+    });
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedUser(null);
+    // Clear form data when closing
+    setFormData({
+      email: '',
+      password: '',
+      fullName: '',
+      companyName: '',
+      role: 'user',
+    });
   }, []);
 
   const handleCreateSubmit = useCallback(async (formData: FormData) => {
@@ -214,7 +240,7 @@ export const Adminpanel = () => {
       {/* Create User Modal */}
       <UserModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={handleCloseCreateModal}
         onSubmit={handleCreateSubmit}
         formData={formData}
         onFormDataChange={setFormData}
@@ -225,7 +251,7 @@ export const Adminpanel = () => {
       {/* Edit User Modal */}
       <UserModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
+        onClose={handleCloseEditModal}
         onSubmit={handleEditSubmit}
         formData={formData}
         onFormDataChange={setFormData}

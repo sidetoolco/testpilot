@@ -74,7 +74,7 @@ function App() {
               <Route path="/invite/:token" element={<TeamInviteForm />} />
 
               <Route
-                path="/admin"
+                path="/users"
                 element={
                   <ProtectedRoute>
                     <MainLayout>
@@ -90,17 +90,6 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <CompaniesManagement />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/users"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Adminpanel />
                     </MainLayout>
                   </ProtectedRoute>
                 }

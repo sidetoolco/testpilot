@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, Company, FormData } from '../types/user';
+import { USER_CREATION_WEBHOOK_URL } from '../lib/constants';
 
 // Cache for page data
 const pageCache = new Map<string, { data: User[]; totalCount: number; timestamp: number }>();
@@ -125,20 +126,18 @@ export const useUsers = () => {
   }, []);
 
   // Create user function
-  const createUser = useCallback(async (data: any) => {
-    const response = await fetch(
-      'https://testpilot.app.n8n.cloud/webhook/70de7235-766e-4097-b388-7829d4dff16e',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          fullName: data.fullName,
-          companyName: data.companyName,
-        }),
-      }
-    );
+  const createUser = useCallback(async (data: FormData) => {
+    const response = await fetch(USER_CREATION_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        companyName: data.companyName,
+        role: data.role,
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.json();
