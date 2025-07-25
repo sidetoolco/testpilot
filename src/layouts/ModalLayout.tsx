@@ -10,7 +10,7 @@ interface ModalLayoutProps {
 }
 
 export default function ModalLayout({ isOpen, onClose, title, children }: ModalLayoutProps) {
-  // Handle escape key
+  // Handle escape key and body scroll
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -20,7 +20,6 @@ export default function ModalLayout({ isOpen, onClose, title, children }: ModalL
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
