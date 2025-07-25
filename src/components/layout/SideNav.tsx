@@ -270,7 +270,7 @@ export default function SideNav() {
                     }`}
                   >
                     <Shield className="h-5 w-5" />
-                    <span className="font-medium">User Management</span>
+                    <span className="font-medium">Users</span>
                   </a>
                 </li>
                 <li>

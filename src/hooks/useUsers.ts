@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { User, Company, FormData } from '../types/user';
 
 // Cache for page data
-const pageCache = new Map<string, { data: User[]; timestamp: number }>();
+const pageCache = new Map<string, { data: User[]; totalCount: number; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useUsers = () => {
@@ -37,9 +37,6 @@ export const useUsers = () => {
 
   // Load users for current page with caching
   const loadUsersForPage = useCallback(async (page: number, searchQuery?: string) => {
-    console.log('loadUsersForPage called with page:', page, 'searchQuery:', searchQuery);
-    console.log('Current companies count:', companies.length);
-    
     try {
       setLoading(true);
       
@@ -50,8 +47,8 @@ export const useUsers = () => {
 
       // Check cache first
       if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-        console.log('Using cached data for key:', cacheKey);
         setUsers(cached.data);
+        setTotalUsers(cached.totalCount);
         setLoading(false);
         return;
       }
@@ -69,14 +66,11 @@ export const useUsers = () => {
       const from = (page - 1) * usersPerPage;
       const to = from + usersPerPage - 1;
       
-      console.log('Making API call with range:', from, 'to', to);
       const { data: usersData, error: usersError, count } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
 
       if (usersError) throw usersError;
-
-      console.log('API response - usersData:', usersData?.length, 'count:', count);
 
       // Map company names to users
       const usersWithCompanies = (usersData || []).map((user: any) => {
@@ -87,10 +81,8 @@ export const useUsers = () => {
         };
       });
 
-      console.log('Mapped users with companies:', usersWithCompanies.length);
-
       // Cache the result
-      pageCache.set(cacheKey, { data: usersWithCompanies, timestamp: now });
+      pageCache.set(cacheKey, { data: usersWithCompanies, totalCount: count || 0, timestamp: now });
       
       setUsers(usersWithCompanies);
       setTotalUsers(count || 0);
@@ -269,11 +261,9 @@ export const useUsers = () => {
   const getCurrentUsers = useCallback(() => {
     // If we have search results, show those
     if (allUsers.length > 0) {
-      console.log('Returning search results:', allUsers.length, 'users');
       return allUsers;
     }
     // Otherwise show paginated users
-    console.log('Returning paginated users:', users.length, 'users');
     return users;
   }, [users, allUsers]);
 

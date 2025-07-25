@@ -29,7 +29,7 @@ interface CompanyWithDetails extends Company {
 }
 
 // Cache for page data
-const pageCache = new Map<string, { data: Company[]; timestamp: number }>();
+const pageCache = new Map<string, { data: Company[]; totalCount: number; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useCompanies = (isAdmin: boolean | null) => {
@@ -57,6 +57,7 @@ export const useCompanies = (isAdmin: boolean | null) => {
       // Check cache first
       if (cached && (now - cached.timestamp) < CACHE_DURATION) {
         setCompanies(cached.data);
+        setTotalCompanies(cached.totalCount);
         setLoading(false);
         return;
       }
@@ -124,7 +125,7 @@ export const useCompanies = (isAdmin: boolean | null) => {
       );
 
       // Cache the result
-      pageCache.set(cacheKey, { data: companiesWithDetails, timestamp: now });
+      pageCache.set(cacheKey, { data: companiesWithDetails, totalCount: count || 0, timestamp: now });
       
       setCompanies(companiesWithDetails);
       setTotalCompanies(count || 0);
