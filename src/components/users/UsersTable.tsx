@@ -107,7 +107,7 @@ export const UsersTable = ({ users, onEditUser, onDeleteUser }: UsersTableProps)
                   <div className="flex space-x-2">
                     <button
                       onClick={() => onEditUser(user)}
-                      className="text-primary-600 hover:text-primary-900 transition-colors"
+                      className="text-yellow-600 hover:text-yellow-700 transition-colors"
                       title="Edit user"
                     >
                       <Edit className="h-4 w-4" />
