@@ -10,6 +10,7 @@ interface Company {
   credits?: number;
   user_count?: number;
   test_count?: number;
+  waiting_list?: boolean;
 }
 
 interface CompanyWithDetails extends Company {
@@ -220,6 +221,39 @@ export const useCompanies = (isAdmin: boolean | null) => {
     );
   }, []);
 
+  const updateCompanyWaitingList = useCallback(async (companyId: string, waitingList: boolean) => {
+    try {
+      // Update the company's waiting list status in the database
+      const { error } = await supabase
+        .from('companies')
+        .update({ waiting_list: waitingList } as any)
+        .eq('id', companyId as any);
+
+      if (error) throw error;
+
+      // Update local state
+      setCompanies(prevCompanies =>
+        prevCompanies.map(company =>
+          company.id === companyId
+            ? { ...company, waiting_list: waitingList }
+            : company
+        )
+      );
+      setAllCompanies(prevCompanies =>
+        prevCompanies.map(company =>
+          company.id === companyId
+            ? { ...company, waiting_list: waitingList }
+            : company
+        )
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error updating company waiting list status:', error);
+      throw error;
+    }
+  }, []);
+
   const removeCompany = useCallback((companyId: string) => {
     setCompanies(prevCompanies =>
       prevCompanies.filter(company => company.id !== companyId)
@@ -305,6 +339,7 @@ export const useCompanies = (isAdmin: boolean | null) => {
     totalCompanies,
     clearCache,
     updateCompanyCredits,
+    updateCompanyWaitingList,
     removeCompany,
     searchCompanies,
     getTotalPages: () => memoizedTotalPages,

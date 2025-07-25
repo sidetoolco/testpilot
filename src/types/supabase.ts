@@ -41,16 +41,19 @@ export interface Database {
           id: string;
           name: string;
           slug: string;
+          waiting_list: boolean;
         };
         Insert: {
           id?: string;
           name: string;
           slug: string;
+          waiting_list?: boolean;
         };
         Update: {
           id?: string;
           name?: string;
           slug?: string;
+          waiting_list?: boolean;
         };
       };
       products: {

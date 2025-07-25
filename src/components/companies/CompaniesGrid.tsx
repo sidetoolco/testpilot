@@ -1,4 +1,4 @@
-import { Building2, Users, CreditCard, Trash2, Eye } from 'lucide-react';
+import { Building2, Users, CreditCard, Trash2, Eye, AlertTriangle } from 'lucide-react';
 import { Pagination } from '../common/Pagination';
 
 interface Company {
@@ -10,6 +10,7 @@ interface Company {
   credits?: number;
   user_count?: number;
   test_count?: number;
+  waiting_list?: boolean;
 }
 
 interface CompaniesGridProps {
@@ -17,6 +18,7 @@ interface CompaniesGridProps {
   onViewDetails: (company: Company) => void | Promise<void>;
   onAddCredits: (company: Company) => void;
   onDeleteCompany: (company: Company) => void;
+  onActivateCompany: (company: Company) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -31,6 +33,7 @@ export const CompaniesGrid = ({
   onViewDetails,
   onAddCredits,
   onDeleteCompany,
+  onActivateCompany,
   currentPage,
   totalPages,
   onPageChange,
@@ -106,6 +109,20 @@ export const CompaniesGrid = ({
                     {company.test_count || 0}
                   </span>
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">Status</span>
+                  </div>
+                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                    company.waiting_list 
+                      ? 'bg-yellow-100 text-yellow-800' 
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {company.waiting_list ? 'Waiting List' : 'Active'}
+                  </span>
+                </div>
               </div>
 
               <div className="flex space-x-2">
@@ -116,6 +133,15 @@ export const CompaniesGrid = ({
                   <Eye className="h-4 w-4" />
                   <span>Details</span>
                 </button>
+                {company.waiting_list && (
+                  <button
+                    onClick={() => onActivateCompany(company)}
+                    className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 transition-colors"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Activate</span>
+                  </button>
+                )}
                 <button
                   onClick={() => onAddCredits(company)}
                   className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"

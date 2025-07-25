@@ -46,8 +46,8 @@ export const useUsers = () => {
       const cached = pageCache.get(cacheKey);
       const now = Date.now();
 
-      // Check cache first
-      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      // Check cache first, but only if companies are loaded
+      if (cached && (now - cached.timestamp) < CACHE_DURATION && companies.length > 0) {
         setUsers(cached.data);
         setTotalUsers(cached.totalCount);
         setLoading(false);
@@ -92,7 +92,7 @@ export const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [companies, usersPerPage]);
+  }, [usersPerPage, companies]);
 
   // Load all users for search (only when needed)
   const loadAllUsersForSearch = useCallback(async (searchQuery: string) => {
@@ -243,10 +243,13 @@ export const useUsers = () => {
     initializeData();
   }, [loadCompanies]);
 
-  // Load users after companies are loaded
+  // Load users after companies are loaded, and clear cache when companies change
   useEffect(() => {
-    loadUsersForPage(1);
-  }, [companies, loadUsersForPage]);
+    if (companies.length > 0) {
+      clearCache(); // Clear cache when companies are loaded to ensure fresh data
+      loadUsersForPage(1);
+    }
+  }, [companies, loadUsersForPage, clearCache]);
 
   return {
     users: memoizedUsers,
