@@ -19,7 +19,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   esbuild: {
-    drop: ['console', 'debugger'],
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   
   resolve: {
