@@ -11,6 +11,8 @@ import {
   Users,
   DollarSign,
   Percent,
+  Building2,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { supabase } from '../../lib/supabase';
@@ -248,6 +250,45 @@ export default function SideNav() {
                 </a>
               </li>
             ))}
+
+            {/* Admin Menu Items */}
+            {isAdmin && (
+              <>
+                <li className="pt-4 border-t border-[#00C495]">
+                  <div className="px-4 py-2">
+                    <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Admin</span>
+                  </div>
+                </li>
+                <li>
+                  <a
+                    href="/users"
+                    onClick={e => handleNavigation('/users', e)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive('/users')
+                        ? 'bg-[#008F6B] text-white'
+                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                    }`}
+                  >
+                    <Shield className="h-5 w-5" />
+                    <span className="font-medium">Users</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/companies"
+                    onClick={e => handleNavigation('/admin/companies', e)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive('/admin/companies')
+                        ? 'bg-[#008F6B] text-white'
+                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                    }`}
+                  >
+                    <Building2 className="h-5 w-5" />
+                    <span className="font-medium">Companies</span>
+                  </a>
+                </li>
+              </>
+            )}
 
             {/* Settings with dropdown */}
             <li>

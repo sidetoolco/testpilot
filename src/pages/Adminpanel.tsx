@@ -1,238 +1,208 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { signupSchema } from '../features/auth/validation/schemas';
-
-interface Profile {
-  id: string;
-  email: string;
-  role?: string;
-  waiting_list?: boolean;
-}
-
-interface AuthFormData {
-  email: string;
-  password: string;
-  fullName: string;
-  companyName: string;
-}
+import { Search, Loader2 } from 'lucide-react';
+import { useUsers } from '../hooks/useUsers';
+import { UsersTable } from '../components/users/UsersTable';
+import { UserModal } from '../components/users/UserModal';
+import { DeleteUserModal } from '../components/users/DeleteUserModal';
+import { User, FormData } from '../types/user';
 
 export const Adminpanel = () => {
   const user = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('Get1newpr@duct');
-  const [companyName, setCompanyName] = useState('');
-  const [users, setUsers] = useState<Profile[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+    fullName: '',
+    companyName: '',
+    role: 'admin',
+  });
 
+  const {
+    users,
+    loading,
+    isUpdating,
+    isDeleting,
+    currentPage,
+    usersPerPage,
+    totalUsers,
+    handleUpdateUser,
+    handleDeleteUser,
+    searchUsers,
+    getTotalPages,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    resetPagination,
+  } = useUsers();
+
+  // Check if user is admin
   useEffect(() => {
-    const verifyAdmin = async () => {
-      if (!user?.user?.id) return setIsAdmin(false);
+    const checkAdminRole = async () => {
+      if (!user?.user?.id) return;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.user.id)
+          .single();
 
-      if (error) {
-        console.error('Error verifying admin:', error);
-        return setIsAdmin(false);
+        if (!error && data && typeof data === 'object' && 'role' in data) {
+          setIsAdmin(data.role === 'admin');
+        }
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
       }
-
-      setIsAdmin(data?.role === 'admin');
     };
 
-    verifyAdmin();
+    checkAdminRole();
   }, [user?.user?.id]);
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      const { data, error } = await supabase.from('profiles').select('*');
-      if (error) return console.error('Error fetching users:', error);
-      if (data) {
-        setUsers(data as unknown as Profile[]);
-      }
-    };
+  // Get pagination data
+  const totalPages = getTotalPages();
 
-    loadUsers();
+  // Event handlers
+  const handleSearchChange = useCallback(async (value: string) => {
+    setSearchQuery(value);
+    resetPagination(); // Reset to first page when searching
+    await searchUsers(value); // Search across all users
+  }, [resetPagination, searchUsers]);
+
+  const handleEditUser = useCallback((user: User) => {
+    setSelectedUser(user);
+    setFormData({
+      email: user.email,
+      password: '',
+      fullName: user.full_name || '',
+      companyName: user.company_name || '',
+      role: user.role,
+    });
+    setShowEditModal(true);
   }, []);
 
-  const signUp = async (data: AuthFormData) => {
-    const response = await fetch(
-      'https://testpilot.app.n8n.cloud/webhook/70de7235-766e-4097-b388-7829d4dff16e',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          fullName: data.fullName,
-          companyName: data.companyName,
-        }),
-      }
-    );
+  const handleDeleteUserClick = useCallback((user: User) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  }, []);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create user');
-    }
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedUser(null);
+    // Clear form data when closing
+    setFormData({
+      email: '',
+      password: '',
+      fullName: '',
+      companyName: '',
+      role: 'admin',
+    });
+  }, []);
 
-    const result = await response.json();
-    return result;
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
+  const handleEditSubmit = useCallback(async (formData: FormData) => {
+    if (!selectedUser) return;
 
     try {
-      const validatedData = signupSchema.parse({
-        email,
-        password,
-        fullName: email.split('@')[0],
-        companyName,
-      });
-
-      const newUser = await signUp(validatedData);
-
-      if (newUser) {
-        console.log('New user created:', newUser);
-      }
-
-      console.log('User and company created successfully');
-      setEmail('');
-      setPassword('');
-      setCompanyName('');
-      setShowForm(false);
-
-      const { data } = await supabase.from('profiles').select('*');
-      if (data) {
-        setUsers(data as Profile[]);
-      }
+      await handleUpdateUser(selectedUser.id, formData);
+      setShowEditModal(false);
+      setSelectedUser(null);
     } catch (error: any) {
-      console.error('Error creating user:', error);
-      if (error?.message) {
-        setErrorMessage(error.message);
-      } else if (error?.error_description) {
-        setErrorMessage(error.error_description);
-      } else {
-        setErrorMessage('An unexpected error occurred.');
-      }
+      console.error('Error updating user:', error);
     }
-  };
+  }, [handleUpdateUser, selectedUser]);
 
-  const handleWaitingList = async (userId: string) => {
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!selectedUser) return;
+
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ waiting_list: true })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setUsers(prev => prev.map(u => (u.id === userId ? { ...u, waiting_list: true } : u)));
-    } catch (error) {
-      console.error('Error updating waiting list:', error);
+      await handleDeleteUser(selectedUser.id);
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
     }
-  };
+  }, [handleDeleteUser, selectedUser]);
 
-  if (isAdmin === null) return <div>Loading...</div>;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (isAdmin === null) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
-
-      <button
-        onClick={() => setShowForm(!showForm)}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4 hover:bg-blue-600"
-      >
-        {showForm ? 'Hide Form' : 'Add User'}
-      </button>
-
-      {showForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-            <button
-              onClick={() => setShowForm(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-bold mb-4">Create User</h2>
-            <form onSubmit={handleCreateUser}>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  autoComplete="off"
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border rounded shadow focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Leave blank to use default password"
-                  className="w-full px-3 py-2 border rounded shadow focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Company Name</label>
-                <input
-                  type="text"
-                  value={companyName}
-                  autoComplete="off"
-                  onChange={e => setCompanyName(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border rounded shadow focus:outline-none focus:shadow-outline"
-                />
-              </div>
-
-              {errorMessage && <div className="mb-4 text-red-500 text-sm">{errorMessage}</div>}
-
-              <button
-                type="submit"
-                className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-              >
-                Create User
-              </button>
-            </form>
+    <div className="space-y-6 p-8">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600 mt-1">Manage all users across all companies</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
           </div>
         </div>
+      </div>
+
+      {/* Users Table */}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      ) : (
+        <UsersTable
+          users={users}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUserClick}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          onNextPage={goToNextPage}
+          onPreviousPage={goToPreviousPage}
+          totalItems={totalUsers}
+          itemsPerPage={usersPerPage}
+        />
       )}
 
-      <h2 className="text-xl font-bold mb-2">User List</h2>
-      <div className="space-y-2">
-        {users.map(user => (
-          <div
-            key={user.id}
-            className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded shadow-sm"
-          >
-            <span>{user.email}</span>
-            {/* <button
-                            onClick={() => handleWaitingList(user.id)}
-                            disabled={user.waiting_list}
-                            className={`px-3 py-1 rounded-full text-white ${user.waiting_list
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-red-500 hover:bg-red-600'
-                                }`}
-                        >
-                            {user.waiting_list ? 'In Waiting List' : 'Add to Waiting List'}
-                        </button> */}
-          </div>
-        ))}
-      </div>
+      {/* Edit User Modal */}
+      <UserModal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        onSubmit={handleEditSubmit}
+        formData={formData}
+        onFormDataChange={setFormData}
+        isLoading={isUpdating}
+        mode="edit"
+      />
+
+      {/* Delete User Modal */}
+      <DeleteUserModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        user={selectedUser}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

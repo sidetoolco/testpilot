@@ -1,0 +1,279 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
+import { User, Company, FormData } from '../types/user';
+import { USER_CREATION_WEBHOOK_URL } from '../lib/constants';
+
+// Cache for page data
+const pageCache = new Map<string, { data: User[]; totalCount: number; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+export const useUsers = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // For search across all users
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(20);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  // Load companies (only once)
+  const loadCompanies = useCallback(async () => {
+    try {
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('companies')
+        .select('id, name')
+        .order('name');
+
+      if (companiesError) throw companiesError;
+      setCompanies(companiesData || []);
+    } catch (error) {
+      console.error('Error loading companies:', error);
+    }
+  }, []);
+
+  // Load users for current page with caching
+  const loadUsersForPage = useCallback(async (page: number, searchQuery?: string) => {
+    try {
+      setLoading(true);
+      
+      // Create cache key
+      const cacheKey = searchQuery ? `search_${searchQuery}` : `page_${page}`;
+      const cached = pageCache.get(cacheKey);
+      const now = Date.now();
+
+      // Check cache first
+      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        setUsers(cached.data);
+        setTotalUsers(cached.totalCount);
+        setLoading(false);
+        return;
+      }
+
+      let query = supabase
+        .from('profiles')
+        .select('*', { count: 'exact' });
+
+      // If there's a search query, search across all users
+      if (searchQuery && searchQuery.trim()) {
+        query = query.or(`email.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
+      }
+
+      // Add pagination
+      const from = (page - 1) * usersPerPage;
+      const to = from + usersPerPage - 1;
+      
+      const { data: usersData, error: usersError, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (usersError) throw usersError;
+
+      // Store raw user data without company mapping
+      const rawUsers = (usersData || []) as unknown as User[];
+
+      // Cache the raw result
+      pageCache.set(cacheKey, { data: rawUsers, totalCount: count || 0, timestamp: now });
+      
+      setUsers(rawUsers);
+      setTotalUsers(count || 0);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [usersPerPage]); // Remove companies dependency to break circular dependency
+
+  // Load all users for search (only when needed)
+  const loadAllUsersForSearch = useCallback(async (searchQuery: string) => {
+    try {
+      const { data: allUsersData, error: allUsersError } = await supabase
+        .from('profiles')
+        .select('*')
+        .or(`email.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
+        .order('created_at', { ascending: false });
+
+      if (allUsersError) throw allUsersError;
+
+      // Store raw user data without company mapping
+      const rawUsers = (allUsersData || []) as unknown as User[];
+
+      setAllUsers(rawUsers);
+    } catch (error) {
+      console.error('Error loading all users for search:', error);
+    }
+  }, []); // Remove companies dependency to break circular dependency
+
+  // Clear cache when data changes
+  const clearCache = useCallback(() => {
+    pageCache.clear();
+  }, []);
+
+
+
+  // Handle update user
+  const handleUpdateUser = useCallback(async (userId: string, formData: FormData) => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.fullName,
+          role: formData.role,
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Clear cache and reload current page
+      clearCache();
+      await loadUsersForPage(currentPage);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [clearCache, loadUsersForPage, currentPage]);
+
+  // Handle delete user
+  const handleDeleteUser = useCallback(async (userId: string) => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Clear cache and reload current page
+      clearCache();
+      await loadUsersForPage(currentPage);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [clearCache, loadUsersForPage, currentPage]);
+
+  // Search users (searches across all users)
+  const searchUsers = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      // If no search query, load normal pagination
+      await loadUsersForPage(1);
+      setAllUsers([]);
+      setIsSearchMode(false);
+      return;
+    }
+
+    // Search across all users
+    await loadAllUsersForSearch(searchQuery);
+    setIsSearchMode(true);
+  }, [loadUsersForPage, loadAllUsersForSearch]);
+
+  // Pagination functions
+  const getTotalPages = useCallback(() => {
+    return Math.ceil(totalUsers / usersPerPage);
+  }, [totalUsers, usersPerPage]);
+
+  const goToPage = useCallback(async (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    await loadUsersForPage(pageNumber);
+  }, [loadUsersForPage]);
+
+  const goToNextPage = useCallback(async () => {
+    const totalPages = getTotalPages();
+    const nextPage = Math.min(currentPage + 1, totalPages);
+    if (nextPage !== currentPage) {
+      setCurrentPage(nextPage);
+      await loadUsersForPage(nextPage);
+    }
+  }, [currentPage, getTotalPages, loadUsersForPage]);
+
+  const goToPreviousPage = useCallback(async () => {
+    const prevPage = Math.max(currentPage - 1, 1);
+    if (prevPage !== currentPage) {
+      setCurrentPage(prevPage);
+      await loadUsersForPage(prevPage);
+    }
+  }, [currentPage, loadUsersForPage]);
+
+  // Reset to first page when search changes
+  const resetPagination = useCallback(() => {
+    setCurrentPage(1);
+  }, []);
+
+  // Get current users to display (either paginated or search results)
+  const getCurrentUsers = useCallback(() => {
+    // If we're in search mode, show search results (even if empty)
+    if (isSearchMode) {
+      return allUsers;
+    }
+    // Otherwise show paginated users
+    return users;
+  }, [users, allUsers, isSearchMode]);
+
+  // Memoized values to prevent unnecessary re-renders
+  const memoizedUsers = useMemo(() => getCurrentUsers(), [getCurrentUsers]);
+  const memoizedTotalPages = useMemo(() => getTotalPages(), [getTotalPages]);
+
+  // Memoized users with company names
+  const usersWithCompanies = useMemo(() => {
+    const currentUsers = getCurrentUsers();
+    return currentUsers.map((user: any) => {
+      const company = companies.find(c => c.id === user.company_id);
+      return {
+        ...user,
+        company_name: company?.name || 'Unknown Company',
+      };
+    });
+  }, [getCurrentUsers, companies]);
+
+  // Auto-load companies when hook is initialized
+  useEffect(() => {
+    const initializeData = async () => {
+      await loadCompanies();
+    };
+    initializeData();
+  }, [loadCompanies]);
+
+  // Clear cache when companies change to ensure fresh data
+  useEffect(() => {
+    clearCache();
+  }, [companies, clearCache]);
+
+  // Load users initially and when cache is cleared
+  useEffect(() => {
+    // Always load users, regardless of companies table state
+    // This prevents the loading state from getting stuck when companies table is empty
+    loadUsersForPage(1);
+  }, [loadUsersForPage]); // Only depend on loadUsersForPage
+
+
+
+  return {
+    users: usersWithCompanies,
+    companies,
+    loading,
+    isUpdating,
+    isDeleting,
+    currentPage,
+    usersPerPage,
+    totalUsers,
+    handleUpdateUser,
+    handleDeleteUser,
+    searchUsers,
+    getTotalPages: () => memoizedTotalPages,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    resetPagination,
+    clearCache,
+  };
+}; 
