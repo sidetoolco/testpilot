@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -43,10 +43,220 @@ interface CompanyWithDetails extends Company {
   }>;
 }
 
-export default function CompaniesManagement() {
-  const user = useAuth();
+// Simple cache for company data
+const companyCache = new Map<string, { data: Company[]; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Custom hook for managing company data with caching
+const useCompaniesData = (isAdmin: boolean | null) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const loadCompanies = useCallback(async () => {
+    if (!isAdmin) return;
+
+    // Check cache first
+    const cacheKey = 'companies_data';
+    const cached = companyCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      setCompanies(cached.data);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Get all companies with basic info
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (companiesError) throw companiesError;
+
+      // Get additional data for each company
+      const companiesWithDetails = await Promise.all(
+        (companiesData || []).map(async (company: any) => {
+          try {
+            // Get user count
+            const { count: userCount } = await supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', company.id);
+
+            // Get test count
+            const { count: testCount } = await supabase
+              .from('tests')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', company.id);
+
+            // Get credits for this company using the company-specific endpoint
+            let companyCredits = 0;
+            try {
+              const { data: creditsData } = await apiClient.get(`/credits/company/${company.id}`);
+              companyCredits = creditsData?.total || 0;
+            } catch (error) {
+              console.error('Error fetching credits for company:', company.id, error);
+              companyCredits = 0;
+            }
+
+            return {
+              ...company,
+              user_count: userCount || 0,
+              test_count: testCount || 0,
+              credits: companyCredits,
+            };
+          } catch (error) {
+            console.error('Error fetching details for company:', company.id, error);
+            return {
+              ...company,
+              user_count: 0,
+              test_count: 0,
+              credits: 0,
+            };
+          }
+        })
+      );
+
+      // Cache the results
+      companyCache.set(cacheKey, { data: companiesWithDetails, timestamp: now });
+      setCompanies(companiesWithDetails);
+    } catch (error) {
+      console.error('Error loading companies:', error);
+      toast.error('Failed to load companies');
+    } finally {
+      setLoading(false);
+    }
+  }, [isAdmin]);
+
+  const clearCache = useCallback(() => {
+    companyCache.clear();
+  }, []);
+
+  const updateCompanyCredits = useCallback((companyId: string, newCredits: number) => {
+    setCompanies(prevCompanies => 
+      prevCompanies.map(company => 
+        company.id === companyId 
+          ? { ...company, credits: newCredits }
+          : company
+      )
+    );
+  }, []);
+
+  useEffect(() => {
+    loadCompanies();
+  }, [loadCompanies]);
+
+  return { companies, loading, loadCompanies, clearCache, updateCompanyCredits };
+};
+
+// Memoized Company Card Component
+const CompanyCard = memo(({ 
+  company, 
+  onViewDetails, 
+  onAddCredits, 
+  onDelete 
+}: {
+  company: Company;
+  onViewDetails: (company: Company) => void;
+  onAddCredits: (company: Company) => void;
+  onDelete: (company: Company) => void;
+}) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+          <Building2 className="h-5 w-5 text-primary-600" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
+          <p className="text-sm text-gray-500">
+            Created {new Date(company.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="space-y-3 mb-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Users className="h-4 w-4 text-gray-400" />
+          <span className="text-sm text-gray-600">Users</span>
+        </div>
+        <span className="text-sm font-medium text-gray-900">{company.user_count || 0}</span>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <CreditCard className="h-4 w-4 text-gray-400" />
+          <span className="text-sm text-gray-600">Credits</span>
+        </div>
+        <span className="text-sm font-medium text-gray-900">{company.credits || 0}</span>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Eye className="h-4 w-4 text-gray-400" />
+          <span className="text-sm text-gray-600">Tests</span>
+        </div>
+        <span className="text-sm font-medium text-gray-900">{company.test_count || 0}</span>
+      </div>
+    </div>
+
+    <div className="flex space-x-2">
+      <button
+        onClick={() => onViewDetails(company)}
+        className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+      >
+        <Eye className="h-4 w-4" />
+        <span>Details</span>
+      </button>
+      <button
+        onClick={() => onAddCredits(company)}
+        className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors"
+      >
+        <Plus className="h-4 w-4" />
+        <span>Add Credits</span>
+      </button>
+      <button
+        onClick={() => onDelete(company)}
+        className="flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+));
+
+CompanyCard.displayName = 'CompanyCard';
+
+// Memoized Search Input Component
+const SearchInput = memo(({ 
+  searchQuery, 
+  onSearchChange 
+}: {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+}) => (
+  <div className="relative">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+    <input
+      type="text"
+      placeholder="Search companies..."
+      value={searchQuery}
+      onChange={(e) => onSearchChange(e.target.value)}
+      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+    />
+  </div>
+));
+
+SearchInput.displayName = 'SearchInput';
+
+export default function CompaniesManagement() {
+  const user = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithDetails | null>(null);
@@ -57,107 +267,43 @@ export default function CompaniesManagement() {
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
+  // Use the custom hook for company data management
+  const { companies, loading, clearCache, updateCompanyCredits } = useCompaniesData(isAdmin);
 
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.user.id)
-          .single();
+  // Memoized admin check
+  const checkAdminRole = useCallback(async () => {
+    if (!user?.user?.id) return;
 
-        if (!error && data) {
-          setIsAdmin(data.role === 'admin');
-        }
-      } catch (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.user.id)
+        .single();
+
+      if (!error && data) {
+        setIsAdmin(data.role === 'admin');
       }
-    };
-
-    checkAdminRole();
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+    }
   }, [user?.user?.id]);
 
-  // Load companies
+  // Check if user is admin
   useEffect(() => {
-    const loadCompanies = async () => {
-      if (!isAdmin) return;
+    checkAdminRole();
+  }, [checkAdminRole]);
 
-      try {
-        setLoading(true);
-        
-        // Get all companies with basic info
-        const { data: companiesData, error: companiesError } = await supabase
-          .from('companies')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (companiesError) throw companiesError;
-
-        // Get additional data for each company
-        const companiesWithDetails = await Promise.all(
-          (companiesData || []).map(async (company: any) => {
-            try {
-              // Get user count
-              const { count: userCount } = await supabase
-                .from('profiles')
-                .select('*', { count: 'exact', head: true })
-                .eq('company_id', company.id);
-
-              // Get test count
-              const { count: testCount } = await supabase
-                .from('tests')
-                .select('*', { count: 'exact', head: true })
-                .eq('company_id', company.id);
-
-              // Get credits for this company using the company-specific endpoint
-              let companyCredits = 0;
-              try {
-                const { data: creditsData } = await apiClient.get(`/credits/company/${company.id}`);
-                companyCredits = creditsData?.total || 0;
-              } catch (error) {
-                console.error('Error fetching credits for company:', company.id, error);
-                companyCredits = 0;
-              }
-
-              return {
-                ...company,
-                user_count: userCount || 0,
-                test_count: testCount || 0,
-                credits: companyCredits,
-              };
-            } catch (error) {
-              console.error('Error fetching details for company:', company.id, error);
-              return {
-                ...company,
-                user_count: 0,
-                test_count: 0,
-                credits: 0,
-              };
-            }
-          })
-        );
-
-        setCompanies(companiesWithDetails);
-      } catch (error) {
-        console.error('Error loading companies:', error);
-        toast.error('Failed to load companies');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCompanies();
-  }, [isAdmin]);
-
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Memoized filtered companies
+  const filteredCompanies = useMemo(() => 
+    companies.filter(company =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [companies, searchQuery]
   );
 
-  const handleViewDetails = async (company: Company) => {
+  // Memoized event handlers
+  const handleViewDetails = useCallback(async (company: Company) => {
     try {
       // Get detailed company information
       const { data: profiles } = await supabase
@@ -182,9 +328,9 @@ export default function CompaniesManagement() {
       console.error('Error loading company details:', error);
       toast.error('Failed to load company details');
     }
-  };
+  }, []);
 
-  const handleAddCredits = async () => {
+  const handleAddCredits = useCallback(async () => {
     if (!selectedCompany || !creditsToAdd || isNaN(Number(creditsToAdd))) {
       toast.error('Please enter a valid number of credits');
       return;
@@ -205,30 +351,28 @@ export default function CompaniesManagement() {
       setShowCreditsModal(false);
       setCreditsToAdd('');
       
-      // Update the companies state to reflect the new credits
-      setCompanies(prevCompanies => 
-        prevCompanies.map(company => 
-          company.id === selectedCompany.id 
-            ? { ...company, credits: (company.credits || 0) + credits }
-            : company
-        )
-      );
+      // Update the company credits in state
+      const newCredits = (selectedCompany.credits || 0) + credits;
+      updateCompanyCredits(selectedCompany.id, newCredits);
       
       // Update the selected company state as well
       setSelectedCompany(prev => 
         prev && prev.id === selectedCompany.id 
-          ? { ...prev, credits: (prev.credits || 0) + credits }
+          ? { ...prev, credits: newCredits }
           : prev
       );
+
+      // Clear cache to force refresh on next load
+      clearCache();
     } catch (error) {
       console.error('Error adding credits:', error);
       toast.error('Failed to add credits. Please check if the admin credits endpoint exists.');
     } finally {
       setIsUpdatingCredits(false);
     }
-  };
+  }, [selectedCompany, creditsToAdd, updateCompanyCredits, clearCache]);
 
-  const handleDeleteCompany = async () => {
+  const handleDeleteCompany = useCallback(async () => {
     if (!selectedCompany) return;
 
     try {
@@ -246,6 +390,9 @@ export default function CompaniesManagement() {
       setShowDeleteModal(false);
       setSelectedCompany(null);
       
+      // Clear cache to force refresh on next load
+      clearCache();
+      
       // Refresh companies list
       window.location.reload();
     } catch (error) {
@@ -254,7 +401,39 @@ export default function CompaniesManagement() {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [selectedCompany, clearCache]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  const handleOpenAddCredits = useCallback((company: Company) => {
+    setSelectedCompany(company as CompanyWithDetails);
+    setShowCreditsModal(true);
+  }, []);
+
+  const handleOpenDelete = useCallback((company: Company) => {
+    setSelectedCompany(company as CompanyWithDetails);
+    setShowDeleteModal(true);
+  }, []);
+
+  // Memoized loading state
+  const loadingComponent = useMemo(() => (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+    </div>
+  ), []);
+
+  // Memoized empty state
+  const emptyStateComponent = useMemo(() => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+      <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
+      <p className="text-gray-500">
+        {searchQuery ? 'Try adjusting your search terms.' : 'No companies have been created yet.'}
+      </p>
+    </div>
+  ), [searchQuery]);
 
   if (isAdmin === null) {
     return (
@@ -277,114 +456,29 @@ export default function CompaniesManagement() {
           <p className="text-gray-600 mt-1">Manage all companies and their credits</p>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search companies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+          <SearchInput searchQuery={searchQuery} onSearchChange={handleSearchChange} />
         </div>
       </div>
 
       {/* Companies Grid */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
-        </div>
+        loadingComponent
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map((company) => (
-            <div
+            <CompanyCard
               key={company.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      Created {new Date(company.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Users</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{company.user_count || 0}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <CreditCard className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Credits</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{company.credits || 0}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Eye className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Tests</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{company.test_count || 0}</span>
-                </div>
-              </div>
-
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleViewDetails(company)}
-                  className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>Details</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedCompany(company as CompanyWithDetails);
-                    setShowCreditsModal(true);
-                  }}
-                  className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Credits</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedCompany(company as CompanyWithDetails);
-                    setShowDeleteModal(true);
-                  }}
-                  className="flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+              company={company}
+              onViewDetails={handleViewDetails}
+              onAddCredits={handleOpenAddCredits}
+              onDelete={handleOpenDelete}
+            />
           ))}
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && filteredCompanies.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
-          <p className="text-gray-500">
-            {searchQuery ? 'Try adjusting your search terms.' : 'No companies have been created yet.'}
-          </p>
-        </div>
-      )}
+      {!loading && filteredCompanies.length === 0 && emptyStateComponent}
 
       {/* Company Details Modal */}
       {showDetailsModal && selectedCompany && (
