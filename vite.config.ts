@@ -18,7 +18,10 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
-
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+  
   resolve: {
     alias: {
       buffer: 'buffer',
