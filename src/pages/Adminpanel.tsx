@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -32,10 +32,18 @@ export const Adminpanel = () => {
     isCreating,
     isUpdating,
     isDeleting,
+    currentPage,
+    usersPerPage,
+    totalUsers,
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
-    getFilteredUsers,
+    searchUsers,
+    getTotalPages,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    resetPagination,
   } = useUsers();
 
   // Check if user is admin
@@ -64,15 +72,17 @@ export const Adminpanel = () => {
 
   // Note: useUsers hook will auto-load data when initialized
 
-  // Get filtered users
-  const filteredUsers = getFilteredUsers(searchQuery);
+  // Get pagination data
+  const totalPages = getTotalPages();
 
   // Event handlers
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback(async (value: string) => {
     setSearchQuery(value);
-  };
+    resetPagination(); // Reset to first page when searching
+    await searchUsers(value); // Search across all users
+  }, [resetPagination, searchUsers]);
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = useCallback((user: User) => {
     setSelectedUser(user);
     setFormData({
       email: user.email,
@@ -82,14 +92,14 @@ export const Adminpanel = () => {
       role: user.role,
     });
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleDeleteUserClick = (user: User) => {
+  const handleDeleteUserClick = useCallback((user: User) => {
     setSelectedUser(user);
     setShowDeleteModal(true);
-  };
+  }, []);
 
-  const handleCreateClick = () => {
+  const handleCreateClick = useCallback(() => {
     setFormData({
       email: '',
       password: '',
@@ -98,9 +108,9 @@ export const Adminpanel = () => {
       role: 'user',
     });
     setShowCreateModal(true);
-  };
+  }, []);
 
-  const handleCreateSubmit = async (formData: FormData) => {
+  const handleCreateSubmit = useCallback(async (formData: FormData) => {
     try {
       const validatedData = signupSchema.parse({
         email: formData.email,
@@ -114,9 +124,9 @@ export const Adminpanel = () => {
     } catch (error: any) {
       console.error('Error creating user:', error);
     }
-  };
+  }, [handleCreateUser]);
 
-  const handleEditSubmit = async (formData: FormData) => {
+  const handleEditSubmit = useCallback(async (formData: FormData) => {
     if (!selectedUser) return;
 
     try {
@@ -126,9 +136,9 @@ export const Adminpanel = () => {
     } catch (error: any) {
       console.error('Error updating user:', error);
     }
-  };
+  }, [handleUpdateUser, selectedUser]);
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!selectedUser) return;
 
     try {
@@ -138,7 +148,7 @@ export const Adminpanel = () => {
     } catch (error: any) {
       console.error('Error deleting user:', error);
     }
-  };
+  }, [handleDeleteUser, selectedUser]);
 
   if (isAdmin === null) {
     return (
@@ -188,9 +198,16 @@ export const Adminpanel = () => {
         </div>
       ) : (
         <UsersTable
-          users={filteredUsers}
+          users={users}
           onEditUser={handleEditUser}
           onDeleteUser={handleDeleteUserClick}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          onNextPage={goToNextPage}
+          onPreviousPage={goToPreviousPage}
+          totalItems={totalUsers}
+          itemsPerPage={usersPerPage}
         />
       )}
 

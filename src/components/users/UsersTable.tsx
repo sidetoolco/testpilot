@@ -1,13 +1,32 @@
 import { Edit, Trash2, Calendar, Shield, Building2 } from 'lucide-react';
 import { User } from '../../types/user';
+import { Pagination } from '../common/Pagination';
 
 interface UsersTableProps {
   users: User[];
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  totalItems: number;
+  itemsPerPage: number;
 }
 
-export const UsersTable = ({ users, onEditUser, onDeleteUser }: UsersTableProps) => {
+export const UsersTable = ({ 
+  users, 
+  onEditUser, 
+  onDeleteUser,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onNextPage,
+  onPreviousPage,
+  totalItems,
+  itemsPerPage,
+}: UsersTableProps) => {
   if (users.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
@@ -126,6 +145,17 @@ export const UsersTable = ({ users, onEditUser, onDeleteUser }: UsersTableProps)
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        onNextPage={onNextPage}
+        onPreviousPage={onPreviousPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+      />
     </div>
   );
 }; 

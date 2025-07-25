@@ -16,6 +16,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import apiClient from '../lib/api';
+import { useCompanies } from '../hooks/useCompanies';
+import { CompaniesGrid } from '../components/companies/CompaniesGrid';
 
 interface Company {
   id: string;
@@ -43,121 +45,7 @@ interface CompanyWithDetails extends Company {
   }>;
 }
 
-// Simple cache for company data
-const companyCache = new Map<string, { data: Company[]; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Custom hook for managing company data with caching
-const useCompaniesData = (isAdmin: boolean | null) => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadCompanies = useCallback(async () => {
-    if (!isAdmin) return;
-
-    // Check cache first
-    const cacheKey = 'companies_data';
-    const cached = companyCache.get(cacheKey);
-    const now = Date.now();
-
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-      setCompanies(cached.data);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Get all companies with basic info
-      const { data: companiesData, error: companiesError } = await supabase
-        .from('companies')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (companiesError) throw companiesError;
-
-      // Get additional data for each company
-      const companiesWithDetails = await Promise.all(
-        (companiesData || []).map(async (company: any) => {
-          try {
-            // Get user count
-            const { count: userCount } = await supabase
-              .from('profiles')
-              .select('*', { count: 'exact', head: true })
-              .eq('company_id', company.id);
-
-            // Get test count
-            const { count: testCount } = await supabase
-              .from('tests')
-              .select('*', { count: 'exact', head: true })
-              .eq('company_id', company.id);
-
-            // Get credits for this company using the company-specific endpoint
-            let companyCredits = 0;
-            try {
-              const { data: creditsData } = await apiClient.get(`/credits/company/${company.id}`);
-              companyCredits = creditsData?.total || 0;
-            } catch (error) {
-              console.error('Error fetching credits for company:', company.id, error);
-              companyCredits = 0;
-            }
-
-            return {
-              ...company,
-              user_count: userCount || 0,
-              test_count: testCount || 0,
-              credits: companyCredits,
-            };
-          } catch (error) {
-            console.error('Error fetching details for company:', company.id, error);
-            return {
-              ...company,
-              user_count: 0,
-              test_count: 0,
-              credits: 0,
-            };
-          }
-        })
-      );
-
-      // Cache the results
-      companyCache.set(cacheKey, { data: companiesWithDetails, timestamp: now });
-      setCompanies(companiesWithDetails);
-    } catch (error) {
-      console.error('Error loading companies:', error);
-      toast.error('Failed to load companies');
-    } finally {
-      setLoading(false);
-    }
-  }, [isAdmin]);
-
-  const clearCache = useCallback(() => {
-    companyCache.clear();
-  }, []);
-
-  const updateCompanyCredits = useCallback((companyId: string, newCredits: number) => {
-    setCompanies(prevCompanies => 
-      prevCompanies.map(company => 
-        company.id === companyId 
-          ? { ...company, credits: newCredits }
-          : company
-      )
-    );
-  }, []);
-
-  const removeCompany = useCallback((companyId: string) => {
-    setCompanies(prevCompanies => 
-      prevCompanies.filter(company => company.id !== companyId)
-    );
-  }, []);
-
-  useEffect(() => {
-    loadCompanies();
-  }, [loadCompanies]);
-
-  return { companies, loading, loadCompanies, clearCache, updateCompanyCredits, removeCompany };
-};
 
 // Memoized Company Card Component
 const CompanyCard = memo(({ 
@@ -273,8 +161,23 @@ export default function CompaniesManagement() {
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Use the custom hook for company data management
-  const { companies, loading, clearCache, updateCompanyCredits, removeCompany } = useCompaniesData(isAdmin);
+  // Use the custom hook for company data management with pagination
+  const {
+    companies,
+    loading,
+    currentPage,
+    companiesPerPage,
+    totalCompanies,
+    clearCache,
+    updateCompanyCredits,
+    removeCompany,
+    searchCompanies,
+    getTotalPages,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    resetPagination,
+  } = useCompanies(isAdmin);
 
   // Memoized admin check
   const checkAdminRole = useCallback(async () => {
@@ -301,12 +204,8 @@ export default function CompaniesManagement() {
     checkAdminRole();
   }, [checkAdminRole]);
 
-  // Memoized filtered companies
-  const filteredCompanies = useMemo(() => 
-    companies.filter(company =>
-      company.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ), [companies, searchQuery]
-  );
+  // Get pagination data
+  const totalPages = getTotalPages();
 
   // Memoized event handlers
   const handleViewDetails = useCallback(async (company: Company) => {
@@ -409,9 +308,11 @@ export default function CompaniesManagement() {
     }
   }, [selectedCompany, clearCache, removeCompany]);
 
-  const handleSearchChange = useCallback((value: string) => {
+  const handleSearchChange = useCallback(async (value: string) => {
     setSearchQuery(value);
-  }, []);
+    resetPagination(); // Reset to first page when searching
+    await searchCompanies(value); // Search across all companies
+  }, [resetPagination, searchCompanies]);
 
   const handleOpenAddCredits = useCallback((company: Company) => {
     setSelectedCompany(company as CompanyWithDetails);
@@ -466,25 +367,24 @@ export default function CompaniesManagement() {
         </div>
       </div>
 
-      {/* Companies Grid */}
+      {/* Companies Grid with Pagination */}
       {loading ? (
         loadingComponent
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompanies.map((company) => (
-            <CompanyCard
-              key={company.id}
-              company={company}
-              onViewDetails={handleViewDetails}
-              onAddCredits={handleOpenAddCredits}
-              onDelete={handleOpenDelete}
-            />
-          ))}
-        </div>
+        <CompaniesGrid
+          companies={companies}
+          onViewDetails={handleViewDetails}
+          onAddCredits={handleOpenAddCredits}
+          onDeleteCompany={handleOpenDelete}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          onNextPage={goToNextPage}
+          onPreviousPage={goToPreviousPage}
+          totalItems={totalCompanies}
+          itemsPerPage={companiesPerPage}
+        />
       )}
-
-      {/* Empty State */}
-      {!loading && filteredCompanies.length === 0 && emptyStateComponent}
 
       {/* Company Details Modal */}
       {showDetailsModal && selectedCompany && (
