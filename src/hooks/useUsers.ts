@@ -46,8 +46,8 @@ export const useUsers = () => {
       const cached = pageCache.get(cacheKey);
       const now = Date.now();
 
-      // Check cache first, but only if companies are loaded
-      if (cached && (now - cached.timestamp) < CACHE_DURATION && companies.length > 0) {
+      // Check cache first
+      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
         setUsers(cached.data);
         setTotalUsers(cached.totalCount);
         setLoading(false);
@@ -73,7 +73,7 @@ export const useUsers = () => {
 
       if (usersError) throw usersError;
 
-      // Map company names to users
+      // Map company names to users (companies state is available in closure)
       const usersWithCompanies = (usersData || []).map((user: any) => {
         const company = companies.find(c => c.id === user.company_id);
         return {
@@ -92,7 +92,7 @@ export const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [usersPerPage, companies]);
+  }, [usersPerPage]); // Removed companies dependency to break circular dependency
 
   // Load all users for search (only when needed)
   const loadAllUsersForSearch = useCallback(async (searchQuery: string) => {
@@ -105,7 +105,7 @@ export const useUsers = () => {
 
       if (allUsersError) throw allUsersError;
 
-      // Map company names to users
+      // Map company names to users (companies state is available in closure)
       const allUsersWithCompanies = (allUsersData || []).map((user: any) => {
         const company = companies.find(c => c.id === user.company_id);
         return {
@@ -118,7 +118,7 @@ export const useUsers = () => {
     } catch (error) {
       console.error('Error loading all users for search:', error);
     }
-  }, [companies]);
+  }, []); // Removed companies dependency to break circular dependency
 
   // Clear cache when data changes
   const clearCache = useCallback(() => {
@@ -245,11 +245,11 @@ export const useUsers = () => {
 
   // Load users after companies are loaded, and clear cache when companies change
   useEffect(() => {
-    if (companies.length > 0) {
-      clearCache(); // Clear cache when companies are loaded to ensure fresh data
-      loadUsersForPage(1);
-    }
-  }, [companies, loadUsersForPage, clearCache]);
+    // Always load users, regardless of companies table state
+    // This prevents the loading state from getting stuck when companies table is empty
+    clearCache(); // Clear cache when companies change to ensure fresh data
+    loadUsersForPage(1);
+  }, [companies, clearCache]); // Only depend on companies and clearCache to avoid circular dependency
 
   return {
     users: memoizedUsers,
