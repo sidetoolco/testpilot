@@ -36,6 +36,7 @@ export const useCompanies = (isAdmin: boolean | null) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]); // For search across all companies
   const [loading, setLoading] = useState(true);
+  const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -234,11 +235,13 @@ export const useCompanies = (isAdmin: boolean | null) => {
       // If no search query, load normal pagination
       await loadCompaniesForPage(1);
       setAllCompanies([]);
+      setIsSearchMode(false);
       return;
     }
 
     // Search across all companies
     await loadAllCompaniesForSearch(searchQuery);
+    setIsSearchMode(true);
   }, [loadCompaniesForPage, loadAllCompaniesForSearch]);
 
   // Pagination functions
@@ -275,13 +278,13 @@ export const useCompanies = (isAdmin: boolean | null) => {
 
   // Get current companies to display (either paginated or search results)
   const getCurrentCompanies = useCallback(() => {
-    // If we have search results, show those
-    if (allCompanies.length > 0) {
+    // If we're in search mode, show search results (even if empty)
+    if (isSearchMode) {
       return allCompanies;
     }
     // Otherwise show paginated companies
     return companies;
-  }, [companies, allCompanies]);
+  }, [companies, allCompanies, isSearchMode]);
 
   // Memoized values to prevent unnecessary re-renders
   const memoizedCompanies = useMemo(() => getCurrentCompanies(), [getCurrentCompanies]);

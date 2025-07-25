@@ -14,6 +14,7 @@ export const useUsers = () => {
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -179,11 +180,13 @@ export const useUsers = () => {
       // If no search query, load normal pagination
       await loadUsersForPage(1);
       setAllUsers([]);
+      setIsSearchMode(false);
       return;
     }
 
     // Search across all users
     await loadAllUsersForSearch(searchQuery);
+    setIsSearchMode(true);
   }, [loadUsersForPage, loadAllUsersForSearch]);
 
   // Pagination functions
@@ -220,13 +223,13 @@ export const useUsers = () => {
 
   // Get current users to display (either paginated or search results)
   const getCurrentUsers = useCallback(() => {
-    // If we have search results, show those
-    if (allUsers.length > 0) {
+    // If we're in search mode, show search results (even if empty)
+    if (isSearchMode) {
       return allUsers;
     }
     // Otherwise show paginated users
     return users;
-  }, [users, allUsers]);
+  }, [users, allUsers, isSearchMode]);
 
   // Memoized values to prevent unnecessary re-renders
   const memoizedUsers = useMemo(() => getCurrentUsers(), [getCurrentUsers]);
