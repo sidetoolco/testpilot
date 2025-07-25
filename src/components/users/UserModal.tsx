@@ -29,7 +29,7 @@ export const UserModal = ({
         password: '',
         fullName: '',
         companyName: '',
-        role: 'user',
+        role: 'admin',
       });
     }
   }, [isOpen, mode, onFormDataChange]);
@@ -53,7 +53,7 @@ export const UserModal = ({
         password: '',
         fullName: '',
         companyName: '',
-        role: 'user',
+        role: 'admin',
       });
     }
     onClose();

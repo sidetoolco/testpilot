@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { signupSchema } from '../features/auth/validation/schemas';
-import { Users, UserPlus, Search, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useUsers } from '../hooks/useUsers';
 import { UsersTable } from '../components/users/UsersTable';
 import { UserModal } from '../components/users/UserModal';
@@ -14,7 +13,6 @@ export const Adminpanel = () => {
   const user = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -23,19 +21,17 @@ export const Adminpanel = () => {
     password: '',
     fullName: '',
     companyName: '',
-    role: 'user',
+    role: 'admin',
   });
 
   const {
     users,
     loading,
-    isCreating,
     isUpdating,
     isDeleting,
     currentPage,
     usersPerPage,
     totalUsers,
-    handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
     searchUsers,
@@ -70,8 +66,6 @@ export const Adminpanel = () => {
     checkAdminRole();
   }, [user?.user?.id]);
 
-  // Note: useUsers hook will auto-load data when initialized
-
   // Get pagination data
   const totalPages = getTotalPages();
 
@@ -99,30 +93,6 @@ export const Adminpanel = () => {
     setShowDeleteModal(true);
   }, []);
 
-  const handleCreateClick = useCallback(() => {
-    // Clear form data before opening modal
-    setFormData({
-      email: '',
-      password: '',
-      fullName: '',
-      companyName: '',
-      role: 'user',
-    });
-    setShowCreateModal(true);
-  }, []);
-
-  const handleCloseCreateModal = useCallback(() => {
-    setShowCreateModal(false);
-    // Clear form data when closing
-    setFormData({
-      email: '',
-      password: '',
-      fullName: '',
-      companyName: '',
-      role: 'user',
-    });
-  }, []);
-
   const handleCloseEditModal = useCallback(() => {
     setShowEditModal(false);
     setSelectedUser(null);
@@ -132,25 +102,9 @@ export const Adminpanel = () => {
       password: '',
       fullName: '',
       companyName: '',
-      role: 'user',
+      role: 'admin',
     });
   }, []);
-
-  const handleCreateSubmit = useCallback(async (formData: FormData) => {
-    try {
-      const validatedData = signupSchema.parse({
-        email: formData.email,
-        password: formData.password || 'Get1newpr@duct',
-        fullName: formData.fullName,
-        companyName: formData.companyName,
-      });
-
-      await handleCreateUser({ ...validatedData, role: formData.role });
-      setShowCreateModal(false);
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-    }
-  }, [handleCreateUser]);
 
   const handleEditSubmit = useCallback(async (formData: FormData) => {
     if (!selectedUser) return;
@@ -207,13 +161,6 @@ export const Adminpanel = () => {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <button
-            onClick={handleCreateClick}
-            className="flex items-center space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Add User</span>
-          </button>
         </div>
       </div>
 
@@ -236,17 +183,6 @@ export const Adminpanel = () => {
           itemsPerPage={usersPerPage}
         />
       )}
-
-      {/* Create User Modal */}
-      <UserModal
-        isOpen={showCreateModal}
-        onClose={handleCloseCreateModal}
-        onSubmit={handleCreateSubmit}
-        formData={formData}
-        onFormDataChange={setFormData}
-        isLoading={isCreating}
-        mode="create"
-      />
 
       {/* Edit User Modal */}
       <UserModal

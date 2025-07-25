@@ -22,8 +22,9 @@ import { CompaniesGrid } from '../components/companies/CompaniesGrid';
 interface Company {
   id: string;
   name: string;
-  created_at: string;
-  updated_at: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
   credits?: number;
   user_count?: number;
   test_count?: number;
@@ -68,7 +69,7 @@ const CompanyCard = memo(({
         <div>
           <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
           <p className="text-sm text-gray-500">
-            Created {new Date(company.created_at).toLocaleDateString()}
+            {company.created_at && company.created_at !== '' ? `Created ${new Date(company.created_at).toLocaleDateString()}` : 'Company'}
           </p>
         </div>
       </div>
@@ -187,7 +188,7 @@ export default function CompaniesManagement() {
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.user.id)
+        .eq('id', user.user.id as any)
         .single();
 
       if (!error && data && typeof data === 'object' && 'role' in data) {
@@ -214,19 +215,19 @@ export default function CompaniesManagement() {
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, email, full_name, role, created_at')
-        .eq('company_id', company.id)
+        .eq('company_id', company.id as any)
         .order('created_at', { ascending: false });
 
       const { data: tests } = await supabase
         .from('tests')
         .select('id, name, status, created_at')
-        .eq('company_id', company.id)
+        .eq('company_id', company.id as any)
         .order('created_at', { ascending: false });
 
       setSelectedCompany({
         ...company,
-        profiles: profiles || [],
-        tests: tests || [],
+        profiles: (profiles as any) || [],
+        tests: (tests as any) || [],
       });
       setShowDetailsModal(true);
     } catch (error) {
@@ -283,26 +284,55 @@ export default function CompaniesManagement() {
     try {
       setIsDeleting(true);
 
-      // Delete company and all related data
-      const { error } = await supabase
+      // First, delete all related data in the correct order
+      // Delete profiles (users) associated with this company
+      const { error: profilesError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('company_id', selectedCompany.id as any);
+
+      if (profilesError) {
+        console.error('Error deleting profiles:', profilesError);
+        throw new Error('Failed to delete company profiles');
+      }
+
+      // Delete tests associated with this company
+      const { error: testsError } = await supabase
+        .from('tests')
+        .delete()
+        .eq('company_id', selectedCompany.id as any);
+
+      if (testsError) {
+        console.error('Error deleting tests:', testsError);
+        throw new Error('Failed to delete company tests');
+      }
+
+      // Delete any other related data (add more tables as needed)
+      // For example, if you have credits, transactions, etc.
+      
+      // Finally, delete the company itself
+      const { error: companyError } = await supabase
         .from('companies')
         .delete()
-        .eq('id', selectedCompany.id);
+        .eq('id', selectedCompany.id as any);
 
-      if (error) throw error;
+      if (companyError) {
+        console.error('Error deleting company:', companyError);
+        throw new Error('Failed to delete company');
+      }
 
       toast.success(`Deleted company: ${selectedCompany.name}`);
       setShowDeleteModal(false);
       setSelectedCompany(null);
       
-      // Update local state instead of reloading the page
+      // Remove the company from the local state immediately
       removeCompany(selectedCompany.id);
       
       // Clear cache to force refresh on next load
       clearCache();
     } catch (error) {
       console.error('Error deleting company:', error);
-      toast.error('Failed to delete company');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete company');
     } finally {
       setIsDeleting(false);
     }
@@ -412,13 +442,13 @@ export default function CompaniesManagement() {
                   <div>
                     <span className="text-sm font-medium text-gray-500">Created</span>
                     <p className="text-sm text-gray-900">
-                      {new Date(selectedCompany.created_at).toLocaleString()}
+                      {selectedCompany.created_at ? new Date(selectedCompany.created_at).toLocaleString() : 'N/A'}
                     </p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-500">Updated</span>
                     <p className="text-sm text-gray-900">
-                      {new Date(selectedCompany.updated_at).toLocaleString()}
+                      {selectedCompany.updated_at ? new Date(selectedCompany.updated_at).toLocaleString() : 'N/A'}
                     </p>
                   </div>
                   <div>

@@ -12,7 +12,6 @@ export const useUsers = () => {
   const [allUsers, setAllUsers] = useState<User[]>([]); // For search across all users
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -125,44 +124,7 @@ export const useUsers = () => {
     pageCache.clear();
   }, []);
 
-  // Create user function
-  const createUser = useCallback(async (data: FormData) => {
-    const response = await fetch(USER_CREATION_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-        fullName: data.fullName,
-        companyName: data.companyName,
-        role: data.role,
-      }),
-    });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create user');
-    }
-
-    return await response.json();
-  }, []);
-
-  // Handle create user
-  const handleCreateUser = useCallback(async (formData: FormData) => {
-    setIsCreating(true);
-    try {
-      await createUser(formData);
-      
-      // Clear cache and reload current page
-      clearCache();
-      await loadUsersForPage(currentPage);
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      throw error;
-    } finally {
-      setIsCreating(false);
-    }
-  }, [createUser, clearCache, loadUsersForPage, currentPage]);
 
   // Handle update user
   const handleUpdateUser = useCallback(async (userId: string, formData: FormData) => {
@@ -287,13 +249,11 @@ export const useUsers = () => {
     users: memoizedUsers,
     companies,
     loading,
-    isCreating,
     isUpdating,
     isDeleting,
     currentPage,
     usersPerPage,
     totalUsers,
-    handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
     searchUsers,

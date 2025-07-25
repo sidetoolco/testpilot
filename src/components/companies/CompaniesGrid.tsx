@@ -4,8 +4,9 @@ import { Pagination } from '../common/Pagination';
 interface Company {
   id: string;
   name: string;
-  created_at: string;
-  updated_at: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
   credits?: number;
   user_count?: number;
   test_count?: number;
@@ -13,7 +14,7 @@ interface Company {
 
 interface CompaniesGridProps {
   companies: Company[];
-  onViewDetails: (company: Company) => void;
+  onViewDetails: (company: Company) => void | Promise<void>;
   onAddCredits: (company: Company) => void;
   onDeleteCompany: (company: Company) => void;
   currentPage: number;
@@ -70,7 +71,7 @@ export const CompaniesGrid = ({
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
                     <p className="text-sm text-gray-500">
-                      Created {new Date(company.created_at).toLocaleDateString()}
+                      {company.created_at ? `Created ${new Date(company.created_at).toLocaleDateString()}` : 'Company'}
                     </p>
                   </div>
                 </div>

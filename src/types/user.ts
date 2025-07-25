@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   full_name: string;
-  role: string;
+  role: 'owner' | 'admin';
   company_id: string;
   company_name?: string;
   created_at: string;
@@ -21,5 +21,5 @@ export interface FormData {
   password: string;
   fullName: string;
   companyName: string;
-  role: string;
+  role: 'owner' | 'admin';
 } 
