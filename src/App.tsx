@@ -31,6 +31,7 @@ import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
 import Billing from './pages/Billing';
 import Coupons from './pages/Coupons';
+import CompaniesManagement from './pages/CompaniesManagement';
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,17 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <Adminpanel />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/companies"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <CompaniesManagement />
                     </MainLayout>
                   </ProtectedRoute>
                 }
