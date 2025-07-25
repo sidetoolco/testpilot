@@ -73,26 +73,20 @@ export const useUsers = () => {
 
       if (usersError) throw usersError;
 
-      // Map company names to users (companies state is available in closure)
-      const usersWithCompanies = (usersData || []).map((user: any) => {
-        const company = companies.find(c => c.id === user.company_id);
-        return {
-          ...user,
-          company_name: company?.name || 'Unknown Company',
-        };
-      });
+      // Store raw user data without company mapping
+      const rawUsers = (usersData || []) as unknown as User[];
 
-      // Cache the result
-      pageCache.set(cacheKey, { data: usersWithCompanies, totalCount: count || 0, timestamp: now });
+      // Cache the raw result
+      pageCache.set(cacheKey, { data: rawUsers, totalCount: count || 0, timestamp: now });
       
-      setUsers(usersWithCompanies);
+      setUsers(rawUsers);
       setTotalUsers(count || 0);
     } catch (error) {
       console.error('Error loading users:', error);
     } finally {
       setLoading(false);
     }
-  }, [usersPerPage]); // Removed companies dependency to break circular dependency
+  }, [usersPerPage]); // Remove companies dependency to break circular dependency
 
   // Load all users for search (only when needed)
   const loadAllUsersForSearch = useCallback(async (searchQuery: string) => {
@@ -105,20 +99,14 @@ export const useUsers = () => {
 
       if (allUsersError) throw allUsersError;
 
-      // Map company names to users (companies state is available in closure)
-      const allUsersWithCompanies = (allUsersData || []).map((user: any) => {
-        const company = companies.find(c => c.id === user.company_id);
-        return {
-          ...user,
-          company_name: company?.name || 'Unknown Company',
-        };
-      });
+      // Store raw user data without company mapping
+      const rawUsers = (allUsersData || []) as unknown as User[];
 
-      setAllUsers(allUsersWithCompanies);
+      setAllUsers(rawUsers);
     } catch (error) {
       console.error('Error loading all users for search:', error);
     }
-  }, []); // Removed companies dependency to break circular dependency
+  }, []); // Remove companies dependency to break circular dependency
 
   // Clear cache when data changes
   const clearCache = useCallback(() => {
@@ -235,6 +223,18 @@ export const useUsers = () => {
   const memoizedUsers = useMemo(() => getCurrentUsers(), [getCurrentUsers]);
   const memoizedTotalPages = useMemo(() => getTotalPages(), [getTotalPages]);
 
+  // Memoized users with company names
+  const usersWithCompanies = useMemo(() => {
+    const currentUsers = getCurrentUsers();
+    return currentUsers.map((user: any) => {
+      const company = companies.find(c => c.id === user.company_id);
+      return {
+        ...user,
+        company_name: company?.name || 'Unknown Company',
+      };
+    });
+  }, [getCurrentUsers, companies]);
+
   // Auto-load companies when hook is initialized
   useEffect(() => {
     const initializeData = async () => {
@@ -243,16 +243,22 @@ export const useUsers = () => {
     initializeData();
   }, [loadCompanies]);
 
-  // Load users after companies are loaded, and clear cache when companies change
+  // Clear cache when companies change to ensure fresh data
+  useEffect(() => {
+    clearCache();
+  }, [companies, clearCache]);
+
+  // Load users initially and when cache is cleared
   useEffect(() => {
     // Always load users, regardless of companies table state
     // This prevents the loading state from getting stuck when companies table is empty
-    clearCache(); // Clear cache when companies change to ensure fresh data
     loadUsersForPage(1);
-  }, [companies, clearCache]); // Only depend on companies and clearCache to avoid circular dependency
+  }, [loadUsersForPage]); // Only depend on loadUsersForPage
+
+
 
   return {
-    users: memoizedUsers,
+    users: usersWithCompanies,
     companies,
     loading,
     isUpdating,
