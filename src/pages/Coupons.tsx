@@ -290,6 +290,17 @@ export default function Coupons() {
     }
   };
 
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCouponId(null);
+    setEditFormData({
+      id: '',
+      name: '',
+      currency: 'usd',
+      duration: 'once',
+    });
+  };
+
   const handleDeleteCoupon = async (couponId: string) => {
     if (!confirm('Are you sure you want to delete this coupon?')) {
       return;
@@ -388,7 +399,7 @@ export default function Coupons() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {coupons.map(coupon => (
             <div key={coupon.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
@@ -467,7 +478,7 @@ export default function Coupons() {
           <form onSubmit={handleCreateCoupon} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Coupon Name *
+                Coupon Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="name"
@@ -483,7 +494,7 @@ export default function Coupons() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="percent_off" className="block text-sm font-medium text-gray-700 mb-1">
-                  Percent Off (%)
+                  Percent Off (%) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="percent_off"
@@ -503,7 +514,7 @@ export default function Coupons() {
 
               <div>
                 <label htmlFor="amount_off" className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount Off ($)
+                  Amount Off ($) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="amount_off"
@@ -523,21 +534,18 @@ export default function Coupons() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  id="currency"
-                  value={formData.currency}
-                  onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
-                >
-                  <option value="usd">USD</option>
-                  <option value="eur">EUR</option>
-                  <option value="gbp">GBP</option>
-                </select>
-              </div>
+                              <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
+                    Currency
+                  </label>
+                  <input
+                    id="currency"
+                    value="USD"
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
 
               <div>
                 <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
@@ -642,7 +650,7 @@ export default function Coupons() {
 
       {/* Edit Coupon Modal */}
       {isEditModalOpen && (
-        <ModalLayout isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Coupon">
+        <ModalLayout isOpen={isEditModalOpen} onClose={handleCloseEditModal} title="Edit Coupon">
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> Stripe only allows updating the coupon name and expiration date. 
@@ -709,7 +717,7 @@ export default function Coupons() {
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={handleCloseEditModal}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
                 Cancel
