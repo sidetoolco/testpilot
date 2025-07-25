@@ -90,14 +90,27 @@ interface CreateCouponForm {
   redeem_by?: Date;
 }
 
+interface EditCouponForm extends CreateCouponForm {
+  id: string;
+}
+
 export default function Coupons() {
   const user = useAuth();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creatingCoupon, setCreatingCoupon] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateCouponForm>({
+    name: '',
+    currency: 'usd',
+    duration: 'once',
+  });
+  const [editFormData, setEditFormData] = useState<EditCouponForm>({
+    id: '',
     name: '',
     currency: 'usd',
     duration: 'once',
@@ -217,6 +230,77 @@ export default function Coupons() {
     }
   };
 
+  const handleEditCoupon = (coupon: Coupon) => {
+    setEditingCouponId(coupon.id);
+    setEditFormData({
+      id: coupon.id,
+      name: coupon.name || '',
+      percent_off: coupon.percent_off,
+      amount_off: coupon.amount_off ? coupon.amount_off / 100 : undefined, // Convert cents to dollars
+      currency: coupon.currency || 'usd',
+      duration: coupon.duration,
+      duration_in_months: coupon.duration_in_months,
+      max_redemptions: coupon.max_redemptions,
+      redeem_by: coupon.redeem_by ? new Date(coupon.redeem_by * 1000) : undefined,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editFormData.name.trim()) {
+      toast.error('Coupon name is required');
+      return;
+    }
+
+    try {
+      setEditingCoupon(true);
+      
+      // Stripe only allows updating certain fields: name, redeem_by, metadata
+      const couponData: any = {
+        name: editFormData.name,
+      };
+
+      // Only include redeem_by if it's set
+      if (editFormData.redeem_by) {
+        couponData.redeem_by = editFormData.redeem_by.getTime() / 1000; // Convert Date to Unix timestamp
+      }
+
+      const response = await apiClient.post(`/stripe/coupons/${editFormData.id}`, couponData);
+      
+      setCoupons(prev => prev.map(coupon => 
+        coupon.id === editFormData.id ? response.data : coupon
+      ));
+      setIsEditModalOpen(false);
+      setEditingCouponId(null);
+      setEditFormData({
+        id: '',
+        name: '',
+        currency: 'usd',
+        duration: 'once',
+      });
+      
+      toast.success('Coupon updated successfully');
+    } catch (error: any) {
+      console.error('Error updating coupon:', error);
+      toast.error(error.response?.data?.message || DEFAULT_ERROR_MSG);
+    } finally {
+      setEditingCoupon(false);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCouponId(null);
+    setEditFormData({
+      id: '',
+      name: '',
+      currency: 'usd',
+      duration: 'once',
+    });
+  };
+
   const handleDeleteCoupon = async (couponId: string) => {
     if (!confirm('Are you sure you want to delete this coupon?')) {
       return;
@@ -334,13 +418,22 @@ export default function Coupons() {
                     <span className="text-sm text-gray-500">ID: {coupon.id}</span>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteCoupon(coupon.id)}
-                  className="text-red-500 hover:text-red-700 transition-colors"
-                  title="Delete coupon"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleEditCoupon(coupon)}
+                    className="text-yellow-600 hover:text-yellow-700 transition-colors"
+                    title="Edit coupon"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCoupon(coupon.id)}
+                    className="text-red-500 hover:text-red-700 transition-colors"
+                    title="Delete coupon"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -385,7 +478,7 @@ export default function Coupons() {
           <form onSubmit={handleCreateCoupon} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Coupon Name *
+                Coupon Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="name"
@@ -401,7 +494,7 @@ export default function Coupons() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="percent_off" className="block text-sm font-medium text-gray-700 mb-1">
-                  Percent Off (%)
+                  Percent Off (%) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="percent_off"
@@ -421,7 +514,7 @@ export default function Coupons() {
 
               <div>
                 <label htmlFor="amount_off" className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount Off ($)
+                  Amount Off ($) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="amount_off"
@@ -441,21 +534,18 @@ export default function Coupons() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  id="currency"
-                  value={formData.currency}
-                  onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
-                >
-                  <option value="usd">USD</option>
-                  <option value="eur">EUR</option>
-                  <option value="gbp">GBP</option>
-                </select>
-              </div>
+                              <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
+                    Currency
+                  </label>
+                  <input
+                    id="currency"
+                    value="USD"
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
 
               <div>
                 <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
@@ -552,6 +642,92 @@ export default function Coupons() {
                 className="px-4 py-2 bg-[#00A67E] text-white rounded-md hover:bg-[#008F6B] transition-colors disabled:opacity-50"
               >
                 {creatingCoupon ? 'Creating...' : 'Create Coupon'}
+              </button>
+            </div>
+          </form>
+        </ModalLayout>
+      )}
+
+      {/* Edit Coupon Modal */}
+      {isEditModalOpen && (
+        <ModalLayout isOpen={isEditModalOpen} onClose={handleCloseEditModal} title="Edit Coupon">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Stripe only allows updating the coupon name and expiration date. 
+              Discount amount, duration, and other settings cannot be changed after creation.
+            </p>
+          </div>
+          
+          <form onSubmit={handleUpdateCoupon} className="space-y-4">
+            <div>
+              <label htmlFor="edit_name" className="block text-sm font-medium text-gray-700 mb-1">
+                Coupon Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="edit_name"
+                type="text"
+                required
+                value={editFormData.name}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
+                placeholder="e.g., SUMMER20, WELCOME10"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit_redeem_by" className="block text-sm font-medium text-gray-700 mb-1">
+                Expires At
+              </label>
+              <DatePicker
+                selected={editFormData.redeem_by}
+                onChange={(date) => setEditFormData(prev => ({ 
+                  ...prev, 
+                  redeem_by: date || undefined 
+                }))}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="MMMM d, yyyy h:mm aa"
+                placeholderText="Select expiration date and time (optional)"
+                minDate={new Date()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E]"
+                isClearable
+              />
+            </div>
+
+            {/* Display current coupon details (read-only) */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-md">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Current Coupon Details (Read-only)</h4>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">Discount:</span> {editFormData.percent_off ? `${editFormData.percent_off}% off` : editFormData.amount_off ? `$${editFormData.amount_off} off` : 'No discount'}
+                </div>
+                <div>
+                  <span className="font-medium">Duration:</span> {editFormData.duration === 'once' ? 'One-time use' : editFormData.duration === 'repeating' ? `Repeating (${editFormData.duration_in_months} months)` : 'Forever'}
+                </div>
+                <div>
+                  <span className="font-medium">Max Redemptions:</span> {editFormData.max_redemptions || 'Unlimited'}
+                </div>
+                <div>
+                  <span className="font-medium">Currency:</span> {editFormData.currency?.toUpperCase()}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editingCoupon}
+                className="px-4 py-2 bg-[#00A67E] text-white rounded-md hover:bg-[#008F6B] transition-colors disabled:opacity-50"
+              >
+                {editingCoupon ? 'Updating...' : 'Update Coupon'}
               </button>
             </div>
           </form>
