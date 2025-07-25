@@ -96,6 +96,17 @@ function App() {
               />
 
               <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Adminpanel />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/support"
                 element={
                   <ProtectedRoute>

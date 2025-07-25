@@ -146,11 +146,17 @@ const useCompaniesData = (isAdmin: boolean | null) => {
     );
   }, []);
 
+  const removeCompany = useCallback((companyId: string) => {
+    setCompanies(prevCompanies => 
+      prevCompanies.filter(company => company.id !== companyId)
+    );
+  }, []);
+
   useEffect(() => {
     loadCompanies();
   }, [loadCompanies]);
 
-  return { companies, loading, loadCompanies, clearCache, updateCompanyCredits };
+  return { companies, loading, loadCompanies, clearCache, updateCompanyCredits, removeCompany };
 };
 
 // Memoized Company Card Component
@@ -268,7 +274,7 @@ export default function CompaniesManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Use the custom hook for company data management
-  const { companies, loading, clearCache, updateCompanyCredits } = useCompaniesData(isAdmin);
+  const { companies, loading, clearCache, updateCompanyCredits, removeCompany } = useCompaniesData(isAdmin);
 
   // Memoized admin check
   const checkAdminRole = useCallback(async () => {
@@ -281,7 +287,7 @@ export default function CompaniesManagement() {
         .eq('id', user.user.id)
         .single();
 
-      if (!error && data) {
+      if (!error && data && typeof data === 'object' && 'role' in data) {
         setIsAdmin(data.role === 'admin');
       }
     } catch (error) {
@@ -390,18 +396,18 @@ export default function CompaniesManagement() {
       setShowDeleteModal(false);
       setSelectedCompany(null);
       
+      // Update local state instead of reloading the page
+      removeCompany(selectedCompany.id);
+      
       // Clear cache to force refresh on next load
       clearCache();
-      
-      // Refresh companies list
-      window.location.reload();
     } catch (error) {
       console.error('Error deleting company:', error);
       toast.error('Failed to delete company');
     } finally {
       setIsDeleting(false);
     }
-  }, [selectedCompany, clearCache]);
+  }, [selectedCompany, clearCache, removeCompany]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);

@@ -1,23 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
+import {
+  Users,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  AlertTriangle,
+  XCircle,
+  Loader2,
+  UserPlus,
+  Mail,
+  Calendar,
+  Shield,
+  Building2,
+} from 'lucide-react';
 import { signupSchema } from '../features/auth/validation/schemas';
-import { Users, UserPlus, Search, Edit, Trash2, AlertTriangle, XCircle, Loader2, Mail, Calendar, Shield, Building2 } from 'lucide-react';
-
-interface Profile {
-  id: string;
-  email: string;
-  role?: string;
-  waiting_list?: boolean;
-}
-
-interface AuthFormData {
-  email: string;
-  password: string;
-  fullName: string;
-  companyName: string;
-}
 
 interface User {
   id: string;
@@ -37,7 +39,7 @@ interface Company {
   name: string;
 }
 
-export const Adminpanel = () => {
+export default function UserManagement() {
   const user = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -122,6 +124,7 @@ export const Adminpanel = () => {
         setUsers(usersWithCompanies);
       } catch (error) {
         console.error('Error loading data:', error);
+        toast.error('Failed to load users');
       } finally {
         setLoading(false);
       }
@@ -130,11 +133,13 @@ export const Adminpanel = () => {
     loadData();
   }, [isAdmin]);
 
-  // Filtered users
-  const filteredUsers = users.filter(user =>
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  // Memoized filtered users
+  const filteredUsers = useMemo(() => 
+    users.filter(user =>
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [users, searchQuery]
   );
 
   // Create user function
@@ -175,6 +180,7 @@ export const Adminpanel = () => {
       });
 
       await createUser(validatedData);
+      toast.success('User created successfully');
       setShowCreateModal(false);
       setFormData({
         email: '',
@@ -202,6 +208,7 @@ export const Adminpanel = () => {
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
+      toast.error(error.message || 'Failed to create user');
     } finally {
       setIsCreating(false);
     }
@@ -223,6 +230,7 @@ export const Adminpanel = () => {
 
       if (error) throw error;
 
+      toast.success('User updated successfully');
       setShowEditModal(false);
       setSelectedUser(null);
 
@@ -240,6 +248,7 @@ export const Adminpanel = () => {
       );
     } catch (error) {
       console.error('Error updating user:', error);
+      toast.error('Failed to update user');
     } finally {
       setIsUpdating(false);
     }
@@ -258,6 +267,7 @@ export const Adminpanel = () => {
 
       if (error) throw error;
 
+      toast.success('User deleted successfully');
       setShowDeleteModal(false);
       setSelectedUser(null);
 
@@ -267,17 +277,18 @@ export const Adminpanel = () => {
       );
     } catch (error) {
       console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
     } finally {
       setIsDeleting(false);
     }
   };
 
   // Event handlers
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-  };
+  }, []);
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = useCallback((user: User) => {
     setSelectedUser(user);
     setFormData({
       email: user.email,
@@ -287,14 +298,14 @@ export const Adminpanel = () => {
       role: user.role,
     });
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleDeleteUserClick = (user: User) => {
+  const handleDeleteUserClick = useCallback((user: User) => {
     setSelectedUser(user);
     setShowDeleteModal(true);
-  };
+  }, []);
 
-  const handleCreateClick = () => {
+  const handleCreateClick = useCallback(() => {
     setFormData({
       email: '',
       password: 'Get1newpr@duct',
@@ -303,7 +314,25 @@ export const Adminpanel = () => {
       role: 'user',
     });
     setShowCreateModal(true);
-  };
+  }, []);
+
+  // Memoized loading state
+  const loadingComponent = useMemo(() => (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+    </div>
+  ), []);
+
+  // Memoized empty state
+  const emptyStateComponent = useMemo(() => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+      <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+      <p className="text-gray-500">
+        {searchQuery ? 'Try adjusting your search terms.' : 'No users have been created yet.'}
+      </p>
+    </div>
+  ), [searchQuery]);
 
   if (isAdmin === null) {
     return (
@@ -348,9 +377,7 @@ export const Adminpanel = () => {
 
       {/* Users Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
-        </div>
+        loadingComponent
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -459,15 +486,7 @@ export const Adminpanel = () => {
       )}
 
       {/* Empty State */}
-      {!loading && filteredUsers.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
-          <p className="text-gray-500">
-            {searchQuery ? 'Try adjusting your search terms.' : 'No users have been created yet.'}
-          </p>
-        </div>
-      )}
+      {!loading && filteredUsers.length === 0 && emptyStateComponent}
 
       {/* Create User Modal */}
       {showCreateModal && (
@@ -689,4 +708,4 @@ export const Adminpanel = () => {
       )}
     </div>
   );
-};
+} 
