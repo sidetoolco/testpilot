@@ -661,7 +661,7 @@ export default function Coupons() {
           <form onSubmit={handleUpdateCoupon} className="space-y-4">
             <div>
               <label htmlFor="edit_name" className="block text-sm font-medium text-gray-700 mb-1">
-                Coupon Name *
+                Coupon Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="edit_name"
