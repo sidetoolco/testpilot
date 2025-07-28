@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useCredits } from '../features/credits/hooks/useCredits';
-import { CreditCard, RefreshCw } from 'lucide-react';
+import {  RefreshCw } from 'lucide-react';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { TransactionsTable } from '../features/credits/components/TransactionsTable';
 import { AvailableCreditsCard } from '../features/credits/components/AvailableCreditsCard';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
+import { CreditIcon } from '../components/ui/CreditIcon';
 
 const MAX_TRANSACTIONS_PER_PAGE = 20;
 
@@ -43,12 +44,13 @@ export default function Billing() {
             disabled={isLoading}
             className="flex items-center space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <CreditCard className="h-4 w-4" />
+            <CreditIcon className="text-white" />
             <span>Buy Credits</span>
           </button>
         </div>
 
         {/* Available Credits Card */}
+        
         <AvailableCreditsCard totalCredits={data?.total || 0} isLoading={isLoading} />
 
         {/* Transactions Table */}

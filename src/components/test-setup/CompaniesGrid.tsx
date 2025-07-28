@@ -1,4 +1,4 @@
-import { Building2, Users, CreditCard, Trash2, Eye, AlertTriangle } from 'lucide-react';
+import { Building2, Users, Trash2, Eye, AlertTriangle } from 'lucide-react';
 import { Pagination } from '../common/Pagination';
 import { CreditIcon } from '../ui/CreditIcon';
 
@@ -92,10 +92,7 @@ export const CompaniesGrid = ({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <CreditIcon className="h-4 w-4 text-gray-400" />
-                    <span className="text-xs sm:text-sm text-gray-600">Credits</span>
-                  </div>
+                <CreditIcon  />
                   <span className="text-xs sm:text-sm font-medium text-gray-900">
                     {company.credits || 0}
                   </span>
@@ -147,7 +144,7 @@ export const CompaniesGrid = ({
                   onClick={() => onAddCredits(company)}
                   className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
                 >
-                  <CreditCard className="h-4 w-4" />
+                  <CreditIcon className="h-4 w-4" />
                   <span className="hidden sm:inline">Add Credits</span>
                 </button>
                 <button

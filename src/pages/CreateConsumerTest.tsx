@@ -16,9 +16,10 @@ import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCre
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
-import { CreditCard, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
+import { TestCost } from '../components/test-setup/TestCost';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -403,59 +404,38 @@ export default function CreateConsumerTest() {
             </p>
 
             {/* Credit Information */}
-            <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
-                    <CreditCard className="h-4 w-4 text-[#00A67E]" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Test Cost</h4>
-                    <p className="text-xs text-gray-500">
-                      {(() => {
-                        const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
-                        const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
-                        const hasCustomScreening = publishModal.testData.demographics.customScreening?.enabled && 
-                          publishModal.testData.demographics.customScreening.question && 
-                          publishModal.testData.demographics.customScreening.validAnswer;
-                        const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-                        const totalCredits = totalTesters * creditsPerTester;
-                        return `${totalTesters} testers × ${creditsPerTester} credit${creditsPerTester !== 1 ? 's' : ''} per tester`;
-                      })()}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-semibold text-gray-900">
-                    {(() => {
-                      const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
-                      const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
-                      const hasCustomScreening = publishModal.testData.demographics.customScreening?.enabled && 
-                        publishModal.testData.demographics.customScreening.question && 
-                        publishModal.testData.demographics.customScreening.validAnswer;
-                      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-                      const totalCredits = totalTesters * creditsPerTester;
-                      return totalCredits.toFixed(1);
-                    })()}
-                  </div>
-                  <div className="text-xs text-gray-500">Credits</div>
+            {(() => {
+              const activeVariants = Object.values(publishModal.testData.variations).filter(v => v !== null).length;
+              const totalTesters = publishModal.testData.demographics.testerCount * activeVariants;
+              const hasCustomScreening = publishModal.testData.demographics.customScreening?.enabled && 
+                publishModal.testData.demographics.customScreening.question && 
+                publishModal.testData.demographics.customScreening.validAnswer;
+              const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+              const totalCredits = totalTesters * creditsPerTester;
+              
+              return (
+                <TestCost
+                  totalTesters={totalTesters}
+                  creditsPerTester={creditsPerTester}
+                  totalCredits={totalCredits}
+                  size="small"
+                />
+              );
+            })()}
+
+            {/* Custom Screening Indicator */}
+            {publishModal.testData.demographics.customScreening?.enabled && 
+             publishModal.testData.demographics.customScreening.question && 
+             publishModal.testData.demographics.customScreening.validAnswer && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-800">
+                    Custom screening enabled (+0.1 credit per tester)
+                  </span>
                 </div>
               </div>
-
-              {/* Custom Screening Indicator */}
-              {publishModal.testData.demographics.customScreening?.enabled && 
-               publishModal.testData.demographics.customScreening.question && 
-               publishModal.testData.demographics.customScreening.validAnswer && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-blue-800">
-                      Custom screening enabled (+0.1 credit per tester)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
 
             <p className="text-sm text-gray-500 mt-4">
               This action will make the test available on Prolific.

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { TestData } from '../../features/tests/types';
 import { useCredits } from '../../features/credits/hooks/useCredits';
 import { PurchaseCreditsModal } from '../../features/credits/components/PurchaseCreditsModal';
-import { CreditCard, AlertTriangle, Plus, Info } from 'lucide-react';
+import { AlertTriangle, Plus, Info } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../../lib/stripe';
 import { Tooltip } from 'react-tooltip';
+import { TestCost } from './TestCost';
 
 interface TestReviewProps {
   testData: TestData;
@@ -67,85 +68,33 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
         <div className="space-y-8">
 
           {/* Credit Summary */}
-          <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
-                  <CreditCard className="h-6 w-6 text-[#00A67E]" />
-                </div>
-                <div>
-                  <h4 className="text-xl font-medium text-gray-900">Test Cost</h4>
-                  <p className="text-sm text-gray-500">
-                    Based on {totalTesters} testers at {creditsPerTester} credit{creditsPerTester !== 1 ? 's' : ''} per tester
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-semibold text-gray-900">{totalCredits.toFixed(1)}</div>
-                <div className="text-sm text-gray-500">Credits</div>
-                <div className="text-sm text-gray-400">≈ {formatPrice(totalCost)}</div>
+          <TestCost
+            totalTesters={totalTesters}
+            creditsPerTester={creditsPerTester}
+            totalCredits={totalCredits}
+            totalCost={totalCost}
+            formatPrice={formatPrice}
+            availableCredits={availableCredits}
+            creditsLoading={creditsLoading}
+            hasSufficientCredits={hasSufficientCredits}
+            creditsNeeded={creditsNeeded}
+            onPurchaseCredits={handlePurchaseCredits}
+            size="large"
+            showAvailableCredits={true}
+            showInsufficientWarning={true}
+          />
+
+          {/* Custom Screening Indicator */}
+          {hasCustomScreening && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-blue-800">
+                  Custom screening enabled (+0.1 credit per tester)
+                </span>
               </div>
             </div>
-
-            {/* Available Credits */}
-            <div className="bg-white rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Available Credits</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {creditsLoading ? '...' : availableCredits.toLocaleString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  {hasSufficientCredits ? (
-                    <div className="flex items-center text-green-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-sm font-medium">Sufficient</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-red-600">
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium">Insufficient</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Insufficient Credits Warning */}
-            {!hasSufficientCredits && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-2 ">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <h5 className="text-sm font-medium text-red-800 mb-1">Insufficient Credits</h5>
-                    <p className="text-sm text-red-700 mb-3">
-                      You need {creditsNeeded.toFixed(1)} more credits to run this test.
-                    </p>
-                    <button
-                      onClick={handlePurchaseCredits}
-                      className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Buy More Credits</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Custom Screening Indicator */}
-            {hasCustomScreening && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-800">
-                    Custom screening enabled (+0.1 credit per tester)
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Configuration Summary */}
           <div className="grid grid-cols-2 gap-8">

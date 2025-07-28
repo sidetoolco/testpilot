@@ -1,4 +1,5 @@
-import { Calculator, CreditCard } from 'lucide-react';
+import { Calculator } from 'lucide-react';
+import { CreditIcon } from '../ui/CreditIcon';
 
 interface PriceCalculatorProps {
   testerCount: number;
@@ -42,9 +43,9 @@ export function PriceCalculator({ testerCount, variantCount, hasCustomScreening 
         </div>
 
         <div>
-          <div className="text-sm text-gray-500 mb-1">Total Credits</div>
+          <div className="text-sm text-gray-500 ">Total Credits</div>
           <div className="flex items-baseline space-x-1">
-            <CreditCard className="h-5 w-5 text-[#00A67E]" />
+            <CreditIcon className='pt-1' />
             <span className="text-2xl font-semibold">{totalCredits.toFixed(1)}</span>
           </div>
           <div className="text-sm text-gray-500 mt-1">

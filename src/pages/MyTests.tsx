@@ -13,7 +13,6 @@ import {
   TrendingUp,
   Calendar,
   BarChart3,
-  CreditCard,
   AlertTriangle,
 } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
@@ -30,6 +29,8 @@ import apiClient from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import SearchInput from '../components/ui/SearchInput';
 import { useContinueTest } from '../features/tests/hooks/useContinueTest';
+import { TestCost } from '../components/test-setup/TestCost';
+import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -300,37 +301,12 @@ export default function MyTests() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-        <motion.div
-          whileHover={{ y: -4 }}
-          className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
-              <PlayCircle className="h-7 w-7 text-[#00A67E]" />
-            </div>
-            <div>
-              <h3 className="text-xl font-medium text-gray-900">Active Tests</h3>
-              <p className="text-4xl font-semibold text-[#00A67E] mt-1">{activeTests}</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -4 }}
-          className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-[#2E90FA] bg-opacity-10 rounded-full flex items-center justify-center">
-              <Users2 className="h-7 w-7 text-[#2E90FA]" />
-            </div>
-            <div>
-              <h3 className="text-xl font-medium text-gray-900">Completed Tests</h3>
-              <p className="text-4xl font-semibold text-[#2E90FA] mt-1">{completedTests}</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+      <StatisticsCards
+        activeTests={activeTests}
+        completedTests={completedTests}
+        availableCredits={creditsData?.total || 0}
+        creditsLoading={creditsLoading}
+      />
 
       {/* Search Bar */}
       <SearchInput
@@ -492,84 +468,31 @@ export default function MyTests() {
               </p>
 
               {/* Credit Information */}
-              <div className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-4 w-4 text-[#00A67E]" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">Test Cost</h4>
-                      <p className="text-xs text-gray-500">
-                        {totalTesters} testers × {creditsPerTester} credit{creditsPerTester !== 1 ? 's' : ''} per tester
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-semibold text-gray-900">{totalCredits.toFixed(1)}</div>
-                    <div className="text-xs text-gray-500">Credits</div>
+              <TestCost
+                totalTesters={totalTesters}
+                creditsPerTester={creditsPerTester}
+                totalCredits={totalCredits}
+                availableCredits={availableCredits}
+                creditsLoading={creditsLoading}
+                hasSufficientCredits={hasSufficientCredits}
+                creditsNeeded={creditsNeeded}
+                onPurchaseCredits={() => setIsPurchaseModalOpen(true)}
+                size="small"
+                showAvailableCredits={true}
+                showInsufficientWarning={true}
+              />
+
+              {/* Custom Screening Indicator */}
+              {hasCustomScreening && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-blue-800">
+                      Custom screening enabled (+0.1 credit per tester)
+                    </span>
                   </div>
                 </div>
-
-                {/* Available Credits */}
-                <div className="bg-white rounded-lg p-3 mb-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Available Credits</p>
-                      <p className="text-lg font-bold text-gray-900">
-                        {creditsLoading ? '...' : availableCredits.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      {hasSufficientCredits ? (
-                        <div className="flex items-center text-green-600">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                          <span className="text-sm font-medium">Sufficient</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-red-600">
-                          <AlertTriangle className="h-4 w-4 mr-2" />
-                          <span className="text-sm font-medium">Insufficient</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Insufficient Credits Warning */}
-                {!hasSufficientCredits && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-                    <div className="flex items-start space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <h5 className="text-sm font-medium text-red-800 mb-1">Insufficient Credits</h5>
-                        <p className="text-sm text-red-700 mb-3">
-                          You need {creditsNeeded.toFixed(1)} more credits to publish this test.
-                        </p>
-                        <button
-                          onClick={() => setIsPurchaseModalOpen(true)}
-                          className="inline-flex items-center space-x-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>Buy More Credits</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Screening Indicator */}
-                {hasCustomScreening && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-blue-800">
-                        Custom screening enabled (+0.1 credit per tester)
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
 
               <div className="mt-4">
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
