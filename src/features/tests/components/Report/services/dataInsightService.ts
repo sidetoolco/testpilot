@@ -277,8 +277,12 @@ export const getAiInsights = async (
 
     // Handle both array and single object responses
     let insights = response.data;
-    if (Array.isArray(insights) && insights.length > 0) {
-      insights = insights[0]; // Extract the first (and only) object from array
+    if (Array.isArray(insights)) {
+      if (insights.length > 0) {
+        insights = insights[0]; // Extract the first (and only) object from array
+      } else {
+        insights = null; // Return null for empty arrays
+      }
     }
 
     return {

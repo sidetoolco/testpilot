@@ -164,12 +164,19 @@ const processAgeData = (responses: any): ChartDataItem[] => {
   const usersWithoutAge = new Set<string>();
   const usersWithAge = new Set<string>();
   const processedUsers = new Set<string>(); // Track all processed users to avoid duplicates
+  let unknownUserCounter = 0; // Counter for users without proper IDs
 
   // Procesar datos de edad desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
-        const userId = response?.tester_id?.id || response?.tester_id?.prolific_id || 'unknown';
+        let userId = response?.tester_id?.id || response?.tester_id?.prolific_id;
+        
+        // Generate unique ID for users without proper IDs
+        if (!userId) {
+          unknownUserCounter++;
+          userId = `unknown_${unknownUserCounter}`;
+        }
         
         // Skip if we've already processed this user
         if (processedUsers.has(userId)) {
@@ -247,12 +254,19 @@ const processGenderData = (responses: any): ChartDataItem[] => {
   const usersWithoutGender = new Set<string>();
   const usersWithGender = new Set<string>();
   const processedUsers = new Set<string>(); // Track all processed users to avoid duplicates
+  let unknownUserCounter = 0; // Counter for users without proper IDs
 
   // Procesar datos de género desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
-        const userId = response?.tester_id?.id || response?.tester_id?.prolific_id || 'unknown';
+        let userId = response?.tester_id?.id || response?.tester_id?.prolific_id;
+        
+        // Generate unique ID for users without proper IDs
+        if (!userId) {
+          unknownUserCounter++;
+          userId = `unknown_${unknownUserCounter}`;
+        }
         
         // Skip if we've already processed this user
         if (processedUsers.has(userId)) {
