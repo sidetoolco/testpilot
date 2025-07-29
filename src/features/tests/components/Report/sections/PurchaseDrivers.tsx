@@ -87,7 +87,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
       )}
 
       {/* Fallback to old insights format */}
-      {!aiInsights && insights?.purchase_drivers && (
+      {!generalInsights?.purchase_drivers && insights?.purchase_drivers && (
         <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
             <div className="text-gray-700 leading-relaxed">
@@ -97,7 +97,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
         </div>
       )}
 
-      {!insights?.purchase_drivers && !aiInsights && (
+      {!generalInsights?.purchase_drivers && !insights?.purchase_drivers && (
         <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="text-gray-500 text-center">
             No purchase drivers insights available for this test.
