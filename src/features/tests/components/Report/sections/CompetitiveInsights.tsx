@@ -101,8 +101,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   ].sort();
 
   return (
-    <div className="w-full p-6 bg-white rounded-xl shadow-sm">
-      <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>
+    <div className="w-full p-4 bg-white rounded-xl shadow-sm">
+      <h2 className="text-xl font-bold mb-6 text-gray-800 text-start">Competitive Insights</h2>
 
       <div className="mb-6">
         <div className="border-b border-gray-200">

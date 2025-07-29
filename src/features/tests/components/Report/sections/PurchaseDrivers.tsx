@@ -74,10 +74,10 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
   const generalInsights = getGeneralInsights();
 
   return (
-    <div className="p-3">
+    <div className="p-1">
       {/* General insights (if available) */}
       {generalInsights?.purchase_drivers && (
-        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="bg-gray-100 p-4 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="flex items-start gap-4 transition-opacity duration-300">
             <div className="text-gray-700 leading-relaxed">
               <h3 className="text-lg font-semibold mb-3 text-gray-800">Purchase Drivers</h3>

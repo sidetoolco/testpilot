@@ -6,8 +6,8 @@ const Recommendations: React.FC = () => {
   const { insight, loading } = useInsightStore();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 my-4">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">
+    <div className="bg-white rounded-xl shadow-sm p-4 ">
+      <h2 className="text-xl font-bold text-gray-800 mb-4 mb-5 pb-3 border-b border-gray-100">
         Recommendations
       </h2>
       {insight && !loading && (
