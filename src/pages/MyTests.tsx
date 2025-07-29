@@ -1,19 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import React from 'react';
 import {
   Plus,
-  PlayCircle,
-  Users2,
   Clock,
   CheckCircle,
   Pencil,
-  Play,
   Pause,
-  FileText,
-  TrendingUp,
-  Calendar,
-  BarChart3,
-  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
@@ -31,6 +25,7 @@ import SearchInput from '../components/ui/SearchInput';
 import { useContinueTest } from '../features/tests/hooks/useContinueTest';
 import { TestCost } from '../components/test-setup/TestCost';
 import { StatisticsCards } from '../components/test-setup/StatisticsCards';
+import { CreditIcon } from '../components/ui/CreditIcon';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -63,6 +58,12 @@ interface ConfirmationModal {
 interface ErrorModal {
   isOpen: boolean;
   message: string;
+}
+
+interface DeleteModal {
+  isOpen: boolean;
+  testId: string;
+  testName: string;
 }
 
 const statusConfig = {
@@ -101,51 +102,75 @@ export default function MyTests() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
+  const [deletingTests, setDeletingTests] = useState<string[]>([]);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationModal | null>(null);
   const [errorModal, setErrorModal] = useState<ErrorModal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const { continueTest } = useContinueTest();
+  const [deleteModal, setDeleteModal] = useState<DeleteModal | null>(null);
+  const [deletedTestIds, setDeletedTestIds] = useState<string[]>([]);
 
   useEffect(() => {
     const checkAdminRole = async () => {
       if (!user?.user?.id) return;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.user.id as any)
+          .single();
 
-      if (!error && data) {
-        setIsAdmin(data.role === 'admin');
+        if (!error && data && typeof data === 'object' && 'role' in data) {
+          setIsAdmin((data as { role: string }).role === 'admin');
+        }
+      } catch (error) {
+        setIsAdmin(false);
       }
     };
 
     checkAdminRole();
   }, [user?.user?.id]);
 
+  // Calculate credits needed for a test
+  const calculateTestCredits = (test: any) => {
+    const variantsArray = [test.variations.a, test.variations.b, test.variations.c].filter(v => v);
+    const totalTesters = test.demographics.testerCount * variantsArray.length;
+    const hasCustomScreening = test.demographics.customScreening?.enabled && 
+      test.demographics.customScreening.question && 
+      test.demographics.customScreening.validAnswer;
+    const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+    return totalTesters * creditsPerTester;
+  };
+
   const handlePublishConfirm = async () => {
     if (!confirmationModal) return;
 
-    const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-    const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
-      confirmationModal.test.demographics.customScreening.question && 
+    const totalTesters =
+      confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
+    const hasCustomScreening =
+      confirmationModal.test.demographics.customScreening?.enabled &&
+      confirmationModal.test.demographics.customScreening.question &&
       confirmationModal.test.demographics.customScreening.validAnswer;
-    const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+    const creditsPerTester = hasCustomScreening
+      ? CREDITS_PER_TESTER_CUSTOM_SCREENING
+      : CREDITS_PER_TESTER;
     const totalCredits = totalTesters * creditsPerTester;
-    
+
     // Only proceed if credits data is available
     if (!creditsData) {
       toast.error('Unable to verify credit balance. Please try again.');
       return;
     }
-    
+
     const availableCredits = creditsData.total || 0;
 
     if (availableCredits < totalCredits) {
       const creditsNeeded = totalCredits - availableCredits;
-      toast.error(`Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to publish this test.`);
+      toast.error(
+        `Insufficient credits. You need ${creditsNeeded.toFixed(1)} more credits to publish this test.`
+      );
       return;
     }
 
@@ -158,7 +183,6 @@ export default function MyTests() {
 
       toast.success('Test published successfully');
     } catch (error: any) {
-      console.error('Error publishing test:', error);
       const errorMessage = error.response?.data?.message || DEFAULT_ERROR_MSG;
       setErrorModal({ isOpen: true, message: errorMessage });
     } finally {
@@ -178,7 +202,6 @@ export default function MyTests() {
 
       // Use the configured API client instead of hardcoded URL
       const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
-      console.log('Making request to:', apiUrl);
 
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -196,12 +219,11 @@ export default function MyTests() {
       }
 
       const data = await response.json();
-      console.log('Response data:', data);
 
       // Open new window with the response data
       const newWindow = window.open('', '_blank');
       if (newWindow) {
-        newWindow.document.write(`
+        newWindow.document.body.innerHTML = `
           <html>
             <head>
               <title>Test Data - ${testId}</title>
@@ -218,13 +240,11 @@ export default function MyTests() {
               ${JSON.stringify(data, null, 2)}
             </body>
           </html>
-        `);
-        newWindow.document.close();
+        `;
       }
 
       toast.success('Test data retrieved successfully');
     } catch (error) {
-      console.error('Error getting test data:', error);
       toast.error(
         error instanceof Error ? error.message : 'Failed to get test data. Please try again.'
       );
@@ -259,20 +279,65 @@ export default function MyTests() {
     }
   };
 
+  // Delete test directly using Supabase
+  const handleDeleteWithSupabase = async (testId: string, testName: string) => {
+    setDeletingTests(prev => [...prev, testId]);
+
+    try {
+      const { data, error } = await supabase
+        .from('tests')
+        .delete()
+        .eq('id', testId as any)
+        .select();
+
+      if (error) {
+        toast.error(`Failed to delete test: ${error.message}`);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        toast.success(`Test "${testName}" deleted successfully`);
+
+        // Add the test ID to the deleted list to hide it from UI
+        setDeletedTestIds(prev => [...prev, testId]);
+
+        // Close the modal
+        setDeleteModal(null);
+      } else {
+        toast.error('Test not found or already deleted');
+      }
+    } catch (error) {
+      toast.error('Failed to delete test. Please try again.');
+    } finally {
+      setDeletingTests(prev => prev.filter(id => id !== testId));
+    }
+  };
+
+  // Helper function to check if a test can be deleted
+  const canDeleteTest = (testStatus: string) => {
+    return ['draft', 'needs review'].includes(testStatus);
+  };
+
   // Filtrar tests basado en la búsqueda
   const filteredTests = useMemo(() => {
-    if (!searchQuery.trim()) return tests;
+    if (!searchQuery.trim()) return tests.filter(test => !deletedTestIds.includes(test.id));
 
-    return tests.filter(
-      test =>
-        test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        test.searchTerm.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [tests, searchQuery]);
+    return tests
+      .filter(test => !deletedTestIds.includes(test.id))
+      .filter(
+        test =>
+          test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          test.searchTerm.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  }, [tests, searchQuery, deletedTestIds]);
 
   // Calculate statistics
-  const activeTests = tests.filter(s => s.status === 'active').length;
-  const completedTests = tests.filter(s => s.status === 'complete').length;
+  const activeTests = tests.filter(
+    s => s.status === 'active' && !deletedTestIds.includes(s.id)
+  ).length;
+  const completedTests = tests.filter(
+    s => s.status === 'complete' && !deletedTestIds.includes(s.id)
+  ).length;
 
   if (loading) {
     return (
@@ -347,16 +412,38 @@ export default function MyTests() {
           </div>
         ) : (
           filteredTests.map(test => {
-            const config = statusConfig[test.status as keyof typeof statusConfig] || statusConfig.incomplete;
+            const config =
+              statusConfig[test.status as keyof typeof statusConfig] || statusConfig.incomplete;
             const StatusIcon = config.icon;
+            const testCredits = calculateTestCredits(test);
+            const isActive = test.status === 'active';
 
             return (
               <motion.div
                 key={test.id}
-                className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative"
                 onClick={() => navigate(`/tests/${test.id}`)}
                 whileHover={{ y: -2 }}
               >
+                {/* Delete button for deletable tests */}
+                {canDeleteTest(test.status) && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      setDeleteModal({ isOpen: true, testId: test.id, testName: test.name });
+                    }}
+                    disabled={deletingTests.includes(test.id)}
+                    className="absolute  top-0 right-0  text-gray-400 "
+                    title="Delete test"
+                  >
+                    {deletingTests.includes(test.id) ? (
+                      <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <X className="h-4 w-4 text-black bg-white rounded-full hover:text-red-500 transition-colors z-10" />
+                    )}
+                  </button>
+                )}
+
                 <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
                   <div className="flex items-center space-x-4">
                     <div
@@ -365,13 +452,21 @@ export default function MyTests() {
                       <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
+                        {/* Credit cost display */}
+                      </div>
                       <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                         <span className="truncate">Search term: {test.searchTerm}</span>
                         <span className="hidden sm:inline">•</span>
                         <span className={config.textColor}>
                           {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                         </span>
+                        <span className="hidden sm:inline">•</span>
+                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <CreditIcon size={14} />
+                          <span>{testCredits.toFixed(1)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -408,7 +503,7 @@ export default function MyTests() {
                             'Get Data'
                           )}
                         </button>
-                        {test.status !== 'complete' && (
+                        {test.status !== 'complete' && !isActive && (
                           <button
                             onClick={e => handlePublish(test.id, e, test)}
                             disabled={publishingTests.includes(test.id)}
@@ -439,104 +534,110 @@ export default function MyTests() {
       </div>
 
       {/* Confirmation Modal */}
-      {confirmationModal && (() => {
-        // Calculate credits needed for this test
-        const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-        const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
-          confirmationModal.test.demographics.customScreening.question && 
-          confirmationModal.test.demographics.customScreening.validAnswer;
-        const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-        const totalCredits = totalTesters * creditsPerTester;
-        
-        // Only calculate if credits data is available
-        const availableCredits = creditsData?.total || 0;
-        const hasSufficientCredits = !creditsLoading && availableCredits >= totalCredits;
-        const creditsNeeded = Math.max(0, totalCredits - availableCredits);
+      {confirmationModal &&
+        (() => {
+          // Calculate credits needed for this test
+          const totalTesters =
+            confirmationModal.test.demographics.testerCount *
+            confirmationModal.variantsArray.length;
+          const hasCustomScreening =
+            confirmationModal.test.demographics.customScreening?.enabled &&
+            confirmationModal.test.demographics.customScreening.question &&
+            confirmationModal.test.demographics.customScreening.validAnswer;
+          const creditsPerTester = hasCustomScreening
+            ? CREDITS_PER_TESTER_CUSTOM_SCREENING
+            : CREDITS_PER_TESTER;
+          const totalCredits = totalTesters * creditsPerTester;
 
-        return (
-          <ModalLayout
-            isOpen={confirmationModal.isOpen}
-            onClose={() => setConfirmationModal(null)}
-            title="Confirm Publication"
-          >
-            <div className="space-y-4">
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                Are you sure you want to publish the test "{confirmationModal.test.name}"?
-              </p>
-              <p className="text-gray-500 text-sm">
-                {totalTesters} testers will be invited to participate in the test.
-              </p>
+          // Only calculate if credits data is available
+          const availableCredits = creditsData?.total || 0;
+          const hasSufficientCredits = !creditsLoading && availableCredits >= totalCredits;
+          const creditsNeeded = Math.max(0, totalCredits - availableCredits);
 
-              {/* Credit Information */}
-              <TestCost
-                totalTesters={totalTesters}
-                creditsPerTester={creditsPerTester}
-                totalCredits={totalCredits}
-                availableCredits={availableCredits}
-                creditsLoading={creditsLoading}
-                hasSufficientCredits={hasSufficientCredits}
-                creditsNeeded={creditsNeeded}
-                onPurchaseCredits={() => setIsPurchaseModalOpen(true)}
-                size="small"
-                showAvailableCredits={true}
-                showInsufficientWarning={true}
-              />
+          return (
+            <ModalLayout
+              isOpen={confirmationModal.isOpen}
+              onClose={() => setConfirmationModal(null)}
+              title="Confirm Publication"
+            >
+              <div className="space-y-4">
+                <p className="text-lg font-medium text-gray-900 mb-2">
+                  Are you sure you want to publish the test "{confirmationModal.test.name}"?
+                </p>
+                <p className="text-gray-500 text-sm">
+                  {totalTesters} testers will be invited to participate in the test.
+                </p>
 
-              {/* Custom Screening Indicator */}
-              {hasCustomScreening && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-blue-800">
-                      Custom screening enabled (+0.1 credit per tester)
-                    </span>
+                {/* Credit Information */}
+                <TestCost
+                  totalTesters={totalTesters}
+                  creditsPerTester={creditsPerTester}
+                  totalCredits={totalCredits}
+                  availableCredits={availableCredits}
+                  creditsLoading={creditsLoading}
+                  hasSufficientCredits={hasSufficientCredits}
+                  creditsNeeded={creditsNeeded}
+                  onPurchaseCredits={() => setIsPurchaseModalOpen(true)}
+                  size="small"
+                  showAvailableCredits={true}
+                  showInsufficientWarning={true}
+                />
+
+                {/* Custom Screening Indicator */}
+                {hasCustomScreening && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-blue-800">
+                        Custom screening enabled (+0.1 credit per tester)
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
+                      <div key={variation.id} className="flex items-start space-x-3">
+                        <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-gray-700 font-medium">
+                            {variation.title || `Variation ${index + 1}`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
 
-              <div className="mt-4">
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                  {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
-                    <div key={variation.id} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="text-gray-700 font-medium">
-                          {variation.title || `Variation ${index + 1}`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <p className="text-sm text-gray-500 mt-4">
+                  This action will make the test available on Prolific.
+                </p>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setConfirmationModal(null)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handlePublishConfirm}
+                    disabled={!hasSufficientCredits}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      hasSufficientCredits
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {hasSufficientCredits ? 'Confirm Publication' : 'Insufficient Credits'}
+                  </button>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-500 mt-4">
-                This action will make the test available on Prolific.
-              </p>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setConfirmationModal(null)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePublishConfirm}
-                  disabled={!hasSufficientCredits}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    hasSufficientCredits
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {hasSufficientCredits ? 'Confirm Publication' : 'Insufficient Credits'}
-                </button>
-              </div>
-            </div>
-          </ModalLayout>
-        );
-      })()}
+            </ModalLayout>
+          );
+        })()}
 
       {/* Error Modal */}
       {errorModal && (
@@ -556,24 +657,75 @@ export default function MyTests() {
         </ModalLayout>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <ModalLayout
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal(null)}
+          title="Confirm Deletion"
+        >
+          <div className="space-y-4">
+            <p className="text-lg font-medium text-gray-900 mb-2">
+              Are you sure you want to delete the test "{deleteModal.testName}"?
+            </p>
+            <p className="text-gray-500 text-sm">This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (deleteModal) {
+                    handleDeleteWithSupabase(deleteModal.testId, deleteModal.testName);
+                  }
+                }}
+                disabled={deletingTests.includes(deleteModal?.testId || '')}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deletingTests.includes(deleteModal?.testId || '') ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </span>
+                ) : (
+                  'Delete Test'
+                )}
+              </button>
+            </div>
+          </div>
+        </ModalLayout>
+      )}
+
       {/* Purchase Credits Modal */}
       <Elements stripe={stripePromise}>
         <PurchaseCreditsModal
           isOpen={isPurchaseModalOpen}
           onClose={() => setIsPurchaseModalOpen(false)}
-          creditsNeeded={confirmationModal ? (() => {
-            const totalTesters = confirmationModal.test.demographics.testerCount * confirmationModal.variantsArray.length;
-            const hasCustomScreening = confirmationModal.test.demographics.customScreening?.enabled && 
-              confirmationModal.test.demographics.customScreening.question && 
-              confirmationModal.test.demographics.customScreening.validAnswer;
-            const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-            const totalCredits = totalTesters * creditsPerTester;
-            
-            // Only calculate if credits data is available and not loading
-            if (creditsLoading || !creditsData) return undefined;
-            const availableCredits = creditsData.total || 0;
-            return Math.max(0, totalCredits - availableCredits);
-          })() : undefined}
+          creditsNeeded={
+            confirmationModal
+              ? (() => {
+                  const totalTesters =
+                    confirmationModal.test.demographics.testerCount *
+                    confirmationModal.variantsArray.length;
+                  const hasCustomScreening =
+                    confirmationModal.test.demographics.customScreening?.enabled &&
+                    confirmationModal.test.demographics.customScreening.question &&
+                    confirmationModal.test.demographics.customScreening.validAnswer;
+                  const creditsPerTester = hasCustomScreening
+                    ? CREDITS_PER_TESTER_CUSTOM_SCREENING
+                    : CREDITS_PER_TESTER;
+                  const totalCredits = totalTesters * creditsPerTester;
+
+                  // Only calculate if credits data is available and not loading
+                  if (creditsLoading || !creditsData) return undefined;
+                  const availableCredits = creditsData.total || 0;
+                  return Math.max(0, totalCredits - availableCredits);
+                })()
+              : undefined
+          }
         />
       </Elements>
     </div>
