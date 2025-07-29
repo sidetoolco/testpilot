@@ -223,7 +223,8 @@ export default function MyTests() {
       // Open new window with the response data
       const newWindow = window.open('', '_blank');
       if (newWindow) {
-        newWindow.document.body.innerHTML = `
+        newWindow.document.open();
+        newWindow.document.write(`
           <html>
             <head>
               <title>Test Data - ${testId}</title>
@@ -240,7 +241,8 @@ export default function MyTests() {
               ${JSON.stringify(data, null, 2)}
             </body>
           </html>
-        `;
+        `);
+        newWindow.document.close();
       }
 
       toast.success('Test data retrieved successfully');
@@ -315,7 +317,7 @@ export default function MyTests() {
 
   // Helper function to check if a test can be deleted
   const canDeleteTest = (testStatus: string) => {
-    return ['draft', 'needs review'].includes(testStatus);
+    return ['draft', 'needs review', 'incomplete'].includes(testStatus);
   };
 
   // Filtrar tests basado en la búsqueda
