@@ -228,7 +228,13 @@ const PDFDocument = ({
       // Check if this variant has any data
       const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
       const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
-      const hasAIInsights = safeAiInsights.find((insight: any) => insight.variant_type === key);
+      
+      // Check for AI insights in the new single object structure
+      const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
+        (key === 'a' ? safeAiInsights[0].competitive_insights_a :
+         key === 'b' ? safeAiInsights[0].competitive_insights_b :
+         key === 'c' ? safeAiInsights[0].competitive_insights_c :
+         null);
       
       return hasPurchaseData || hasCompetitiveData || hasAIInsights;
     })
@@ -310,9 +316,14 @@ const PDFDocument = ({
 
         {/* Variant-specific AI Insights - only for variants with data */}
         {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
-          const variantInsight = safeAiInsights.find((insight: any) => insight.variant_type === key);
+          const mainInsight = safeAiInsights[0]; // Get the single insight object
+          const variantCompetitiveInsight = 
+            key === 'a' ? mainInsight.competitive_insights_a :
+            key === 'b' ? mainInsight.competitive_insights_b :
+            key === 'c' ? mainInsight.competitive_insights_c :
+            null;
           
-          if (!variantInsight || !variation) return null;
+          if (!variantCompetitiveInsight || !variation) return null;
           
           return (
             <VariantAIInsightsSection
@@ -320,8 +331,8 @@ const PDFDocument = ({
               variantKey={key}
               variantTitle={variation.title}
               insights={{
-                purchase_drivers: variantInsight?.purchase_drivers || '',
-                competitive_insights: variantInsight?.competitive_insights || '',
+                purchase_drivers: mainInsight.purchase_drivers || '',
+                competitive_insights: variantCompetitiveInsight,
               }}
               orientation={orientation}
             />

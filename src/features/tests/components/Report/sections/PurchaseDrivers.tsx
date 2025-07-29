@@ -67,7 +67,8 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
   // Get general insights (variant_type is null or undefined)
   const getGeneralInsights = () => {
     if (!aiInsights || !Array.isArray(aiInsights)) return null;
-    return aiInsights.find(insight => !insight.variant_type);
+    // With the new structure, the single insight object contains all the data
+    return aiInsights.length > 0 ? aiInsights[0] : null;
   };
 
   const generalInsights = getGeneralInsights();

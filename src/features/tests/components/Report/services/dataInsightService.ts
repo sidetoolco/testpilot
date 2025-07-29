@@ -258,12 +258,12 @@ export const getCompetitiveInsights = async (
 export const getAiInsights = async (
   testId: string
 ): Promise<{
-  insights: any[];
+  insights: any;
   error: string | null;
 }> => {
   if (!testId) {
     return {
-      insights: [],
+      insights: null,
       error: 'Test ID is required.',
     };
   }
@@ -275,14 +275,20 @@ export const getAiInsights = async (
 
     console.log('AI insights fetched successfully from backend:', response.data);
 
+    // Handle both array and single object responses
+    let insights = response.data;
+    if (Array.isArray(insights) && insights.length > 0) {
+      insights = insights[0]; // Extract the first (and only) object from array
+    }
+
     return {
-      insights: response.data || [],
+      insights: insights || null,
       error: null,
     };
   } catch (error: any) {
     console.error('Error fetching AI insights from backend:', error);
     return {
-      insights: [],
+      insights: null,
       error:
         error.response?.data?.message ||
         error.message ||
