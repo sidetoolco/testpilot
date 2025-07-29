@@ -14,6 +14,7 @@ interface ReportContentProps {
   averagesurveys: any;
   competitiveinsights: any;
   insights: any;
+  aiInsights?: any[];
 }
 
 const ReportContent: React.FC<ReportContentProps> = ({
@@ -23,6 +24,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
   averagesurveys,
   competitiveinsights,
   insights,
+  aiInsights,
 }) => {
   return (
     <div className="flex-1 overflow-hidden">
@@ -42,7 +44,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
             id="content-purchase-drivers"
             className={clsx(activeTab !== 'purchase-drivers' && 'hidden')}
           >
-            <PurchaseDrivers surveys={averagesurveys} insights={insights} />
+            <PurchaseDrivers surveys={averagesurveys} insights={insights} aiInsights={aiInsights} />
           </div>
           <div
             id="content-competitive-insights"
