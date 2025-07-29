@@ -16,10 +16,10 @@ export function CreditIcon({ className = "", size = 24 }: CreditIconProps) {
       <circle 
         cx="50" 
         cy="50" 
-        r="45" 
+        r="40" 
         fill="none" 
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="5"
       />
       
       {/* "tp" text */}
