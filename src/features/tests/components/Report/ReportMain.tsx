@@ -42,6 +42,42 @@ const convertTestToTestDetails = (test: any): any => {
   };
 };
 
+// Helper function to select competitive insights based on available variants
+const getCompetitiveInsightsForAvailableVariants = (insight: any, testInfo: any): string => {
+  if (!insight || !testInfo?.variations) {
+    return '';
+  }
+
+  const availableVariants = [];
+  
+  // Check which variants are available in the test
+  if (testInfo.variations.a) {
+    availableVariants.push('a');
+  }
+  if (testInfo.variations.b) {
+    availableVariants.push('b');
+  }
+  if (testInfo.variations.c) {
+    availableVariants.push('c');
+  }
+
+  // If no variants are available, return empty string
+  if (availableVariants.length === 0) {
+    return '';
+  }
+
+  // Find the first available variant that has competitive insights
+  for (const variant of availableVariants) {
+    const insightsKey = `competitive_insights_${variant}` as keyof typeof insight;
+    if (insight[insightsKey] && insight[insightsKey].trim() !== '') {
+      return insight[insightsKey];
+    }
+  }
+
+  // If no variant has competitive insights, return empty string
+  return '';
+};
+
 const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
   const { user } = useAuth();
   return (
@@ -270,7 +306,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             insights={insight ? {
               purchase_drivers: insight.purchase_drivers,
               recommendations: insight.recommendations,
-              competitive_insights: insight.competitive_insights_a || insight.competitive_insights_b || insight.competitive_insights_c || '',
+              competitive_insights: getCompetitiveInsightsForAvailableVariants(insight, testInfo),
               comment_summary: insight.comment_summary,
               shopper_comments: []
             } : {

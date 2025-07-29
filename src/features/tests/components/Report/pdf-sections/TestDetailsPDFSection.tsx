@@ -161,14 +161,23 @@ const processAgeData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const ageCounts: { [key: string]: number } = {};
-  let usersWithoutAge = 0;
-  let totalUsersProcessed = 0;
+  const usersWithoutAge = new Set<string>();
+  const usersWithAge = new Set<string>();
+  const processedUsers = new Set<string>(); // Track all processed users to avoid duplicates
 
   // Procesar datos de edad desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
-        totalUsersProcessed++;
+        const userId = response?.tester_id?.id || response?.tester_id?.prolific_id || 'unknown';
+        
+        // Skip if we've already processed this user
+        if (processedUsers.has(userId)) {
+          return;
+        }
+        
+        processedUsers.add(userId);
+        
         if (response?.tester_id?.shopper_demographic?.age) {
           const age = response.tester_id.shopper_demographic.age;
           // Crear rangos de edad
@@ -183,16 +192,16 @@ const processAgeData = (responses: any): ChartDataItem[] => {
 
           if (range) {
             ageCounts[range] = (ageCounts[range] || 0) + 1;
+            usersWithAge.add(userId);
+          } else {
+            usersWithoutAge.add(userId);
           }
         } else {
-          // Contar usuarios sin datos de edad
-          usersWithoutAge++;
+          usersWithoutAge.add(userId);
         }
       });
     }
   });
-
-
 
   // Convertir a formato de gráfica con colores originales
   const colors = [
@@ -219,10 +228,10 @@ const processAgeData = (responses: any): ChartDataItem[] => {
     }));
 
   // Agregar categoría "Non-informed age" si hay usuarios sin datos de edad
-  if (usersWithoutAge > 0) {
+  if (usersWithoutAge.size > 0) {
     result.push({
       label: 'Not informed',
-      value: usersWithoutAge,
+      value: usersWithoutAge.size,
       color: colors[colors.length - 1], // Usar el último color (gris)
     });
   }
@@ -235,27 +244,33 @@ const processGenderData = (responses: any): ChartDataItem[] => {
   if (!responses?.comparisons) return [];
 
   const genderCounts: { [key: string]: number } = {};
-  let usersWithoutGender = 0;
-  let totalUsersProcessed = 0;
+  const usersWithoutGender = new Set<string>();
+  const usersWithGender = new Set<string>();
+  const processedUsers = new Set<string>(); // Track all processed users to avoid duplicates
 
   // Procesar datos de género desde responses_comparisons (organizado por variation_type)
   Object.values(responses.comparisons).forEach((variationResponses: any) => {
     if (Array.isArray(variationResponses)) {
       variationResponses.forEach((response: any) => {
-        totalUsersProcessed++;
+        const userId = response?.tester_id?.id || response?.tester_id?.prolific_id || 'unknown';
+        
+        // Skip if we've already processed this user
+        if (processedUsers.has(userId)) {
+          return;
+        }
+        
+        processedUsers.add(userId);
+        
         if (response?.tester_id?.shopper_demographic?.sex || response?.tester_id?.shopper_demographic?.gender) {
           const gender = response.tester_id.shopper_demographic.sex || response.tester_id.shopper_demographic.gender;
           genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+          usersWithGender.add(userId);
         } else {
-          // Contar usuarios sin datos de género
-          usersWithoutGender++;
-
+          usersWithoutGender.add(userId);
         }
       });
     }
   });
-
-
 
   // Convertir a formato de gráfica con colores del estilo de la app
   const genderColors = [COLORS.primary, COLORS.secondary, '#9CA3AF']; // Verde principal, secundario y gris para "Non-informed"
@@ -267,10 +282,10 @@ const processGenderData = (responses: any): ChartDataItem[] => {
   }));
 
   // Agregar categoría "Non-informed gender" si hay usuarios sin datos de género
-  if (usersWithoutGender > 0) {
+  if (usersWithoutGender.size > 0) {
     result.push({
       label: 'Not informed',
-      value: usersWithoutGender,
+      value: usersWithoutGender.size,
       color: genderColors[genderColors.length - 1], // Usar el último color (gris)
     });
   }

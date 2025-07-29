@@ -5,7 +5,6 @@ import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
 import { SummaryPDFSection } from './pdf-sections/SummaryPDFSection';
 import { PurchaseDriversPDFSection } from './pdf-sections/PurchaseDriversPDFSection';
-import { CompetitiveInsightsPDFSection } from './pdf-sections/CompetitiveInsightsPDFSection';
 import { RecommendationsPDFSection } from './pdf-sections/RecommendationsPDFSection';
 import { CoverPageSection } from './pdf-sections/CoverPageSection';
 import { TestDetails } from './utils/types';
@@ -16,7 +15,6 @@ import { PurchaseDriversTextSection } from './pdf-sections/PurchaseDriversTextSe
 import { PurchaseDriversCombinedChartSection } from './pdf-sections/PurchaseDriversCombinedChartSection';
 import { CompetitiveInsightsTextSection } from './pdf-sections/CompetitiveInsightsTextSection';
 import { CompetitiveInsightsTableSection } from './pdf-sections/CompetitiveInsightsTableSection';
-import { VariantAIInsightsSection } from './pdf-sections/VariantAIInsightsSection';
 import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
 import { useAuth } from '../../../auth/hooks/useAuth';
@@ -286,12 +284,41 @@ const PDFDocument = ({
         })()}
 
         {/* New structure: Competitive Insights with general text first */}
-        {safeInsights?.competitive_insights && (
-          <CompetitiveInsightsTextSection
-            insights={safeInsights.competitive_insights}
-            orientation={orientation}
-          />
-        )}
+        {(() => {
+          // Collect all competitive insights from AI insights
+          const allVariantInsights: { [key: string]: string } = {};
+          
+          if (safeAiInsights && safeAiInsights.length > 0) {
+            const mainInsight = safeAiInsights[0];
+            
+            // Add competitive insights for each available variant
+            availableVariants.forEach(({ key }) => {
+              const variantInsight = 
+                key === 'a' ? mainInsight.competitive_insights_a :
+                key === 'b' ? mainInsight.competitive_insights_b :
+                key === 'c' ? mainInsight.competitive_insights_c :
+                null;
+              
+              if (variantInsight && variantInsight.trim()) {
+                allVariantInsights[key] = variantInsight;
+              }
+            });
+          }
+
+          // Show the section only if there are variant-specific insights (removed general insights)
+          const hasVariantInsights = Object.keys(allVariantInsights).length > 0;
+          
+          if (hasVariantInsights) {
+            return (
+              <CompetitiveInsightsTextSection
+                insights={''} // Empty string for general insights
+                allVariantInsights={allVariantInsights}
+                orientation={orientation}
+              />
+            );
+          }
+          return null;
+        })()}
 
         {/* Competitive Insights Tables - only for variants with data */}
         {availableVariants.map(({ key, variation }) => {
@@ -309,31 +336,6 @@ const PDFDocument = ({
                   (item: any) => item.variant_type === key
                 ) || []
               }
-              orientation={orientation}
-            />
-          );
-        })}
-
-        {/* Variant-specific AI Insights - only for variants with data */}
-        {safeAiInsights && safeAiInsights.length > 0 && availableVariants.map(({ key, variation }) => {
-          const mainInsight = safeAiInsights[0]; // Get the single insight object
-          const variantCompetitiveInsight = 
-            key === 'a' ? mainInsight.competitive_insights_a :
-            key === 'b' ? mainInsight.competitive_insights_b :
-            key === 'c' ? mainInsight.competitive_insights_c :
-            null;
-          
-          if (!variantCompetitiveInsight || !variation) return null;
-          
-          return (
-            <VariantAIInsightsSection
-              key={`ai-insights-${key}`}
-              variantKey={key}
-              variantTitle={variation.title}
-              insights={{
-                purchase_drivers: mainInsight.purchase_drivers || '',
-                competitive_insights: variantCompetitiveInsight,
-              }}
               orientation={orientation}
             />
           );
@@ -573,30 +575,24 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         return;
       }
 
-      // Create data with default values for optional fields
+      // Create data with default values for optional fields - no deep cloning needed
       const pdfData = {
-        testDetails: JSON.parse(JSON.stringify(testDetails)),
-        summaryData: JSON.parse(JSON.stringify(summaryData)),
-        insights: insights
-          ? JSON.parse(JSON.stringify(insights))
-          : {
-              purchase_drivers: '',
-              recommendations: '',
-              competitive_insights: '',
-              shopper_comments: [],
-              comment_summary: '',
-            },
-        competitiveinsights: competitiveinsights
-          ? JSON.parse(JSON.stringify(competitiveinsights))
-          : {
-              summaryData: [],
-            },
-        averagesurveys: averagesurveys
-          ? JSON.parse(JSON.stringify(averagesurveys))
-          : {
-              summaryData: [],
-            },
-        aiInsights: aiInsights ? JSON.parse(JSON.stringify(aiInsights)) : [],
+        testDetails,
+        summaryData,
+        insights: insights || {
+          purchase_drivers: '',
+          recommendations: '',
+          competitive_insights: '',
+          shopper_comments: [],
+          comment_summary: '',
+        },
+        competitiveinsights: competitiveinsights || {
+          summaryData: [],
+        },
+        averagesurveys: averagesurveys || {
+          summaryData: [],
+        },
+        aiInsights: aiInsights || [],
       };
 
       const blob = await pdf(
