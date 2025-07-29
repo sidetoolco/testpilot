@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw } from 'lucide-react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, Edit } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
@@ -21,6 +21,7 @@ import { PDFOrientation } from './types';
 import { supabase } from '../../../../lib/supabase';
 import { useAuth } from '../../../auth/hooks/useAuth';
 import * as XLSX from 'xlsx';
+import { EditDataModal } from './EditDataModal';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -488,6 +489,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useAuth();
 
   const isTestActiveOrComplete =
@@ -644,6 +646,16 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           {isExportingExcel ? 'Exporting...' : 'Export to Excel'}
         </button>
         {isAdmin && (
+                  <button
+          onClick={() => setIsEditModalOpen(true)}
+          disabled={!isTestActiveOrComplete}
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          <Edit size={20} />
+          Edit Insights
+        </button>
+        )}
+        {isAdmin && (
           <button
             disabled={loadingInsights}
             onClick={handleRegenerateInsights}
@@ -675,6 +687,13 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           testName={testDetails?.name}
         />
       )}
+      
+      <EditDataModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        testId={testDetails?.id || ''}
+        testName={testDetails?.name || ''}
+      />
     </>
   );
 };
