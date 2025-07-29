@@ -6,6 +6,9 @@ import { PDFOrientation } from '../types';
 
 interface CompetitiveInsightsTextSectionProps {
   insights: string;
+  allVariantInsights?: {
+    [key: string]: string;
+  };
   orientation?: PDFOrientation;
 }
 
@@ -17,8 +20,8 @@ const InsightMarkdownText: React.FC<{ text: string; orientation?: PDFOrientation
   if (!text) return null;
 
   const isLandscape = orientation === 'landscape';
-  const fontSize = isLandscape ? 11 : 12; // Reducir ligeramente el tamaño de fuente en landscape
-  const lineHeight = isLandscape ? 1.4 : 1.5; // Ajustar line-height para landscape
+  const fontSize = isLandscape ? 11 : 12;
+  const lineHeight = isLandscape ? 1.4 : 1.5;
 
   return (
     <View
@@ -32,7 +35,6 @@ const InsightMarkdownText: React.FC<{ text: string; orientation?: PDFOrientation
         .map((line, index) => {
           if (!line.trim()) return null;
 
-          // Procesar texto en negrita y bullets
           const parts = line.split(/(\*\*.*?\*\*)/g);
 
           return (
@@ -90,13 +92,42 @@ const Footer: React.FC = () => (
 
 export const CompetitiveInsightsTextSection: React.FC<CompetitiveInsightsTextSectionProps> = ({
   insights,
+  allVariantInsights,
   orientation = 'landscape',
 }) => {
+  const isLandscape = orientation === 'landscape';
+  const hasVariantInsights = allVariantInsights && Object.keys(allVariantInsights).length > 0;
+
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title="Competitive Insights" />
-        <InsightMarkdownText text={insights} orientation={orientation} />
+        
+        {hasVariantInsights && Object.entries(allVariantInsights).map(([variantKey, variantInsight]) => {
+          if (!variantInsight || !variantInsight.trim()) return null;
+          
+          return (
+            <View key={variantKey} style={{ marginBottom: isLandscape ? 20 : 25 }}>
+              <Text
+                style={{
+                  fontSize: isLandscape ? 12 : 14,
+                  fontWeight: 'bold',
+                  color: '#374151',
+                  marginBottom: isLandscape ? 8 : 10,
+                }}
+              >
+                Variant {variantKey.toUpperCase()} Competitive Analysis
+              </Text>
+              <InsightMarkdownText text={variantInsight} orientation={orientation} />
+            </View>
+          );
+        })}
+
+        {!hasVariantInsights && (
+          <Text style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+            No competitive insights available
+          </Text>
+        )}
       </View>
       <Footer />
     </Page>

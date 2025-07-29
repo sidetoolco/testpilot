@@ -27,12 +27,12 @@ const ReportContent: React.FC<ReportContentProps> = ({
   aiInsights,
 }) => {
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="flex-1 overflow-hidden p-4">
       <div
         tabIndex={0}
         className={clsx(
           'h-full overflow-y-auto',
-          'focus:outline-none focus:ring-2 focus:ring-green-600'
+          'focus:outline-none '
         )}
         id="report-content"
       >
@@ -58,7 +58,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
           </div>
           <div
             id="content-shopper-comments"
-            className={clsx('p-4', activeTab !== 'shopper-comments' && 'hidden')}
+            className={clsx( activeTab !== 'shopper-comments' && 'hidden')}
           >
             <ShopperComments
               comparision={variant.responses.comparisons}

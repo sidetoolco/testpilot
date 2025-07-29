@@ -42,6 +42,42 @@ const convertTestToTestDetails = (test: any): any => {
   };
 };
 
+// Helper function to select competitive insights based on available variants
+const getCompetitiveInsightsForAvailableVariants = (insight: any, testInfo: any): string => {
+  if (!insight || !testInfo?.variations) {
+    return '';
+  }
+
+  const availableVariants = [];
+  
+  // Check which variants are available in the test
+  if (testInfo.variations.a) {
+    availableVariants.push('a');
+  }
+  if (testInfo.variations.b) {
+    availableVariants.push('b');
+  }
+  if (testInfo.variations.c) {
+    availableVariants.push('c');
+  }
+
+  // If no variants are available, return empty string
+  if (availableVariants.length === 0) {
+    return '';
+  }
+
+  // Find the first available variant that has competitive insights
+  for (const variant of availableVariants) {
+    const insightsKey = `competitive_insights_${variant}` as keyof typeof insight;
+    if (insight[insightsKey] && insight[insightsKey].trim() !== '') {
+      return insight[insightsKey];
+    }
+  }
+
+  // If no variant has competitive insights, return empty string
+  return '';
+};
+
 const ReportTabs: React.FC<ReportTabsProps> = ({ activeTab, onTabChange, variantStatus }) => {
   const { user } = useAuth();
   return (
@@ -104,8 +140,6 @@ const Report: React.FC<ReportProps> = ({ id }) => {
       try {
         setLoading(true);
 
-        console.log('Starting data fetch for test:', testInfo.id);
-
         const [data, averagesurveys, competitiveinsights, aiInsightsData] = await Promise.all([
           getSummaryData(id),
           getAveragesurveys(id),
@@ -113,28 +147,23 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           getAiInsights(id),
         ]);
 
-        console.log('Data fetched successfully:', {
-          summaryData: !!data,
-          averagesurveys: !!averagesurveys,
-          competitiveinsights: !!competitiveinsights,
-          aiInsights: !!aiInsightsData.insights,
-          aiInsightsCount: aiInsightsData.insights?.length || 0,
-          aiInsightsError: aiInsightsData.error,
-        });
-
         setSummaryData(data);
         setAveragesurveys(averagesurveys);
         setCompetitiveinsights(competitiveinsights);
 
-        // Set both insight and aiInsights from the same data
+        // Handle the new single object structure
         if (!aiInsightsData.error && aiInsightsData.insights) {
-          setAiInsights(aiInsightsData.insights);
-          // Set the first insight as the main insight (for backward compatibility)
-          setInsight(aiInsightsData.insights.length > 0 ? aiInsightsData.insights[0] : null);
-          console.log('AI insights set successfully:', aiInsightsData.insights);
+          // Set the single insight object
+          setInsight(aiInsightsData.insights);
+          // For backward compatibility, also set it as aiInsights array with single item
+          setAiInsights([aiInsightsData.insights]);
         } else if (aiInsightsData.error) {
           console.warn('AI insights error:', aiInsightsData.error);
           setInsight(null);
+          setAiInsights([]);
+        } else {
+          setInsight(null);
+          setAiInsights([]);
         }
 
         setDataLoaded(true);
@@ -274,7 +303,19 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           <ReportPDF
             testDetails={convertTestToTestDetails(testInfo)}
             summaryData={summaryData}
-            insights={insight}
+            insights={insight ? {
+              purchase_drivers: insight.purchase_drivers,
+              recommendations: insight.recommendations,
+              competitive_insights: getCompetitiveInsightsForAvailableVariants(insight, testInfo),
+              comment_summary: insight.comment_summary,
+              shopper_comments: []
+            } : {
+              purchase_drivers: '',
+              recommendations: '',
+              competitive_insights: '',
+              comment_summary: '',
+              shopper_comments: []
+            }}
             disabled={testInfo?.status !== 'complete'}
             competitiveinsights={competitiveinsights}
             averagesurveys={averagesurveys}

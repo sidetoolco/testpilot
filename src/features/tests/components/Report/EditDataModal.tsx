@@ -16,11 +16,12 @@ interface AIInsightData {
   test_id: string;
   comparison_between_variants: string;
   purchase_drivers: string;
-  competitive_insights: string;
+  competitive_insights_a?: string;
+  competitive_insights_b?: string;
+  competitive_insights_c?: string;
   recommendations: string;
   sendEmail: boolean | null;
   comment_summary: string;
-  variant_type: string | null;
   edited?: boolean;
 }
 
@@ -29,10 +30,11 @@ interface EditableInsightData {
   id: number;
   comparison_between_variants: string;
   purchase_drivers: string;
-  competitive_insights: string;
+  competitive_insights_a?: string;
+  competitive_insights_b?: string;
+  competitive_insights_c?: string;
   recommendations: string;
   comment_summary: string;
-  variant_type: string | null;
   edited: boolean;
 }
 
@@ -42,7 +44,6 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
   testId,
   testName,
 }) => {
-  const [activeTab, setActiveTab] = useState('insights');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editableInsightsData, setEditableInsightsData] = useState<EditableInsightData[]>([]);
@@ -57,71 +58,35 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load AI insights from your API
+      // Load AI insights from your API - now returns a single object
       const response = await apiClient.get(`/insights/${testId}?type=ai`);
       
-      // Get all insights and organize them by type
-      const allInsights = response.data || [];
-      
-      const editableData: EditableInsightData[] = [];
-      
-      // Find the main insight (variant A) that contains the general fields
-      const mainInsight = allInsights.find((item: AIInsightData) => 
-        item.variant_type === 'a'
-      );
-      
-      // Find the purchase drivers insight (variant_type = null)
-      const purchaseDriversInsight = allInsights.find((item: AIInsightData) => 
-        item.variant_type === null
-      );
-      
-      if (mainInsight) {
-        // Add the main insight with general fields
-        editableData.push({
-          id: mainInsight.id,
-          comparison_between_variants: mainInsight.comparison_between_variants,
-          purchase_drivers: '', // Will be handled separately from variant null
-          competitive_insights: '', // Will be handled separately for each variant
-          recommendations: mainInsight.recommendations,
-          comment_summary: mainInsight.comment_summary,
-          variant_type: 'a',
-          edited: false,
-        });
+      // Handle both array and single object responses
+      let insightData: AIInsightData;
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        insightData = response.data[0]; // Extract the first (and only) object from array
+      } else {
+        insightData = response.data;
       }
       
-      // Add purchase drivers insight (variant_type = null) separately
-      if (purchaseDriversInsight) {
+      if (insightData) {
+        const editableData: EditableInsightData[] = [];
+        
+        // Create a single editable object with all the data
         editableData.push({
-          id: purchaseDriversInsight.id,
-          comparison_between_variants: '', // Not editable for purchase drivers
-          purchase_drivers: purchaseDriversInsight.purchase_drivers,
-          competitive_insights: '', // Not editable for purchase drivers
-          recommendations: '', // Not editable for purchase drivers
-          comment_summary: '', // Not editable for purchase drivers
-          variant_type: null,
+          id: insightData.id,
+          comparison_between_variants: insightData.comparison_between_variants || '',
+          purchase_drivers: insightData.purchase_drivers || '',
+          competitive_insights_a: insightData.competitive_insights_a || '',
+          competitive_insights_b: insightData.competitive_insights_b || '',
+          competitive_insights_c: insightData.competitive_insights_c || '',
+          recommendations: insightData.recommendations || '',
+          comment_summary: insightData.comment_summary || '',
           edited: false,
         });
+        
+        setEditableInsightsData(editableData);
       }
-      
-      // Add competitive insights for all variants (A, B, C) if they exist
-      const competitiveInsights = allInsights.filter((item: AIInsightData) => 
-        item.variant_type && ['a', 'b', 'c'].includes(item.variant_type) && item.competitive_insights
-      );
-      
-      competitiveInsights.forEach((item: AIInsightData) => {
-        editableData.push({
-          id: item.id,
-          comparison_between_variants: '', // Not editable for competitive insights
-          purchase_drivers: '', // Not editable for competitive insights
-          competitive_insights: item.competitive_insights,
-          recommendations: '', // Not editable for competitive insights
-          comment_summary: '', // Not editable for competitive insights
-          variant_type: item.variant_type,
-          edited: false,
-        });
-      });
-      
-      setEditableInsightsData(editableData);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load insights data');
@@ -133,100 +98,59 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Save each insight that has been modified
-      const savePromises = editableInsightsData.map(async (item) => {
-        // Only save if the item has an ID (exists in database)
-        if (item.id) {
-          const updateData: any = {};
-          
-          // Determine what fields to update based on the insight type
-          const isGeneralInsight = item.variant_type === 'a' && 
-            (item.comparison_between_variants || item.recommendations || item.comment_summary);
-          
-          const isPurchaseDriversInsight = item.variant_type === null && item.purchase_drivers;
-          
-          const isCompetitiveInsight = item.variant_type && ['a', 'b', 'c'].includes(item.variant_type) && 
-            item.competitive_insights;
-          
-          if (isGeneralInsight) {
-            // Update general fields for variant A
-            if (item.comparison_between_variants !== '') {
-              updateData.comparison_between_variants = item.comparison_between_variants;
-            }
-            if (item.comment_summary !== '') {
-              updateData.comment_summary = item.comment_summary;
-            }
-            if (item.recommendations !== '') {
-              updateData.recommendations = item.recommendations;
-            }
-            // Add edited flag if any field was changed
-            if (item.edited) {
-              updateData.edited = true;
-            }
-          }
-          
-          if (isPurchaseDriversInsight) {
-            // Update purchase drivers for variant_type = null
-            if (item.purchase_drivers !== '') {
-              updateData.purchase_drivers = item.purchase_drivers;
-            }
-            // Add edited flag if any field was changed
-            if (item.edited) {
-              updateData.edited = true;
-            }
-          }
-          
-          if (isCompetitiveInsight) {
-            // Update competitive insights for any variant (A, B, C)
-            if (item.competitive_insights !== '') {
-              updateData.competitive_insights = item.competitive_insights;
-            }
-            // Add edited flag if any field was changed
-            if (item.edited) {
-              updateData.edited = true;
-            }
-          }
-          
-          // Only make the API call if there are fields to update
-          if (Object.keys(updateData).length > 0) {
-            try {
-              console.log(`Attempting to update insight ${item.id} with data:`, updateData);
-              return await apiClient.put(`/insights/${item.id}`, updateData);
-            } catch (error: any) {
-              console.error(`Error updating insight ${item.id}:`, error);
-              
-              // Check if it's a 404 error (endpoint not found)
-              if (error.response?.status === 404) {
-                throw new Error(`PUT endpoint /insights/${item.id} not found. Please ensure the backend PUT endpoint is implemented.`);
-              }
-              
-              throw new Error(`Failed to update insight ${item.id}: ${error.response?.data?.message || error.message}`);
-            }
-          }
-        }
-      });
-      
-      // Wait for all save operations to complete
-      const results = await Promise.allSettled(savePromises.filter(Boolean));
-      
-      // Check if any operations failed
-      const failedResults = results.filter(result => result.status === 'rejected');
-      if (failedResults.length > 0) {
-        const errorMessages = failedResults.map(result => 
-          result.status === 'rejected' ? (result as PromiseRejectedResult).reason : ''
-        ).join(', ');
+      // Save the single insight object
+      const item = editableInsightsData[0];
+      if (item && item.id) {
+        const updateData: any = {};
         
-        // If it's a 404 error, show a more helpful message
-        if (errorMessages.includes('not found')) {
-          toast.error('Backend PUT endpoint not implemented yet. Please contact your backend developer to implement the PUT /insights/{insightId} endpoint.');
-        } else {
-          throw new Error(`Some insights failed to update: ${errorMessages}`);
+        // Update all fields that have been modified
+        if (item.comparison_between_variants !== '') {
+          updateData.comparison_between_variants = item.comparison_between_variants;
         }
-      } else {
-              toast.success('Insights updated successfully!');
-      onClose();
-      // Reload the page to reflect changes
-      window.location.reload();
+        if (item.purchase_drivers !== '') {
+          updateData.purchase_drivers = item.purchase_drivers;
+        }
+        if (item.competitive_insights_a !== '') {
+          updateData.competitive_insights_a = item.competitive_insights_a;
+        }
+        if (item.competitive_insights_b !== '') {
+          updateData.competitive_insights_b = item.competitive_insights_b;
+        }
+        if (item.competitive_insights_c !== '') {
+          updateData.competitive_insights_c = item.competitive_insights_c;
+        }
+        if (item.recommendations !== '') {
+          updateData.recommendations = item.recommendations;
+        }
+        if (item.comment_summary !== '') {
+          updateData.comment_summary = item.comment_summary;
+        }
+        
+        // Add edited flag if any field was changed
+        if (item.edited) {
+          updateData.edited = true;
+        }
+        
+        // Only make the API call if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+          try {
+            console.log(`Attempting to update insight ${item.id} with data:`, updateData);
+            await apiClient.put(`/insights/${item.id}`, updateData);
+            toast.success('Insights updated successfully!');
+            onClose();
+            // Reload the page to reflect changes
+            window.location.reload();
+          } catch (error: any) {
+            console.error(`Error updating insight ${item.id}:`, error);
+            
+            // Check if it's a 404 error (endpoint not found)
+            if (error.response?.status === 404) {
+              throw new Error(`PUT endpoint /insights/${item.id} not found. Please ensure the backend PUT endpoint is implemented.`);
+            }
+            
+            throw new Error(`Failed to update insight ${item.id}: ${error.response?.data?.message || error.message}`);
+          }
+        }
       }
     } catch (error: any) {
       console.error('Error saving data:', error);
@@ -258,20 +182,6 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setActiveTab('insights')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'insights'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            AI Insights
-          </button>
-        </div>
-
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
           {loading ? (
@@ -280,129 +190,93 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* AI Insights Tab */}
-              {activeTab === 'insights' && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Edit AI Insights</h3>
-                  <div className="space-y-6">
-                    {/* 1. Summary */}
-                    {editableInsightsData.map((item, index) => {
-                      const isGeneralInsight = item.variant_type === 'a' && 
-                        (item.comparison_between_variants || item.recommendations || item.comment_summary);
-                      
-                      if (isGeneralInsight) {
-                        return (
-                          <div key={`summary-${item.id}`} className="border border-gray-300 rounded-lg p-4">
-                            <h4 className="font-medium mb-3 text-blue-600">Summary</h4>
-                            <div>
-                              <textarea
-                                value={item.comparison_between_variants}
-                                onChange={(e) => updateEditableInsightData(index, 'comparison_between_variants', e.target.value)}
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                              />
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+              <div>
+                <div className="space-y-6">
+                  {editableInsightsData.map((item, index) => (
+                    <div key={`insights-${item.id}`} className="space-y-6">
+                      {/* 1. Summary */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Summary</h4>
+                        <div>
+                          <textarea
+                            value={item.comparison_between_variants}
+                            onChange={(e) => updateEditableInsightData(index, 'comparison_between_variants', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
 
-                    {/* 2. Purchase Drivers */}
-                    {editableInsightsData.map((item, index) => {
-                      const isPurchaseDriversInsight = item.variant_type === null && item.purchase_drivers;
-                      
-                      if (isPurchaseDriversInsight) {
-                        return (
-                          <div key={`purchase-drivers-${item.id}`} className="border border-gray-300 rounded-lg p-4">
-                            <h4 className="font-medium mb-3 text-blue-600">Purchase Drivers</h4>
-                            <div>
-                              <textarea
-                                value={item.purchase_drivers}
-                                onChange={(e) => updateEditableInsightData(index, 'purchase_drivers', e.target.value)}
-                                rows={6}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                              />
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+                      {/* 2. Purchase Drivers */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Purchase Drivers</h4>
+                        <div>
+                          <textarea
+                            value={item.purchase_drivers}
+                            onChange={(e) => updateEditableInsightData(index, 'purchase_drivers', e.target.value)}
+                            rows={6}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
 
-                    {/* 3. Competitive Insights */}
-                    {editableInsightsData.map((item, index) => {
-                      const isCompetitiveInsight = item.variant_type && ['a', 'b', 'c'].includes(item.variant_type) && 
-                        item.competitive_insights;
-                      
-                      if (isCompetitiveInsight) {
+                      {/* 3. Competitive Insights */}
+                      {['a', 'b', 'c'].map(variant => {
+                        const fieldName = `competitive_insights_${variant}` as keyof EditableInsightData;
+                        const content = item[fieldName] as string;
+                        
+                        // Only show field if there's content or if it's variant A (always show)
+                        if (!content && variant !== 'a') {
+                          return null;
+                        }
+                        
                         return (
-                          <div key={`competitive-${item.id}-${item.variant_type}`} className="border border-gray-300 rounded-lg p-4">
+                          <div key={`competitive-${variant}`} className="border border-gray-300 rounded-lg p-4">
                             <h4 className="font-medium mb-3 text-blue-600">
-                              Competitive Insights - Variant {item.variant_type?.toUpperCase()}
+                              Competitive Insights - Variant {variant.toUpperCase()}
                             </h4>
                             <div>
                               <textarea
-                                value={item.competitive_insights}
-                                onChange={(e) => updateEditableInsightData(index, 'competitive_insights', e.target.value)}
+                                value={content || ''}
+                                onChange={(e) => updateEditableInsightData(index, fieldName, e.target.value)}
                                 rows={6}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder={`Enter competitive insights for variant ${variant.toUpperCase()}...`}
                               />
                             </div>
                           </div>
                         );
-                      }
-                      return null;
-                    })}
+                      })}
 
-                    {/* 4. Shopper Comments */}
-                    {editableInsightsData.map((item, index) => {
-                      const isGeneralInsight = item.variant_type === 'a' && 
-                        (item.comparison_between_variants || item.recommendations || item.comment_summary);
-                      
-                      if (isGeneralInsight) {
-                        return (
-                          <div key={`comments-${item.id}`} className="border border-gray-300 rounded-lg p-4">
-                            <h4 className="font-medium mb-3 text-blue-600">Shopper Comments</h4>
-                            <div>
-                              <textarea
-                                value={item.comment_summary}
-                                onChange={(e) => updateEditableInsightData(index, 'comment_summary', e.target.value)}
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                              />
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+                      {/* 4. Shopper Comments */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Shopper Comments</h4>
+                        <div>
+                          <textarea
+                            value={item.comment_summary}
+                            onChange={(e) => updateEditableInsightData(index, 'comment_summary', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
 
-                    {/* 5. Recommendations */}
-                    {editableInsightsData.map((item, index) => {
-                      const isGeneralInsight = item.variant_type === 'a' && 
-                        (item.comparison_between_variants || item.recommendations || item.comment_summary);
-                      
-                      if (isGeneralInsight) {
-                        return (
-                          <div key={`recommendations-${item.id}`} className="border border-gray-300 rounded-lg p-4">
-                            <h4 className="font-medium mb-3 text-blue-600">Recommendations</h4>
-                            <div>
-                              <textarea
-                                value={item.recommendations}
-                                onChange={(e) => updateEditableInsightData(index, 'recommendations', e.target.value)}
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                              />
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>
+                      {/* 5. Recommendations */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Recommendations</h4>
+                        <div>
+                          <textarea
+                            value={item.recommendations}
+                            onChange={(e) => updateEditableInsightData(index, 'recommendations', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>

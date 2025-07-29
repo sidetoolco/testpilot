@@ -260,7 +260,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-md">
+    <div className="p-4 bg-white rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Shopper comments</h2>
       </div>

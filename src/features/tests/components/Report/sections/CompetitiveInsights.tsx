@@ -91,15 +91,18 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   const availableVariants = [
     ...new Set([
       ...competitiveinsights.map(item => item.variant_type),
-      ...aiInsights
-        .map(insight => insight.variant_type)
-        .filter((variant): variant is string => variant !== null && variant !== undefined),
+      // Check which variants have competitive insights in the single AI insight object
+      ...(insight ? [
+        ...(insight.competitive_insights_a ? ['a'] : []),
+        ...(insight.competitive_insights_b ? ['b'] : []),
+        ...(insight.competitive_insights_c ? ['c'] : [])
+      ] : []),
     ]),
   ].sort();
 
   return (
-    <div className="w-full p-6 bg-white rounded-xl shadow-sm">
-      <h2 className="text-xl font-bold mb-6 text-gray-800 text-center">Competitive Insights</h2>
+    <div className="w-full p-4 bg-white rounded-xl shadow-sm">
+      <h2 className="text-xl font-bold mb-6 text-gray-800 text-start">Competitive Insights</h2>
 
       <div className="mb-6">
         <div className="border-b border-gray-200">
@@ -122,19 +125,23 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       </div>
 
       {/* Display variant-specific AI insights */}
-      {currentVariantInsight && (
+      {currentVariantInsight && currentVariantInsight.competitive_insights && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
           <h3 className="text-lg font-semibold mb-3 text-gray-800">
             AI Analysis for Variant {selectedVariant.toUpperCase()}
           </h3>
-          <MarkdownContent content={currentVariantInsight.competitive_insights || ''} />
+          <MarkdownContent content={currentVariantInsight.competitive_insights} />
         </div>
       )}
 
       {/* Fallback to general insights if no variant-specific insight */}
-      {!currentVariantInsight && insight?.competitive_insights && (
+      {!currentVariantInsight && insight && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
-          <MarkdownContent content={insight.competitive_insights} />
+          <MarkdownContent content={
+            selectedVariant === 'a' ? insight.competitive_insights_a || '' :
+            selectedVariant === 'b' ? insight.competitive_insights_b || '' :
+            selectedVariant === 'c' ? insight.competitive_insights_c || '' : ''
+          } />
         </div>
       )}
 
@@ -231,24 +238,24 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
               ))}
             </tbody>
           </table>
+
+          <div className="space-y-2 mt-4 text-sm text-gray-600">
+            <p>
+              Products marked with
+              <span className="inline-flex items-center justify-center bg-blue-100 text-black rounded-full w-4 h-4 text-[10px] mx-1">
+                🔍
+              </span>
+              have only one observation.
+            </p>
+            <p>Click on the product image to see details.</p>
+            <p className="text-xs text-gray-500 mt-2">
+              <strong>Note:</strong> Share of Buy represents the percentage of participants who selected
+              each product within this variant. Percentages may not sum to exactly 100% due to rounding
+              or participants who didn't make a selection.
+            </p>
+          </div>
         </>
       )}
-
-      <div className="space-y-2 mt-4 text-sm text-gray-600">
-        <p>
-          Products marked with
-          <span className="inline-flex items-center justify-center bg-blue-100 text-black rounded-full w-4 h-4 text-[10px] mx-1">
-            🔍
-          </span>
-          have only one observation.
-        </p>
-        <p>Click on the product image to see details.</p>
-        <p className="text-xs text-gray-500 mt-2">
-          <strong>Note:</strong> Share of Buy represents the percentage of participants who selected
-          each product within this variant. Percentages may not sum to exactly 100% due to rounding
-          or participants who didn't make a selection.
-        </p>
-      </div>
     </div>
   );
 };

@@ -2,22 +2,25 @@ import { create } from 'zustand';
 
 interface AiInsight {
   id: number;
-  created_at: string;
   test_id: string;
+  variant_type?: string | null;
   comparison_between_variants: string;
   purchase_drivers: string;
-  competitive_insights: string;
+  competitive_insights_a?: string;
+  competitive_insights_b?: string;
+  competitive_insights_c?: string;
+  competitive_insights?: string;
   recommendations: string;
-  sendEmail: boolean | null;
-  comment_summary: string;
-  variant_type: string | null;
+  comment_summary?: string;
+  sendEmail?: boolean;
+  edited?: boolean;
 }
 
 interface InsightState {
-  insight: null | any;
+  insight: null | AiInsight;
   aiInsights: AiInsight[];
   loading: boolean;
-  setInsight: (insight: any) => void;
+  setInsight: (insight: AiInsight | null) => void;
   setAiInsights: (insights: AiInsight[]) => void;
   setLoading: (loading: boolean) => void;
   getInsightForVariant: (variantType: string) => AiInsight | null;
@@ -31,7 +34,24 @@ export const useInsightStore = create<InsightState>((set, get) => ({
   setAiInsights: aiInsights => set({ aiInsights }),
   setLoading: loading => set({ loading }),
   getInsightForVariant: (variantType: string) => {
-    const { aiInsights } = get();
-    return aiInsights.find(insight => insight.variant_type === variantType) || null;
+    const { insight } = get();
+    if (!insight) return null;
+    
+    // Get the variant-specific competitive insights
+    const variantCompetitiveInsight = 
+      variantType === 'a' ? insight.competitive_insights_a :
+      variantType === 'b' ? insight.competitive_insights_b :
+      variantType === 'c' ? insight.competitive_insights_c :
+      null;
+    
+    // Only return the insight if it has competitive insights for this variant
+    if (!variantCompetitiveInsight) return null;
+    
+    // Return the full insight object with the variant-specific competitive insights
+    return {
+      ...insight,
+      competitive_insights: variantCompetitiveInsight,
+      variant_type: variantType
+    };
   },
 }));
