@@ -44,7 +44,6 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
   testId,
   testName,
 }) => {
-  const [activeTab, setActiveTab] = useState('insights');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editableInsightsData, setEditableInsightsData] = useState<EditableInsightData[]>([]);
@@ -183,20 +182,6 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setActiveTab('insights')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'insights'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            AI Insights
-          </button>
-        </div>
-
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
           {loading ? (
@@ -205,97 +190,93 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* AI Insights Tab */}
-              {activeTab === 'insights' && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Edit AI Insights</h3>
-                  <div className="space-y-6">
-                    {editableInsightsData.map((item, index) => (
-                      <div key={`insights-${item.id}`} className="space-y-6">
-                        {/* 1. Summary */}
-                        <div className="border border-gray-300 rounded-lg p-4">
-                          <h4 className="font-medium mb-3 text-blue-600">Summary</h4>
-                          <div>
-                            <textarea
-                              value={item.comparison_between_variants}
-                              onChange={(e) => updateEditableInsightData(index, 'comparison_between_variants', e.target.value)}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                          </div>
-                        </div>
-
-                        {/* 2. Purchase Drivers */}
-                        <div className="border border-gray-300 rounded-lg p-4">
-                          <h4 className="font-medium mb-3 text-blue-600">Purchase Drivers</h4>
-                          <div>
-                            <textarea
-                              value={item.purchase_drivers}
-                              onChange={(e) => updateEditableInsightData(index, 'purchase_drivers', e.target.value)}
-                              rows={6}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                          </div>
-                        </div>
-
-                        {/* 3. Competitive Insights */}
-                        {['a', 'b', 'c'].map(variant => {
-                          const fieldName = `competitive_insights_${variant}` as keyof EditableInsightData;
-                          const content = item[fieldName] as string;
-                          
-                          // Only show field if there's content or if it's variant A (always show)
-                          if (!content && variant !== 'a') {
-                            return null;
-                          }
-                          
-                          return (
-                            <div key={`competitive-${variant}`} className="border border-gray-300 rounded-lg p-4">
-                              <h4 className="font-medium mb-3 text-blue-600">
-                                Competitive Insights - Variant {variant.toUpperCase()}
-                              </h4>
-                              <div>
-                                <textarea
-                                  value={content || ''}
-                                  onChange={(e) => updateEditableInsightData(index, fieldName, e.target.value)}
-                                  rows={6}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                  placeholder={`Enter competitive insights for variant ${variant.toUpperCase()}...`}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {/* 4. Shopper Comments */}
-                        <div className="border border-gray-300 rounded-lg p-4">
-                          <h4 className="font-medium mb-3 text-blue-600">Shopper Comments</h4>
-                          <div>
-                            <textarea
-                              value={item.comment_summary}
-                              onChange={(e) => updateEditableInsightData(index, 'comment_summary', e.target.value)}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                          </div>
-                        </div>
-
-                        {/* 5. Recommendations */}
-                        <div className="border border-gray-300 rounded-lg p-4">
-                          <h4 className="font-medium mb-3 text-blue-600">Recommendations</h4>
-                          <div>
-                            <textarea
-                              value={item.recommendations}
-                              onChange={(e) => updateEditableInsightData(index, 'recommendations', e.target.value)}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                          </div>
+              <div>
+                <div className="space-y-6">
+                  {editableInsightsData.map((item, index) => (
+                    <div key={`insights-${item.id}`} className="space-y-6">
+                      {/* 1. Summary */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Summary</h4>
+                        <div>
+                          <textarea
+                            value={item.comparison_between_variants}
+                            onChange={(e) => updateEditableInsightData(index, 'comparison_between_variants', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
                         </div>
                       </div>
-                    ))}
-                  </div>
+
+                      {/* 2. Purchase Drivers */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Purchase Drivers</h4>
+                        <div>
+                          <textarea
+                            value={item.purchase_drivers}
+                            onChange={(e) => updateEditableInsightData(index, 'purchase_drivers', e.target.value)}
+                            rows={6}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 3. Competitive Insights */}
+                      {['a', 'b', 'c'].map(variant => {
+                        const fieldName = `competitive_insights_${variant}` as keyof EditableInsightData;
+                        const content = item[fieldName] as string;
+                        
+                        // Only show field if there's content or if it's variant A (always show)
+                        if (!content && variant !== 'a') {
+                          return null;
+                        }
+                        
+                        return (
+                          <div key={`competitive-${variant}`} className="border border-gray-300 rounded-lg p-4">
+                            <h4 className="font-medium mb-3 text-blue-600">
+                              Competitive Insights - Variant {variant.toUpperCase()}
+                            </h4>
+                            <div>
+                              <textarea
+                                value={content || ''}
+                                onChange={(e) => updateEditableInsightData(index, fieldName, e.target.value)}
+                                rows={6}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder={`Enter competitive insights for variant ${variant.toUpperCase()}...`}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* 4. Shopper Comments */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Shopper Comments</h4>
+                        <div>
+                          <textarea
+                            value={item.comment_summary}
+                            onChange={(e) => updateEditableInsightData(index, 'comment_summary', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 5. Recommendations */}
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 text-blue-600">Recommendations</h4>
+                        <div>
+                          <textarea
+                            value={item.recommendations}
+                            onChange={(e) => updateEditableInsightData(index, 'recommendations', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
