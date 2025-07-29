@@ -21,11 +21,12 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({
+const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?: any[] }> = ({
   surveys,
   insights,
+  aiInsights,
 }) => {
-  if (!insights) return <p>Loading insights...</p>;
+  if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
   const datasets = surveys.map((product, productIndex) => {
@@ -62,9 +63,36 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({
 
   const yScale = scaleLinear().domain([0, 5]).range([100, 0]);
 
+  // Function to get insights for a specific variant
+  const getVariantInsights = (variantType: string) => {
+    if (!aiInsights || !Array.isArray(aiInsights)) return null;
+    return aiInsights.find(insight => insight.variant_type === variantType);
+  };
+
+  // Get general insights (variant_type is null or undefined)
+  const getGeneralInsights = () => {
+    if (!aiInsights || !Array.isArray(aiInsights)) return null;
+    return aiInsights.find(insight => !insight.variant_type);
+  };
+
+  const generalInsights = getGeneralInsights();
+
   return (
     <div className="p-3">
-      {insights?.purchase_drivers && (
+      {/* General insights (if available) */}
+      {generalInsights?.purchase_drivers && (
+        <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-start gap-4 transition-opacity duration-300">
+            <div className="text-gray-700 leading-relaxed">
+              <h3 className="text-lg font-semibold mb-3 text-gray-800">Purchase Drivers</h3>
+              <MarkdownContent content={generalInsights.purchase_drivers} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback to old insights format */}
+      {!aiInsights && insights?.purchase_drivers && (
         <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div id="insightPanel" className="flex items-start gap-4 transition-opacity duration-300">
             <div className="text-gray-700 leading-relaxed">
@@ -73,7 +101,8 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any }> = ({
           </div>
         </div>
       )}
-      {!insights?.purchase_drivers && (
+
+      {!insights?.purchase_drivers && !aiInsights && (
         <div className="bg-gray-100 p-6 rounded-lg relative mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="text-gray-500 text-center">
             No purchase drivers insights available for this test.
