@@ -439,7 +439,7 @@ export default function CompaniesManagement() {
     }, 500);
     
     setSearchTimeout(timeout);
-  }, [resetPagination, searchCompanies]);
+  }, [resetPagination, searchCompanies, searchTimeout]);
 
   const handleOpenEditCredits = useCallback((company: Company) => {
     setSelectedCompany(company as CompanyWithDetails);
