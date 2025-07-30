@@ -18,6 +18,7 @@ interface TestResponse {
   custom_screening: any[];
   created_at: string;
   updated_at: string;
+  block?: boolean; // NEW FIELD: indicates if test is blocked
 }
 
 export const testService = {
