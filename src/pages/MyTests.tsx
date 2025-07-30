@@ -362,37 +362,30 @@ export default function MyTests() {
     return ['draft', 'needs review', 'incomplete'].includes(testStatus);
   };
 
-  // Calculate processed tests (temporary fix: Set block: true for complete tests that don't have it set)
-  const processedTests = tests.map(test => {
-    if (test.status === 'complete' && test.block === undefined) {
-      return { ...test, block: true };
-    }
-    return test;
-  });
-
   // Filtrar tests basado en la búsqueda
   const filteredTests = useMemo(() => {
-    if (!searchQuery.trim()) return processedTests.filter(test => !deletedTestIds.includes(test.id));
+    if (!searchQuery.trim()) return tests.filter(test => !deletedTestIds.includes(test.id));
 
-    return processedTests
+    return tests
       .filter(test => !deletedTestIds.includes(test.id))
       .filter(
         test =>
           test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           test.searchTerm.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  }, [processedTests, searchQuery, deletedTestIds]);
+  }, [tests, searchQuery, deletedTestIds]);
 
-
-
-  // Calculate statistics
-
-  const activeTests = processedTests.filter(
-    s => s.status === 'active' && !deletedTestIds.includes(s.id)
-  ).length;
-  const completedTests = processedTests.filter(
-    s => s.status === 'complete' && !deletedTestIds.includes(s.id)
-  ).length;
+  // Calculate statistics with memoization
+  const { activeTests, completedTests } = useMemo(() => {
+    const active = tests.filter(
+      s => s.status === 'active' && !deletedTestIds.includes(s.id)
+    ).length;
+    const completed = tests.filter(
+      s => s.status === 'complete' && !deletedTestIds.includes(s.id)
+    ).length;
+    
+    return { activeTests: active, completedTests: completed };
+  }, [tests, deletedTestIds]);
 
   if (loading) {
     return (
@@ -588,7 +581,7 @@ export default function MyTests() {
                             'Get Data'
                           )}
                         </button>
-                        {test.status === 'complete' && !test.block && (
+                        {test.status === 'complete' && !test.block && isAdmin && (
                           <button
                             onClick={e => handleBlockTest(test.id, e)}
                             disabled={blockingTests.includes(test.id)}
