@@ -439,7 +439,7 @@ export default function CompaniesManagement() {
     }, 500);
     
     setSearchTimeout(timeout);
-  }, [resetPagination, searchCompanies, searchTimeout]);
+  }, [resetPagination, searchCompanies]);
 
   const handleOpenEditCredits = useCallback((company: Company) => {
     setSelectedCompany(company as CompanyWithDetails);
@@ -527,7 +527,7 @@ export default function CompaniesManagement() {
         <CompaniesGrid
           companies={companies}
           onViewDetails={handleViewDetails}
-          onAddCredits={handleOpenEditCredits}
+          onEditCredits={handleOpenEditCredits}
           onDeleteCompany={handleOpenDelete}
           onActivateCompany={handleActivateCompany}
           currentPage={currentPage}

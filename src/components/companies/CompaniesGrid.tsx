@@ -17,7 +17,7 @@ interface Company {
 interface CompaniesGridProps {
   companies: Company[];
   onViewDetails: (company: Company) => void | Promise<void>;
-  onAddCredits: (company: Company) => void; // This now opens a modal to edit credits directly
+  onEditCredits: (company: Company) => void; // This opens a modal to edit credits directly
   onDeleteCompany: (company: Company) => void;
   onActivateCompany: (company: Company) => void;
   currentPage: number;
@@ -32,7 +32,7 @@ interface CompaniesGridProps {
 export const CompaniesGrid = ({
   companies,
   onViewDetails,
-  onAddCredits: onEditCredits,
+  onEditCredits,
   onDeleteCompany,
   onActivateCompany,
   currentPage,
