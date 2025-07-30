@@ -157,10 +157,14 @@ CompanyCard.displayName = 'CompanyCard';
 // Memoized Search Input Component
 const SearchInput = memo(({ 
   searchQuery, 
-  onSearchChange 
+  onSearchChange,
+  isSearching,
+  showMinCharHint
 }: {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  isSearching: boolean;
+  showMinCharHint: boolean;
 }) => (
   <div className="relative">
     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -171,6 +175,16 @@ const SearchInput = memo(({
       onChange={(e) => onSearchChange(e.target.value)}
       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
     />
+    {isSearching && (
+      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+        <Loader2 className="h-4 w-4 animate-spin text-primary-500" />
+      </div>
+    )}
+    {showMinCharHint && (
+      <div className="absolute -bottom-6 left-0 text-xs text-gray-500">
+        Type at least 3 characters to search
+      </div>
+    )}
   </div>
 ));
 
@@ -184,9 +198,12 @@ export default function CompaniesManagement() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
-  const [creditsToAdd, setCreditsToAdd] = useState('');
+  const [creditsToEdit, setCreditsToEdit] = useState('');
+  const [initialCredits, setInitialCredits] = useState(0);
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Use the custom hook for company data management with pagination
   const {
@@ -232,6 +249,15 @@ export default function CompaniesManagement() {
     checkAdminRole();
   }, [checkAdminRole]);
 
+  // Cleanup search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
+
   // Get pagination data
   const totalPages = getTotalPages();
 
@@ -263,29 +289,32 @@ export default function CompaniesManagement() {
     }
   }, []);
 
-  const handleAddCredits = useCallback(async () => {
-    if (!selectedCompany || !creditsToAdd || isNaN(Number(creditsToAdd))) {
+  const handleEditCredits = useCallback(async () => {
+    if (!selectedCompany || !creditsToEdit || isNaN(Number(creditsToEdit))) {
       toast.error('Please enter a valid number of credits');
       return;
     }
 
     try {
       setIsUpdatingCredits(true);
-      const credits = Number(creditsToAdd);
+      const newCredits = Number(creditsToEdit);
+      const creditsDifference = newCredits - initialCredits;
 
-      // Add credits using the API
-      await apiClient.post('/credits/admin/add', {
+      // Update credits using the new edit endpoint
+      await apiClient.post('/credits/admin/edit', {
         company_id: selectedCompany.id,
-        credits: credits,
-        description: `Admin credit addition: +${credits} credits`
+        credits: newCredits,
+        description: `Admin set credits from ${initialCredits} to ${newCredits}`
       });
 
-      toast.success(`Added ${credits} credits to ${selectedCompany.name}`);
+      const action = creditsDifference >= 0 ? 'Increased' : 'Decreased';
+      const absCredits = Math.abs(creditsDifference);
+      toast.success(`${action} credits for ${selectedCompany.name} from ${initialCredits} to ${newCredits}`);
       setShowCreditsModal(false);
-      setCreditsToAdd('');
+      setCreditsToEdit('');
+      setInitialCredits(0);
       
       // Update the company credits in state
-      const newCredits = (selectedCompany.credits || 0) + credits;
       updateCompanyCredits(selectedCompany.id, newCredits);
       
       // Update the selected company state as well
@@ -297,13 +326,19 @@ export default function CompaniesManagement() {
 
       // Clear cache to force refresh on next load
       clearCache();
-    } catch (error) {
-      console.error('Error adding credits:', error);
-      toast.error('Failed to add credits. Please check if the admin credits endpoint exists.');
+    } catch (error: any) {
+      console.error('Error updating credits:', error);
+      if (error.response?.status === 400) {
+        toast.error('Invalid credit value. Please enter a valid number (0 or greater).');
+      } else if (error.response?.status === 404) {
+        toast.error('Company not found. Please refresh and try again.');
+      } else {
+        toast.error('Failed to update credits. Please try again.');
+      }
     } finally {
       setIsUpdatingCredits(false);
     }
-  }, [selectedCompany, creditsToAdd, updateCompanyCredits, clearCache]);
+  }, [selectedCompany, creditsToEdit, initialCredits, updateCompanyCredits, clearCache]);
 
   const handleDeleteCompany = useCallback(async () => {
     if (!selectedCompany) return;
@@ -367,12 +402,49 @@ export default function CompaniesManagement() {
 
   const handleSearchChange = useCallback(async (value: string) => {
     setSearchQuery(value);
-    resetPagination(); // Reset to first page when searching
-    await searchCompanies(value); // Search across all companies
-  }, [resetPagination, searchCompanies]);
+    
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // If search is empty, reset to normal view immediately
+    if (!value.trim()) {
+      resetPagination();
+      await searchCompanies('');
+      setIsSearching(false);
+      return;
+    }
+    
+    // Only search if we have at least 3 characters
+    if (value.trim().length < 3) {
+      setIsSearching(false);
+      return;
+    }
+    
+    // Show loading state
+    setIsSearching(true);
+    
+    // Debounce the search - wait 500ms after user stops typing
+    const timeout = setTimeout(async () => {
+      try {
+        resetPagination();
+        await searchCompanies(value);
+      } catch (error) {
+        console.error('Search error:', error);
+        toast.error('Search failed. Please try again.');
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+    
+    setSearchTimeout(timeout);
+  }, [resetPagination, searchCompanies, searchTimeout]);
 
-  const handleOpenAddCredits = useCallback((company: Company) => {
+  const handleOpenEditCredits = useCallback((company: Company) => {
     setSelectedCompany(company as CompanyWithDetails);
+    setInitialCredits(company.credits || 0);
+    setCreditsToEdit((company.credits || 0).toString());
     setShowCreditsModal(true);
   }, []);
 
@@ -402,9 +474,16 @@ export default function CompaniesManagement() {
   const emptyStateComponent = useMemo(() => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
       <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">
+        {searchQuery.trim().length >= 3 ? 'No companies found' : 'Search companies'}
+      </h3>
       <p className="text-gray-500">
-        {searchQuery ? 'Try adjusting your search terms.' : 'No companies have been created yet.'}
+        {searchQuery.trim().length >= 3 
+          ? 'Try adjusting your search terms or use different keywords.' 
+          : searchQuery.trim().length > 0 
+            ? 'Type at least 3 characters to search'
+            : 'No companies have been created yet.'
+        }
       </p>
     </div>
   ), [searchQuery]);
@@ -430,18 +509,25 @@ export default function CompaniesManagement() {
           <p className="text-gray-600 mt-1">Manage all companies and their credits</p>
         </div>
         <div className="flex items-center space-x-4">
-          <SearchInput searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+          <SearchInput 
+            searchQuery={searchQuery} 
+            onSearchChange={handleSearchChange}
+            isSearching={isSearching}
+            showMinCharHint={searchQuery.trim().length > 0 && searchQuery.trim().length < 3}
+          />
         </div>
       </div>
 
       {/* Companies Grid with Pagination */}
-      {loading ? (
+      {loading || isSearching ? (
         loadingComponent
+      ) : companies.length === 0 ? (
+        emptyStateComponent
       ) : (
         <CompaniesGrid
           companies={companies}
           onViewDetails={handleViewDetails}
-          onAddCredits={handleOpenAddCredits}
+          onEditCredits={handleOpenEditCredits}
           onDeleteCompany={handleOpenDelete}
           onActivateCompany={handleActivateCompany}
           currentPage={currentPage}
@@ -553,7 +639,7 @@ export default function CompaniesManagement() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Add Credits</h2>
+              <h2 className="text-xl font-bold text-gray-900">Edit Company Credits</h2>
               <button
                 onClick={() => setShowCreditsModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -567,24 +653,36 @@ export default function CompaniesManagement() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Company: {selectedCompany.name}
                 </label>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Credits: {selectedCompany.credits || 0}
-                </label>
               </div>
 
               <div>
                 <label htmlFor="credits" className="block text-sm font-medium text-gray-700 mb-2">
-                  Credits to Add
+                  Current Credits
                 </label>
                 <input
                   type="number"
                   id="credits"
-                  value={creditsToAdd}
-                  onChange={(e) => setCreditsToAdd(e.target.value)}
+                  value={creditsToEdit}
+                  onChange={(e) => setCreditsToEdit(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter number of credits"
-                  min="1"
+                  placeholder="Enter new credit amount (0 or greater)"
+                  min="0"
+                  step="1"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Set the credit amount directly. Only positive numbers and zero are allowed.
+                </p>
+                {creditsToEdit && !isNaN(Number(creditsToEdit)) && (
+                  <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                    {Number(creditsToEdit) > initialCredits ? (
+                      <span className="text-green-600">Credits will increase from {initialCredits} to {Number(creditsToEdit)} (+{Number(creditsToEdit) - initialCredits})</span>
+                    ) : Number(creditsToEdit) < initialCredits ? (
+                      <span className="text-red-600">Credits will decrease from {initialCredits} to {Number(creditsToEdit)} (-{initialCredits - Number(creditsToEdit)})</span>
+                    ) : (
+                      <span className="text-gray-500">No change in credits (stays at {initialCredits})</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -595,14 +693,14 @@ export default function CompaniesManagement() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleAddCredits}
-                  disabled={isUpdatingCredits || !creditsToAdd || isNaN(Number(creditsToAdd))}
+                  onClick={handleEditCredits}
+                  disabled={isUpdatingCredits || !creditsToEdit || isNaN(Number(creditsToEdit)) || Number(creditsToEdit) < 0}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isUpdatingCredits ? (
                     <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                   ) : (
-                    'Add Credits'
+                    'Save Changes'
                   )}
                 </button>
               </div>

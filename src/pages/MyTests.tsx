@@ -633,7 +633,7 @@ export default function MyTests() {
                 {test.status === 'complete' && test.block && (
                   <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none ">
                                          <div className="bg-white/95 backdrop-blur-sm rounded-lg p-2 text-center max-w-xl shadow-lg ">
-                       <p className="text-gray-800 font-semibold mb-2 text-lg">🎉 Test Almost Complete!</p>
+                       <p className="text-gray-800 font-semibold mb-2 text-lg">🎉 Your Test is Almost Ready!</p>
                        <p className="text-gray-600 text-sm leading-relaxed">Great news! Your test is in the final stages. We're just waiting for the last few testers to complete their sessions. Your results will be available shortly.</p>
                      </div>
                   </div>
@@ -693,18 +693,6 @@ export default function MyTests() {
                   showAvailableCredits={true}
                   showInsufficientWarning={true}
                 />
-
-                {/* Custom Screening Indicator */}
-                {hasCustomScreening && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-blue-800">
-                        Custom screening enabled (+0.1 credit per tester)
-                      </span>
-                    </div>
-                  </div>
-                )}
 
                 <div className="mt-4">
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
