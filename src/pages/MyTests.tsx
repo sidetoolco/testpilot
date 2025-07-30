@@ -694,18 +694,6 @@ export default function MyTests() {
                   showInsufficientWarning={true}
                 />
 
-                {/* Custom Screening Indicator */}
-                {hasCustomScreening && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-blue-800">
-                        Custom screening enabled (+0.1 credit per tester)
-                      </span>
-                    </div>
-                  </div>
-                )}
-
                 <div className="mt-4">
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     {confirmationModal.variantsArray.map((variation: Variation, index: number) => (

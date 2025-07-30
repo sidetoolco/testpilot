@@ -17,7 +17,7 @@ interface Company {
 interface CompaniesGridProps {
   companies: Company[];
   onViewDetails: (company: Company) => void | Promise<void>;
-  onAddCredits: (company: Company) => void;
+  onAddCredits: (company: Company) => void; // This now opens a modal to edit credits directly
   onDeleteCompany: (company: Company) => void;
   onActivateCompany: (company: Company) => void;
   currentPage: number;
@@ -32,7 +32,7 @@ interface CompaniesGridProps {
 export const CompaniesGrid = ({
   companies,
   onViewDetails,
-  onAddCredits,
+  onAddCredits: onEditCredits,
   onDeleteCompany,
   onActivateCompany,
   currentPage,
@@ -144,11 +144,11 @@ export const CompaniesGrid = ({
                   </button>
                 )}
                 <button
-                  onClick={() => onAddCredits(company)}
-                  className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
+                  onClick={() => onEditCredits(company)}
+                  className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
                 >
-                  <CreditCard className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add Credits</span>
+                  <CreditIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Edit Credits</span>
                 </button>
                 <button
                   onClick={() => onDeleteCompany(company)}

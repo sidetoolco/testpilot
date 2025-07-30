@@ -423,20 +423,6 @@ export default function CreateConsumerTest() {
               );
             })()}
 
-            {/* Custom Screening Indicator */}
-            {publishModal.testData.demographics.customScreening?.enabled && 
-             publishModal.testData.demographics.customScreening.question && 
-             publishModal.testData.demographics.customScreening.validAnswer && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-800">
-                    Custom screening enabled (+0.1 credit per tester)
-                  </span>
-                </div>
-              </div>
-            )}
-
             <p className="text-sm text-gray-500 mt-4">
               This action will make the test available on Prolific.
             </p>
