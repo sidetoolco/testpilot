@@ -22,6 +22,7 @@ export interface TestDetails {
   searchTerm: string;
   completed_sessions: number;
   objective: string;
+  block?: boolean; // NEW FIELD: indicates if test is blocked
   demographics: {
     testerCount: number;
     gender?: string[];

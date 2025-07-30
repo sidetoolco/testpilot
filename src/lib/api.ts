@@ -40,4 +40,12 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Add function to update test block status
+export const updateTestBlock = async (testId: string, block: boolean) => {
+  return apiClient.post('/tests/block', {
+    testId,
+    block,
+  });
+};
+
 export default apiClient;

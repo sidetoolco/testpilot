@@ -79,6 +79,7 @@ export function useTests() {
           completed_sessions: 0,
           createdAt: test.created_at,
           updatedAt: test.updated_at,
+          block: (test as any).block || false, // Add block field with default false
         }));
 
         setTests(transformedTests);
@@ -95,5 +96,12 @@ export function useTests() {
     fetchTests();
   }, []);
 
-  return { tests, loading, error };
+  // Function to update a specific test
+  const updateTest = (testId: string, updates: Partial<Test>) => {
+    setTests(prevTests =>
+      prevTests.map(test => (test.id === testId ? { ...test, ...updates } : test))
+    );
+  };
+
+  return { tests, loading, error, updateTest };
 }

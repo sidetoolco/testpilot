@@ -8,6 +8,8 @@ import {
   Pencil,
   Pause,
   X,
+  Unlock,
+  Lock,
 } from 'lucide-react';
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
@@ -19,7 +21,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import ModalLayout from '../layouts/ModalLayout';
-import apiClient from '../lib/api';
+import apiClient, { updateTestBlock } from '../lib/api';
 import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import SearchInput from '../components/ui/SearchInput';
 import { useContinueTest } from '../features/tests/hooks/useContinueTest';
@@ -96,7 +98,7 @@ const statusConfig = {
 
 export default function MyTests() {
   const navigate = useNavigate();
-  const { tests, loading } = useTests();
+  const { tests, loading, updateTest } = useTests();
   const user = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -110,6 +112,8 @@ export default function MyTests() {
   const { continueTest } = useContinueTest();
   const [deleteModal, setDeleteModal] = useState<DeleteModal | null>(null);
   const [deletedTestIds, setDeletedTestIds] = useState<string[]>([]);
+  const [unblockingTests, setUnblockingTests] = useState<string[]>([]);
+  const [blockingTests, setBlockingTests] = useState<string[]>([]);
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -315,6 +319,44 @@ export default function MyTests() {
     }
   };
 
+  // Handle unblocking a test
+  const handleUnblockTest = async (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setUnblockingTests(prev => [...prev, testId]);
+
+    try {
+      await updateTestBlock(testId, false);
+      toast.success('Test unblocked successfully');
+      
+      // Update the local tests state immediately
+      updateTest(testId, { block: false });
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to unblock test';
+      toast.error(errorMessage);
+    } finally {
+      setUnblockingTests(prev => prev.filter(id => id !== testId));
+    }
+  };
+
+  // Handle blocking a test
+  const handleBlockTest = async (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBlockingTests(prev => [...prev, testId]);
+
+    try {
+      await updateTestBlock(testId, true);
+      toast.success('Test blocked successfully');
+      
+      // Update the local tests state immediately
+      updateTest(testId, { block: true });
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to block test';
+      toast.error(errorMessage);
+    } finally {
+      setBlockingTests(prev => prev.filter(id => id !== testId));
+    }
+  };
+
   // Helper function to check if a test can be deleted
   const canDeleteTest = (testStatus: string) => {
     return ['draft', 'needs review', 'incomplete'].includes(testStatus);
@@ -333,13 +375,17 @@ export default function MyTests() {
       );
   }, [tests, searchQuery, deletedTestIds]);
 
-  // Calculate statistics
-  const activeTests = tests.filter(
-    s => s.status === 'active' && !deletedTestIds.includes(s.id)
-  ).length;
-  const completedTests = tests.filter(
-    s => s.status === 'complete' && !deletedTestIds.includes(s.id)
-  ).length;
+  // Calculate statistics with memoization
+  const { activeTests, completedTests } = useMemo(() => {
+    const active = tests.filter(
+      s => s.status === 'active' && !deletedTestIds.includes(s.id)
+    ).length;
+    const completed = tests.filter(
+      s => s.status === 'complete' && !deletedTestIds.includes(s.id)
+    ).length;
+    
+    return { activeTests: active, completedTests: completed };
+  }, [tests, deletedTestIds]);
 
   if (loading) {
     return (
@@ -423,10 +469,19 @@ export default function MyTests() {
             return (
               <motion.div
                 key={test.id}
-                className="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative"
-                onClick={() => navigate(`/tests/${test.id}`)}
+                className={`bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all relative ${
+                  test.status === 'complete' && test.block ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
+                onClick={() => {
+                  if (test.status === 'complete' && test.block) {
+                    return; // Prevent navigation for blocked tests
+                  }
+                  navigate(`/tests/${test.id}`);
+                }}
                 whileHover={{ y: -2 }}
               >
+
+
                 {/* Delete button for deletable tests */}
                 {canDeleteTest(test.status) && (
                   <button
@@ -435,18 +490,39 @@ export default function MyTests() {
                       setDeleteModal({ isOpen: true, testId: test.id, testName: test.name });
                     }}
                     disabled={deletingTests.includes(test.id)}
-                    className="absolute  top-0 right-0  text-gray-400 "
+                    className="absolute top-1 left-2 z-20 text-gray-200"
                     title="Delete test"
                   >
                     {deletingTests.includes(test.id) ? (
-                      <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 text-gray-400 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <X className="h-4 w-4 text-black bg-white rounded-full hover:text-red-500 transition-colors z-10" />
+                      <X className="h-4 w-4 text-gray-500 bg-white rounded-full hover:text-red-500 transition-colors" />
                     )}
                   </button>
                 )}
 
-                <div className="flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4">
+                {/* Unblock button for complete blocked tests (admin only) */}
+                {test.status === 'complete' && test.block && isAdmin && (
+                  <button
+                    onClick={e => handleUnblockTest(test.id, e)}
+                    disabled={unblockingTests.includes(test.id)}
+                    className="absolute top-4 right-16 z-30 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                    title="Unblock test"
+                  >
+                    {unblockingTests.includes(test.id) ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <Unlock className="h-4 w-4" />
+                        <span className="text-sm">Unblock</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <div className={`flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4 ${
+                  test.status === 'complete' && test.block ? 'blur-[2px] opacity-60' : ''
+                }`}>
                   <div className="flex items-center space-x-4">
                     <div
                       className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
@@ -505,6 +581,29 @@ export default function MyTests() {
                             'Get Data'
                           )}
                         </button>
+                        {test.status === 'complete' && !test.block && isAdmin && (
+                          <button
+                            onClick={e => handleBlockTest(test.id, e)}
+                            disabled={blockingTests.includes(test.id)}
+                            className={`px-4 py-2 bg-orange-500 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
+                              blockingTests.includes(test.id)
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-orange-600'
+                            }`}
+                          >
+                            {blockingTests.includes(test.id) ? (
+                              <span className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Blocking...
+                              </span>
+                            ) : (
+                              <>
+                                <Lock className="h-4 w-4" />
+                                <span>Block</span>
+                              </>
+                            )}
+                          </button>
+                        )}
                         {test.status !== 'complete' && !isActive && (
                           <button
                             onClick={e => handlePublish(test.id, e, test)}
@@ -529,6 +628,16 @@ export default function MyTests() {
                     )
                   )}
                 </div>
+
+                {/* Block message for complete blocked tests - positioned within the card */}
+                {test.status === 'complete' && test.block && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none ">
+                                         <div className="bg-white/95 backdrop-blur-sm rounded-lg p-2 text-center max-w-xl shadow-lg ">
+                       <p className="text-gray-800 font-semibold mb-2 text-lg">🎉 Test Almost Complete!</p>
+                       <p className="text-gray-600 text-sm leading-relaxed">Great news! Your test is in the final stages. We're just waiting for the last few testers to complete their sessions. Your results will be available shortly.</p>
+                     </div>
+                  </div>
+                )}
               </motion.div>
             );
           })

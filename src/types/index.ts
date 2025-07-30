@@ -49,4 +49,5 @@ export interface Test {
   createdAt: string;
   updatedAt: string;
   completed_sessions: number;
+  block?: boolean; // NEW FIELD: indicates if test is blocked (admin only)
 }
