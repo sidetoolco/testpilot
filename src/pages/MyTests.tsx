@@ -465,16 +465,19 @@ export default function MyTests() {
             const StatusIcon = config.icon;
             const testCredits = calculateTestCredits(test);
             const isActive = test.status === 'active';
+            const isBlocking = test.block;
+            const isCompleteBlocked = test.status === 'complete' && test.block;
+            const isCompleteBlockedForNonAdmin = isCompleteBlocked && !isAdmin;
 
             return (
               <motion.div
                 key={test.id}
                 className={`bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all relative ${
-                  test.status === 'complete' && test.block ? 'cursor-not-allowed' : 'cursor-pointer'
+                  isCompleteBlockedForNonAdmin ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
                 onClick={() => {
-                  if (test.status === 'complete' && test.block) {
-                    return; // Prevent navigation for blocked tests
+                  if (isCompleteBlockedForNonAdmin) {
+                    return; // Prevent navigation for blocked tests (only for non-admins)
                   }
                   navigate(`/tests/${test.id}`);
                 }}
@@ -501,33 +504,18 @@ export default function MyTests() {
                   </button>
                 )}
 
-                {/* Unblock button for complete blocked tests (admin only) */}
-                {test.status === 'complete' && test.block && isAdmin && (
-                  <button
-                    onClick={e => handleUnblockTest(test.id, e)}
-                    disabled={unblockingTests.includes(test.id)}
-                    className="absolute top-4 right-16 z-30 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                    title="Unblock test"
-                  >
-                    {unblockingTests.includes(test.id) ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <Unlock className="h-4 w-4" />
-                        <span className="text-sm">Unblock</span>
-                      </>
-                    )}
-                  </button>
-                )}
-
                 <div className={`flex flex-col sm:grid sm:grid-cols-[minmax(300px,1fr),180px,200px] gap-4 ${
-                  test.status === 'complete' && test.block ? 'blur-[2px] opacity-60' : ''
+                  isCompleteBlockedForNonAdmin ? 'blur-[2px] opacity-60' : ''
                 }`}>
                   <div className="flex items-center space-x-4">
                     <div
                       className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
                     >
-                      <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
+                      {isCompleteBlocked ? (
+                        <Lock className={`h-6 w-6 text-orange-500`} />
+                      ) : (
+                        <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center space-x-3">
@@ -540,6 +528,14 @@ export default function MyTests() {
                         <span className={config.textColor}>
                           {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                         </span>
+                        {test.status === 'complete' && isAdmin && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <span className={isBlocking ? 'text-orange-500' : 'text-green-500'}>
+                              {isBlocking ? 'Blocked' : 'Unblocked'}
+                            </span>
+                          </>
+                        )}
                         <span className="hidden sm:inline">•</span>
                         <div className="flex items-center space-x-1 text-sm text-gray-500">
                           <CreditIcon size={14} />
@@ -581,26 +577,30 @@ export default function MyTests() {
                             'Get Data'
                           )}
                         </button>
-                        {test.status === 'complete' && !test.block && isAdmin && (
+                        {test.status === 'complete' && isAdmin && (
                           <button
-                            onClick={e => handleBlockTest(test.id, e)}
-                            disabled={blockingTests.includes(test.id)}
-                            className={`px-4 py-2 bg-orange-500 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
-                              blockingTests.includes(test.id)
+                            onClick={e => isBlocking ? handleUnblockTest(test.id, e) : handleBlockTest(test.id, e)}
+                            disabled={blockingTests.includes(test.id) || unblockingTests.includes(test.id)}
+                            className={`px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
+                              isBlocking 
+                                ? 'bg-green-500 hover:bg-green-600' 
+                                : 'bg-orange-500 hover:bg-orange-600'
+                            } ${
+                              (blockingTests.includes(test.id) || unblockingTests.includes(test.id))
                                 ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:bg-orange-600'
+                                : ''
                             }`}
                           >
-                            {blockingTests.includes(test.id) ? (
+                            {(blockingTests.includes(test.id) || unblockingTests.includes(test.id)) ? (
                               <span className="flex items-center gap-2">
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Blocking...
+                                {unblockingTests.includes(test.id) ? 'Unblocking...' : 'Blocking...'}
                               </span>
                             ) : (
-                              <>
-                                <Lock className="h-4 w-4" />
-                                <span>Block</span>
-                              </>
+                              <span className="flex items-center gap-2">
+                                {isBlocking ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                <span>{isBlocking ? 'Unblock' : 'Block'}</span>
+                              </span>
                             )}
                           </button>
                         )}
@@ -629,8 +629,8 @@ export default function MyTests() {
                   )}
                 </div>
 
-                {/* Block message for complete blocked tests - positioned within the card */}
-                {test.status === 'complete' && test.block && (
+                {/* Block message for complete blocked tests - positioned within the card (only for non-admins) */}
+                {isCompleteBlockedForNonAdmin && (
                   <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none ">
                                          <div className="bg-white/95 backdrop-blur-sm rounded-lg p-2 text-center max-w-xl shadow-lg ">
                        <p className="text-gray-800 font-semibold mb-2 text-lg">🎉 Your Test is Almost Ready!</p>
