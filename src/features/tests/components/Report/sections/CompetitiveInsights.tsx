@@ -87,6 +87,18 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
 
+  // Define table headers
+  const headers = [
+    'Product',
+    'Share of Buy',
+    'Value',
+    'Aesthetics',
+    'Utility',
+    'Trust',
+    'Convenience',
+  ];
+  const columnCount = headers.length;
+
   // Get available variants from both competitive insights and AI insights
   const availableVariants = [
     ...new Set([
@@ -145,28 +157,25 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         </div>
       )}
 
-      {filteredInsights.length === 0 ? (
+            {filteredInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
       ) : (
         <>
-          <table className="min-w-full border-collapse max-w-screen-md">
+          <table className="min-w-full border-collapse max-w-screen-md table-fixed" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              {Array.from({ length: columnCount }, (_, index) => (
+                <col key={index} style={{ width: `${100 / columnCount}%` }} />
+              ))}
+            </colgroup>
             <thead>
               <tr className="bg-gray-100 border-none">
                 <th colSpan={2} className="p-2 bg-white"></th>
-                <th colSpan={5} className="border border-gray-300 p-2">
+                <th colSpan={headers.length - 2} className="border border-gray-300 p-2">
                   Your Item vs Competitor
                 </th>
               </tr>
               <tr className="bg-gray-100">
-                {[
-                  'Product',
-                  'Share of Buy',
-                  'Value',
-                  'Aesthetics',
-                  'Utility',
-                  'Trust',
-                  'Convenience',
-                ].map(header => (
+                {headers.map(header => (
                   <th key={header} className="border border-gray-300 p-2 text-left">
                     {header}
                   </th>

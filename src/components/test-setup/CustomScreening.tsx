@@ -239,8 +239,8 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                 >
                   {isValidating ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Checking...</span>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-200 text-primary-200"></div>
+                      <span>Evaluating...</span>
                     </>
                   ) : (
                     <>
