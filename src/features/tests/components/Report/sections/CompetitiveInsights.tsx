@@ -170,7 +170,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             <thead>
               <tr className="bg-gray-100 border-none">
                 <th colSpan={2} className="p-2 bg-white"></th>
-                <th colSpan={5} className="border border-gray-300 p-2">
+                <th colSpan={headers.length - 2} className="border border-gray-300 p-2">
                   Your Item vs Competitor
                 </th>
               </tr>
