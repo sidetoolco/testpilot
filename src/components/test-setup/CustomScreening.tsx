@@ -194,6 +194,12 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                 <li>When unsure, start broad ("pet owners") and narrow later.</li>
               </ul>
             </div>
+
+            <div className="pt-2 border-t border-green-200">
+              <p className="text-sm font-medium text-green-800">
+                Custom screening adds a flat $6 to cover extra recruiting cost.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -227,13 +233,13 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                   disabled={!value.question?.trim() || isValidating}
                   className={`px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-2 whitespace-nowrap ${
                     !value.question?.trim() || isValidating
-                      ? 'border-gray-200 bg-primary-50 text-gray-400 cursor-not-allowed'
+                      ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
                       : 'border-[#00A67E] bg-[#00A67E] text-white hover:bg-[#00A67E]/90'
                   }`}
                 >
                   {isValidating ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-200 text-primary-200"></div>
                       <span>Evaluating...</span>
                     </>
                   ) : (
