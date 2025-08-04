@@ -557,75 +557,80 @@ export default function MyTests() {
                       </button>
                     </div>
                   ) : (
-                    isAdmin && (
-                      <div className="flex items-center gap-4 sm:justify-end">
+                    <div className="flex items-center gap-4 sm:justify-end">
+                      {/* Admin-only buttons */}
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={e => handleGetData(test.id, e)}
+                            disabled={gettingDataTests.includes(test.id)}
+                            className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
+                              gettingDataTests.includes(test.id)
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-blue-600'
+                            }`}
+                          >
+                            {gettingDataTests.includes(test.id) ? (
+                              <span className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Getting Data...
+                              </span>
+                            ) : (
+                              'Get Data'
+                            )}
+                          </button>
+                          {test.status === 'complete' && (
+                            <button
+                              onClick={e => isBlocking ? handleUnblockTest(test.id, e) : handleBlockTest(test.id, e)}
+                              disabled={blockingTests.includes(test.id) || unblockingTests.includes(test.id)}
+                              className={`px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
+                                isBlocking 
+                                  ? 'bg-green-500 hover:bg-green-600' 
+                                  : 'bg-orange-500 hover:bg-orange-600'
+                              } ${
+                                (blockingTests.includes(test.id) || unblockingTests.includes(test.id))
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
+                              }`}
+                            >
+                              {(blockingTests.includes(test.id) || unblockingTests.includes(test.id)) ? (
+                                <span className="flex items-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  {unblockingTests.includes(test.id) ? 'Unblocking...' : 'Blocking...'}
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  {isBlocking ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                  <span>{isBlocking ? 'Unblock' : 'Block'}</span>
+                                </span>
+                              )}
+                            </button>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Publish button - available for all users */}
+                      {test.status === 'draft' && (
                         <button
-                          onClick={e => handleGetData(test.id, e)}
-                          disabled={gettingDataTests.includes(test.id)}
-                          className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                            gettingDataTests.includes(test.id)
+                          onClick={e => handlePublish(test.id, e, test)}
+                          disabled={publishingTests.includes(test.id)}
+                          className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
+                            publishingTests.includes(test.id)
                               ? 'opacity-50 cursor-not-allowed'
-                              : 'hover:bg-blue-600'
+                              : 'hover:bg-green-600'
                           }`}
                         >
-                          {gettingDataTests.includes(test.id) ? (
+                          {publishingTests.includes(test.id) ? (
                             <span className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Getting Data...
+                              Publishing...
                             </span>
                           ) : (
-                            'Get Data'
+                            'Publish'
                           )}
                         </button>
-                        {test.status === 'complete' && isAdmin && (
-                          <button
-                            onClick={e => isBlocking ? handleUnblockTest(test.id, e) : handleBlockTest(test.id, e)}
-                            disabled={blockingTests.includes(test.id) || unblockingTests.includes(test.id)}
-                            className={`px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
-                              isBlocking 
-                                ? 'bg-green-500 hover:bg-green-600' 
-                                : 'bg-orange-500 hover:bg-orange-600'
-                            } ${
-                              (blockingTests.includes(test.id) || unblockingTests.includes(test.id))
-                                ? 'opacity-50 cursor-not-allowed'
-                                : ''
-                            }`}
-                          >
-                            {(blockingTests.includes(test.id) || unblockingTests.includes(test.id)) ? (
-                              <span className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                {unblockingTests.includes(test.id) ? 'Unblocking...' : 'Blocking...'}
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-2">
-                                {isBlocking ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                                <span>{isBlocking ? 'Unblock' : 'Block'}</span>
-                              </span>
-                            )}
-                          </button>
-                        )}
-                        {test.status !== 'complete' && !isActive && (
-                          <button
-                            onClick={e => handlePublish(test.id, e, test)}
-                            disabled={publishingTests.includes(test.id)}
-                            className={`px-4 py-2 bg-green-500 text-white rounded-lg transition-colors ${
-                              publishingTests.includes(test.id)
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:bg-green-600'
-                            }`}
-                          >
-                            {publishingTests.includes(test.id) ? (
-                              <span className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Publishing...
-                              </span>
-                            ) : (
-                              'Publish'
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    )
+                      )}
+                    </div>
                   )}
                 </div>
 
