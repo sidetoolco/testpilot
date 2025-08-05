@@ -33,6 +33,9 @@ export const validateStep = (step: string, data: TestData): boolean => {
         return isValidDemographics;
       }
 
+    case 'survey-questions':
+      return data.surveyQuestions && data.surveyQuestions.length === 5;
+
     case 'preview':
       return true; // Preview can always proceed
 

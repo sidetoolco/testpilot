@@ -27,6 +27,7 @@ const steps = [
   { key: 'search', label: 'Search Term' },
   { key: 'competitors', label: 'Competitors' },
   { key: 'demographics', label: 'Demographics' },
+  { key: 'survey-questions', label: 'Survey Questions' },
   { key: 'preview', label: 'Preview' },
   { key: 'review', label: 'Review' },
 ];
@@ -51,6 +52,7 @@ const initialTestData: TestData = {
       enabled: false,
     },
   },
+  surveyQuestions: ['value', 'appearance', 'confidence', 'brand', 'convenience'],
 };
 
 const LoadingMessages = [
@@ -73,6 +75,7 @@ export default function CreateConsumerTest() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [demographicsValid, setDemographicsValid] = useState(true);
+  const [surveyQuestionsValid, setSurveyQuestionsValid] = useState(true);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [publishModal, setPublishModal] = useState<{ isOpen: boolean; testData: TestData } | null>(null);
 
@@ -287,10 +290,13 @@ export default function CreateConsumerTest() {
     }
   };
 
-  // Custom canProceed function that considers demographics validation
-  const canProceedWithDemographics = () => {
+  // Custom canProceed function that considers demographics and survey questions validation
+  const canProceedWithValidation = () => {
     if (currentStep === 'demographics') {
       return demographicsValid;
+    }
+    if (currentStep === 'survey-questions') {
+      return surveyQuestionsValid;
     }
     return canProceed();
   };
@@ -362,7 +368,7 @@ export default function CreateConsumerTest() {
         <TestCreationSteps
           steps={steps.slice(1)}
           currentStep={currentStep}
-          canProceed={canProceedWithDemographics()}
+          canProceed={canProceedWithValidation()}
           onBack={handleBack}
           onNext={handleContinue}
           onConfirm={handleSaveDraft}
@@ -371,15 +377,17 @@ export default function CreateConsumerTest() {
         />
       )}
 
-      <TestCreationContent
-        currentStep={currentStep}
-        testData={testData}
-        onUpdateTestData={setTestData}
-        onNext={handleContinue}
-        onBack={handleBack}
-        demographicsValid={demographicsValid}
-        setDemographicsValid={setDemographicsValid}
-      />
+              <TestCreationContent
+          currentStep={currentStep}
+          testData={testData}
+          onUpdateTestData={setTestData}
+          onNext={handleContinue}
+          onBack={handleBack}
+          demographicsValid={demographicsValid}
+          setDemographicsValid={setDemographicsValid}
+          surveyQuestionsValid={surveyQuestionsValid}
+          setSurveyQuestionsValid={setSurveyQuestionsValid}
+        />
 
       {/* Purchase Credits Modal */}
       <PurchaseCreditsModal

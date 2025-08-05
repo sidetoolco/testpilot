@@ -19,6 +19,7 @@ export interface TestData {
     testerCount: number;
     customScreening: CustomScreening;
   };
+  surveyQuestions: string[];
 }
 
 export interface ValidationResult {

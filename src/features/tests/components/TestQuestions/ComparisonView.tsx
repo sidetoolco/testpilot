@@ -1,5 +1,6 @@
 import { RangeInput } from '../RangeInputWithText';
 import { ProductCard } from './ProductCard';
+import { getQuestionsByIds, getQuestionText } from './questionConfig';
 
 interface ComparisonViewProps {
   responses: any;
@@ -9,6 +10,7 @@ interface ComparisonViewProps {
   handleSubmit: () => void;
   errors: Record<string, string>;
   loading: boolean;
+  selectedQuestions?: string[];
 }
 
 export const ComparisonView: React.FC<ComparisonViewProps> = ({
@@ -19,7 +21,11 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   handleSubmit,
   errors,
   loading,
-}) => (
+  selectedQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'],
+}) => {
+  const questionConfigs = getQuestionsByIds(selectedQuestions);
+  
+  return (
   <div className="flex flex-col items-center justify-center w-full p-6">
     <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-2xl">
       <div className="card bg-white p-4 rounded-lg shadow-lg w-full md:w-1/2">
@@ -36,29 +42,16 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       </div>
     </div>
     <div className="questions space-y-4 w-full max-w-2xl mt-4">
-      <p className="font-medium">Compared to Item B, how would you rate the value of Item A?</p>
-      <RangeInput name="value" value={responses.value} onChange={handleChange} />
-
-      <p className="font-medium">
-        Compared to Item B, how would you rate the design and appearance of Item A?
-      </p>
-      <RangeInput name="appearence" value={responses.appearence} onChange={handleChange} />
-
-      <p className="font-medium">
-        Compared to Item B, how would you rate your confidence that Item A will deliver the promised
-        results?
-      </p>
-      <RangeInput name="confidence" value={responses.confidence} onChange={handleChange} />
-
-      <p className="font-medium">
-        Compared to Item B, how would you rate the convenience of Item A?
-      </p>
-      <RangeInput name="convenience" value={responses.convenience} onChange={handleChange} />
-
-      <p className="font-medium">
-        Compared to Item B, how would you rate your trust in the brand of Item A?
-      </p>
-      <RangeInput name="brand" value={responses.brand} onChange={handleChange} />
+      {questionConfigs.map(question => (
+        <div key={question.id}>
+          <p className="font-medium">{getQuestionText(question.id, true)}</p>
+          <RangeInput 
+            name={question.field} 
+            value={responses[question.field]} 
+            onChange={handleChange} 
+          />
+        </div>
+      ))}
 
       <div>
         <p className="font-medium">What do you like most about Item B?</p>
@@ -125,4 +118,5 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       </button>
     </div>
   </div>
-);
+  );
+};

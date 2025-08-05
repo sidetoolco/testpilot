@@ -2,6 +2,7 @@ import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
 import CompetitorSelection from '../../../components/test-setup/CompetitorSelection';
 import TestVariations from '../../../components/test-setup/TestVariations';
 import DemographicSelection from '../../../components/test-setup/DemographicSelection';
+import SurveyQuestions from '../../../components/test-setup/SurveyQuestions';
 import TestPreview from '../../../components/test-setup/TestPreview';
 import TestReview from '../../../components/test-setup/TestReview';
 import { TestData } from '../types';
@@ -16,6 +17,8 @@ interface TestCreationContentProps {
   onBack: () => void;
   demographicsValid?: boolean;
   setDemographicsValid?: (valid: boolean) => void;
+  surveyQuestionsValid?: boolean;
+  setSurveyQuestionsValid?: (valid: boolean) => void;
 }
 
 export function TestCreationContent({
@@ -26,6 +29,8 @@ export function TestCreationContent({
   onBack,
   demographicsValid,
   setDemographicsValid,
+  surveyQuestionsValid,
+  setSurveyQuestionsValid,
 }: TestCreationContentProps) {
   const handleUpdateData = (key: keyof TestData, value: any) => {
     onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
@@ -84,6 +89,19 @@ export function TestCreationContent({
           onNext={onNext}
           onBack={onBack}
           onValidationChange={setDemographicsValid}
+        />
+      )}
+
+      {currentStep === 'survey-questions' && (
+        <SurveyQuestions
+          selectedQuestions={testData.surveyQuestions || []}
+          onChange={questions =>
+            onUpdateTestData(prevTestData => ({
+              ...prevTestData,
+              surveyQuestions: questions,
+            }))
+          }
+          onValidationChange={setSurveyQuestionsValid}
         />
       )}
 

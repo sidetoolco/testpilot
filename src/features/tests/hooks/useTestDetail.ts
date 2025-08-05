@@ -21,6 +21,9 @@ type TestResponse = {
     interests: string[];
     tester_count: number;
   }>;
+  survey_questions: {
+    selected_questions: string[];
+  };
   custom_screening: Array<{
     question: string;
     valid_option: 'Yes' | 'No';
@@ -78,10 +81,29 @@ export function useTestDetail(id: string) {
           )
           .eq('id', id)
           .single();
+
+        if (testError) throw testError;
+        if (!testData) throw new Error('Test not found');
+
+        // Fetch survey questions using the working JOIN structure
+        const { data: surveyQuestionsData, error: surveyQuestionsError } = await supabase
+          .from('tests')
+          .select(`
+            id,
+            survey_questions:test_survey_questions(selected_questions)
+          `)
+          .eq('id', id)
+          .single();
+
+        console.log('Survey questions query result:', { surveyQuestionsData, surveyQuestionsError });
+        console.log('Survey questions structure:', JSON.stringify(surveyQuestionsData, null, 2));
         // .eq('user_id', userId)
 
         if (testError) throw testError;
         if (!testData) throw new Error('Test not found');
+
+        // Debug: Log the raw data from database
+        console.log('Raw test data from database:', testData);
 
         const typedTestData = testData as unknown as TestResponse;
 
@@ -178,6 +200,7 @@ export function useTestDetail(id: string) {
                 (typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No') || undefined,
             },
           },
+          surveyQuestions: surveyQuestionsData?.survey_questions?.[0]?.selected_questions || ['value', 'appearance', 'confidence', 'brand', 'convenience'],
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           responses: {
             surveys: surveysByType,

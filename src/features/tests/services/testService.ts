@@ -73,6 +73,9 @@ export const testService = {
         await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
       }
 
+      // Step 7: Guardar survey questions
+      await this.insertSurveyQuestions(test.id, testData.surveyQuestions || ['value', 'appearance', 'confidence', 'brand', 'convenience']);
+
       // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);
 
@@ -171,6 +174,24 @@ export const testService = {
       await supabase.from('tests').delete().eq('id', testId);
       throw new TestCreationError('Failed to add demographics', { error });
     }
+  },
+
+  // Función para insertar survey questions
+  async insertSurveyQuestions(testId: string, surveyQuestions: string[]) {
+    console.log('Saving survey questions:', { testId, surveyQuestions });
+    
+    const { data, error } = await supabase.from('test_survey_questions').insert({
+      test_id: testId,
+      selected_questions: surveyQuestions,
+    } as any);
+
+    if (error) {
+      console.error('Error saving survey questions:', error);
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to add survey questions', { error });
+    }
+    
+    console.log('Survey questions saved successfully:', data);
   },
   generateDynamicTitle(searchTerm: string): string {
     return `Amazon shopping: Discover '${searchTerm}'!`;
