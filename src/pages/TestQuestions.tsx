@@ -19,56 +19,32 @@ const TestDisplay: React.FC = () => {
   const competitorItem = test?.variations?.[0]?.product;
   const navigate = useNavigate();
 
-  // Get selected questions from test surveyQuestions or use defaults
-  const selectedQuestions = test?.surveyQuestions || getDefaultQuestions();
+  // Get selected questions from database or use defaults
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
   const questionConfigs = getQuestionsByIds(selectedQuestions);
   
-  // Debug: Log what questions are being used
-  console.log('Test object:', test);
-  console.log('Survey questions from test:', test?.surveyQuestions);
-  console.log('Selected questions being used:', selectedQuestions);
-  console.log('Question configs:', questionConfigs);
-  
-  // Debug: Check if test has survey questions in database
+  // Fetch survey questions from database
   useEffect(() => {
     if (test?.id) {
-      const checkSurveyQuestions = async () => {
-        // Test 1: Direct query to test_survey_questions
-        const { data: directData, error: directError } = await supabase
+      const fetchSurveyQuestions = async () => {
+        setQuestionsLoading(true);
+        const { data, error } = await supabase
           .from('test_survey_questions')
           .select('selected_questions')
           .eq('test_id', test.id)
           .single();
         
-        console.log('Direct database query result:', { directData, directError });
-        
-        // Test 2: Join query with tests table
-        const { data: joinData, error: joinError } = await supabase
-          .from('tests')
-          .select(`
-            id,
-            survey_questions:test_survey_questions(selected_questions)
-          `)
-          .eq('id', test.id)
-          .single();
-        
-        console.log('Join query result:', { joinData, joinError });
-        
-        // Test 3: Check if the relationship exists
-        const { data: relationshipData, error: relationshipError } = await supabase
-          .from('tests')
-          .select(`
-            id,
-            name,
-            test_survey_questions!inner(selected_questions)
-          `)
-          .eq('id', test.id)
-          .single();
-        
-        console.log('Inner join query result:', { relationshipData, relationshipError });
+        if (data && !error && 'selected_questions' in data) {
+          setSelectedQuestions((data as any).selected_questions);
+        } else {
+          // Fallback to defaults if no database data
+          setSelectedQuestions(getDefaultQuestions());
+        }
+        setQuestionsLoading(false);
       };
       
-      checkSurveyQuestions();
+      fetchSurveyQuestions();
     }
   }, [test?.id]);
 
@@ -95,6 +71,13 @@ const TestDisplay: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Recreate responses when selectedQuestions changes
+  useEffect(() => {
+    if (selectedQuestions.length > 0) {
+      setResponses(createInitialResponses());
+    }
+  }, [selectedQuestions]);
 
   const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
   // Get rating fields from selected questions
@@ -283,7 +266,11 @@ const TestDisplay: React.FC = () => {
       <p className="text-center">
         <strong>Search Term:</strong> {test.search_term}
       </p>
-      {isVariationSelected.length > 0 ? (
+      {questionsLoading ? (
+        <div className="text-center py-8">
+          <p>Loading questions...</p>
+        </div>
+      ) : isVariationSelected.length > 0 ? (
         <SelectedVariation
           loading={loading}
           responses={responses}
