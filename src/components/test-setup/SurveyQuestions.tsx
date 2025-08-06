@@ -97,19 +97,21 @@ export default function SurveyQuestions({
             {AVAILABLE_QUESTIONS.slice(0, 5).map(question => (
               <div
                 key={question.id}
-                className={`p-4 border rounded-lg transition-all ${
+                className={`p-4 border rounded-lg transition-all h-32 flex flex-col justify-between ${
                   selectedQuestions.includes(question.id)
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <Checkbox
-                  id={`question-${question.id}`}
-                  label={question.title}
-                  checked={selectedQuestions.includes(question.id)}
-                  onChange={checked => handleQuestionToggle(question.id, checked)}
-                />
-                <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
+                <div>
+                  <Checkbox
+                    id={`question-${question.id}`}
+                    label={question.title}
+                    checked={selectedQuestions.includes(question.id)}
+                    onChange={checked => handleQuestionToggle(question.id, checked)}
+                  />
+                  <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
+                </div>
                 <span className="inline-block ml-6 mt-1 text-xs text-blue-600 font-medium">
                   Recommended
                 </span>
@@ -134,19 +136,21 @@ export default function SurveyQuestions({
             {AVAILABLE_QUESTIONS.slice(5).map(question => (
               <div
                 key={question.id}
-                className={`p-4 border rounded-lg transition-all ${
+                className={`p-4 border rounded-lg transition-all h-32 flex flex-col justify-between ${
                   selectedQuestions.includes(question.id)
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <Checkbox
-                  id={`question-${question.id}`}
-                  label={question.title}
-                  checked={selectedQuestions.includes(question.id)}
-                  onChange={checked => handleQuestionToggle(question.id, checked)}
+                <div>
+                  <Checkbox
+                    id={`question-${question.id}`}
+                    label={question.title}
+                    checked={selectedQuestions.includes(question.id)}
+                    onChange={checked => handleQuestionToggle(question.id, checked)}
                 />
                 <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
+                </div>
               </div>
             ))}
           </div>
