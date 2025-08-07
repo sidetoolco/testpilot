@@ -3,9 +3,6 @@ import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
 
-const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'];
-const COLORS = ['#43A8F6', '#708090', '#008080'];
-
 // Define interfaces for surveys and products
 interface Survey {
   id: string;
@@ -13,11 +10,14 @@ interface Survey {
   product: {
     title: string;
   };
-  value: number;
-  appearance: number;
-  confidence: number;
-  brand: number;
-  convenience: number;
+  value: number | null;
+  appearance: number | null;
+  confidence: number | null;
+  brand: number | null;
+  convenience: number | null;
+  appetizing: number | null;
+  target_audience: number | null;
+  novelty: number | null;
   count?: number;
 }
 
@@ -29,6 +29,36 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
+  // Define all possible question fields and their labels
+  const questionFields = [
+    { field: 'value', label: 'Value' },
+    { field: 'appearance', label: 'Aesthetics' },
+    { field: 'confidence', label: 'Utility' },
+    { field: 'brand', label: 'Trust' },
+    { field: 'convenience', label: 'Convenience' },
+    { field: 'appetizing', label: 'Appetizing' },
+    { field: 'target_audience', label: 'Target Audience' },
+    { field: 'novelty', label: 'Novelty' },
+  ];
+
+  // Determine which questions have actual data (not all null)
+  const getActiveQuestions = () => {
+    const questionStats = questionFields.map(({ field, label }) => {
+      const hasData = surveys.some(survey => {
+        const value = survey[field as keyof Survey];
+        return value !== null && value !== undefined && !isNaN(Number(value));
+      });
+      
+      return { field, label, hasData };
+    });
+
+    return questionStats.filter(q => q.hasData);
+  };
+
+  const activeQuestions = getActiveQuestions();
+  const LABELS = activeQuestions.map(q => q.label);
+  const COLORS = ['#43A8F6', '#708090', '#008080'];
+
   const datasets = surveys.map((product, productIndex) => {
     if (!product || !product.product) {
       return {
@@ -36,7 +66,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
         productId: product.id,
         backgroundColor: COLORS[productIndex % COLORS.length],
         borderRadius: 5,
-        data: [0, 0, 0, 0, 0],
+        data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
       };
     }
     return {
@@ -44,13 +74,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
       productId: product.id,
       backgroundColor: COLORS[productIndex % COLORS.length],
       borderRadius: 5,
-      data: [
-        product.value,
-        product.appearance,
-        product.confidence,
-        product.brand,
-        product.convenience,
-      ],
+      data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
     };
   });
 

@@ -1,7 +1,7 @@
 import { Question } from '../../../components/test-setup/QuestionSelection';
 
 export const AVAILABLE_QUESTIONS: Question[] = [
-  // Existing questions (all required/recommended)
+  // Required questions (locked)
   {
     id: 'value',
     title: 'Value Rating',
@@ -19,14 +19,6 @@ export const AVAILABLE_QUESTIONS: Question[] = [
     required: true,
   },
   {
-    id: 'confidence',
-    title: 'Confidence Rating',
-    description: 'How confident are you that this product will deliver its promised results?',
-    category: 'rating',
-    field: 'confidence',
-    required: true,
-  },
-  {
     id: 'brand',
     title: 'Brand Trust Rating',
     description: 'How much do you trust this brand to meet your expectations?',
@@ -34,49 +26,47 @@ export const AVAILABLE_QUESTIONS: Question[] = [
     field: 'brand',
     required: true,
   },
+  // Optional questions
+  {
+    id: 'confidence',
+    title: 'Confidence Rating',
+    description: 'How confident are you that this product will deliver its promised results?',
+    category: 'rating',
+    field: 'confidence',
+    required: false,
+  },
   {
     id: 'convenience',
     title: 'Convenience Rating',
     description: 'How convenient does this product seem to use?',
     category: 'rating',
     field: 'convenience',
-    required: true,
+    required: false,
   },
-  // New questions
+  // New additional questions
   {
-    id: 'flavor',
-    title: 'Flavor Rating',
-    description: 'How would you rate the flavor/taste of this product?',
+    id: 'appetizing',
+    title: 'Appetizing Rating',
+    description: 'This product looks / sounds appetizing.',
     category: 'rating',
-    field: 'flavor',
-  },
-  {
-    id: 'quantity',
-    title: 'Quantity Rating',
-    description: 'How satisfied are you with the quantity/amount provided?',
-    category: 'rating',
-    field: 'quantity',
+    field: 'appetizing',
+    required: false,
   },
   {
-    id: 'packaging',
-    title: 'Packaging Rating',
-    description: 'How would you rate the packaging design and functionality?',
+    id: 'target_audience',
+    title: 'Target Audience Rating',
+    description: 'This is a product for people like me.',
     category: 'rating',
-    field: 'packaging',
+    field: 'target_audience',
+    required: false,
   },
   {
-    id: 'freshness',
-    title: 'Freshness Rating',
-    description: 'How would you rate the perceived freshness/quality of this product?',
+    id: 'novelty',
+    title: 'Novelty Rating',
+    description: 'This product is new and different.',
     category: 'rating',
-    field: 'freshness',
-  },
-  {
-    id: 'recommendation',
-    title: 'Recommendation Rating',
-    description: 'How likely would you be to recommend this product to others?',
-    category: 'rating',
-    field: 'recommendation',
+    field: 'novelty',
+    required: false,
   },
 ];
 
@@ -89,7 +79,11 @@ export const getQuestionsByIds = (ids: string[]): Question[] => {
 };
 
 export const getDefaultQuestions = (): string[] => {
-  return ['value', 'appearance', 'confidence', 'brand', 'convenience'];
+  return ['value', 'appearance', 'brand', 'confidence', 'convenience'];
+};
+
+export const getRequiredQuestions = (): string[] => {
+  return ['value', 'appearance', 'brand'];
 };
 
 export const getQuestionText = (questionId: string, isComparison: boolean = false): string => {

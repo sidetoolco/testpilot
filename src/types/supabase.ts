@@ -221,11 +221,9 @@ export interface Database {
           confidence: number | null;
           brand: number | null;
           convenience: number | null;
-          flavor: number | null;
-          quantity: number | null;
-          packaging: number | null;
-          freshness: number | null;
-          recommendation: number | null;
+          appetizing: number | null;
+          target_audience: number | null;
+          novelty: number | null;
           created_at: string;
         };
         Insert: {
@@ -240,11 +238,9 @@ export interface Database {
           confidence?: number | null;
           brand?: number | null;
           convenience?: number | null;
-          flavor?: number | null;
-          quantity?: number | null;
-          packaging?: number | null;
-          freshness?: number | null;
-          recommendation?: number | null;
+          appetizing?: number | null;
+          target_audience?: number | null;
+          novelty?: number | null;
           created_at?: string;
         };
         Update: {
@@ -259,11 +255,9 @@ export interface Database {
           confidence?: number | null;
           brand?: number | null;
           convenience?: number | null;
-          flavor?: number | null;
-          quantity?: number | null;
-          packaging?: number | null;
-          freshness?: number | null;
-          recommendation?: number | null;
+          appetizing?: number | null;
+          target_audience?: number | null;
+          novelty?: number | null;
           created_at?: string;
         };
       };
@@ -282,11 +276,9 @@ export interface Database {
           confidence: number | null;
           brand: number | null;
           convenience: number | null;
-          flavor: number | null;
-          quantity: number | null;
-          packaging: number | null;
-          freshness: number | null;
-          recommendation: number | null;
+          appetizing: number | null;
+          target_audience: number | null;
+          novelty: number | null;
           created_at: string;
         };
         Insert: {
@@ -303,11 +295,9 @@ export interface Database {
           confidence?: number | null;
           brand?: number | null;
           convenience?: number | null;
-          flavor?: number | null;
-          quantity?: number | null;
-          packaging?: number | null;
-          freshness?: number | null;
-          recommendation?: number | null;
+          appetizing?: number | null;
+          target_audience?: number | null;
+          novelty?: number | null;
           created_at?: string;
         };
         Update: {
@@ -324,11 +314,9 @@ export interface Database {
           confidence?: number | null;
           brand?: number | null;
           convenience?: number | null;
-          flavor?: number | null;
-          quantity?: number | null;
-          packaging?: number | null;
-          freshness?: number | null;
-          recommendation?: number | null;
+          appetizing?: number | null;
+          target_audience?: number | null;
+          novelty?: number | null;
           created_at?: string;
         };
       };

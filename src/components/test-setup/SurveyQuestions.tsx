@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Lock } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import Checkbox from '../ui/Checkbox';
-import { AVAILABLE_QUESTIONS } from '../../features/tests/components/TestQuestions/questionConfig';
+import { AVAILABLE_QUESTIONS, getRequiredQuestions } from '../../features/tests/components/TestQuestions/questionConfig';
 
 export interface Question {
   id: string;
@@ -26,7 +26,15 @@ export default function SurveyQuestions({
 }: SurveyQuestionsProps) {
   const [error, setError] = useState<string | null>(null);
 
+  const requiredQuestions = getRequiredQuestions();
+  const optionalQuestions = AVAILABLE_QUESTIONS.filter(q => !q.required);
+
   const handleQuestionToggle = (questionId: string, checked: boolean) => {
+    // Don't allow toggling required questions
+    if (requiredQuestions.includes(questionId)) {
+      return;
+    }
+
     let newSelection: string[];
 
     if (checked) {
@@ -45,6 +53,15 @@ export default function SurveyQuestions({
     onChange(newSelection);
   };
 
+  // Ensure required questions are always selected
+  useEffect(() => {
+    const hasAllRequired = requiredQuestions.every(q => selectedQuestions.includes(q));
+    if (!hasAllRequired) {
+      const newSelection = [...new Set([...requiredQuestions, ...selectedQuestions])];
+      onChange(newSelection);
+    }
+  }, [selectedQuestions, requiredQuestions, onChange]);
+
   const isSelectionValid = selectedQuestions.length === 5;
 
   useEffect(() => {
@@ -55,8 +72,9 @@ export default function SurveyQuestions({
 
   const getQuestionById = (id: string) => AVAILABLE_QUESTIONS.find(q => q.id === id);
 
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="text-center mb-8">
         <h3 className="text-3xl font-semibold text-gray-900 mb-3">Select Survey Questions</h3>
         <p className="text-lg text-gray-500">
@@ -80,21 +98,54 @@ export default function SurveyQuestions({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Standard Questions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - 4 questions (3 required + 1 optional) */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-            Standard Questions
+           Survey Questions
             <Info
               className="h-4 w-4 text-gray-400 cursor-help"
-              data-tooltip-id="standard-questions-tooltip"
+              data-tooltip-id="required-tooltip"
             />
-            <Tooltip id="standard-questions-tooltip" className="!px-2 !py-1 !text-sm">
-              Core questions that are commonly used in product testing
+            <Tooltip id="required-tooltip" className="!px-2 !py-1 !text-sm">
+              Questions that your users will be asked to answer.
             </Tooltip>
           </h4>
           <div className="space-y-4">
-            {AVAILABLE_QUESTIONS.slice(0, 5).map(question => (
+            {/* Required Questions */}
+            {requiredQuestions.map(questionId => {
+              const question = getQuestionById(questionId);
+              if (!question) return null;
+              
+              return (
+                
+                <div
+                  key={question.id}
+                  className="p-4 border border-green-500 bg-green-50 rounded-lg transition-all h-32 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`question-${question.id}`}
+                        label={question.title}
+                        checked={true}
+                        onChange={() => {}} // No-op since it's required
+                        disabled={true}
+                      />
+                      <Lock className="h-4 w-4 text-green-600" />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
+                  </div>
+                  <span className="inline-block ml-6 text-xs text-green-600 font-medium">
+                    Required
+                  </span>
+                </div>
+              );
+            })}
+            
+            {/* First Optional Question */}
+            
+            {optionalQuestions.slice(0, 1).map(question => (
               <div
                 key={question.id}
                 className={`p-4 border rounded-lg transition-all h-32 flex flex-col justify-between ${
@@ -112,28 +163,18 @@ export default function SurveyQuestions({
                   />
                   <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
                 </div>
-                <span className="inline-block ml-6 mt-1 text-xs text-blue-600 font-medium">
-                  Recommended
+                <span className="inline-block ml-6 text-xs text-blue-600 font-medium">
+                  Optional
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Additional Questions */}
+        {/* Right Column - 4 optional questions */}
         <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-            Additional Questions
-            <Info
-              className="h-4 w-4 text-gray-400 cursor-help"
-              data-tooltip-id="additional-questions-tooltip"
-            />
-            <Tooltip id="additional-questions-tooltip" className="!px-2 !py-1 !text-sm">
-              Specialized questions for deeper product insights
-            </Tooltip>
-          </h4>
-          <div className="space-y-4">
-            {AVAILABLE_QUESTIONS.slice(5).map(question => (
+          <div className="space-y-4 lg:mt-12">
+            {optionalQuestions.slice(1).map(question => (
               <div
                 key={question.id}
                 className={`p-4 border rounded-lg transition-all h-32 flex flex-col justify-between ${
@@ -148,9 +189,12 @@ export default function SurveyQuestions({
                     label={question.title}
                     checked={selectedQuestions.includes(question.id)}
                     onChange={checked => handleQuestionToggle(question.id, checked)}
-                />
-                <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
+                  />
+                  <p className="text-sm text-gray-600 mt-1 ml-6">{question.description}</p>
                 </div>
+                <span className="inline-block ml-6 text-xs text-blue-600 font-medium">
+                  Optional
+                </span>
               </div>
             ))}
           </div>
@@ -172,10 +216,15 @@ export default function SurveyQuestions({
                     {index + 1}
                   </span>
                   <div className="flex-1">
-                    <h5 className="font-medium text-gray-900">{question.title}</h5>
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-medium text-gray-900">{question.title}</h5>
+                      {question.required && (
+                        <Lock className="h-3 w-3 text-green-600" />
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600">{question.description}</p>
                     <span className="inline-block mt-1 text-xs text-gray-500">
-                      {question.category === 'rating' ? 'Rating Scale (1-5)' : 'Text Response'}
+                      {question.category === 'rating' ? 'Rating Scale (Much Worse to Much Better)' : 'Text Response'}
                     </span>
                   </div>
                 </div>
