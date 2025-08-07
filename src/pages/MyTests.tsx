@@ -325,19 +325,16 @@ export default function MyTests() {
 
     try {
       // Call backend endpoint to handle all deletion logic
-      const response = await apiClient.delete(`/tests/${testId}`);
+      await apiClient.delete(`/tests/${testId}`);
 
-      if (response.status === 200) {
-        toast.success(`Test "${testName}" deleted successfully`);
+      // Axios automatically throws on 4xx/5xx status codes, so if we reach here, it was successful
+      toast.success(`Test "${testName}" deleted successfully`);
 
-        // Add the test ID to the deleted list to hide it from UI
-        setDeletedTestIds(prev => [...prev, testId]);
+      // Add the test ID to the deleted list to hide it from UI
+      setDeletedTestIds(prev => [...prev, testId]);
 
-        // Close the modal
-        setDeleteModal(null);
-      } else {
-        toast.error('Failed to delete test');
-      }
+      // Close the modal
+      setDeleteModal(null);
     } catch (error: any) {
       console.error('Error deleting test:', error);
       console.error('Error response:', error.response?.data);
