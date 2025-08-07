@@ -28,6 +28,7 @@ import { useContinueTest } from '../features/tests/hooks/useContinueTest';
 import { TestCost } from '../components/test-setup/TestCost';
 import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 import { CreditIcon } from '../components/ui/CreditIcon';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -101,6 +102,7 @@ export default function MyTests() {
   const { tests, loading, updateTest } = useTests();
   const user = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
+  const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
@@ -183,7 +185,35 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
+      // Get user's company ID
+      if (!user?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.user.id as any)
+        .single();
+
+      if (profileError || !profile || !profile.company_id) {
+        throw new Error('Unable to get company information');
+      }
+
+      const typedProfile = profile as { company_id: string };
+
+      // First, publish the test
       await apiClient.post(`/tests/${testId}/publish`);
+
+      // Then, deduct credits using the same API as admin companies
+      await apiClient.post('/credits/admin/edit', {
+        company_id: typedProfile.company_id,
+        credits: availableCredits - totalCredits, // new total after deduction
+        description: `Credits deducted for publishing test: ${confirmationModal.test.name}`
+      });
+
+      // Refresh credits cache to show updated balance
+      await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
       toast.success('Test published successfully');
     } catch (error: any) {
@@ -265,6 +295,10 @@ export default function MyTests() {
 
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
   };
+
+
+
+
 
   // Nueva función para manejar la continuación de tests incompletos
   const handleContinueTest = async (testId: string, e: React.MouseEvent) => {
@@ -630,6 +664,10 @@ export default function MyTests() {
                           )}
                         </button>
                       )}
+                      
+
+                      
+
                     </div>
                   )}
                 </div>
