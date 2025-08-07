@@ -208,7 +208,7 @@ export default function MyTests() {
       // Then, deduct credits using the same API as admin companies
       await apiClient.post('/credits/admin/edit', {
         company_id: typedProfile.company_id,
-        credits: availableCredits - totalCredits,
+        credits: availableCredits - totalCredits, // new total after deduction
         description: `Credits deducted for publishing test: ${confirmationModal.test.name}`
       });
 
@@ -295,6 +295,8 @@ export default function MyTests() {
 
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
   };
+
+
 
 
 
@@ -662,6 +664,8 @@ export default function MyTests() {
                           )}
                         </button>
                       )}
+                      
+
                       
 
                     </div>

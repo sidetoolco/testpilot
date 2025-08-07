@@ -290,7 +290,7 @@ export default function CreateConsumerTest() {
           // Deduct credits after successful publication
           await apiClient.post('/credits/admin/edit', {
             company_id: typedProfile.company_id,
-            credits: availableCredits - totalCredits,
+            credits: availableCredits - totalCredits, // new total after deduction
             description: `Credits deducted for publishing test: ${testData.name}`
           });
 
@@ -313,7 +313,7 @@ export default function CreateConsumerTest() {
       // Deduct credits after successful publication
       await apiClient.post('/credits/admin/edit', {
         company_id: typedProfile.company_id,
-        credits: availableCredits - totalCredits,
+        credits: availableCredits - totalCredits, // new total after deduction
         description: `Credits deducted for publishing test: ${testData.name}`
       });
 
