@@ -319,23 +319,15 @@ export default function MyTests() {
     }
   };
 
-  // Delete test directly using Supabase
-  const handleDeleteWithSupabase = async (testId: string, testName: string) => {
+  // Delete test using backend endpoint only
+  const handleDeleteTest = async (testId: string, testName: string) => {
     setDeletingTests(prev => [...prev, testId]);
 
     try {
-      const { data, error } = await supabase
-        .from('tests')
-        .delete()
-        .eq('id', testId as any)
-        .select();
+      // Call backend endpoint to handle all deletion logic
+      const response = await apiClient.delete(`/tests/${testId}`);
 
-      if (error) {
-        toast.error(`Failed to delete test: ${error.message}`);
-        return;
-      }
-
-      if (data && data.length > 0) {
+      if (response.status === 200) {
         toast.success(`Test "${testName}" deleted successfully`);
 
         // Add the test ID to the deleted list to hide it from UI
@@ -344,10 +336,26 @@ export default function MyTests() {
         // Close the modal
         setDeleteModal(null);
       } else {
-        toast.error('Test not found or already deleted');
+        toast.error('Failed to delete test');
       }
-    } catch (error) {
-      toast.error('Failed to delete test. Please try again.');
+    } catch (error: any) {
+      console.error('Error deleting test:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      // Handle specific error responses
+      if (error.response?.status === 404) {
+        toast.error('Test not found');
+      } else if (error.response?.status === 401) {
+        toast.error('Unauthorized');
+      } else if (error.response?.status === 500) {
+        // Log detailed error information for debugging
+        const errorDetails = error.response?.data?.message || error.response?.data?.error || 'Internal server error';
+        console.error('Backend error details:', errorDetails);
+        toast.error(`Server error: ${errorDetails}`);
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to delete test. Please try again.');
+      }
     } finally {
       setDeletingTests(prev => prev.filter(id => id !== testId));
     }
@@ -821,7 +829,7 @@ export default function MyTests() {
               <button
                 onClick={() => {
                   if (deleteModal) {
-                    handleDeleteWithSupabase(deleteModal.testId, deleteModal.testName);
+                    handleDeleteTest(deleteModal.testId, deleteModal.testName);
                   }
                 }}
                 disabled={deletingTests.includes(deleteModal?.testId || '')}
