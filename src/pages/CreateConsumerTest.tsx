@@ -20,6 +20,10 @@ import { AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
 import { TestCost } from '../components/test-setup/TestCost';
+import apiClient from '../lib/api';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../features/auth/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 const steps = [
   { key: 'objective', label: 'Objective' },
@@ -67,6 +71,8 @@ const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = useAuth();
+  const queryClient = useQueryClient();
   const [testData, setTestData] = useState<TestData>(initialTestData);
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
@@ -245,6 +251,33 @@ export default function CreateConsumerTest() {
       setIsLoading(true);
       setPublishModal(null);
 
+      // Calculate credits needed for this test
+      const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
+      const totalTesters = testData.demographics.testerCount * activeVariants;
+      const hasCustomScreening = testData.demographics.customScreening?.enabled && 
+        testData.demographics.customScreening.question && 
+        testData.demographics.customScreening.validAnswer;
+      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
+      const totalCredits = totalTesters * creditsPerTester;
+      const availableCredits = creditsData?.total || 0;
+
+      // Get user's company ID
+      if (!user?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.user.id as any)
+        .single();
+
+      if (profileError || !profile || !profile.company_id) {
+        throw new Error('Unable to get company information');
+      }
+
+      const typedProfile = profile as { company_id: string };
+
       // Check if it's an existing incomplete test
       if (testState.isIncompleteTest && currentTestId) {
         try {
@@ -253,6 +286,16 @@ export default function CreateConsumerTest() {
 
           // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
+
+          // Deduct credits after successful publication
+          await apiClient.post('/credits/admin/edit', {
+            company_id: typedProfile.company_id,
+            credits: availableCredits - totalCredits,
+            description: `Credits deducted for publishing test: ${testData.name}`
+          });
+
+          // Refresh credits cache to show updated balance
+          await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
           toast.success('Test published successfully');
           navigate('/my-tests');
@@ -266,6 +309,16 @@ export default function CreateConsumerTest() {
 
       // Create test (normal flow for new tests)
       await testService.createTest(testData);
+
+      // Deduct credits after successful publication
+      await apiClient.post('/credits/admin/edit', {
+        company_id: typedProfile.company_id,
+        credits: availableCredits - totalCredits,
+        description: `Credits deducted for publishing test: ${testData.name}`
+      });
+
+      // Refresh credits cache to show updated balance
+      await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
       toast.success('Test published successfully');
       navigate('/my-tests');
