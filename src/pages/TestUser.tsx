@@ -177,16 +177,11 @@ const TestUserPage = () => {
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {
-      console.log('No captcha token received');
       return;
     }
 
     setCaptchaLoading(true);
     try {
-      console.log('Captcha token received:', token);
-      
-      // For v2 invisible, we can proceed immediately if we get a token
-      // In production, you should verify this token on your backend
       setCaptchaVerified(true);
       setCaptchaLoading(false);
       
