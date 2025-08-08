@@ -79,7 +79,7 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
         </p>
         
         {/* reCAPTCHA - Visible checkbox */}
-        <div className="mb-4 flex justify-center">
+        <div className="flex justify-center py-4">
           {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
             <ReCAPTCHA
               ref={(ref) => setRecaptchaRef(ref)}
