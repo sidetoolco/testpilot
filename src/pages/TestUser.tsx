@@ -14,6 +14,7 @@ import { createNewSession } from '../features/tests/services/testersSessionServi
 import { checkTestCompletion } from '../features/tests/services/testCompletionService';
 import { Lightbulb } from 'lucide-react';
 import { getTracker } from '../lib/openReplay';
+import { toast } from 'sonner';
 
 interface TestData {
   id: string;
@@ -59,12 +60,7 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
   if (!isOpen) return null;
 
   const handleButtonClick = () => {
-    if (!captchaVerified && !captchaLoading) {
-      // Trigger the invisible captcha
-      if (recaptchaRef) {
-        recaptchaRef.execute();
-      }
-    } else {
+    if (captchaVerified && !captchaLoading) {
       onClose();
     }
   };
@@ -82,14 +78,14 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
           cart, and then checkout.
         </p>
         
-        {/* reCAPTCHA - Hidden for invisible */}
-        <div className="hidden">
+        {/* reCAPTCHA - Visible checkbox */}
+        <div className="mb-4 flex justify-center">
           {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
             <ReCAPTCHA
               ref={(ref) => setRecaptchaRef(ref)}
               sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
               onChange={onCaptchaVerify}
-              size="invisible"
+              size="normal"
             />
           ) : (
             <div className="text-red-500">
@@ -100,9 +96,9 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
         
         <button
           onClick={handleButtonClick}
-          disabled={captchaLoading}
+          disabled={!captchaVerified || captchaLoading}
           className={`mt-4 py-2 px-6 md:px-7 rounded-full font-medium ${
-            !captchaLoading
+            captchaVerified && !captchaLoading
               ? 'bg-[#00A67E] hover:bg-[#00A67E] text-white'
               : 'bg-gray-400 text-gray-600 cursor-not-allowed'
           }`}
@@ -177,19 +173,26 @@ const TestUserPage = () => {
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {
+      console.log('No captcha token received');
+      toast.error('Captcha verification failed. Please refresh the page and try again.');
+      setCaptchaLoading(false);
       return;
     }
 
     setCaptchaLoading(true);
     try {
+      console.log('Captcha token received:', token);
+      
+      // For v2 invisible, we can proceed immediately if we get a token
+      // In production, you should verify this token on your backend
       setCaptchaVerified(true);
       setCaptchaLoading(false);
       
-      // Proceed with test logic after captcha verification
-      await proceedWithTest();
+      // Don't proceed with test here - just mark captcha as verified
+      // The test logic will run when user clicks "Ok" button
     } catch (error) {
       console.error('Captcha verification failed:', error);
-      alert('Captcha verification failed. Please try again.');
+      toast.error('Captcha verification failed. Please refresh the page and try again.');
       setCaptchaLoading(false);
     }
   };
@@ -200,21 +203,7 @@ const TestUserPage = () => {
       const testId = result?.modifiedString ?? '';
       const variant = result?.lastCharacter ?? '';
 
-      // Check localStorage first (fast)
-      if (isTestCompleted(testId, variant)) {
-        navigate('/thanks', { state: { testId: id + '-' + variant } });
-        return;
-      }
-
-      // Check server-side completion status
-      const completionStatus = await checkTestCompletion(testId, variant, prolificPid);
-      if (completionStatus.isCompleted) {
-        // Mark in localStorage for future fast checks
-        markTestCompleted(testId, variant);
-        navigate('/thanks', { state: { testId: id + '-' + variant } });
-        return;
-      }
-
+      // Only check completion for existing sessions, not new users
       const existingSession: any = await checkAndFetchExistingSession(testId, variant);
 
       if (existingSession?.ended_at) {
