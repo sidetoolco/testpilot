@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSessionStore } from '../store/useSessionStore';
+import { useTestCompletionStore } from '../store/useTestCompletionStore';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { getTracker } from '../lib/openReplay';
@@ -15,6 +16,7 @@ const TestDisplay: React.FC = () => {
   const { test, itemSelectedAtCheckout, shopperId, sessionBeginTime } = useSessionStore(
     state => state
   );
+  const { markTestCompleted } = useTestCompletionStore();
   const competitorItem = test?.variations?.[0]?.product;
   const navigate = useNavigate();
 
@@ -174,6 +176,13 @@ const TestDisplay: React.FC = () => {
       if (updateError) {
         console.error('Error updating testers session:', updateError);
         return;
+      }
+
+      // Mark test as completed in localStorage
+      if (test) {
+        const testId = test.id;
+        const variant = test.variations?.[0]?.variation_type || 'A';
+        markTestCompleted(testId, variant);
       }
 
       console.log('Data saved successfully:', data);
