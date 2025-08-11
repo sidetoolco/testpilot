@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Star, Tag, X } from 'lucide-react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { creditsService, CouponValidationResponse } from '../services/creditsService';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ModalLayout from '../../../layouts/ModalLayout';
 import { formatPrice } from '../../../utils/format';
@@ -60,7 +59,6 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
   
   const stripe = useStripe();
   const elements = useElements();
-  const queryClient = useQueryClient();
   const { refreshCredits, isRefreshing } = useRefreshCredits();
 
   useEffect(() => {
@@ -180,8 +178,8 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
       setIsProcessingCredits(true);
       setCreditProcessingError(null);
       
-      // Use the custom hook to refresh credits
-      const success = await refreshCredits();
+      // Use the custom hook to refresh credits silently
+      const success = await refreshCredits({ silent: true });
       
       if (success) {
         setPaymentSuccess(true);
@@ -233,14 +231,15 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
         // Payment succeeded, now process pending credits
         setIsProcessingCredits(true);
         try {
-          // Process pending payments to add credits
-          await creditsService.processMyPending();
+          // Use the custom hook to refresh credits silently
+          const success = await refreshCredits({ silent: true });
           
-          // Refresh credit data
-          queryClient.invalidateQueries({ queryKey: ['credits'] });
-          
-          setPaymentSuccess(true);
-          toast.success('Payment successful! Credits added to your account.');
+          if (success) {
+            setPaymentSuccess(true);
+            toast.success('Payment successful! Credits added to your account.');
+          } else {
+            throw new Error('Failed to process credits');
+          }
         } catch (creditError) {
           console.error('Failed to process credits:', creditError);
           setCreditProcessingError('Payment succeeded but failed to add credits automatically. You can try refreshing manually.');

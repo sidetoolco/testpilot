@@ -32,9 +32,9 @@ export const creditsService = {
     return data;
   },
 
+
   async processMyPending(): Promise<void> {
-    const { data } = await apiClient.post('/credits/process-my-pending');
-    return data;
+    await apiClient.post('/credits/process-my-pending');
   },
 
   async validateCoupon(couponCode: string): Promise<CouponValidationResponse> {

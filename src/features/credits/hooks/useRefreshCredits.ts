@@ -3,11 +3,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { creditsService } from '../services/creditsService';
 
+interface RefreshCreditsOptions {
+  silent?: boolean;
+}
+
 export const useRefreshCredits = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
-  const refreshCredits = async () => {
+  const refreshCredits = async (options: RefreshCreditsOptions = {}) => {
     try {
       setIsRefreshing(true);
       
@@ -17,11 +21,20 @@ export const useRefreshCredits = () => {
       // Refresh credit data
       queryClient.invalidateQueries({ queryKey: ['credits'] });
       
-      toast.success('Credits refreshed successfully!');
+      // Only show success toast if not silent
+      if (!options.silent) {
+        toast.success('Credits refreshed successfully!');
+      }
+      
       return true;
     } catch (error) {
       console.error('Manual refresh failed:', error);
-      toast.error('Failed to refresh credits. Please try again later.');
+      
+      // Only show error toast if not silent
+      if (!options.silent) {
+        toast.error('Failed to refresh credits. Please try again later.');
+      }
+      
       return false;
     } finally {
       setIsRefreshing(false);
