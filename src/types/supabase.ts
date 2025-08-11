@@ -42,18 +42,21 @@ export interface Database {
           name: string;
           slug: string;
           waiting_list: boolean;
+          expert_mode: boolean;
         };
         Insert: {
           id?: string;
           name: string;
           slug: string;
           waiting_list?: boolean;
+          expert_mode?: boolean;
         };
         Update: {
           id?: string;
           name?: string;
           slug?: string;
           waiting_list?: boolean;
+          expert_mode?: boolean;
         };
       };
       products: {

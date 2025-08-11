@@ -19,6 +19,7 @@ interface TestCreationContentProps {
   setDemographicsValid?: (valid: boolean) => void;
   surveyQuestionsValid?: boolean;
   setSurveyQuestionsValid?: (valid: boolean) => void;
+  expertMode?: boolean;
 }
 
 export function TestCreationContent({
@@ -31,6 +32,7 @@ export function TestCreationContent({
   setDemographicsValid,
   surveyQuestionsValid,
   setSurveyQuestionsValid,
+  expertMode = false,
 }: TestCreationContentProps) {
   const handleUpdateData = (key: keyof TestData, value: any) => {
     onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
@@ -92,7 +94,7 @@ export function TestCreationContent({
         />
       )}
 
-      {currentStep === 'survey-questions' && (
+      {currentStep === 'survey-questions' && expertMode && (
         <SurveyQuestions
           selectedQuestions={testData.surveyQuestions || []}
           onChange={questions =>

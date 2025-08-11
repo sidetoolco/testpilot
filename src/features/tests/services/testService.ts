@@ -73,8 +73,9 @@ export const testService = {
         await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
       }
 
-      // Step 7: Guardar survey questions
-      await this.insertSurveyQuestions(test.id, testData.surveyQuestions || ['value', 'appearance', 'confidence', 'brand', 'convenience']);
+      // Step 7: Guardar survey questions (use defaults if expert mode is disabled)
+      const defaultQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'];
+      await this.insertSurveyQuestions(test.id, testData.surveyQuestions || defaultQuestions);
 
       // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);

@@ -1,4 +1,4 @@
-import { Building2, Users, CreditCard, Trash2, Eye, AlertTriangle } from 'lucide-react';
+import { Building2, Users, CreditCard, Trash2, Eye, AlertTriangle, Brain } from 'lucide-react';
 import { Pagination } from '../common/Pagination';
 import { CreditIcon } from '../ui/CreditIcon';
 
@@ -12,6 +12,7 @@ interface Company {
   user_count?: number;
   test_count?: number;
   waiting_list?: boolean;
+  expert_mode?: boolean;
 }
 
 interface CompaniesGridProps {
@@ -116,13 +117,18 @@ export const CompaniesGrid = ({
                     <AlertTriangle className="h-4 w-4 text-gray-400" />
                     <span className="text-xs sm:text-sm text-gray-600">Status</span>
                   </div>
-                  <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full ${
-                    company.waiting_list 
-                      ? 'bg-yellow-100 text-yellow-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {company.waiting_list ? 'Waiting List' : 'Active'}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full ${
+                      company.waiting_list 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {company.waiting_list ? 'Waiting List' : 'Active'}
+                    </span>
+                    {company.expert_mode && (
+                      <Brain className="h-4 w-4 text-blue-500" />
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -11,6 +11,7 @@ interface Company {
   user_count?: number;
   test_count?: number;
   waiting_list?: boolean;
+  expert_mode?: boolean;
 }
 
 interface CompanyWithDetails extends Company {
