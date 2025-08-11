@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { useSessionStore } from '../store/useSessionStore';
+import { useTestCompletionStore } from '../store/useTestCompletionStore';
 import {
   checkAndFetchExistingSession,
   fetchProductAndCompetitorData,
   processString,
 } from '../features/tests/services/testersSessionService';
 import { createNewSession } from '../features/tests/services/testersSessionService';
+import { checkTestCompletion } from '../features/tests/services/testCompletionService';
 import { Lightbulb } from 'lucide-react';
 import { getTracker } from '../lib/openReplay';
+import { toast } from 'sonner';
 
 interface TestData {
   id: string;
@@ -45,10 +49,21 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   test: string;
+  onCaptchaVerify: (token: string | null) => void;
+  captchaVerified: boolean;
+  captchaLoading: boolean;
 }
 
-const Modal = ({ isOpen, onClose, test }: ModalProps) => {
+const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captchaLoading }: ModalProps) => {
+  const [recaptchaRef, setRecaptchaRef] = useState<any>(null);
+
   if (!isOpen) return null;
+
+  const handleButtonClick = () => {
+    if (captchaVerified && !captchaLoading) {
+      onClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -62,11 +77,33 @@ const Modal = ({ isOpen, onClose, test }: ModalProps) => {
           <strong> "{test} </strong>. Please browse as you normally would, add your selection to
           cart, and then checkout.
         </p>
+        
+        {/* reCAPTCHA - Visible checkbox */}
+        <div className="flex justify-center py-4">
+          {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+            <ReCAPTCHA
+              ref={(ref) => setRecaptchaRef(ref)}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              onChange={onCaptchaVerify}
+              size="normal"
+            />
+          ) : (
+            <div className="text-red-500">
+              reCAPTCHA site key not found. Please check your environment variables.
+            </div>
+          )}
+        </div>
+        
         <button
-          onClick={onClose}
-          className="mt-4 bg-[#00A67E] hover:bg-[#00A67E] text-white py-2 px-6 md:px-7 rounded-full font-medium"
+          onClick={handleButtonClick}
+          disabled={!captchaVerified || captchaLoading}
+          className={`mt-4 py-2 px-6 md:px-7 rounded-full font-medium ${
+            captchaVerified && !captchaLoading
+              ? 'bg-[#00A67E] hover:bg-[#00A67E] text-white'
+              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+          }`}
         >
-          Ok
+          {captchaLoading ? 'Verifying...' : 'Ok'}
         </button>
       </div>
     </div>
@@ -119,9 +156,12 @@ const TestUserPage = () => {
   const [cartItems] = useState<any[]>([]);
 
   const { startSession, shopperId } = useSessionStore();
+  const { isTestCompleted, markTestCompleted } = useTestCompletionStore();
   const isModalOpen = !shopperId;
 
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [captchaLoading, setCaptchaLoading] = useState(false);
 
   const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
@@ -131,15 +171,43 @@ const TestUserPage = () => {
     }
   }, [prolificPid]);
 
-  const closeModal = async () => {
+  const handleCaptchaVerify = async (token: string | null) => {
+    if (!token) {
+      console.log('No captcha token received');
+      toast.error('Captcha verification failed. Please refresh the page and try again.');
+      setCaptchaLoading(false);
+      return;
+    }
+
+    setCaptchaLoading(true);
+    try {
+      console.log('Captcha token received:', token);
+      
+      // Simple frontend verification - sufficient for low-traffic sites
+      // The reCAPTCHA widget itself provides basic bot protection
+      setCaptchaVerified(true);
+      setCaptchaLoading(false);
+      
+      // Don't proceed with test here - just mark captcha as verified
+      // The test logic will run when user clicks "Ok" button
+    } catch (error) {
+      console.error('Captcha verification failed:', error);
+      toast.error('Captcha verification failed. Please refresh the page and try again.');
+      setCaptchaLoading(false);
+    }
+  };
+
+  const proceedWithTest = async () => {
     try {
       const result = processString(id ?? '');
       const testId = result?.modifiedString ?? '';
       const variant = result?.lastCharacter ?? '';
 
+      // Only check completion for existing sessions, not new users
       const existingSession: any = await checkAndFetchExistingSession(testId, variant);
 
       if (existingSession?.ended_at) {
+        markTestCompleted(testId, variant);
         navigate('/thanks', { state: { testId: id + '-' + variant } });
         return;
       }
@@ -190,8 +258,17 @@ const TestUserPage = () => {
         );
       }
     } catch (error) {
-      console.error(`Error en closeModal al procesar la sesión (ID: ${id}):`, error);
+      console.error(`Error en proceedWithTest al procesar la sesión (ID: ${id}):`, error);
     }
+  };
+
+  const closeModal = async () => {
+    // Only proceed if captcha is verified
+    if (!captchaVerified) {
+      return;
+    }
+    
+    await proceedWithTest();
   };
 
   useEffect(() => {
@@ -224,7 +301,14 @@ const TestUserPage = () => {
           </div>
         ) : combinedData ? (
           <div key={combinedData.id}>
-            <Modal isOpen={isModalOpen} onClose={closeModal} test={combinedData.search_term} />
+            <Modal 
+              isOpen={isModalOpen} 
+              onClose={closeModal} 
+              test={combinedData.search_term}
+              onCaptchaVerify={handleCaptchaVerify}
+              captchaVerified={captchaVerified}
+              captchaLoading={captchaLoading}
+            />
             <div className="max-w-screen-2xl mx-auto px-4 py-4">
               <div className="bg-white p-4 mb-4 rounded-sm">
                 <div className="flex items-center space-x-2">

@@ -28,6 +28,7 @@ import { useContinueTest } from '../features/tests/hooks/useContinueTest';
 import { TestCost } from '../components/test-setup/TestCost';
 import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 import { CreditIcon } from '../components/ui/CreditIcon';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -101,6 +102,7 @@ export default function MyTests() {
   const { tests, loading, updateTest } = useTests();
   const user = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
+  const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
@@ -183,7 +185,35 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
+      // Get user's company ID
+      if (!user?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.user.id as any)
+        .single();
+
+      if (profileError || !profile || !profile.company_id) {
+        throw new Error('Unable to get company information');
+      }
+
+      const typedProfile = profile as { company_id: string };
+
+      // First, publish the test
       await apiClient.post(`/tests/${testId}/publish`);
+
+      // Then, deduct credits using the same API as admin companies
+      await apiClient.post('/credits/admin/edit', {
+        company_id: typedProfile.company_id,
+        credits: availableCredits - totalCredits, // new total after deduction
+        description: `Credits deducted for publishing test: ${confirmationModal.test.name}`
+      });
+
+      // Refresh credits cache to show updated balance
+      await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
       toast.success('Test published successfully');
     } catch (error: any) {
@@ -266,6 +296,10 @@ export default function MyTests() {
     setConfirmationModal({ isOpen: true, testId, test, variantsArray });
   };
 
+
+
+
+
   // Nueva función para manejar la continuación de tests incompletos
   const handleContinueTest = async (testId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se active el onClick del contenedor
@@ -285,35 +319,40 @@ export default function MyTests() {
     }
   };
 
-  // Delete test directly using Supabase
-  const handleDeleteWithSupabase = async (testId: string, testName: string) => {
+  // Delete test using backend endpoint only
+  const handleDeleteTest = async (testId: string, testName: string) => {
     setDeletingTests(prev => [...prev, testId]);
 
     try {
-      const { data, error } = await supabase
-        .from('tests')
-        .delete()
-        .eq('id', testId as any)
-        .select();
+      // Call backend endpoint to handle all deletion logic
+      await apiClient.delete(`/tests/${testId}`);
 
-      if (error) {
-        toast.error(`Failed to delete test: ${error.message}`);
-        return;
-      }
+      // Axios automatically throws on 4xx/5xx status codes, so if we reach here, it was successful
+      toast.success(`Test "${testName}" deleted successfully`);
 
-      if (data && data.length > 0) {
-        toast.success(`Test "${testName}" deleted successfully`);
+      // Add the test ID to the deleted list to hide it from UI
+      setDeletedTestIds(prev => [...prev, testId]);
 
-        // Add the test ID to the deleted list to hide it from UI
-        setDeletedTestIds(prev => [...prev, testId]);
-
-        // Close the modal
-        setDeleteModal(null);
+      // Close the modal
+      setDeleteModal(null);
+    } catch (error: any) {
+      console.error('Error deleting test:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      // Handle specific error responses
+      if (error.response?.status === 404) {
+        toast.error('Test not found');
+      } else if (error.response?.status === 401) {
+        toast.error('Unauthorized');
+      } else if (error.response?.status === 500) {
+        // Log detailed error information for debugging
+        const errorDetails = error.response?.data?.message || error.response?.data?.error || 'Internal server error';
+        console.error('Backend error details:', errorDetails);
+        toast.error(`Server error: ${errorDetails}`);
       } else {
-        toast.error('Test not found or already deleted');
+        toast.error(error.response?.data?.message || 'Failed to delete test. Please try again.');
       }
-    } catch (error) {
-      toast.error('Failed to delete test. Please try again.');
     } finally {
       setDeletingTests(prev => prev.filter(id => id !== testId));
     }
@@ -630,6 +669,10 @@ export default function MyTests() {
                           )}
                         </button>
                       )}
+                      
+
+                      
+
                     </div>
                   )}
                 </div>
@@ -783,7 +826,7 @@ export default function MyTests() {
               <button
                 onClick={() => {
                   if (deleteModal) {
-                    handleDeleteWithSupabase(deleteModal.testId, deleteModal.testName);
+                    handleDeleteTest(deleteModal.testId, deleteModal.testName);
                   }
                 }}
                 disabled={deletingTests.includes(deleteModal?.testId || '')}
