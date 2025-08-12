@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Star, Tag, X } from 'lucide-react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { creditsService, CouponValidationResponse } from '../services/creditsService';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ModalLayout from '../../../layouts/ModalLayout';
 import { formatPrice } from '../../../utils/format';
+import { useRefreshCredits } from '../hooks/useRefreshCredits';
 
 interface PurchaseCreditsModalProps {
   isOpen: boolean;
@@ -45,6 +45,8 @@ const CARD_ELEMENT_OPTIONS = {
 export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: PurchaseCreditsModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isProcessingCredits, setIsProcessingCredits] = useState(false);
+  const [creditProcessingError, setCreditProcessingError] = useState<string | null>(null);
   const [selectedCredits, setSelectedCredits] = useState<number>(1000); // Default to popular option
   const [customCredits, setCustomCredits] = useState<string>('');
   const [isCustomAmount, setIsCustomAmount] = useState(false);
@@ -57,7 +59,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
   
   const stripe = useStripe();
   const elements = useElements();
-  const queryClient = useQueryClient();
+  const { refreshCredits, isRefreshing } = useRefreshCredits();
 
   useEffect(() => {
     if (isOpen && creditsNeeded !== undefined && creditsNeeded > 0) {
@@ -171,6 +173,29 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
     setCouponError('');
   };
 
+  const handleManualRefresh = async () => {
+    try {
+      setIsProcessingCredits(true);
+      setCreditProcessingError(null);
+      
+      // Use the custom hook to refresh credits silently
+      const success = await refreshCredits({ silent: true });
+      
+      if (success) {
+        setPaymentSuccess(true);
+        toast.success('Credits successfully added to your account!');
+      } else {
+        setCreditProcessingError('Manual refresh failed. Please contact support if the issue persists.');
+      }
+    } catch (error) {
+      console.error('Manual refresh failed:', error);
+      setCreditProcessingError('Manual refresh failed. Please contact support if the issue persists.');
+      toast.error('Failed to refresh credits. Please contact support.');
+    } finally {
+      setIsProcessingCredits(false);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -203,11 +228,25 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
       if (error) {
         toast.error(error.message || 'Payment failed');
       } else if (paymentIntent.status === 'succeeded') {
-        setPaymentSuccess(true);
-        toast.success('Payment successful! Credits added to your account.');
-
-        // Invalidate credits query to refresh data
-        queryClient.invalidateQueries({ queryKey: ['credits'] });
+        // Payment succeeded, now process pending credits
+        setIsProcessingCredits(true);
+        try {
+          // Use the custom hook to refresh credits silently
+          const success = await refreshCredits({ silent: true });
+          
+          if (success) {
+            setPaymentSuccess(true);
+            toast.success('Payment successful! Credits added to your account.');
+          } else {
+            throw new Error('Failed to process credits');
+          }
+        } catch (creditError) {
+          console.error('Failed to process credits:', creditError);
+          setCreditProcessingError('Payment succeeded but failed to add credits automatically. You can try refreshing manually.');
+          toast.error('Payment succeeded but failed to add credits. Please contact support.');
+        } finally {
+          setIsProcessingCredits(false);
+        }
 
         // Close modal after 2 seconds
         setTimeout(() => {
@@ -240,7 +279,61 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
         >
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h3 className="text-2xl font-semibold text-gray-900 mb-2">Payment Successful!</h3>
-          <p className="text-gray-600">Your credits have been added to your account.</p>
+          <p className="text-gray-600 mb-4">Your payment has been processed successfully.</p>
+          <div className="bg-green-50 rounded-lg p-4 mb-4">
+            <p className="text-sm text-green-700 font-medium">Credits Processing</p>
+            <p className="text-sm text-green-600">Your credits are being added to your account. This may take a few moments.</p>
+          </div>
+          <p className="text-xs text-gray-500">You can close this window or wait for it to close automatically.</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (isProcessingCredits) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl text-center"
+        >
+          <div className="w-16 h-16 border-4 border-green-300 border-t-green-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-2">Processing Credits</h3>
+          <p className="text-gray-600">Please wait while we add your credits to your account...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (creditProcessingError) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl text-center"
+        >
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-2">Credit Processing Failed</h3>
+          <p className="text-gray-600 mb-6">{creditProcessingError}</p>
+          <div className="space-y-3">
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRefreshing ? 'Refreshing...' : 'Try Manual Refresh'}
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </motion.div>
       </div>
     );

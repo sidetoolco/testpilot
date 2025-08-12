@@ -21,7 +21,6 @@ export const creditsService = {
     return data;
   },
 
-  // ✅ CORRECT: Create payment intent
   async createPaymentIntent(credits: number, couponId?: string): Promise<PaymentIntentResponse> {
     const requestBody: any = { credits };
     
@@ -33,7 +32,11 @@ export const creditsService = {
     return data;
   },
 
-  // ✅ FIXED: Validate coupon by code using the new endpoint
+
+  async processMyPending(): Promise<void> {
+    await apiClient.post('/credits/process-my-pending');
+  },
+
   async validateCoupon(couponCode: string): Promise<CouponValidationResponse> {
     try {
       const safeCode = encodeURIComponent(couponCode);
