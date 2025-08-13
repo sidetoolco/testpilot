@@ -45,6 +45,10 @@ export interface TestDetails {
       title: string;
       image_url: string;
       prolificStatus: string;
+      calculated_cost?: number;        
+      last_cost_calculation?: string; 
+      participant_count?: number;      
+      reward_amount?: number;         
     } | null;
     b: {
       id: string;
@@ -52,6 +56,10 @@ export interface TestDetails {
       title: string;
       image_url: string;
       prolificStatus: string;
+      calculated_cost?: number;        
+      last_cost_calculation?: string;  
+      participant_count?: number;      
+      reward_amount?: number;          
     } | null;
     c: {
       id: string;
@@ -59,6 +67,10 @@ export interface TestDetails {
       title: string;
       image_url: string;
       prolificStatus: string;
+      calculated_cost?: number;        
+      last_cost_calculation?: string;  
+      participant_count?: number;      
+      reward_amount?: number;         
     } | null;
   };
   responses?: {

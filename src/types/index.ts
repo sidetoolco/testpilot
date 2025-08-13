@@ -16,6 +16,10 @@ export interface Product {
   createdAt?: Date;
   updatedAt?: Date;
   prolificStatus?: string | null;
+  calculated_cost?: number;        
+  last_cost_calculation?: string; 
+  participant_count?: number;     
+  reward_amount?: number;          
 }
 
 export interface Test {
