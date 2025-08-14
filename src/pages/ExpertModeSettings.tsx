@@ -137,8 +137,6 @@ export default function ExpertModeSettings() {
                   <p className="font-medium mb-2">What Expert Mode enables:</p>
                   <ul className="space-y-1 list-disc list-inside">
                     <li><strong>Custom Survey Questions:</strong> Choose from a wider range of survey questions beyond the default set</li>
-                    <li><strong>Advanced Testing:</strong> Access to specialized testing methodologies and question types</li>
-                    <li><strong>Enhanced Insights:</strong> Get more detailed feedback from your testers</li>
                   </ul>
                   
                   {!expertMode && (
