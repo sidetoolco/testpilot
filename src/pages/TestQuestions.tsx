@@ -9,6 +9,7 @@ import { SelectedVariation } from '../features/tests/components/TestQuestions/Se
 import { compareTwoStrings } from 'string-similarity';
 import FeedbackModal from '../features/tests/components/TestQuestions/FeedbackModal';
 import { ProlificCompletionCode } from '../lib/enum';
+import { getQuestionsByIds, getDefaultQuestions } from '../features/tests/components/TestQuestions/questionConfig';
 
 const REPEATED_STRING_ERROR_MSG = 'Please provide different feedback for each response.';
 
@@ -20,32 +21,71 @@ const TestDisplay: React.FC = () => {
   const competitorItem = test?.variations?.[0]?.product;
   const navigate = useNavigate();
 
-  const [responses, setResponses] = useState<{
-    value: number;
-    appearence: number;
-    confidence: number;
-    brand: number;
-    convenience: number;
-    likes_most: string;
-    improve_suggestions: string;
-    choose_reason: string;
-  }>({
-    value: 3,
-    appearence: 3,
-    confidence: 3,
-    brand: 3,
-    convenience: 3,
-    likes_most: '',
-    improve_suggestions: '',
-    choose_reason: '',
-  });
+  // Get selected questions from database or use defaults
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
+  const questionConfigs = getQuestionsByIds(selectedQuestions);
+  
+  // Fetch survey questions from database
+  useEffect(() => {
+    if (test?.id) {
+      const fetchSurveyQuestions = async () => {
+        setQuestionsLoading(true);
+        const { data, error } = await supabase
+          .from('test_survey_questions')
+          .select('selected_questions')
+          .eq('test_id', test.id)
+          .single();
+        
+        if (data && !error && 'selected_questions' in data) {
+          setSelectedQuestions((data as any).selected_questions);
+        } else {
+          // Fallback to defaults if no database data
+          setSelectedQuestions(getDefaultQuestions());
+        }
+        setQuestionsLoading(false);
+      };
+      
+      fetchSurveyQuestions();
+    }
+  }, [test?.id]);
+
+  // Create dynamic responses object based on selected questions
+  const createInitialResponses = () => {
+    const initialResponses: any = {
+      likes_most: '',
+      improve_suggestions: '',
+      choose_reason: '',
+    };
+    
+    // Add rating fields for selected questions
+    questionConfigs.forEach(question => {
+      if (question.category === 'rating') {
+        initialResponses[question.field] = 3;
+      }
+    });
+    
+    return initialResponses;
+  };
+
+  const [responses, setResponses] = useState(createInitialResponses());
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Recreate responses when selectedQuestions changes
+  useEffect(() => {
+    if (selectedQuestions.length > 0) {
+      setResponses(createInitialResponses());
+    }
+  }, [selectedQuestions]);
+
   const stringFields = ['likes_most', 'improve_suggestions', 'choose_reason'];
-  // const numberFields = ['value', 'appearence', 'confidence', 'brand', 'convenience'];
+  // Get rating fields from selected questions
+  const ratingFields = questionConfigs
+    .filter(question => question.category === 'rating')
+    .map(question => question.field);
 
   const handleChange = useCallback(
     (e: any) => {
@@ -64,7 +104,7 @@ const TestDisplay: React.FC = () => {
         );
       }
 
-      setResponses(prevResponses => ({
+      setResponses((prevResponses: any) => ({
         ...prevResponses,
         [name]: stringFields.includes(name) ? value : Number(value),
       }));
@@ -144,20 +184,23 @@ const TestDisplay: React.FC = () => {
       }
       console.log(responses);
 
-      const payload = {
+      // Create dynamic payload based on selected questions
+      const payload: any = {
         test_id: test.id,
         tester_id: shopperId,
         product_id: productId,
-        appearance: Number(responses.appearence),
-        confidence: Number(responses.confidence),
-        convenience: Number(responses.convenience),
-        value: Number(responses.value),
-        brand: Number(responses.brand),
         likes_most: responses.likes_most,
         improve_suggestions: responses.improve_suggestions,
         ...(isComparison ? { competitor_id: itemSelectedAtCheckout?.id } : {}),
         ...(isComparison ? { choose_reason: responses.choose_reason } : {}),
       };
+      
+      // Add rating fields for selected questions
+      questionConfigs.forEach(question => {
+        if (question.category === 'rating') {
+          payload[question.field] = Number(responses[question.field]);
+        }
+      });
 
       const tableName = isComparison ? 'responses_comparisons' : 'responses_surveys';
 
@@ -232,7 +275,11 @@ const TestDisplay: React.FC = () => {
       <p className="text-center">
         <strong>Search Term:</strong> {test.search_term}
       </p>
-      {isVariationSelected.length > 0 ? (
+      {questionsLoading ? (
+        <div className="text-center py-8">
+          <p>Loading questions...</p>
+        </div>
+      ) : isVariationSelected.length > 0 ? (
         <SelectedVariation
           loading={loading}
           responses={responses}
@@ -240,6 +287,7 @@ const TestDisplay: React.FC = () => {
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           errors={errors}
+          selectedQuestions={selectedQuestions}
         />
       ) : (
         <ComparisonView
@@ -250,6 +298,7 @@ const TestDisplay: React.FC = () => {
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           errors={errors}
+          selectedQuestions={selectedQuestions}
         />
       )}
       <FeedbackModal

@@ -31,6 +31,7 @@ import TeamSettings from './pages/TeamSettings';
 import TeamInviteForm from './pages/TeamInviteForm';
 import Billing from './pages/Billing';
 import Coupons from './pages/Coupons';
+import ExpertModeSettings from './pages/ExpertModeSettings';
 import CompaniesManagement from './pages/CompaniesManagement';
 
 const queryClient = new QueryClient();
@@ -197,6 +198,17 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <Coupons />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings/expert-mode"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <ExpertModeSettings />
                     </MainLayout>
                   </ProtectedRoute>
                 }

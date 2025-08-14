@@ -113,6 +113,8 @@ export default function DemographicSelection({
     if (!demographics.ageRanges?.length) {
       updates.ageRanges = [initialMinAge, initialMaxAge];
     }
+    
+
 
     if (Object.keys(updates).length > 0) {
       onChange(prev => ({ ...prev, ...updates }));
@@ -378,6 +380,7 @@ export default function DemographicSelection({
             }))
           }
         />
+
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import {
   Percent,
   Building2,
   Shield,
+  Brain,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { supabase } from '../../lib/supabase';
@@ -339,24 +340,38 @@ export default function SideNav() {
                     </a>
                   </li>
                   {isAdmin && (
-                    <li>
-                      <a
-                        href="/settings/coupons"
-                        onClick={e => handleNavigation('/settings/coupons', e)}
-                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                          isActive('/settings/coupons')
-                            ? 'bg-[#008F6B] text-white'
-                            : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                        }`}
-                      >
-                        <Percent className="h-4 w-4" />
-                        <span className="font-medium">Coupons</span>
-                      </a>
-                    </li>
-                  )}
-                </ul>
-              )}
-            </li>
+                                      <li>
+                    <a
+                      href="/settings/coupons"
+                      onClick={e => handleNavigation('/settings/coupons', e)}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                        isActive('/settings/coupons')
+                          ? 'bg-[#008F6B] text-white'
+                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                      }`}
+                    >
+                      <Percent className="h-4 w-4" />
+                      <span className="font-medium">Coupons</span>
+                    </a>
+                  </li>
+                )}
+                <li>
+                  <a
+                    href="/settings/expert-mode"
+                    onClick={e => handleNavigation('/settings/expert-mode', e)}
+                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+                      isActive('/settings/expert-mode')
+                        ? 'bg-[#008F6B] text-white'
+                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+                    }`}
+                  >
+                    <Brain className="h-4 w-4" />
+                    <span className="font-medium">Expert Mode</span>
+                  </a>
+                </li>
+              </ul>
+            )}
+          </li>
 
             <li>
               <button

@@ -1,5 +1,6 @@
 import { RangeInput } from '../RangeInputWithText';
 import { ProductCard } from './ProductCard';
+import { getQuestionsByIds, getQuestionText } from './questionConfig';
 
 interface SelectedVariationProps {
   responses: any;
@@ -8,6 +9,7 @@ interface SelectedVariationProps {
   handleSubmit: () => void;
   errors: Record<string, string>;
   loading: boolean;
+  selectedQuestions?: string[];
 }
 
 export const SelectedVariation: React.FC<SelectedVariationProps> = ({
@@ -17,32 +19,26 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
   handleSubmit,
   errors,
   loading,
-}) => (
+  selectedQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'],
+}) => {
+  const questionConfigs = getQuestionsByIds(selectedQuestions);
+  
+  return (
   <div className="flex flex-col items-center justify-center w-full p-3 md:p-6">
     <div className="card bg-white p-3 rounded-lg shadow-lg mb-6 w-full max-w-md">
       <ProductCard title="Item A" item={item} />
     </div>
     <div className="questions space-y-6 w-full max-w-md">
-      <p className="font-medium text-green-800">
-        How appealing do you find the design and appearance of this product?
-      </p>
-      <RangeInput name="appearence" value={responses.appearence} onChange={handleChange} />
-
-      <p className="font-medium text-green-800">
-        How confident are you that this product will deliver its promised results?
-      </p>
-      <RangeInput name="confidence" value={responses.confidence} onChange={handleChange} />
-
-      <p className="font-medium text-green-800">How convenient does this product seem to use?</p>
-      <RangeInput name="convenience" value={responses.convenience} onChange={handleChange} />
-
-      <p className="font-medium text-green-800">
-        How much do you trust this brand to meet your expectations?
-      </p>
-      <RangeInput name="brand" value={responses.brand} onChange={handleChange} />
-
-      <p className="font-medium text-green-800">How would you rate the value of this product?</p>
-      <RangeInput name="value" value={responses.value} onChange={handleChange} />
+      {questionConfigs.map(question => (
+        <div key={question.id}>
+          <p className="font-medium text-green-800">{getQuestionText(question.id, false)}</p>
+          <RangeInput 
+            name={question.field} 
+            value={responses[question.field]} 
+            onChange={handleChange} 
+          />
+        </div>
+      ))}
 
       <div>
         <p className="font-medium text-green-800">What do you like most about this product?</p>
@@ -93,4 +89,5 @@ export const SelectedVariation: React.FC<SelectedVariationProps> = ({
       </button>
     </div>
   </div>
-);
+  );
+};

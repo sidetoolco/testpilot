@@ -6,23 +6,29 @@ interface CheckboxProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   className?: string;
+  disabled?: boolean;
 }
 
-export default function Checkbox({ id, label, checked, onChange, className = '' }: CheckboxProps) {
+export default function Checkbox({ id, label, checked, onChange, className = '', disabled = false }: CheckboxProps) {
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
+    <div className={`flex items-center space-x-3 ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <div className="relative">
         <input
           id={id}
           type="checkbox"
           checked={checked}
           onChange={e => onChange(e.target.checked)}
+          disabled={disabled}
           className="sr-only"
         />
         <label
           htmlFor={id}
-          className={`w-5 h-5 border-2 rounded transition-all cursor-pointer flex items-center justify-center ${
-            checked ? 'border-[#00A67E] bg-[#00A67E]' : 'border-gray-300 hover:border-[#00A67E]'
+          className={`w-5 h-5 border-2 rounded transition-all flex items-center justify-center ${
+            disabled 
+              ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
+              : checked 
+                ? 'border-[#00A67E] bg-[#00A67E] cursor-pointer' 
+                : 'border-gray-300 hover:border-[#00A67E] cursor-pointer'
           }`}
         >
           {checked && (
@@ -36,7 +42,7 @@ export default function Checkbox({ id, label, checked, onChange, className = '' 
           )}
         </label>
       </div>
-      <span className="text-gray-700 select-none">{label}</span>
+      <span className={`text-gray-700 select-none ${disabled ? 'cursor-not-allowed' : ''}`}>{label}</span>
     </div>
   );
 }

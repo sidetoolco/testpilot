@@ -8,7 +8,6 @@ import { TestCreationContent } from '../features/tests/components/TestCreationCo
 import { TestData } from '../features/tests/types';
 import {
   useTestStateFromLocation,
-  initializeTestFromState,
 } from '../features/tests/utils/testStateManager';
 import { useTestCreation } from '../features/tests/context/TestCreationContext';
 import { useCredits } from '../features/credits/hooks/useCredits';
@@ -16,26 +15,15 @@ import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCre
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
-import { AlertTriangle } from 'lucide-react';
-import { formatPrice } from '../utils/format';
 import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
 import { TestCost } from '../components/test-setup/TestCost';
 import apiClient from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExpertMode } from '../hooks/useExpertMode';
 
-const steps = [
-  { key: 'objective', label: 'Objective' },
-  { key: 'variations', label: 'Variants' },
-  { key: 'search', label: 'Search Term' },
-  { key: 'competitors', label: 'Competitors' },
-  { key: 'demographics', label: 'Demographics' },
-  { key: 'preview', label: 'Preview' },
-  { key: 'review', label: 'Review' },
-];
-
-const initialTestData: TestData = {
+const getInitialTestData = (expertMode: boolean): TestData => ({
   name: '',
   searchTerm: '',
   competitors: [],
@@ -55,7 +43,8 @@ const initialTestData: TestData = {
       enabled: false,
     },
   },
-};
+  surveyQuestions: expertMode ? ['value', 'appearance', 'confidence', 'brand', 'convenience'] : ['value', 'appearance', 'confidence', 'brand', 'convenience'],
+});
 
 const LoadingMessages = [
   'Creating your test...',
@@ -71,14 +60,19 @@ const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Check if company has expert mode enabled
+  const { expertMode } = useExpertMode();
+  
   const user = useAuth();
   const queryClient = useQueryClient();
-  const [testData, setTestData] = useState<TestData>(initialTestData);
+  const [testData, setTestData] = useState<TestData>(() => getInitialTestData(expertMode));
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [demographicsValid, setDemographicsValid] = useState(true);
+  const [surveyQuestionsValid, setSurveyQuestionsValid] = useState(true);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [publishModal, setPublishModal] = useState<{ isOpen: boolean; testData: TestData } | null>(null);
 
@@ -97,6 +91,18 @@ export default function CreateConsumerTest() {
   // Get user's available credits
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
 
+  // Dynamic steps based on expert mode
+  const steps = [
+    { key: 'objective', label: 'Objective' },
+    { key: 'variations', label: 'Variants' },
+    { key: 'search', label: 'Search Term' },
+    { key: 'competitors', label: 'Competitors' },
+    { key: 'demographics', label: 'Demographics' },
+    ...(expertMode ? [{ key: 'survey-questions', label: 'Survey Questions' }] : []),
+    { key: 'preview', label: 'Preview' },
+    { key: 'review', label: 'Review' },
+  ];
+
   // Effect to initialize incomplete test if coming from navigation
   useEffect(() => {
     // Only initialize if it's an incomplete test AND hasn't been initialized yet
@@ -110,19 +116,29 @@ export default function CreateConsumerTest() {
         setCurrentTestId(testState.testId);
         setContextTestId(testState.testId);
       }
+    }
+  }, [testState.isIncompleteTest, testState.testData, testState.testId, currentTestId, setContextTestData, setContextTestId]);
 
-      // Set the correct step
-      if (testState.currentStep) {
-        setCurrentStep(testState.currentStep);
-        setContextStep(testState.currentStep);
-      }
+  // Effect to update test data when expert mode changes
+  useEffect(() => {
+    if (testData.surveyQuestions && !expertMode) {
+      // If expert mode is disabled, ensure we have default questions
+      setTestData(prev => ({
+        ...prev,
+        surveyQuestions: ['value', 'appearance', 'confidence', 'brand', 'convenience']
+      }));
+    }
+  }, [expertMode, testData.surveyQuestions, setTestData]);
+
+  // Effect to set the correct step
+  useEffect(() => {
+    if (testState.currentStep) {
+      setCurrentStep(testState.currentStep);
+      setContextStep(testState.currentStep);
     }
   }, [
-    testState.isIncompleteTest,
-    testState.testData,
-    testState.testId,
     testState.currentStep,
-    currentTestId,
+    setContextStep
   ]);
 
   // Function to save incomplete test - memoized with useCallback
@@ -142,7 +158,7 @@ export default function CreateConsumerTest() {
       console.error('Error saving incomplete test:', error);
       throw error;
     }
-  }, [testData, currentTestId, currentStep, setContextTestId]);
+  }, [testData, currentTestId, currentStep, setContextTestId, testService]);
 
   // Register saveIncompleteTest function with context
   useEffect(() => {
@@ -152,15 +168,15 @@ export default function CreateConsumerTest() {
   // Update context state when local state changes - only when values actually change
   useEffect(() => {
     setContextTestData(testData);
-  }, [testData]);
+  }, [testData, setContextTestData]);
 
   useEffect(() => {
     setContextStep(currentStep);
-  }, [currentStep]);
+  }, [currentStep, setContextStep]);
 
   useEffect(() => {
     setContextTestId(currentTestId);
-  }, [currentTestId]);
+  }, [currentTestId, setContextTestId]);
 
   // Set in progress when on create-test page
   useEffect(() => {
@@ -173,7 +189,14 @@ export default function CreateConsumerTest() {
   const handleBack = () => {
     const currentIndex = steps.findIndex(s => s.key === currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1].key);
+      let prevStep = steps[currentIndex - 1].key;
+      
+      // If moving back from preview and expert mode is disabled, skip survey questions
+      if (currentStep === 'preview' && !expertMode && prevStep === 'survey-questions') {
+        prevStep = 'demographics';
+      }
+      
+      setCurrentStep(prevStep);
     }
   };
 
@@ -335,15 +358,25 @@ export default function CreateConsumerTest() {
     if (handleNext()) {
       const currentIndex = steps.findIndex(s => s.key === currentStep);
       if (currentIndex < steps.length - 1) {
-        setCurrentStep(steps[currentIndex + 1].key);
+        let nextStep = steps[currentIndex + 1].key;
+        
+        // If moving from demographics and expert mode is disabled, skip survey questions
+        if (currentStep === 'demographics' && !expertMode && nextStep === 'survey-questions') {
+          nextStep = 'preview';
+        }
+        
+        setCurrentStep(nextStep);
       }
     }
   };
 
-  // Custom canProceed function that considers demographics validation
-  const canProceedWithDemographics = () => {
+  // Custom canProceed function that considers demographics and survey questions validation
+  const canProceedWithValidation = () => {
     if (currentStep === 'demographics') {
       return demographicsValid;
+    }
+    if (currentStep === 'survey-questions' && expertMode) {
+      return surveyQuestionsValid;
     }
     return canProceed();
   };
@@ -415,7 +448,7 @@ export default function CreateConsumerTest() {
         <TestCreationSteps
           steps={steps.slice(1)}
           currentStep={currentStep}
-          canProceed={canProceedWithDemographics()}
+          canProceed={canProceedWithValidation()}
           onBack={handleBack}
           onNext={handleContinue}
           onConfirm={handleSaveDraft}
@@ -424,15 +457,18 @@ export default function CreateConsumerTest() {
         />
       )}
 
-      <TestCreationContent
-        currentStep={currentStep}
-        testData={testData}
-        onUpdateTestData={setTestData}
-        onNext={handleContinue}
-        onBack={handleBack}
-        demographicsValid={demographicsValid}
-        setDemographicsValid={setDemographicsValid}
-      />
+        <TestCreationContent
+          currentStep={currentStep}
+          testData={testData}
+          onUpdateTestData={setTestData}
+          onNext={handleContinue}
+          onBack={handleBack}
+          demographicsValid={demographicsValid}
+          setDemographicsValid={setDemographicsValid}
+          surveyQuestionsValid={surveyQuestionsValid}
+          setSurveyQuestionsValid={setSurveyQuestionsValid}
+          expertMode={expertMode}
+        />
 
       {/* Purchase Credits Modal */}
       <PurchaseCreditsModal

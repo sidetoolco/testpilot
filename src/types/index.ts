@@ -46,6 +46,7 @@ export interface Test {
       validAnswer?: 'Yes' | 'No';
     };
   };
+  surveyQuestions?: string[];
   responses: {
     surveys: Survey[];
     comparisons: any[];

@@ -73,6 +73,10 @@ export const testService = {
         await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
       }
 
+      // Step 7: Guardar survey questions (use defaults if expert mode is disabled)
+      const defaultQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'];
+      await this.insertSurveyQuestions(test.id, testData.surveyQuestions || defaultQuestions);
+
       // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);
 
@@ -170,6 +174,19 @@ export const testService = {
     if (error) {
       await supabase.from('tests').delete().eq('id', testId);
       throw new TestCreationError('Failed to add demographics', { error });
+    }
+  },
+
+  // Función para insertar survey questions
+  async insertSurveyQuestions(testId: string, surveyQuestions: string[]) {
+    const { data, error } = await supabase.from('test_survey_questions').insert({
+      test_id: testId,
+      selected_questions: surveyQuestions,
+    } as any);
+
+    if (error) {
+      await supabase.from('tests').delete().eq('id', testId);
+      throw new TestCreationError('Failed to add survey questions', { error });
     }
   },
   generateDynamicTitle(searchTerm: string): string {
