@@ -15,7 +15,7 @@ export const validateStep = (step: string, data: TestData): boolean => {
         data.demographics.ageRanges.length === 2 &&
         data.demographics.gender.length > 0 &&
         data.demographics.locations.length > 0 &&
-        data.demographics.testerCount >= 10 &&
+        data.demographics.testerCount >= 25 &&
         data.demographics.testerCount <= 500;
       // && data.demographics.interests.length > 0
 

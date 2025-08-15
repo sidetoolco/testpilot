@@ -382,7 +382,7 @@ export default function CreateConsumerTest() {
       return surveyQuestionsValid;
     }
     if (currentStep === 'search-competitors') {
-      return testData.competitors.length === 11;
+      return testData.searchTerm.trim().length > 0 && testData.competitors.length === 11;
     }
     return canProceed();
   };

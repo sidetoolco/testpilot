@@ -26,15 +26,16 @@ export default function SearchAndCompetitorSelection({
   const [searchInputValue, setSearchInputValue] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
   const [isPopping, setIsPopping] = useState(false);
-  const { products, loading, error } = useProductFetch(currentSearchTerm);
-  const isInitialLoad = useRef(true);
+  const { products, loading, error, refetch } = useProductFetch(currentSearchTerm);
   const prevCount = useRef(selectedCompetitors.length);
 
   const handleSearch = useCallback((term: string) => {
-    if (!term.trim()) return;
+    const next = term.trim();
+    if (!next) return;
     
-    setCurrentSearchTerm(term);
-    onSearchTermChange(term);
+    // Don't clear selected competitors - maintain selections during search
+    setCurrentSearchTerm(next);
+    onSearchTermChange(next);
     setIsSearching(true);
   }, [onSearchTermChange]);
 
@@ -67,14 +68,6 @@ export default function SearchAndCompetitorSelection({
     onCompetitorsChange(selectedCompetitors.filter(p => p.asin !== asin));
   }, [selectedCompetitors, onCompetitorsChange]);
 
-  // Reset selection when search term changes
-  useEffect(() => {
-    if (products.length && isInitialLoad.current) {
-      onCompetitorsChange([]);
-      isInitialLoad.current = false;
-    }
-  }, [currentSearchTerm, products.length, onCompetitorsChange]);
-
   // Pop animation when item is added
   useEffect(() => {
     if (selectedCompetitors.length > prevCount.current) {
@@ -93,13 +86,13 @@ export default function SearchAndCompetitorSelection({
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
     return <LoadingState showProgress message="Searching for products..." />;
   }
-  if (error) return <ErrorState error={error} onRetry={() => window.location.reload()} />;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
 
   return (
     <div className="max-w-6xl mx-auto">
       <SearchHeader
         title={hasSearchResults ? `Search & Select Competitors - "${currentSearchTerm}"` : "Search & Select Competitors"}
-        subtitle={`Search for products and select up to ${MAX_COMPETITORS} competitors for your test.`}
+        subtitle={`Search for products and select ${MAX_COMPETITORS} competitors for your test.`}
       />
 
       {/* Search Input - Always visible at top */}
@@ -191,8 +184,8 @@ export default function SearchAndCompetitorSelection({
         </div>
       )}
 
-      {/* Search Results - Only show when there are results */}
-      {hasSearchResults && (
+      {/* Search Results - Only show when there are results and not searching */}
+      {hasSearchResults && !isSearchingForProducts && (
         <div className="mb-8">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -268,6 +261,25 @@ export default function SearchAndCompetitorSelection({
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Loading Spinner for Search Results - Only replaces the results area */}
+      {isSearchingForProducts && (
+        <div className="mb-8">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Searching for: <span className="font-medium">"{currentSearchTerm}"</span>
+            </h3>
+          </div>
+          
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#00A67E] border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600 font-medium">Searching for products...</p>
+              <p className="text-gray-400 text-sm mt-1">This may take a few moments</p>
+            </div>
           </div>
         </div>
       )}

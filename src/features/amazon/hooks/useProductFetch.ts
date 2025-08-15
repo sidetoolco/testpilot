@@ -6,6 +6,7 @@ export function useProductFetch(searchTerm: string) {
   const [products, setProducts] = useState<AmazonProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -38,7 +39,9 @@ export function useProductFetch(searchTerm: string) {
     return () => {
       mounted = false;
     };
-  }, [searchTerm]);
+  }, [searchTerm, refreshToken]);
 
-  return { products, loading, error };
+  const refetch = () => setRefreshToken(t => t + 1);
+
+  return { products, loading, error, refetch };
 }
