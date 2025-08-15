@@ -7,11 +7,8 @@ export const validateStep = (step: string, data: TestData): boolean => {
     case 'variations':
       return data.variations.a !== null && data.name.trim().length > 0; // At least variation A is required and name is set
 
-    case 'search':
-      return data.searchTerm.trim().length > 0;
-
-    case 'competitors':
-      return data.competitors.length === 11; // Require exactly 10 competitors
+    case 'search-competitors':
+      return data.searchTerm.trim().length > 0 && data.competitors.length === 11; // Require search term and exactly 11 competitors
 
     case 'demographics':
       const isValidDemographics =

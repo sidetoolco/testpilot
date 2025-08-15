@@ -747,11 +747,11 @@ export const testService = {
           case 'objective':
             return 'objective';
           case 'search_term':
-            return 'search';
+            return 'search-competitors';
           case 'variants':
             return 'variations';
           case 'competitors':
-            return 'competitors';
+            return 'search-competitors';
           case 'demographics':
             return 'demographics';
           case 'preview':
@@ -778,11 +778,12 @@ export const testService = {
       
       // Check if search term is set (this comes after variations in new order)
       if ((test as any).search_term) {
-        lastCompletedStep = 'search';
+        lastCompletedStep = 'search-competitors';
       }
       
+      // Check if competitors are set (this is now part of search-competitors step)
       if (competitors.length > 0) {
-        lastCompletedStep = 'competitors';
+        lastCompletedStep = 'search-competitors';
       }
       if (demographics.ageRanges.length > 0 || demographics.gender.length > 0) {
         lastCompletedStep = 'demographics';

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AmazonProduct } from '../types';
 import { amazonService } from '../services/amazonService';
 
-export function useProductFetch(searchTerm: string, userId: string | undefined) {
+export function useProductFetch(searchTerm: string) {
   const [products, setProducts] = useState<AmazonProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,13 +11,13 @@ export function useProductFetch(searchTerm: string, userId: string | undefined) 
     let mounted = true;
 
     async function fetchProducts() {
-      if (!userId || !searchTerm?.trim()) return;
+      if (!searchTerm?.trim()) return;
 
       setLoading(true);
       setError(null);
 
       try {
-        const products = await amazonService.searchProducts(searchTerm, userId);
+        const products = await amazonService.searchProducts(searchTerm);
         if (mounted) {
           setProducts(products);
         }
@@ -38,7 +38,7 @@ export function useProductFetch(searchTerm: string, userId: string | undefined) 
     return () => {
       mounted = false;
     };
-  }, [searchTerm, userId]);
+  }, [searchTerm]);
 
   return { products, loading, error };
 }

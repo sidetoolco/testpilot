@@ -1,5 +1,3 @@
-import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
-import CompetitorSelection from '../../../components/test-setup/CompetitorSelection';
 import TestVariations from '../../../components/test-setup/TestVariations';
 import DemographicSelection from '../../../components/test-setup/DemographicSelection';
 import SurveyQuestions from '../../../components/test-setup/SurveyQuestions';
@@ -8,6 +6,7 @@ import TestReview from '../../../components/test-setup/TestReview';
 import { TestData } from '../types';
 import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelection';
 import { useState } from 'react';
+import SearchAndCompetitorSelection from '../../../components/test-setup/SearchAndCompetitorSelection';
 
 interface TestCreationContentProps {
   currentStep: string;
@@ -60,21 +59,12 @@ export function TestCreationContent({
         />
       )}
 
-      {currentStep === 'search' && (
-        <SearchTermEntry
-          value={testData.searchTerm}
-          onChange={term => handleUpdateData('searchTerm', term)}
-          onNext={onNext}
-        />
-      )}
-
-      {currentStep === 'competitors' && (
-        <CompetitorSelection
+      {currentStep === 'search-competitors' && (
+        <SearchAndCompetitorSelection
           searchTerm={testData.searchTerm}
           selectedCompetitors={testData.competitors}
-          onChange={competitors => handleUpdateData('competitors', competitors)}
-          onNext={onNext}
-          onBack={onBack}
+          onSearchTermChange={term => handleUpdateData('searchTerm', term)}
+          onCompetitorsChange={competitors => handleUpdateData('competitors', competitors)}
         />
       )}
 
