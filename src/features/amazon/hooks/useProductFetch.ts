@@ -9,7 +9,8 @@ export function useProductFetch(searchTerm: string) {
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
+    let active = true;
 
     async function fetchProducts() {
       if (!searchTerm?.trim()) {
@@ -24,17 +25,17 @@ export function useProductFetch(searchTerm: string) {
 
       try {
         const products = await amazonService.searchProducts(searchTerm);
-        if (mounted) {
+        if (active) {
           setProducts(products);
         }
       } catch (err: unknown) {
-        if (mounted) {
+        if (active && (err as any)?.name !== 'AbortError') {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products';
           setError(errorMessage);
           console.error('Product fetch error:', err);
         }
       } finally {
-        if (mounted) {
+        if (active) {
           setLoading(false);
         }
       }
@@ -43,7 +44,8 @@ export function useProductFetch(searchTerm: string) {
     fetchProducts();
 
     return () => {
-      mounted = false;
+      active = false;
+      controller.abort();
     };
   }, [searchTerm, refreshToken]);
 

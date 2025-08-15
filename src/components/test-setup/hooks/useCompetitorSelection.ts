@@ -36,6 +36,7 @@ export function useCompetitorSelection({
   useEffect(() => {
     if (selectedCompetitors.length > prevCount.current) {
       setIsPopping(true);
+      prevCount.current = selectedCompetitors.length;
       const timer = setTimeout(() => setIsPopping(false), 400);
       return () => clearTimeout(timer);
     }
