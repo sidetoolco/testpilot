@@ -67,12 +67,9 @@ export const SelectedProductsDisplay = React.memo(function SelectedProductsDispl
               Perfect! You have selected exactly {maxCompetitors} competitors. You can now continue to the next step.
             </span>
           </div>
-        ) : (
+        ) : selectedCompetitors.length < maxCompetitors && (
           <div className="text-gray-500 text-sm">
-            {selectedCompetitors.length < maxCompetitors 
-              ? `Select ${maxCompetitors - selectedCompetitors.length} more competitor${maxCompetitors - selectedCompetitors.length !== 1 ? 's' : ''} to continue`
-              : `You have selected ${selectedCompetitors.length} competitors. Please select exactly ${maxCompetitors} to continue.`
-            }
+            {`Select ${maxCompetitors - selectedCompetitors.length} more competitor${maxCompetitors - selectedCompetitors.length !== 1 ? 's' : ''} to continue`}
           </div>
         )}
       </div>

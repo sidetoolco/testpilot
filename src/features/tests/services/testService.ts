@@ -778,15 +778,11 @@ export const testService = {
         lastCompletedStep = 'variations';
       }
       
-      // Check if search term is set (this comes after variations in new order)
-      if ((test as any).search_term) {
+      // Check if search-competitors step is fully completed (exactly 11 competitors)
+      if (competitors.length === 11) {
         lastCompletedStep = 'search-competitors';
       }
       
-      // Check if competitors are set (this is now part of search-competitors step)
-      if (competitors.length > 0) {
-        lastCompletedStep = 'search-competitors';
-      }
       if (demographics.ageRanges.length > 0 || demographics.gender.length > 0) {
         lastCompletedStep = 'demographics';
       }
