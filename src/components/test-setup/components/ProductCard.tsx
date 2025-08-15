@@ -45,7 +45,7 @@ export function ProductCard({
 
   return (
     <div
-      className={`border rounded-lg p-3 transition-all cursor-pointer ${
+      className={`group border rounded-lg p-3 transition-all cursor-pointer ${
         isSelected
           ? 'border-green-500 bg-green-50'
           : canSelect
@@ -62,12 +62,12 @@ export function ProductCard({
         />
       </div>
       
-      <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+      <div className="flex flex-col h-28">
+        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
           {product.title}
         </h4>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <span className="text-lg font-bold text-gray-900">
             ${product.price}
           </span>
@@ -76,20 +76,22 @@ export function ProductCard({
           </span>
         </div>
 
-        {isSelected ? (
-          <div className="flex items-center justify-center text-green-600">
-            <Check className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">Selected</span>
-          </div>
-        ) : canSelect ? (
-          <div className="text-center text-[#00A67E] text-sm font-medium">
-            Click to Select
-          </div>
-        ) : (
-          <div className="text-center text-gray-400 text-sm">
-            Max reached
-          </div>
-        )}
+        <div className="mt-auto">
+          {isSelected ? (
+            <div className="flex items-center justify-center text-green-600">
+              <Check className="h-4 w-4 mr-1" />
+              <span className="text-sm font-medium">Selected</span>
+            </div>
+          ) : canSelect ? (
+            <div className="text-center text-[#00A67E] text-sm font-medium">
+              Click to Select
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 text-sm">
+              Max reached
+            </div>
+          )}
+        </div>
       </div>
 
       {showTooltip && (

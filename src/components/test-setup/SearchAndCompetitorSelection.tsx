@@ -9,6 +9,7 @@ import { useCompetitorSelection } from './hooks/useCompetitorSelection';
 import { FloatingCounter } from './components/FloatingCounter';
 import { ProductCard } from './components/ProductCard';
 import { SelectedProductsDisplay } from './components/SelectedProductsDisplay';
+import { MAX_COMPETITORS } from './constants';
 
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
@@ -36,10 +37,11 @@ export default function SearchAndCompetitorSelection({
     handleRemoveCompetitor,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS,
+    MAX_COMPETITORS: maxCompetitors,
   } = useCompetitorSelection({
     selectedCompetitors,
     onCompetitorsChange,
+    maxCompetitors: MAX_COMPETITORS,
   });
 
   const handleSearch = useCallback((term: string) => {

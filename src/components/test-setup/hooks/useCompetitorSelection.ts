@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { toast } from 'sonner';
-
-const MAX_COMPETITORS = 11;
+import { MAX_COMPETITORS } from '../constants';
 
 interface UseCompetitorSelectionProps {
   selectedCompetitors: AmazonProduct[];
   onCompetitorsChange: (competitors: AmazonProduct[]) => void;
+  maxCompetitors?: number;
 }
 
 export function useCompetitorSelection({
   selectedCompetitors,
   onCompetitorsChange,
+  maxCompetitors = MAX_COMPETITORS,
 }: UseCompetitorSelectionProps) {
   const [isPopping, setIsPopping] = useState(false);
   const prevCount = useRef(selectedCompetitors.length);
@@ -19,13 +20,13 @@ export function useCompetitorSelection({
   const handleProductSelect = useCallback((product: AmazonProduct) => {
     if (selectedCompetitors.find(p => p.asin === product.asin)) {
       onCompetitorsChange(selectedCompetitors.filter(p => p.asin !== product.asin));
-    } else if (selectedCompetitors.length < MAX_COMPETITORS) {
+    } else if (selectedCompetitors.length < maxCompetitors) {
       const newCompetitors = [...selectedCompetitors, product];
       onCompetitorsChange(newCompetitors);
     } else {
-      toast.error(`Please select exactly ${MAX_COMPETITORS} competitors`);
+      toast.error(`You've reached the maximum of ${maxCompetitors} competitors. Deselect one to choose another.`);
     }
-  }, [selectedCompetitors, onCompetitorsChange]);
+  }, [selectedCompetitors, onCompetitorsChange, maxCompetitors]);
 
   const handleRemoveCompetitor = useCallback((asin: string) => {
     onCompetitorsChange(selectedCompetitors.filter(p => p.asin !== asin));
@@ -41,13 +42,13 @@ export function useCompetitorSelection({
     prevCount.current = selectedCompetitors.length;
   }, [selectedCompetitors.length]);
 
-  const isAllSelected = selectedCompetitors.length === MAX_COMPETITORS;
+  const isAllSelected = selectedCompetitors.length === maxCompetitors;
 
   return {
     handleProductSelect,
     handleRemoveCompetitor,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS,
+    MAX_COMPETITORS: maxCompetitors,
   };
 }

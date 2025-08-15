@@ -12,7 +12,11 @@ export function useProductFetch(searchTerm: string) {
     let mounted = true;
 
     async function fetchProducts() {
-      if (!searchTerm?.trim()) return;
+      if (!searchTerm?.trim()) {
+        setProducts([]);
+        setError(null);
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -22,9 +26,10 @@ export function useProductFetch(searchTerm: string) {
         if (mounted) {
           setProducts(products);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mounted) {
-          setError(err.message || 'Failed to fetch products');
+          const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products';
+          setError(errorMessage);
           console.error('Product fetch error:', err);
         }
       } finally {

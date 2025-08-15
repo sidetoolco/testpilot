@@ -9,6 +9,7 @@ import { ErrorState } from './ErrorState';
 import { useCompetitorSelection } from './hooks/useCompetitorSelection';
 import { FloatingCounter } from './components/FloatingCounter';
 import { ProductCard } from './components/ProductCard';
+import { MAX_COMPETITORS } from './constants';
 import apiClient from '../../lib/api';
 
 interface CompetitorSelectionProps {
@@ -34,10 +35,11 @@ export default function CompetitorSelection({
     handleProductSelect,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS,
+    MAX_COMPETITORS: maxCompetitors,
   } = useCompetitorSelection({
     selectedCompetitors,
     onCompetitorsChange: onChange,
+    maxCompetitors: MAX_COMPETITORS,
   });
 
   // Enhanced product selection with auto-save

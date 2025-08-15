@@ -2,10 +2,11 @@ import React from 'react';
 import { X, Check } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { ProductCard } from './ProductCard';
+import { MAX_COMPETITORS } from '../constants';
 
 interface SelectedProductsDisplayProps {
   selectedCompetitors: AmazonProduct[];
-  maxCompetitors: number;
+  maxCompetitors?: number;
   onRemoveCompetitor: (asin: string) => void;
   isPopping: boolean;
   isAllSelected: boolean;
@@ -13,7 +14,7 @@ interface SelectedProductsDisplayProps {
 
 export function SelectedProductsDisplay({
   selectedCompetitors,
-  maxCompetitors,
+  maxCompetitors = MAX_COMPETITORS,
   onRemoveCompetitor,
   isPopping,
   isAllSelected,
