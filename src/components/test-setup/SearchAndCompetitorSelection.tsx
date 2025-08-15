@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, X, Check } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Search } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
 import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
 import { SearchHeader } from './SearchHeader';
-import { toast } from 'sonner';
+import { useCompetitorSelection } from './hooks/useCompetitorSelection';
+import { FloatingCounter } from './components/FloatingCounter';
+import { ProductCard } from './components/ProductCard';
+import { SelectedProductsDisplay } from './components/SelectedProductsDisplay';
 
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
@@ -14,29 +17,39 @@ interface SearchAndCompetitorSelectionProps {
   onCompetitorsChange: (competitors: AmazonProduct[]) => void;
 }
 
-const MAX_COMPETITORS = 11;
-
 export default function SearchAndCompetitorSelection({
   searchTerm,
   selectedCompetitors,
   onSearchTermChange,
   onCompetitorsChange,
 }: SearchAndCompetitorSelectionProps) {
-  const [currentSearchTerm, setCurrentSearchTerm] = useState(searchTerm);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
   const [searchInputValue, setSearchInputValue] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
-  const [isPopping, setIsPopping] = useState(false);
-  const { products, loading, error, refetch } = useProductFetch(currentSearchTerm);
-  const prevCount = useRef(selectedCompetitors.length);
+  const [hasUserSearched, setHasUserSearched] = useState(false);
+  
+  // Only fetch products when user explicitly searches, not on mount
+  const { products, loading, error, refetch } = useProductFetch(hasUserSearched ? currentSearchTerm : '');
+  
+  const {
+    handleProductSelect,
+    handleRemoveCompetitor,
+    isPopping,
+    isAllSelected,
+    MAX_COMPETITORS,
+  } = useCompetitorSelection({
+    selectedCompetitors,
+    onCompetitorsChange,
+  });
 
   const handleSearch = useCallback((term: string) => {
     const next = term.trim();
     if (!next) return;
     
-    // Don't clear selected competitors - maintain selections during search
     setCurrentSearchTerm(next);
     onSearchTermChange(next);
     setIsSearching(true);
+    setHasUserSearched(true);
   }, [onSearchTermChange]);
 
   const handleSearchInputChange = useCallback((value: string) => {
@@ -53,32 +66,6 @@ export default function SearchAndCompetitorSelection({
     }
   }, [handleSearchSubmit]);
 
-  const handleProductSelect = useCallback((product: AmazonProduct) => {
-    if (selectedCompetitors.find(p => p.asin === product.asin)) {
-      onCompetitorsChange(selectedCompetitors.filter(p => p.asin !== product.asin));
-    } else if (selectedCompetitors.length < MAX_COMPETITORS) {
-      const newCompetitors = [...selectedCompetitors, product];
-      onCompetitorsChange(newCompetitors);
-    } else {
-      toast.error(`Please select exactly ${MAX_COMPETITORS} competitors`);
-    }
-  }, [selectedCompetitors, onCompetitorsChange]);
-
-  const handleRemoveCompetitor = useCallback((asin: string) => {
-    onCompetitorsChange(selectedCompetitors.filter(p => p.asin !== asin));
-  }, [selectedCompetitors, onCompetitorsChange]);
-
-  // Pop animation when item is added
-  useEffect(() => {
-    if (selectedCompetitors.length > prevCount.current) {
-      setIsPopping(true);
-      const timer = setTimeout(() => setIsPopping(false), 400);
-      return () => clearTimeout(timer);
-    }
-    prevCount.current = selectedCompetitors.length;
-  }, [selectedCompetitors.length]);
-
-  const isAllSelected = selectedCompetitors.length === MAX_COMPETITORS;
   const hasSearchResults = products.length > 0;
   const isSearchingForProducts = loading && isSearching;
 
@@ -91,7 +78,7 @@ export default function SearchAndCompetitorSelection({
   return (
     <div className="max-w-6xl mx-auto">
       <SearchHeader
-        title={hasSearchResults ? `Search & Select Competitors - "${currentSearchTerm}"` : "Search & Select Competitors"}
+        title={hasUserSearched ? `Search & Select Competitors${currentSearchTerm ? ` - "${currentSearchTerm}"` : ''}` : "Search & Select Competitors"}
         subtitle={`Search for products and select ${MAX_COMPETITORS} competitors for your test.`}
       />
 
@@ -121,68 +108,23 @@ export default function SearchAndCompetitorSelection({
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
+        
+        {/* Show current search term if there are results */}
+        {hasSearchResults && currentSearchTerm && (
+          <div className="mt-2 text-sm text-gray-500">
+            Current search: <span className="font-medium">"{currentSearchTerm}"</span>
+          </div>
+        )}
       </div>
 
-      {/* Selected Products - Always visible when there are selections */}
-      {selectedCompetitors.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Selected Competitors ({selectedCompetitors.length}/{MAX_COMPETITORS})
-            </h3>
-          </div>
-          
-          <div className="flex gap-4 overflow-x-auto pb-2 pt-2">
-            {selectedCompetitors.map((product, index) => (
-              <div
-                key={`${product.asin}-${product.id || index}`}
-                className={`flex-shrink-0 relative group ${
-                  isPopping && index === selectedCompetitors.length - 1
-                    ? 'animate-bounce'
-                    : ''
-                }`}
-              >
-                <div className="w-24 h-24 border border-gray-200 rounded-lg overflow-hidden bg-white">
-                  <img
-                    src={product.image_url}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <button
-                  onClick={() => handleRemoveCompetitor(product.asin)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-                <div className="mt-2 text-center">
-                  <p className="text-xs text-gray-600 font-medium">${product.price}</p>
-                  <p className="text-xs text-gray-500">{product.rating}★</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Selection status message */}
-          {selectedCompetitors.length > 0 && (
-            <div className="mt-4 text-center">
-              {isAllSelected ? (
-                <div className="flex items-center justify-center text-green-600">
-                  <Check className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">Perfect! You have selected exactly 11 competitors. You can now continue to the next step.</span>
-                </div>
-              ) : (
-                <div className="text-gray-500 text-sm">
-                  {selectedCompetitors.length < MAX_COMPETITORS 
-                    ? `Select ${MAX_COMPETITORS - selectedCompetitors.length} more competitor${MAX_COMPETITORS - selectedCompetitors.length !== 1 ? 's' : ''} to continue`
-                    : `You have selected ${selectedCompetitors.length} competitors. Please select exactly ${MAX_COMPETITORS} to continue.`
-                  }
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Selected Products Display */}
+      <SelectedProductsDisplay
+        selectedCompetitors={selectedCompetitors}
+        maxCompetitors={MAX_COMPETITORS}
+        onRemoveCompetitor={handleRemoveCompetitor}
+        isPopping={isPopping}
+        isAllSelected={isAllSelected}
+      />
 
       {/* Search Results - Only show when there are results and not searching */}
       {hasSearchResults && !isSearchingForProducts && (
@@ -202,63 +144,13 @@ export default function SearchAndCompetitorSelection({
               const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
               
               return (
-                <div
+                <ProductCard
                   key={`${product.asin}-${product.id || index}`}
-                  className={`border rounded-lg p-3 transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-green-500 bg-green-50'
-                      : canSelect
-                      ? 'border-gray-200 hover:border-[#00A67E] hover:shadow-md'
-                      : 'border-gray-200 opacity-50'
-                  }`}
-                  onClick={() => {
-                    if (isSelected) {
-                      // Unselect if already selected
-                      handleProductSelect(product);
-                    } else if (canSelect) {
-                      // Select if can be selected
-                      handleProductSelect(product);
-                    }
-                  }}
-                >
-                  <div className="w-full h-32 mb-3 rounded overflow-hidden bg-white">
-                    <img
-                      src={product.image_url}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                      {product.title}
-                    </h4>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">
-                        ${product.price}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {product.rating}★ ({product.reviews_count.toLocaleString()})
-                      </span>
-                    </div>
-
-                    {isSelected ? (
-                      <div className="flex items-center justify-center text-green-600">
-                        <Check className="h-4 w-4 mr-1" />
-                        <span className="text-sm font-medium">Selected</span>
-                      </div>
-                    ) : canSelect ? (
-                      <div className="text-center text-[#00A67E] text-sm font-medium">
-                        Click to Select
-                      </div>
-                    ) : (
-                      <div className="text-center text-gray-400 text-sm">
-                        Max reached
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  product={product}
+                  isSelected={!!isSelected}
+                  canSelect={canSelect}
+                  onSelect={handleProductSelect}
+                />
               );
             })}
           </div>
@@ -285,7 +177,7 @@ export default function SearchAndCompetitorSelection({
       )}
 
       {/* No Results Found */}
-      {!loading && !hasSearchResults && isSearching && (
+      {!loading && !hasSearchResults && hasUserSearched && (
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">No results found</h3>
@@ -294,7 +186,7 @@ export default function SearchAndCompetitorSelection({
       )}
 
       {/* No Search Performed Yet */}
-      {!loading && !hasSearchResults && !isSearching && (
+      {!loading && !hasSearchResults && !hasUserSearched && (
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">
@@ -307,18 +199,13 @@ export default function SearchAndCompetitorSelection({
       )}
 
       {/* Floating counter */}
-      <div
-        className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
-          isAllSelected
-            ? 'bg-green-500 text-white border-green-600'
-            : 'bg-white text-gray-700 border-gray-200'
-        }`}
-      >
-        <div className="text-center">
-          <div className="text-2xl font-bold">{selectedCompetitors.length}</div>
-          <div className="text-sm">of {MAX_COMPETITORS}</div>
-        </div>
-      </div>
+      <FloatingCounter
+        selectedCount={selectedCompetitors.length}
+        maxCount={MAX_COMPETITORS}
+        isPopping={isPopping}
+        isAllSelected={isAllSelected}
+        variant="simple"
+      />
     </div>
   );
 }
