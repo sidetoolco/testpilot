@@ -11,7 +11,7 @@ interface ProductCardProps {
   variant?: 'grid' | 'horizontal';
 }
 
-export function ProductCard({
+export const ProductCard = React.memo(function ProductCard({
   product,
   isSelected,
   canSelect,
@@ -33,6 +33,7 @@ export function ProductCard({
             src={product.image_url}
             alt={product.title}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
         <div className="mt-2 text-center">
@@ -59,6 +60,7 @@ export function ProductCard({
           src={product.image_url}
           alt={product.title}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
       
@@ -109,4 +111,4 @@ export function ProductCard({
       )}
     </div>
   );
-}
+});

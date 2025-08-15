@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
@@ -81,6 +81,21 @@ export default function SearchAndCompetitorSelection({
   const hasSearchResults = products.length > 0;
   const isSearchingForProducts = loading && isSearching;
 
+  // Memoize expensive computations to prevent re-renders during scrolling
+  const memoizedProducts = useMemo(() => {
+    return products.map((product, index) => {
+      const isSelected = selectedCompetitors.find(p => p.asin === product.asin);
+      const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
+      
+      return {
+        product,
+        isSelected: !!isSelected,
+        canSelect,
+        key: `${product.asin}-${product.id || index}`,
+      };
+    });
+  }, [products, selectedCompetitors, MAX_COMPETITORS]);
+
   // Show loading screen for initial search or when searching with no results
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
     return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
@@ -154,20 +169,15 @@ export default function SearchAndCompetitorSelection({
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((product, index) => {
-              const isSelected = selectedCompetitors.find(p => p.asin === product.asin);
-              const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
-              
-              return (
-                <ProductCard
-                  key={`${product.asin}-${product.id || index}`}
-                  product={product}
-                  isSelected={!!isSelected}
-                  canSelect={canSelect}
-                  onSelect={handleProductSelect}
-                />
-              );
-            })}
+            {memoizedProducts.map(({ product, isSelected, canSelect, key }) => (
+              <ProductCard
+                key={key}
+                product={product}
+                isSelected={isSelected}
+                canSelect={canSelect}
+                onSelect={handleProductSelect}
+              />
+            ))}
           </div>
         </div>
       )}

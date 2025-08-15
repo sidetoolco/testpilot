@@ -12,7 +12,7 @@ interface SelectedProductsDisplayProps {
   isAllSelected: boolean;
 }
 
-export function SelectedProductsDisplay({
+export const SelectedProductsDisplay = React.memo(function SelectedProductsDisplay({
   selectedCompetitors,
   maxCompetitors = MAX_COMPETITORS,
   onRemoveCompetitor,
@@ -78,4 +78,4 @@ export function SelectedProductsDisplay({
       </div>
     </div>
   );
-}
+});
