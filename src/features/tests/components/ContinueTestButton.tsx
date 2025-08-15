@@ -31,8 +31,10 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
       const stepRoutes: Record<string, string> = {
         objective: '/create-test',
         variations: '/create-test/variations',
+        'search-term': '/create-test/search-term',
         search: '/create-test/search',
         competitors: '/create-test/competitors',
+        'search-competitors': '/create-test/search-competitors',
         demographics: '/create-test/demographics',
         preview: '/create-test/preview',
         review: '/create-test/review',

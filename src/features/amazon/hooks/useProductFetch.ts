@@ -2,32 +2,40 @@ import { useState, useEffect } from 'react';
 import { AmazonProduct } from '../types';
 import { amazonService } from '../services/amazonService';
 
-export function useProductFetch(searchTerm: string, userId: string | undefined) {
+export function useProductFetch(searchTerm: string) {
   const [products, setProducts] = useState<AmazonProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
+    let active = true;
 
     async function fetchProducts() {
-      if (!userId || !searchTerm?.trim()) return;
+      if (!searchTerm?.trim()) {
+        setProducts([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       setError(null);
 
       try {
-        const products = await amazonService.searchProducts(searchTerm, userId);
-        if (mounted) {
+        const products = await amazonService.searchProducts(searchTerm);
+        if (active) {
           setProducts(products);
         }
-      } catch (err: any) {
-        if (mounted) {
-          setError(err.message || 'Failed to fetch products');
+      } catch (err: unknown) {
+        if (active && (err as any)?.name !== 'AbortError') {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products';
+          setError(errorMessage);
           console.error('Product fetch error:', err);
         }
       } finally {
-        if (mounted) {
+        if (active) {
           setLoading(false);
         }
       }
@@ -36,9 +44,12 @@ export function useProductFetch(searchTerm: string, userId: string | undefined) 
     fetchProducts();
 
     return () => {
-      mounted = false;
+      active = false;
+      controller.abort();
     };
-  }, [searchTerm, userId]);
+  }, [searchTerm, refreshToken]);
 
-  return { products, loading, error };
+  const refetch = () => setRefreshToken(t => t + 1);
+
+  return { products, loading, error, refetch };
 }

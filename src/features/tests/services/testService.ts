@@ -376,6 +376,8 @@ export const testService = {
             return 'objective'; // Distinguir objective de search
           case 'variations':
             return 'variants';
+          case 'search-term':
+            return 'search_term';
           case 'search':
             return 'search_term';
           case 'competitors':
@@ -747,11 +749,11 @@ export const testService = {
           case 'objective':
             return 'objective';
           case 'search_term':
-            return 'search';
+            return 'search-competitors';
           case 'variants':
             return 'variations';
           case 'competitors':
-            return 'competitors';
+            return 'search-competitors';
           case 'demographics':
             return 'demographics';
           case 'preview':
@@ -776,14 +778,11 @@ export const testService = {
         lastCompletedStep = 'variations';
       }
       
-      // Check if search term is set (this comes after variations in new order)
-      if ((test as any).search_term) {
-        lastCompletedStep = 'search';
+      // Check if search-competitors step is fully completed (exactly 11 competitors)
+      if (competitors.length === 11) {
+        lastCompletedStep = 'search-competitors';
       }
       
-      if (competitors.length > 0) {
-        lastCompletedStep = 'competitors';
-      }
       if (demographics.ageRanges.length > 0 || demographics.gender.length > 0) {
         lastCompletedStep = 'demographics';
       }

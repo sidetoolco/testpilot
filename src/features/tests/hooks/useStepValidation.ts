@@ -40,10 +40,19 @@ export const useStepValidation = (testData: TestData) => {
           return 'Please select at least Variation A';
         }
         return 'Please complete all required fields';
-      case 'search':
-        return 'Please enter a search term';
-      case 'competitors':
-        return 'Please select exactly 10 competitor products';
+      case 'search-term':
+        if (!testData.searchTerm.trim()) {
+          return 'Please enter a search term to define your competitive set';
+        }
+        return 'Please complete all required fields';
+      case 'search-competitors':
+        if (!testData.searchTerm.trim()) {
+          return 'Please enter a search term';
+        }
+        if (testData.competitors.length !== 11) {
+          return `Please select exactly 11 competitor products (currently selected: ${testData.competitors.length})`;
+        }
+        return 'Please complete all required fields';
       case 'demographics':
         // Check for specific validation failures
         if (testData.demographics.customScreening?.enabled) {
@@ -67,7 +76,7 @@ export const useStepValidation = (testData: TestData) => {
       default:
         return 'Please complete all required fields';
     }
-  }, [currentStep, testData.demographics, testData.name, testData.variations]);
+  }, [currentStep, testData]);
 
   const handleNext = useCallback(() => {
     if (!canProceed()) {

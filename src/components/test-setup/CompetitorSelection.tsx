@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Info, CheckCircle2 } from 'lucide-react';
+import { Search, Info } from 'lucide-react';
 import { useAuthStore } from '../../features/auth/stores/authStore';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
-import { ProductGrid } from '../../features/amazon/components/ProductGrid';
 import { AmazonProduct } from '../../features/amazon/types';
 import { SearchHeader } from './SearchHeader';
 import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
-import { toast } from 'sonner';
+import { useCompetitorSelection } from './hooks/useCompetitorSelection';
+import { FloatingCounter } from './components/FloatingCounter';
+import { ProductCard } from './components/ProductCard';
+import { MAX_COMPETITORS } from './constants';
 import apiClient from '../../lib/api';
 
 interface CompetitorSelectionProps {
@@ -18,8 +20,6 @@ interface CompetitorSelectionProps {
   onBack: () => void;
 }
 
-const MAX_COMPETITORS = 11;
-
 export default function CompetitorSelection({
   searchTerm,
   selectedCompetitors,
@@ -27,20 +27,30 @@ export default function CompetitorSelection({
   onNext,
 }: CompetitorSelectionProps) {
   const [searchFilter, setSearchFilter] = useState('');
-  const [isPopping, setIsPopping] = useState(false);
   const { user } = useAuthStore();
-  const { products, loading, error } = useProductFetch(searchTerm, user?.id);
+  const { products, loading, error } = useProductFetch(searchTerm);
   const isInitialLoad = useRef(true);
-  const prevCount = useRef(selectedCompetitors.length);
 
-  const handleProductSelect = async (product: AmazonProduct) => {
+  const {
+    handleProductSelect,
+    isPopping,
+    isAllSelected,
+    maxCompetitors,
+  } = useCompetitorSelection({
+    selectedCompetitors,
+    onCompetitorsChange: onChange,
+    maxCompetitors: MAX_COMPETITORS,
+  });
+
+  // Enhanced product selection with auto-save
+  const handleProductSelectWithSave = async (product: AmazonProduct) => {
     if (selectedCompetitors.find(p => p.asin === product.asin)) {
       onChange(selectedCompetitors.filter(p => p.asin !== product.asin));
     } else if (selectedCompetitors.length < MAX_COMPETITORS) {
       const newCompetitors = [...selectedCompetitors, product];
       onChange(newCompetitors);
 
-      // Si llegamos a 11 productos, guardamos automáticamente
+      // Auto-save when reaching 11 products
       if (newCompetitors.length === MAX_COMPETITORS) {
         try {
           await apiClient.post('/amazon/products', {
@@ -49,37 +59,22 @@ export default function CompetitorSelection({
           });
         } catch (error) {
           console.error('Error saving competitors:', error);
-          toast.error('Failed to save competitors, but continuing with the process');
         }
       }
-    } else {
-      toast.error(`Please select exactly ${MAX_COMPETITORS} competitors`);
     }
   };
 
-  // Reiniciar la selección solo cuando cambia el término de búsqueda
+  // Reset selection when search term changes
   React.useEffect(() => {
     if (products.length && isInitialLoad.current) {
       onChange([]);
       isInitialLoad.current = false;
     }
-  }, [searchTerm, products.length]);
-
-  // Simple pop animation when item is added
-  useEffect(() => {
-    if (selectedCompetitors.length > prevCount.current) {
-      setIsPopping(true);
-      const timer = setTimeout(() => setIsPopping(false), 400);
-      return () => clearTimeout(timer);
-    }
-    prevCount.current = selectedCompetitors.length;
-  }, [selectedCompetitors.length]);
+  }, [searchTerm, products.length, onChange]);
 
   const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchFilter.toLowerCase())
   );
-
-  const isAllSelected = selectedCompetitors.length === MAX_COMPETITORS;
 
   if (loading) return <LoadingState showProgress message="Gathering competitive products..." />;
   if (error) return <ErrorState error={error} onRetry={() => window.location.reload()} />;
@@ -113,41 +108,32 @@ export default function CompetitorSelection({
       </div>
 
       {/* Floating counter */}
-      <div
-        className={`fixed bottom-8 right-8 rounded-lg shadow-lg p-4 z-50 border transition-all duration-300 ease-out ${
-          isPopping
-            ? 'bg-white text-gray-700 border-[#00A67E] scale-110'
-            : isAllSelected
-              ? 'bg-[#00A67E] text-white border-[#00A67E] scale-110 animate-pulse'
-              : 'bg-white text-gray-700 border-gray-200 scale-100'
-        }`}
-      >
-        <div className="flex items-center space-x-2">
-          <CheckCircle2 className={`h-5 w-5 ${isAllSelected ? 'text-white' : 'text-gray-400'}`} />
-          <span className="text-sm font-medium">
-            {selectedCompetitors.length} of {MAX_COMPETITORS} selected
-          </span>
-        </div>
-      </div>
-
-      <ProductGrid
-        products={filteredProducts}
-        selectedProducts={selectedCompetitors}
-        onProductSelect={handleProductSelect}
-        renderTooltip={product => (
-          <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="bg-white p-2 rounded-lg shadow-lg">
-              <span className="text-sm font-medium">
-                {selectedCompetitors.find(p => p.asin === product.asin)
-                  ? 'Click to deselect'
-                  : selectedCompetitors.length < MAX_COMPETITORS
-                    ? 'Click to select'
-                    : 'Maximum competitors reached'}
-              </span>
-            </div>
-          </div>
-        )}
+      <FloatingCounter
+        selectedCount={selectedCompetitors.length}
+        maxCount={MAX_COMPETITORS}
+        isPopping={isPopping}
+        isAllSelected={isAllSelected}
+        variant="detailed"
       />
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {filteredProducts.map((product, index) => {
+          const isSelected = selectedCompetitors.find(p => p.asin === product.asin);
+          const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
+          
+          return (
+            <ProductCard
+              key={`${product.asin}-${product.id || index}`}
+              product={product}
+              isSelected={!!isSelected}
+              canSelect={canSelect}
+              onSelect={handleProductSelectWithSave}
+              showTooltip={true}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

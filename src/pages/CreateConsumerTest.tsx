@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
@@ -95,8 +95,8 @@ export default function CreateConsumerTest() {
   const steps = [
     { key: 'objective', label: 'Objective' },
     { key: 'variations', label: 'Variants' },
-    { key: 'search', label: 'Search Term' },
-    { key: 'competitors', label: 'Competitors' },
+    { key: 'search-term', label: 'Search Term' },
+    { key: 'search-competitors', label: 'Search Competitors' },
     { key: 'demographics', label: 'Demographics' },
     ...(expertMode ? [{ key: 'survey-questions', label: 'Survey Questions' }] : []),
     { key: 'preview', label: 'Preview' },
@@ -120,19 +120,25 @@ export default function CreateConsumerTest() {
   }, [testState.isIncompleteTest, testState.testData, testState.testId, currentTestId, setContextTestData, setContextTestId]);
 
   // Effect to update test data when expert mode changes
+  const prevExpertModeRef = useRef(expertMode);
   useEffect(() => {
-    if (testData.surveyQuestions && !expertMode) {
-      // If expert mode is disabled, ensure we have default questions
-      setTestData(prev => ({
-        ...prev,
-        surveyQuestions: ['value', 'appearance', 'confidence', 'brand', 'convenience']
-      }));
+    if (testData.surveyQuestions && !expertMode && prevExpertModeRef.current !== expertMode) {
+      prevExpertModeRef.current = expertMode;
+      const defaultQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'];
+      if (JSON.stringify(testData.surveyQuestions) !== JSON.stringify(defaultQuestions)) {
+        setTestData(prev => ({
+          ...prev,
+          surveyQuestions: defaultQuestions
+        }));
+      }
     }
   }, [expertMode, testData.surveyQuestions, setTestData]);
 
   // Effect to set the correct step
+  const prevStepRef = useRef(currentStep);
   useEffect(() => {
-    if (testState.currentStep) {
+    if (testState.currentStep && testState.currentStep !== prevStepRef.current) {
+      prevStepRef.current = testState.currentStep;
       setCurrentStep(testState.currentStep);
       setContextStep(testState.currentStep);
     }
@@ -161,22 +167,20 @@ export default function CreateConsumerTest() {
   }, [testData, currentTestId, currentStep, setContextTestId, testService]);
 
   // Register saveIncompleteTest function with context
+  const prevSaveFunctionRef = useRef(saveIncompleteTest);
   useEffect(() => {
-    setSaveIncompleteTest(saveIncompleteTest);
+    if (prevSaveFunctionRef.current !== saveIncompleteTest) {
+      prevSaveFunctionRef.current = saveIncompleteTest;
+      setSaveIncompleteTest(saveIncompleteTest);
+    }
   }, [setSaveIncompleteTest, saveIncompleteTest]);
 
   // Update context state when local state changes - only when values actually change
   useEffect(() => {
     setContextTestData(testData);
-  }, [testData, setContextTestData]);
-
-  useEffect(() => {
     setContextStep(currentStep);
-  }, [currentStep, setContextStep]);
-
-  useEffect(() => {
     setContextTestId(currentTestId);
-  }, [currentTestId, setContextTestId]);
+  }, [testData, currentStep, currentTestId, setContextTestData, setContextStep, setContextTestId]);
 
   // Set in progress when on create-test page
   useEffect(() => {
@@ -378,6 +382,9 @@ export default function CreateConsumerTest() {
     if (currentStep === 'survey-questions' && expertMode) {
       return surveyQuestionsValid;
     }
+    if (currentStep === 'search-competitors') {
+      return testData.searchTerm.trim().length > 0 && testData.competitors.length === 11;
+    }
     return canProceed();
   };
 
@@ -470,7 +477,7 @@ export default function CreateConsumerTest() {
           expertMode={expertMode}
         />
 
-      {/* Purchase Credits Modal */}
+        {/* Purchase Credits Modal */}
       <PurchaseCreditsModal
         isOpen={isPurchaseModalOpen}
         onClose={() => setIsPurchaseModalOpen(false)}

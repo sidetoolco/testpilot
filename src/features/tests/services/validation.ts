@@ -102,8 +102,8 @@ export function validateTestData(testData: TestData): void {
       errors.push('At least one location is required');
     }
 
-    if (!testerCount || testerCount < 10) {
-      errors.push('Minimum 10 testers required');
+    if (!testerCount || testerCount < 25) {
+      errors.push('Minimum 25 testers required');
     }
   }
 
