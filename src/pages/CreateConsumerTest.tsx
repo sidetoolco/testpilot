@@ -95,6 +95,7 @@ export default function CreateConsumerTest() {
   const steps = [
     { key: 'objective', label: 'Objective' },
     { key: 'variations', label: 'Variants' },
+    { key: 'search-term', label: 'Search Term' },
     { key: 'search-competitors', label: 'Search Competitors' },
     { key: 'demographics', label: 'Demographics' },
     ...(expertMode ? [{ key: 'survey-questions', label: 'Survey Questions' }] : []),
@@ -476,7 +477,7 @@ export default function CreateConsumerTest() {
           expertMode={expertMode}
         />
 
-      {/* Purchase Credits Modal */}
+        {/* Purchase Credits Modal */}
       <PurchaseCreditsModal
         isOpen={isPurchaseModalOpen}
         onClose={() => setIsPurchaseModalOpen(false)}

@@ -194,12 +194,6 @@ export default function CustomScreening({ onChange, value }: CustomScreeningProp
                 <li>When unsure, start broad ("pet owners") and narrow later.</li>
               </ul>
             </div>
-
-            <div className="pt-2 border-t border-green-200">
-              <p className="text-sm font-medium text-green-800">
-                Custom screening adds a flat $6 to cover extra recruiting cost.
-              </p>
-            </div>
           </div>
 
           <div className="space-y-4">

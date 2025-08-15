@@ -40,6 +40,11 @@ export const useStepValidation = (testData: TestData) => {
           return 'Please select at least Variation A';
         }
         return 'Please complete all required fields';
+      case 'search-term':
+        if (!testData.searchTerm.trim()) {
+          return 'Please enter a search term to define your competitive set';
+        }
+        return 'Please complete all required fields';
       case 'search-competitors':
         if (!testData.searchTerm.trim()) {
           return 'Please enter a search term';

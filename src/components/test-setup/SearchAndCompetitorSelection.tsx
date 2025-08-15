@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
@@ -24,10 +24,20 @@ export default function SearchAndCompetitorSelection({
   onSearchTermChange,
   onCompetitorsChange,
 }: SearchAndCompetitorSelectionProps) {
-  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
-  const [searchInputValue, setSearchInputValue] = useState(searchTerm);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState(searchTerm);
+  const [searchInputValue, setSearchInputValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [hasUserSearched, setHasUserSearched] = useState(false);
+  const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
+  
+  // Automatically perform initial search when component mounts with a search term
+  useEffect(() => {
+    if (searchTerm.trim() && !hasUserSearched) {
+      setCurrentSearchTerm(searchTerm);
+      setHasUserSearched(true);
+      setIsSearching(true);
+    }
+  }, [searchTerm, hasUserSearched]);
   
   // Only fetch products when user explicitly searches, not on mount
   const { products, loading, error, refetch } = useProductFetch(hasUserSearched ? currentSearchTerm : '');
@@ -49,10 +59,10 @@ export default function SearchAndCompetitorSelection({
     if (!next) return;
     
     setCurrentSearchTerm(next);
-    onSearchTermChange(next);
     setIsSearching(true);
     setHasUserSearched(true);
-  }, [onSearchTermChange]);
+    // Note: We don't update the main searchTerm here to preserve the original
+  }, []);
 
   const handleSearchInputChange = useCallback((value: string) => {
     setSearchInputValue(value);
@@ -71,17 +81,17 @@ export default function SearchAndCompetitorSelection({
   const hasSearchResults = products.length > 0;
   const isSearchingForProducts = loading && isSearching;
 
-  // Only show loading screen if we have no products and no selected competitors
+  // Show loading screen for initial search or when searching with no results
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
-    return <LoadingState showProgress message="Searching for products..." />;
+    return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
   }
   if (error) return <ErrorState error={error} onRetry={refetch} />;
 
   return (
     <div className="max-w-6xl mx-auto">
       <SearchHeader
-        title={hasUserSearched ? `Search & Select Competitors${currentSearchTerm ? ` - "${currentSearchTerm}"` : ''}` : "Search & Select Competitors"}
-        subtitle={`Search for products and select ${MAX_COMPETITORS} competitors for your test.`}
+        title={`Search & Select Competitors - "${originalSearchTerm}"`}
+        subtitle={` Search for additional products or select from existing results. You can also search for specific brands if needed.`}
       />
 
       {/* Search Input - Always visible at top */}
@@ -95,7 +105,7 @@ export default function SearchAndCompetitorSelection({
               onChange={e => handleSearchInputChange(e.target.value)}
               onKeyDown={handleKeyDown}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
-              placeholder="e.g., 'Fabric Softener'"
+              placeholder="Search for additional products..."
             />
           </div>
           <button
@@ -112,9 +122,9 @@ export default function SearchAndCompetitorSelection({
         </div>
         
         {/* Show current search term if there are results */}
-        {hasSearchResults && currentSearchTerm && (
+        {hasSearchResults && currentSearchTerm && currentSearchTerm !== originalSearchTerm && (
           <div className="mt-2 text-sm text-gray-500">
-            Current search: <span className="font-medium">"{currentSearchTerm}"</span>
+            Additional search: <span className="font-medium">"{currentSearchTerm}"</span>
           </div>
         )}
       </div>
@@ -136,7 +146,10 @@ export default function SearchAndCompetitorSelection({
               Search Results ({products.length} products)
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              Showing results for: <span className="font-medium">"{currentSearchTerm}"</span>
+              {currentSearchTerm === originalSearchTerm 
+                ? `Showing results for your original search: "${currentSearchTerm}"`
+                : `Showing results for additional search: "${currentSearchTerm}"`
+              }
             </p>
           </div>
 
@@ -183,7 +196,7 @@ export default function SearchAndCompetitorSelection({
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">No results found</h3>
-          <p className="text-gray-400">No products matched "{currentSearchTerm}". Try a different term.</p>
+          <p className="text-gray-400">No products matched "{currentSearchTerm}". Try a different search term.</p>
         </div>
       )}
 
@@ -192,10 +205,10 @@ export default function SearchAndCompetitorSelection({
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">
-            Ready to search for products?
+            Preparing your search...
           </h3>
           <p className="text-gray-400">
-            Enter a search term above and click Search to find competitor products
+            Setting up search for "{originalSearchTerm}". This will only take a moment.
           </p>
         </div>
       )}

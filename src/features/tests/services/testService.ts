@@ -376,6 +376,8 @@ export const testService = {
             return 'objective'; // Distinguir objective de search
           case 'variations':
             return 'variants';
+          case 'search-term':
+            return 'search_term';
           case 'search':
             return 'search_term';
           case 'competitors':

@@ -7,6 +7,7 @@ import { TestData } from '../types';
 import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelection';
 import { useState } from 'react';
 import SearchAndCompetitorSelection from '../../../components/test-setup/SearchAndCompetitorSelection';
+import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
 
 interface TestCreationContentProps {
   currentStep: string;
@@ -56,6 +57,14 @@ export function TestCreationContent({
           onBack={onBack}
           testData={testData}
           onUpdateTestData={onUpdateTestData}
+        />
+      )}
+
+      {currentStep === 'search-term' && (
+        <SearchTermEntry
+          value={testData.searchTerm}
+          onChange={term => handleUpdateData('searchTerm', term)}
+          onNext={onNext}
         />
       )}
 
