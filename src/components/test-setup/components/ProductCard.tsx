@@ -45,7 +45,7 @@ export function ProductCard({
 
   return (
     <div
-      className={`group border rounded-lg p-3 transition-all cursor-pointer ${
+      className={`relative group border rounded-lg p-3 transition-all cursor-pointer ${
         isSelected
           ? 'border-green-500 bg-green-50'
           : canSelect

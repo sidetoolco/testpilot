@@ -47,7 +47,7 @@ export default function SearchAndCompetitorSelection({
     handleRemoveCompetitor,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS: maxCompetitors,
+    maxCompetitors,
   } = useCompetitorSelection({
     selectedCompetitors,
     onCompetitorsChange,

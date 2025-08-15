@@ -15,6 +15,7 @@ export function useProductFetch(searchTerm: string) {
       if (!searchTerm?.trim()) {
         setProducts([]);
         setError(null);
+        setLoading(false);
         return;
       }
 

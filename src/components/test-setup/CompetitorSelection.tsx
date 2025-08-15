@@ -35,7 +35,7 @@ export default function CompetitorSelection({
     handleProductSelect,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS: maxCompetitors,
+    maxCompetitors,
   } = useCompetitorSelection({
     selectedCompetitors,
     onCompetitorsChange: onChange,

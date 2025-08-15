@@ -49,6 +49,6 @@ export function useCompetitorSelection({
     handleRemoveCompetitor,
     isPopping,
     isAllSelected,
-    MAX_COMPETITORS: maxCompetitors,
+    maxCompetitors,
   };
 }
