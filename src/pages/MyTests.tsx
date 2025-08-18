@@ -551,7 +551,7 @@ export default function MyTests() {
                       className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
                     >
                       {isCompleteBlocked ? (
-                        <Lock className={`h-6 w-6 text-orange-500`} />
+                        <Lock className={`h-6 w-6 text-sky-500`} />
                       ) : (
                         <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
                       )}
@@ -570,7 +570,7 @@ export default function MyTests() {
                         {test.status === 'complete' && isAdmin && (
                           <>
                             <span className="hidden sm:inline">•</span>
-                            <span className={isBlocking ? 'text-orange-500' : 'text-green-500'}>
+                            <span className={isBlocking ? 'text-sky-500' : 'text-green-500'}>
                               {isBlocking ? 'Blocked' : 'Unblocked'}
                             </span>
                           </>
@@ -628,7 +628,7 @@ export default function MyTests() {
                               disabled={blockingTests.includes(test.id) || unblockingTests.includes(test.id)}
                               className={`px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
                                 isBlocking 
-                                  ? 'bg-green-500 hover:bg-green-600' 
+                                  ? 'bg-sky-500 hover:bg-sky-600' 
                                   : 'bg-orange-500 hover:bg-orange-600'
                               } ${
                                 (blockingTests.includes(test.id) || unblockingTests.includes(test.id))
