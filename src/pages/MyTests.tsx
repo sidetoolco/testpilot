@@ -557,8 +557,15 @@ export default function MyTests() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
                         <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
+                        {/* Company name for admin users */}
+                        {isAdmin && test.companyName && (
+                          <>
+                            <span className="text-gray-400">-</span>
+                            <span className="text-sm text-gray-600 font-medium">{test.companyName}</span>
+                          </>
+                        )}
                         {/* Credit cost display */}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
@@ -577,7 +584,7 @@ export default function MyTests() {
                         )}
                         {test.status !== 'complete' && test.status !== 'active' && (
                           <>
-                            <span className="hidden sm:inline">•</span>
+                            <span className="hidden sm:inline">-</span>
                             <div className="flex items-center space-x-1 text-sm text-gray-500">
                               <CreditIcon size={14} />
                               <span>{testCredits.toFixed(2)}</span>
