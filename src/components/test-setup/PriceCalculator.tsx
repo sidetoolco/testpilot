@@ -46,7 +46,7 @@ export function PriceCalculator({ testerCount, variantCount, hasCustomScreening 
           <div className="text-sm text-gray-500 ">Total Credits</div>
           <div className="flex items-baseline space-x-1">
             <CreditIcon className='pt-1' />
-            <span className="text-2xl font-semibold">{totalCredits.toFixed(1)}</span>
+            <span className="text-2xl font-semibold">{totalCredits.toFixed(2)}</span>
           </div>
           <div className="text-sm text-gray-500 mt-1">
             {creditsPerTester} credit{creditsPerTester !== 1 ? 's' : ''} per tester

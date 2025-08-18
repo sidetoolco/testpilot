@@ -48,7 +48,7 @@ export function TestCost({
             <div className="flex items-center justify-end space-x-2">
               <CreditIcon size={isLarge ? 24 : 16} />
               <div className={`${isLarge ? 'text-3xl' : 'text-xl'} font-semibold text-gray-900`}>
-                {totalCredits.toFixed(1)}
+                {totalCredits.toFixed(2)}
               </div>
             </div>
             <div className={`${isLarge ? 'text-sm' : 'text-xs'} text-gray-500`}>Credits</div>
@@ -71,7 +71,7 @@ export function TestCost({
                 <div className="flex items-center space-x-2">
                   <CreditIcon size={16} />
                   <p className="text-lg font-bold text-gray-900">
-                    {creditsLoading ? '...' : availableCredits.toLocaleString()}
+                    {creditsLoading ? '...' : availableCredits.toFixed(2)}
                   </p>
                 </div>
               </div>
