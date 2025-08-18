@@ -29,6 +29,7 @@ import { TestCost } from '../components/test-setup/TestCost';
 import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 import { CreditIcon } from '../components/ui/CreditIcon';
 import { useQueryClient } from '@tanstack/react-query';
+import TestFilters from '../components/ui/TestFilters';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -116,6 +117,12 @@ export default function MyTests() {
   const [deletedTestIds, setDeletedTestIds] = useState<string[]>([]);
   const [unblockingTests, setUnblockingTests] = useState<string[]>([]);
   const [blockingTests, setBlockingTests] = useState<string[]>([]);
+
+  // Filter states
+  const [companyFilter, setCompanyFilter] = useState<string>('');
+  const [blockedFilter, setBlockedFilter] = useState<'all' | 'blocked' | 'unblocked'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -403,16 +410,66 @@ export default function MyTests() {
 
   // Filtrar tests basado en la búsqueda
   const filteredTests = useMemo(() => {
-    if (!searchQuery.trim()) return tests.filter(test => !deletedTestIds.includes(test.id));
+    let filtered = tests.filter(test => !deletedTestIds.includes(test.id));
 
-    return tests
-      .filter(test => !deletedTestIds.includes(test.id))
-      .filter(
+    // Text search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(
         test =>
           test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           test.searchTerm.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  }, [tests, searchQuery, deletedTestIds]);
+    }
+
+    // Company filter
+    if (companyFilter && isAdmin) {
+      filtered = filtered.filter(test => 
+        test.companyName?.toLowerCase().includes(companyFilter.toLowerCase())
+      );
+    }
+
+    // Blocked status filter
+    if (blockedFilter !== 'all') {
+      filtered = filtered.filter(test => {
+        if (blockedFilter === 'blocked') return test.block === true;
+        if (blockedFilter === 'unblocked') return test.block === false;
+        return true;
+      });
+    }
+
+    // Test status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(test => test.status === statusFilter);
+    }
+
+    // Time filter
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      const testDate = new Date();
+      
+      filtered = filtered.filter(test => {
+        testDate.setTime(new Date(test.createdAt).getTime());
+        
+        switch (timeFilter) {
+          case 'today':
+            return testDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return testDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return testDate >= monthAgo;
+          case 'year':
+            const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            return testDate >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [tests, searchQuery, deletedTestIds, companyFilter, blockedFilter, statusFilter, timeFilter, isAdmin]);
 
   // Calculate statistics with memoization
   const { activeTests, completedTests } = useMemo(() => {
@@ -460,28 +517,83 @@ export default function MyTests() {
         creditsLoading={creditsLoading}
       />
 
-      {/* Search Bar */}
-      <SearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        placeholder="Search tests by name or search term..."
-      />
+      {/* Search and Filters */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="flex-1 min-w-0">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search tests by name or search term..."
+          />
+        </div>
+        <TestFilters
+          companyFilter={companyFilter}
+          setCompanyFilter={setCompanyFilter}
+          blockedFilter={blockedFilter}
+          setBlockedFilter={setBlockedFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          timeFilter={timeFilter}
+          setTimeFilter={setTimeFilter}
+          isAdmin={isAdmin}
+        />
+      </div>
+
+      {/* Filter Summary */}
+      {(companyFilter || blockedFilter !== 'all' || statusFilter !== 'all' || timeFilter !== 'all') && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-blue-800">
+            <span className="font-medium">Active Filters:</span>
+            {companyFilter && (
+              <span className="px-2 py-1 bg-blue-100 rounded text-blue-700">
+                Company: {companyFilter}
+              </span>
+            )}
+            {blockedFilter !== 'all' && (
+              <span className="px-2 py-1 bg-blue-100 rounded text-blue-700">
+                Blocked: {blockedFilter === 'blocked' ? 'Yes' : 'No'}
+              </span>
+            )}
+            {statusFilter !== 'all' && (
+              <span className="px-2 py-1 bg-blue-100 rounded text-blue-700">
+                Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+              </span>
+            )}
+            {timeFilter !== 'all' && (
+              <span className="px-2 py-1 bg-blue-100 rounded text-blue-700">
+                Created: {timeFilter === 'today' ? 'Today' : 
+                          timeFilter === 'week' ? 'This Week' : 
+                          timeFilter === 'month' ? 'This Month' : 'This Year'}
+              </span>
+            )}
+            <span className="text-blue-600">
+              ({filteredTests.length} of {tests.filter(test => !deletedTestIds.includes(test.id)).length} tests)
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Test List */}
       <div className="space-y-4">
         {filteredTests.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            {searchQuery ? (
+            {searchQuery || companyFilter || blockedFilter !== 'all' || statusFilter !== 'all' || timeFilter !== 'all' ? (
               <>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No tests found</h3>
                 <p className="text-gray-500 mb-4">
-                  No tests match your search criteria "{searchQuery}"
+                  No tests match your current filters
                 </p>
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCompanyFilter('');
+                    setBlockedFilter('all');
+                    setStatusFilter('all');
+                    setTimeFilter('all');
+                  }}
                   className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
                 >
-                  Clear Search
+                  Clear All Filters
                 </button>
               </>
             ) : (
