@@ -557,7 +557,7 @@ export default function MyTests() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
                         <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
                         {/* Company name for admin users */}
                         {isAdmin && test.companyName && (
