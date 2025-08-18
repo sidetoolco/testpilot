@@ -8,7 +8,7 @@ import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCre
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import { CreditIcon } from '../components/ui/CreditIcon';
-import { useRefreshCredits } from '../features/credits/hooks/useRefreshCredits';
+
 
 const MAX_TRANSACTIONS_PER_PAGE = 20;
 
@@ -17,7 +17,6 @@ export default function Billing() {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
   const { data, isLoading, error} = useCredits(currentPage, MAX_TRANSACTIONS_PER_PAGE);
-  const { refreshCredits, isRefreshing } = useRefreshCredits();
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -41,25 +40,29 @@ export default function Billing() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Available Credits & Transactions</h1>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={handlePurchaseCredits}
-              disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <CreditIcon className="text-white" />
-              <span>Buy Credits</span>
-            </button>
-          </div>
         </div>
 
-        {/* Available Credits Card */}
-        
-        <AvailableCreditsCard 
-          totalCredits={data?.total || 0} 
-          isLoading={isLoading}
-          hasPendingTransactions={data?.transactions?.data?.some(t => t.status === 'pending')}
-        />
+
+        <div className="flex items-center gap-6"> 
+          <div className="flex-1"> 
+            <AvailableCreditsCard 
+              totalCredits={data?.total || 0} 
+              isLoading={isLoading}
+              hasPendingTransactions={data?.transactions?.data?.some(t => t.status === 'pending')}
+            />
+          </div>
+          <div className="mt-16 pt-1">
+          <button
+            onClick={handlePurchaseCredits}
+            disabled={isLoading}
+            className="flex items-center space-x-2 px-4 p-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CreditIcon className="text-white" />
+            <span>Buy Credits</span>
+          </button>
+          </div>
+        </div>
+    
 
         {/* Transactions Table */}
         {data?.transactions && (

@@ -16,6 +16,16 @@ export function formatPrice(price: number): string {
 }
 
 /**
+ * Format credits with 2 decimal places and thousands separators
+ */
+export function formatCredits(credits: number): string {
+  return credits.toLocaleString(undefined, { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
+}
+
+/**
  * Format a date to a readable string
  */
 export function formatDate(date: Date): string {

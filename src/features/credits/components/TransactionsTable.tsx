@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Transaction } from '../../../types/credits';
-import { formatDate, formatPrice } from '../../../utils/format';
+import { formatDate, formatPrice, formatCredits } from '../../../utils/format';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -111,7 +111,7 @@ export function TransactionsTable({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm text-gray-900">{transaction.credits}</span>
+                  <span className="text-sm text-gray-900">{formatCredits(transaction.credits)}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { PurchaseCreditsModal } from '../../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../../lib/stripe';
+import { formatCredits } from '../../utils/format';
 
 interface StatisticsCardsProps {
   activeTests: number;
@@ -73,7 +74,7 @@ export function StatisticsCards({
               <div>
                 <h3 className="text-sm sm:text-lg lg:text-xl font-medium">Available Credits</h3>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-primary mt-1">
-                  {creditsLoading ? '...' : availableCredits.toLocaleString()}
+                  {creditsLoading ? '...' : formatCredits(availableCredits)}
                 </p>
               </div>
             </div>

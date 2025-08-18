@@ -551,7 +551,7 @@ export default function MyTests() {
                       className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center flex-shrink-0`}
                     >
                       {isCompleteBlocked ? (
-                        <Lock className={`h-6 w-6 text-orange-500`} />
+                        <Lock className={`h-6 w-6 text-sky-500`} />
                       ) : (
                         <StatusIcon className={`h-6 w-6 ${config.textColor}`} />
                       )}
@@ -570,21 +570,38 @@ export default function MyTests() {
                         {test.status === 'complete' && isAdmin && (
                           <>
                             <span className="hidden sm:inline">•</span>
-                            <span className={isBlocking ? 'text-orange-500' : 'text-green-500'}>
+                            <span className={isBlocking ? 'text-orange-500' : 'text-sky-500'}>
                               {isBlocking ? 'Blocked' : 'Unblocked'}
                             </span>
                           </>
                         )}
-                        <span className="hidden sm:inline">•</span>
-                        <div className="flex items-center space-x-1 text-sm text-gray-500">
-                          <CreditIcon size={14} />
-                          <span>{testCredits.toFixed(1)}</span>
-                        </div>
+                        {test.status !== 'complete' && test.status !== 'active' && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <CreditIcon size={14} />
+                              <span>{testCredits.toFixed(2)}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center text-gray-500 sm:text-center">
                     {new Date(test.createdAt).toLocaleDateString()}
+                    {isAdmin && (
+                      <>
+                        
+                        <button
+                          className="text-blue-500 text-md font-semibold px-2 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={e => handleGetData(test.id, e)}
+                          disabled={gettingDataTests.includes(test.id)}
+                          aria-busy={gettingDataTests.includes(test.id)}
+                        >
+                          {gettingDataTests.includes(test.id) ? 'Getting Data...' : 'Get Data'}
+                        </button>
+                      </>
+                    )}
                   </div>
                   {test.status === 'incomplete' ? (
                     <div className="flex items-center sm:justify-end">
@@ -600,31 +617,13 @@ export default function MyTests() {
                       {/* Admin-only buttons */}
                       {isAdmin && (
                         <>
-                          <button
-                            onClick={e => handleGetData(test.id, e)}
-                            disabled={gettingDataTests.includes(test.id)}
-                            className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                              gettingDataTests.includes(test.id)
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:bg-blue-600'
-                            }`}
-                          >
-                            {gettingDataTests.includes(test.id) ? (
-                              <span className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Getting Data...
-                              </span>
-                            ) : (
-                              'Get Data'
-                            )}
-                          </button>
                           {test.status === 'complete' && (
                             <button
                               onClick={e => isBlocking ? handleUnblockTest(test.id, e) : handleBlockTest(test.id, e)}
                               disabled={blockingTests.includes(test.id) || unblockingTests.includes(test.id)}
                               className={`px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
                                 isBlocking 
-                                  ? 'bg-green-500 hover:bg-green-600' 
+                                  ? 'bg-sky-500 hover:bg-sky-600' 
                                   : 'bg-orange-500 hover:bg-orange-600'
                               } ${
                                 (blockingTests.includes(test.id) || unblockingTests.includes(test.id))
