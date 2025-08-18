@@ -367,7 +367,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
 
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">
-                  {option.credits.toLocaleString()}
+                  {option.credits.toFixed(2)}
                 </p>
                 <p className="text-sm text-gray-600">Credits</p>
               </div>
@@ -401,7 +401,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
           <div className="text-center">
             <p className="text-sm text-primary-700 mb-1">Selected Package</p>
             <p className="text-2xl font-bold text-primary-900">
-              {currentCredits.toLocaleString()} Credits
+              {currentCredits.toFixed(2)} Credits
             </p>
             <div className="flex items-center justify-center gap-2">
               {appliedCoupon ? (

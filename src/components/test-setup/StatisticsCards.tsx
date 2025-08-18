@@ -73,7 +73,7 @@ export function StatisticsCards({
               <div>
                 <h3 className="text-sm sm:text-lg lg:text-xl font-medium">Available Credits</h3>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-primary mt-1">
-                  {creditsLoading ? '...' : availableCredits.toLocaleString()}
+                  {creditsLoading ? '...' : availableCredits.toFixed(2)}
                 </p>
               </div>
             </div>

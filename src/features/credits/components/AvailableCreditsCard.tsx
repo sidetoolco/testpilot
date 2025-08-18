@@ -23,7 +23,7 @@ export function AvailableCreditsCard({ totalCredits, isLoading, hasPendingTransa
   }
 
   return (
-    <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl max-w-sm shadow-sm border border-primary-200 p-6">
+    <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl max-w-md shadow-sm border border-primary-200 p-6">
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center space-x-2 mb-1">
@@ -37,7 +37,7 @@ export function AvailableCreditsCard({ totalCredits, isLoading, hasPendingTransa
           </div>
           <div className="flex items-center space-x-2">
             <CreditIcon size={28} className="text-primary-600 fill-primary-600" />
-            <p className="text-3xl font-bold text-primary-900">{totalCredits}</p>
+            <p className="text-3xl font-bold text-primary-900">{totalCredits.toFixed(2)}</p>
           </div>
           {hasPendingTransactions && (
             <p className="text-xs text-yellow-700 mt-1">
