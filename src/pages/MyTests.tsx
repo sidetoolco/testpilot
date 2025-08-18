@@ -570,7 +570,7 @@ export default function MyTests() {
                         {test.status === 'complete' && isAdmin && (
                           <>
                             <span className="hidden sm:inline">•</span>
-                            <span className={isBlocking ? 'text-sky-500' : 'text-green-500'}>
+                            <span className={isBlocking ? 'text-orange-500' : 'text-sky-500'}>
                               {isBlocking ? 'Blocked' : 'Unblocked'}
                             </span>
                           </>
