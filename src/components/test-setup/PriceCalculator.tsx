@@ -1,5 +1,6 @@
 import { Calculator } from 'lucide-react';
 import { CreditIcon } from '../ui/CreditIcon';
+import { formatCredits } from '../../utils/format';
 
 interface PriceCalculatorProps {
   testerCount: number;
@@ -46,7 +47,7 @@ export function PriceCalculator({ testerCount, variantCount, hasCustomScreening 
           <div className="text-sm text-gray-500 ">Total Credits</div>
           <div className="flex items-baseline space-x-1">
             <CreditIcon className='pt-1' />
-            <span className="text-2xl font-semibold">{totalCredits.toFixed(2)}</span>
+            <span className="text-2xl font-semibold">{formatCredits(totalCredits)}</span>
           </div>
           <div className="text-sm text-gray-500 mt-1">
             {creditsPerTester} credit{creditsPerTester !== 1 ? 's' : ''} per tester

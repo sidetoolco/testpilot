@@ -1,6 +1,7 @@
 import { CreditIcon } from '../../../components/ui/CreditIcon';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { useRefreshCredits } from '../hooks/useRefreshCredits';
+import { formatCredits } from '../../../utils/format';
 
 interface AvailableCreditsCardProps {
   totalCredits: number;
@@ -37,7 +38,7 @@ export function AvailableCreditsCard({ totalCredits, isLoading, hasPendingTransa
           </div>
           <div className="flex items-center space-x-2">
             <CreditIcon size={28} className="text-primary-600 fill-primary-600" />
-            <p className="text-3xl font-bold text-primary-900">{totalCredits.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-primary-900">{formatCredits(totalCredits)}</p>
           </div>
           {hasPendingTransactions && (
             <p className="text-xs text-yellow-700 mt-1">
@@ -46,7 +47,7 @@ export function AvailableCreditsCard({ totalCredits, isLoading, hasPendingTransa
           )}
         </div>
         <button
-          onClick={refreshCredits}
+          onClick={() => refreshCredits()}
           disabled={isRefreshing}
           className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             hasPendingTransactions 

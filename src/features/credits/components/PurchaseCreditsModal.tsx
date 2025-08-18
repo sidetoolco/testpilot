@@ -5,7 +5,7 @@ import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { creditsService, CouponValidationResponse } from '../services/creditsService';
 import { toast } from 'sonner';
 import ModalLayout from '../../../layouts/ModalLayout';
-import { formatPrice } from '../../../utils/format';
+import { formatPrice, formatCredits } from '../../../utils/format';
 import { useRefreshCredits } from '../hooks/useRefreshCredits';
 
 interface PurchaseCreditsModalProps {
@@ -367,7 +367,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
 
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">
-                  {option.credits.toFixed(2)}
+                  {formatCredits(option.credits)}
                 </p>
                 <p className="text-sm text-gray-600">Credits</p>
               </div>
@@ -401,7 +401,7 @@ export function PurchaseCreditsModal({ isOpen, onClose, creditsNeeded }: Purchas
           <div className="text-center">
             <p className="text-sm text-primary-700 mb-1">Selected Package</p>
             <p className="text-2xl font-bold text-primary-900">
-              {currentCredits.toFixed(2)} Credits
+              {formatCredits(currentCredits)} Credits
             </p>
             <div className="flex items-center justify-center gap-2">
               {appliedCoupon ? (

@@ -580,7 +580,7 @@ export default function MyTests() {
                             <span className="hidden sm:inline">•</span>
                             <div className="flex items-center space-x-1 text-sm text-gray-500">
                               <CreditIcon size={14} />
-                              <span>{testCredits.toFixed(1)}</span>
+                              <span>{testCredits.toFixed(2)}</span>
                             </div>
                           </>
                         )}
@@ -592,9 +592,14 @@ export default function MyTests() {
                     {isAdmin && (
                       <>
                         
-                        <span className="text-blue-500 text-md font-semibold cursor-pointer px-2" onClick={e => handleGetData(test.id, e)}>
+                        <button
+                          className="text-blue-500 text-md font-semibold px-2 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={e => handleGetData(test.id, e)}
+                          disabled={gettingDataTests.includes(test.id)}
+                          aria-busy={gettingDataTests.includes(test.id)}
+                        >
                           {gettingDataTests.includes(test.id) ? 'Getting Data...' : 'Get Data'}
-                        </span>
+                        </button>
                       </>
                     )}
                   </div>
