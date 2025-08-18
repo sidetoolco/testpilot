@@ -575,11 +575,15 @@ export default function MyTests() {
                             </span>
                           </>
                         )}
-                        <span className="hidden sm:inline">•</span>
-                        <div className="flex items-center space-x-1 text-sm text-gray-500">
-                          <CreditIcon size={14} />
-                          <span>{testCredits.toFixed(1)}</span>
-                        </div>
+                        {test.status !== 'complete' && test.status !== 'active' && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <CreditIcon size={14} />
+                              <span>{testCredits.toFixed(1)}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
