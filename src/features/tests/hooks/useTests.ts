@@ -46,41 +46,46 @@ export function useTests() {
         const data = await testService.getAllTests();
 
         // Transform the data to match our Test type
-        const transformedTests: Test[] = (data || []).map(test => ({
-          id: test.id,
-          name: test.name,
-          status: test.status as 'draft' | 'active' | 'complete' | 'incomplete',
-          searchTerm: test.search_term,
-          competitors: test.competitors?.map((c: any) => c.product) || [],
-          variations: {
-            a: test.variations?.find((v: any) => v.variation_type === 'a')?.product || null,
-            b: test.variations?.find((v: any) => v.variation_type === 'b')?.product || null,
-            c: test.variations?.find((v: any) => v.variation_type === 'c')?.product || null,
-          },
-          demographics: {
-            ageRanges: test.demographics?.[0]?.age_ranges || [],
-            gender: test.demographics?.[0]?.genders || [],
-            locations: test.demographics?.[0]?.locations || [],
-            interests: test.demographics?.[0]?.interests || [],
-            testerCount: test.demographics?.[0]?.tester_count || 0,
-            customScreening: {
-              enabled: !!test.custom_screening?.[0],
-              question: test.custom_screening?.[0]?.question || '',
-              validAnswer: (() => {
-                const validOption = test.custom_screening?.[0]?.valid_option;
-                return validOption === 'Yes' || validOption === 'No' ? validOption : undefined;
-              })(),
+        const transformedTests: Test[] = (data || []).map(test => {
+          return {
+            id: test.id,
+            name: test.name,
+            status: test.status as 'draft' | 'active' | 'complete' | 'incomplete',
+            searchTerm: test.search_term,
+            competitors: test.competitors?.map((c: any) => c.product) || [],
+            variations: {
+              a: test.variations?.find((v: any) => v.variation_type === 'a')?.product || null,
+              b: test.variations?.find((v: any) => v.variation_type === 'b')?.product || null,
+              c: test.variations?.find((v: any) => v.variation_type === 'c')?.product || null,
             },
-          },
-          responses: {
-            surveys: [],
-            comparisons: [],
-          },
-          completed_sessions: 0,
-          createdAt: test.created_at,
-          updatedAt: test.updated_at,
-          block: (test as any).block || false, // Add block field with default false
-        }));
+            demographics: {
+              ageRanges: test.demographics?.[0]?.age_ranges || [],
+              gender: test.demographics?.[0]?.genders || [],
+              locations: test.demographics?.[0]?.locations || [],
+              interests: test.demographics?.[0]?.interests || [],
+              testerCount: test.demographics?.[0]?.tester_count || 0,
+              customScreening: {
+                enabled: !!test.custom_screening?.[0],
+                question: test.custom_screening?.[0]?.question || '',
+                validAnswer: (() => {
+                  const validOption = test.custom_screening?.[0]?.valid_option;
+                  return validOption === 'Yes' || validOption === 'No' ? validOption : undefined;
+                })(),
+              },
+            },
+            responses: {
+              surveys: [],
+              comparisons: [],
+            },
+            completed_sessions: 0,
+            createdAt: test.created_at,
+            updatedAt: test.updated_at,
+            block: (test as any).block || false, // Add block field with default false
+            companyName: (test as any).company?.name || 
+                         (test as any).variations?.[0]?.product?.company?.name ||
+                         (test as any).competitors?.[0]?.product?.company?.name || null, // Extract company name for admin users
+          };
+        });
 
         setTests(transformedTests);
         setError(null);

@@ -55,4 +55,5 @@ export interface Test {
   updatedAt: string;
   completed_sessions: number;
   block?: boolean; // NEW FIELD: indicates if test is blocked (admin only)
+  companyName?: string; // Company name for admin users
 }

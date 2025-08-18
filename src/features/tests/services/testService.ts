@@ -18,7 +18,8 @@ interface TestResponse {
   custom_screening: any[];
   created_at: string;
   updated_at: string;
-  block?: boolean; // NEW FIELD: indicates if test is blocked
+  block?: boolean; 
+  company?: { name: string }; 
 }
 
 export const testService = {
@@ -259,6 +260,7 @@ export const testService = {
           .select(
             `
            *,
+            company:companies(name),
             competitors:test_competitors(
             product:amazon_products(
             *,
@@ -290,6 +292,7 @@ export const testService = {
         .select(
           `
          *,
+          company:companies(name),
           competitors:test_competitors(
           product:amazon_products(
           *,
