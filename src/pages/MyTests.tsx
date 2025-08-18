@@ -589,6 +589,14 @@ export default function MyTests() {
                   </div>
                   <div className="flex items-center text-gray-500 sm:text-center">
                     {new Date(test.createdAt).toLocaleDateString()}
+                    {isAdmin && (
+                      <>
+                        
+                        <span className="text-blue-500 text-md font-semibold cursor-pointer px-2" onClick={e => handleGetData(test.id, e)}>
+                          {gettingDataTests.includes(test.id) ? 'Getting Data...' : 'Get Data'}
+                        </span>
+                      </>
+                    )}
                   </div>
                   {test.status === 'incomplete' ? (
                     <div className="flex items-center sm:justify-end">
@@ -604,24 +612,6 @@ export default function MyTests() {
                       {/* Admin-only buttons */}
                       {isAdmin && (
                         <>
-                          <button
-                            onClick={e => handleGetData(test.id, e)}
-                            disabled={gettingDataTests.includes(test.id)}
-                            className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-colors whitespace-nowrap ${
-                              gettingDataTests.includes(test.id)
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:bg-blue-600'
-                            }`}
-                          >
-                            {gettingDataTests.includes(test.id) ? (
-                              <span className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Getting Data...
-                              </span>
-                            ) : (
-                              'Get Data'
-                            )}
-                          </button>
                           {test.status === 'complete' && (
                             <button
                               onClick={e => isBlocking ? handleUnblockTest(test.id, e) : handleBlockTest(test.id, e)}
