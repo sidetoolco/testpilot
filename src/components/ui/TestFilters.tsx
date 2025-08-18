@@ -42,7 +42,8 @@ export default function TestFilters({
             value={companyFilter}
             onChange={(e) => setCompanyFilter(e.target.value)}
             placeholder="Company..."
-            className="w-45  py-2 px-1 text-sm border border-gray-200 rounded-lg focus:outline-none  focus:ring-primary-400 focus:border-transparent shadow-sm"
+            aria-label="Filter by company"
+            className="w-48 py-2 px-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
           />
         </div>
       )}
@@ -51,6 +52,7 @@ export default function TestFilters({
       <select
         value={statusFilter}
         onChange={(e) => setStatusFilter(e.target.value)}
+        aria-label="Filter by status"
         className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
       >
         <option value="all">All Statuses</option>
@@ -65,6 +67,7 @@ export default function TestFilters({
         <select
           value={blockedFilter}
           onChange={(e) => setBlockedFilter(e.target.value as 'all' | 'blocked' | 'unblocked')}
+          aria-label="Filter by blocked status"
           className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
         >
           <option value="all">All Blocked</option>
@@ -77,6 +80,7 @@ export default function TestFilters({
       <select
         value={timeFilter}
         onChange={(e) => setTimeFilter(e.target.value as 'all' | 'today' | 'week' | 'month' | 'year')}
+        aria-label="Filter by created time"
         className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
       >
         <option value="all">All Time</option>
@@ -90,6 +94,7 @@ export default function TestFilters({
       {hasActiveFilters && (
         <button
           onClick={clearAllFilters}
+          aria-label="Clear all filters"
           className="px-2 py-2 text-xs text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
         >
           Clear All

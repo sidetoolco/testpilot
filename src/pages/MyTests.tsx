@@ -423,9 +423,10 @@ export default function MyTests() {
 
     // Company filter
     if (companyFilter && isAdmin) {
-      filtered = filtered.filter(test => 
-        test.companyName?.toLowerCase().includes(companyFilter.toLowerCase())
-      );
+      filtered = filtered.filter(test => {
+        const company = (test.companyName ?? '').toLowerCase();
+        return company.includes(companyFilter.toLowerCase());
+      });
     }
 
     // Blocked status filter
@@ -444,28 +445,30 @@ export default function MyTests() {
 
     // Time filter
     if (timeFilter !== 'all') {
-      const now = new Date();
-      const testDate = new Date();
-      
-      filtered = filtered.filter(test => {
-        testDate.setTime(new Date(test.createdAt).getTime());
-        
-        switch (timeFilter) {
-          case 'today':
-            return testDate.toDateString() === now.toDateString();
-          case 'week':
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            return testDate >= weekAgo;
-          case 'month':
-            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            return testDate >= monthAgo;
-          case 'year':
-            const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-            return testDate >= yearAgo;
-          default:
-            return true;
+      const now = Date.now();
+      let cutoff: number | null = null;
+
+      switch (timeFilter) {
+        case 'today': {
+          const startOfToday = new Date();
+          startOfToday.setHours(0, 0, 0, 0);
+          cutoff = startOfToday.getTime();
+          break;
         }
-      });
+        case 'week':
+          cutoff = now - 7 * 24 * 60 * 60 * 1000;
+          break;
+        case 'month':
+          cutoff = now - 30 * 24 * 60 * 60 * 1000;
+          break;
+        case 'year':
+          cutoff = now - 365 * 24 * 60 * 60 * 1000;
+          break;
+      }
+
+      if (cutoff !== null) {
+        filtered = filtered.filter(test => new Date(test.createdAt).getTime() >= cutoff!);
+      }
     }
 
     return filtered;
