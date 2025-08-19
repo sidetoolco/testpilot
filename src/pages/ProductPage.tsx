@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Heart, Star, ChevronLeft, ChevronRight, User, ShoppingCart, Menu, MapPin, Sparkles, Building, Briefcase, Tag, Truck, Repeat, Upload, MoreHorizontal, Info, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 
 // Mock Data for Products
@@ -191,9 +192,9 @@ const ProductListingPage = ({ onProductClick }) => (
 
 // Página de Detalhes do Produto
 const ProductDetailPage = ({ product, onBack }) => {
-    const [mainImage, setMainImage] = useState(product.imageUrl);
+    const [mainImage, setMainImage] = useState(product.imageUrl || product.image_url || product.image);
     const thumbnails = [
-        product.imageUrl, 
+        product.imageUrl || product.image_url || product.image, 
         'https://placehold.co/100x100/EFEFEF/333?text=Vista+2', 
         'https://placehold.co/100x100/EFEFEF/333?text=Vista+3', 
         'https://placehold.co/100x100/EFEFEF/333?text=Nutrição'
@@ -205,7 +206,8 @@ const ProductDetailPage = ({ product, onBack }) => {
                 onClick={onBack} 
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4"
             >
-                <ArrowLeft size={16} /> Voltar para os resultados
+                <ArrowLeft size={16} /> 
+                {location.state?.fromTest ? 'Voltar para o teste' : 'Voltar para os resultados'}
             </button>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -223,7 +225,11 @@ const ProductDetailPage = ({ product, onBack }) => {
                         ))}
                     </div>
                     <div className="flex-grow order-1 md:order-2">
-                        <img src={mainImage} alt={product.name} className="w-full rounded-lg border" />
+                        <img 
+                            src={mainImage} 
+                            alt={product.title || product.name || 'Product'} 
+                            className="w-full rounded-lg border" 
+                        />
                     </div>
                 </div>
 
@@ -232,28 +238,34 @@ const ProductDetailPage = ({ product, onBack }) => {
                     <span className="text-xs font-bold bg-blue-100 text-[#0071dc] px-2 py-1 rounded-full">
                         Escolha popular
                     </span>
-                    <h1 className="text-2xl font-bold mt-2">{product.name}</h1>
-                    <div className="flex items-center mt-2">
-                        {[...Array(5)].map((_, i) => (
-                            <Star 
-                                key={i} 
-                                size={16} 
-                                className={i < Math.round(product.rating) ? 'text-black fill-current' : 'text-gray-300'} 
-                            />
-                        ))}
-                        <span className="text-sm text-gray-600 ml-2">{product.rating.toFixed(1)}</span>
-                        <span className="text-sm text-gray-500 ml-1">({product.reviews} avaliações)</span>
-                    </div>
+                    <h1 className="text-2xl font-bold mt-2">{product.title || product.name || 'Product Name'}</h1>
+                    {product.rating && (
+                        <div className="flex items-center mt-2">
+                            {[...Array(5)].map((_, i) => (
+                                <Star 
+                                    key={i} 
+                                    size={16} 
+                                    className={i < Math.round(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
+                                />
+                            ))}
+                            <span className="text-sm text-gray-600 ml-2">{product.rating.toFixed(1)}</span>
+                            <span className="text-sm text-gray-500 ml-1">({product.reviews || 0} avaliações)</span>
+                        </div>
+                    )}
                     <div className="mt-4">
-                        <p className="text-gray-700">{product.description}</p>
+                        <p className="text-gray-700">{product.description || 'No description available'}</p>
                     </div>
                     <div className="mt-6">
                         <h2 className="font-bold text-lg mb-2">Sobre este item</h2>
-                        <ul className="list-disc list-inside space-y-1 text-gray-600">
-                            {product.details.map((detail, i) => (
-                                <li key={i}>{detail}</li>
-                            ))}
-                        </ul>
+                        {product.details && product.details.length > 0 ? (
+                            <ul className="list-disc list-inside space-y-1 text-gray-600">
+                                {product.details.map((detail, i) => (
+                                    <li key={i}>{detail}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500 italic">No additional details available</p>
+                        )}
                     </div>
                 </div>
 
@@ -261,7 +273,9 @@ const ProductDetailPage = ({ product, onBack }) => {
                 <div className="lg:col-span-1">
                     <div className="border rounded-lg p-4">
                         <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-bold">${product.price.toFixed(2)}</span>
+                            <span className="text-3xl font-bold">
+                                ${product.price ? product.price.toFixed(2) : 'N/A'}
+                            </span>
                             <span className="text-gray-500 text-sm">/cada</span>
                         </div>
                         <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
@@ -314,6 +328,17 @@ const ProductDetailPage = ({ product, onBack }) => {
 export default function ProductPage() {
     const [currentPage, setCurrentPage] = useState('listing'); // 'listing' ou 'detail'
     const [selectedProduct, setSelectedProduct] = useState(null);
+    
+    // Check if we're coming from a test with a selected product
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        if (location.state?.selectedProduct) {
+            setSelectedProduct(location.state.selectedProduct);
+            setCurrentPage('detail');
+        }
+    }, [location.state]);
 
     const handleProductClick = (product) => {
         setSelectedProduct(product);
@@ -321,10 +346,17 @@ export default function ProductPage() {
         window.scrollTo(0, 0);
     };
 
-    const handleBackToListing = () => {
-        setSelectedProduct(null);
-        setCurrentPage('listing');
-    };
+      const handleBackToListing = () => {
+    // If we came from a test, go back to the test
+    if (location.state?.fromTest) {
+      navigate(-1); // Go back to previous page (the test)
+      return;
+    }
+    
+    // Otherwise, go back to listing
+    setSelectedProduct(null);
+    setCurrentPage('listing');
+  };
 
     return (
         <>

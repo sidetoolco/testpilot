@@ -1,9 +1,10 @@
 import React from 'react';
-import { Heart, Star, ShoppingCart } from 'lucide-react';
+import { Heart, Star } from 'lucide-react';
 
 interface WalmartProductCardProps {
   product: any;
   onAddToCart: (item: any) => void;
+  onProductClick: (product: any) => void;
   variantType: string;
   testId: string;
 }
@@ -11,19 +12,31 @@ interface WalmartProductCardProps {
 export default function WalmartProductCard({
   product,
   onAddToCart,
+  onProductClick,
   variantType,
   testId,
 }: WalmartProductCardProps) {
+  
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     onAddToCart(product);
   };
 
+  const handleProductClick = () => {
+    onProductClick(product);
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow relative cursor-pointer"
+      onClick={handleProductClick}
+    >
       {/* Wishlist Button */}
-      <button className="absolute top-2 right-2 text-gray-400 hover:text-red-500 z-10">
-        <Heart size={24} />
+      <button 
+        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Heart size={20} />
       </button>
 
       {/* Product Image */}
@@ -78,8 +91,7 @@ export default function WalmartProductCard({
             onClick={handleAddToCart}
             className="w-full bg-[#0071dc] text-white font-bold py-2 px-3 rounded-full hover:bg-[#005cb4] transition-colors flex items-center justify-center gap-1 text-sm"
           >
-            <ShoppingCart size={16} />
-            Adicionar
+            <span className="text-lg font-light">+</span> Add
           </button>
         </div>
       </div>

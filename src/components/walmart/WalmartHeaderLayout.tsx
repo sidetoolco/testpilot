@@ -16,7 +16,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
               <Menu size={28} />
             </button>
             <img 
-              src="https://i.imgur.com/w3I6wI5.png" 
+              src="/assets/images/walmart-icon.svg" 
               alt="Walmart Logo" 
               className="h-8 md:h-9" 
             />
@@ -25,7 +25,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
           <div className="hidden md:flex items-center gap-2 bg-[#005cb4] p-2 rounded-full cursor-pointer">
             <MapPin size={20} />
             <div>
-              <p className="text-xs font-bold">Retirada ou entrega?</p>
+              <p className="text-xs font-bold">Pickup or delivery?</p>
               <p className="text-xs">Sacramento, 95829 • Sacramento Supe...</p>
             </div>
           </div>
@@ -34,7 +34,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Pesquise tudo no Walmart online e na loja" 
+                placeholder="Search everything at Walmart online and in store" 
                 className="w-full p-2 pl-4 pr-12 rounded-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" 
               />
               <button className="absolute right-0 top-0 h-full px-4 bg-yellow-400 rounded-full flex items-center justify-center">
@@ -46,11 +46,11 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
           <div className="hidden md:flex items-center gap-6">
             <div className="text-center text-xs cursor-pointer">
               <Heart size={24} className="mx-auto" />
-              <p>Meus Itens</p>
+              <p>My Items</p>
             </div>
             <div className="text-center text-xs cursor-pointer">
               <User size={24} className="mx-auto" />
-              <p>Entrar</p>
+              <p>Sign In</p>
             </div>
           </div>
           
@@ -65,19 +65,19 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
       <nav className="bg-white shadow-sm p-2 hidden md:block">
         <div className="container mx-auto flex items-center justify-start gap-4 overflow-x-auto scrollbar-hide">
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <Menu size={20}/><span>Departamentos</span>
+            <Menu size={20}/><span>Departments</span>
           </a>
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Serviços</span>
+            <span>Services</span>
           </a>
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Novidades</span>
+            <span>New Arrivals</span>
           </a>
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Volta às Aulas</span>
+            <span>Back to School</span>
           </a>
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Escritório & Casa</span>
+            <span>Office & Home</span>
           </a>
         </div>
       </nav>

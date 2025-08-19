@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { CheckCircle, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { updateSession } from '../../features/tests/services/testersSessionService';
 import { useSessionStore } from '../../store/useSessionStore';
 import RedirectModal from '../test-setup/RedirectQuestionModal';
 import WalmartProductCard from './WalmartProductCard';
+import WalmartProductDetail from './WalmartProductDetail';
 
 interface WalmartGridProps {
   products: any[];
@@ -21,7 +21,8 @@ export default function WalmartGrid({
 }: WalmartGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
-  const navigate = useNavigate();
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [showProductDetail, setShowProductDetail] = useState(false);
   const { shopperId } = useSessionStore();
   const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
 
@@ -31,6 +32,16 @@ export default function WalmartGrid({
     console.log(`Product added to cart: ${product.title}`);
     updateSession(product, shopperId);
     setIsModalOpen(true);
+  };
+
+  const handleProductClick = (product: any) => {
+    setSelectedProduct(product);
+    setShowProductDetail(true);
+  };
+
+  const handleBackToGrid = () => {
+    setShowProductDetail(false);
+    setSelectedProduct(null);
   };
 
   const closeModal = () => {
@@ -44,6 +55,18 @@ export default function WalmartGrid({
     navigate('/questions');
   };
 
+  // Show product detail if a product is selected
+  if (showProductDetail && selectedProduct) {
+    return (
+      <WalmartProductDetail
+        product={selectedProduct}
+        onBack={handleBackToGrid}
+        onAddToCart={handleAddToCart}
+      />
+    );
+  }
+
+  // Show product grid
   return (
     <>
       <div className="bg-white p-4 rounded-sm">
@@ -53,6 +76,7 @@ export default function WalmartGrid({
               key={`walmart-product-card-${product.id}`}
               product={product}
               onAddToCart={handleAddToCart}
+              onProductClick={handleProductClick}
               variantType={variantType}
               testId={testId}
             />
