@@ -122,34 +122,6 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
           </div>
         </div>
       </div>
-
-      <div className="mt-8 text-center">
-        <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
-          <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-          </svg>
-          <span className="text-sm text-gray-700">
-            Both skins use the same product data from your Amazon scraper
-          </span>
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="mt-8 flex justify-between items-center">
-        <button
-          onClick={onBack}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-        >
-          Back
-        </button>
-        
-        <button
-          onClick={onNext}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Continue
-        </button>
-      </div>
     </div>
   );
 }
