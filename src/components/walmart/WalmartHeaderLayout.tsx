@@ -1,15 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Heart, User, ShoppingCart, Menu, MapPin } from 'lucide-react';
+import { useSessionStore } from '../../store/useSessionStore';
 
 interface WalmartHeaderLayoutProps {
   children: React.ReactNode;
 }
 
 export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutProps) {
+  const { shopperId, status, sessionBeginTime } = useSessionStore();
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (!sessionBeginTime) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - sessionBeginTime.getTime();
+      setElapsedTime(elapsed);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sessionBeginTime]);
+
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const handleClick = () => {
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main Header */}
-      <header className="bg-[#0071dc] text-white p-2 md:p-3 sticky top-0 z-50">
+    <div>
+      {/* TestPilot Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex flex-wrap justify-between items-center z-50">
+        <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
+          <div className="bg-white p-1 rounded-lg">
+            <img src="/assets/images/testPilot-black.png" alt="TestPilot" className="h-8" />
+          </div>
+          <span className="text-lg font-bold ml-2">Shopping Simulator</span>
+        </div>
+        <div className="text-sm flex-grow sm:flex-grow-0 text-center sm:text-right p-4">
+          {error ? (
+            <span className="text-red-800">{error}</span>
+          ) : (
+            `${capitalizeFirstLetter(status)} - ${Math.floor(elapsedTime / 60)}:${String(elapsedTime % 60).padStart(2, '0')}`
+          )}
+        </div>
+      </div>
+
+      {/* Walmart Header */}
+      <header className="bg-[#0071dc] text-white p-2 md:p-3 sticky top-[70px] z-40">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <button className="md:hidden">
@@ -83,9 +130,30 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <div className="flex-grow sm:flex-grow-0 w-full" style={{ paddingTop: '30px' }}>
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
+
+      {/* Navigation Disabled Modal */}
+      {isModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg relative max-w-sm w-full">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl"
+            >
+              &times;
+            </button>
+            <div className="p-6">
+              <p className="text-center">
+                Navigation is disabled on these pages, please focus on our products.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

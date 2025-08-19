@@ -1,9 +1,11 @@
 import React from 'react';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { trackEvent } from '../../lib/events';
 
 interface WalmartProductCardProps {
   product: any;
-  onAddToCart: (item: any) => void;
+  onAddToCart: (product: any) => void;
   onProductClick: (product: any) => void;
   variantType: string;
   testId: string;
@@ -11,88 +13,113 @@ interface WalmartProductCardProps {
 
 export default function WalmartProductCard({
   product,
-  onAddToCart,
+  onAddToCart: handleAddToCart,
   onProductClick,
   variantType,
   testId,
 }: WalmartProductCardProps) {
-  
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAddToCart(product);
-  };
+  const { id, image_url, image, title, name, rating, reviews_count, price, images } = product;
 
   const handleProductClick = () => {
+    trackEvent(
+      'click',
+      {
+        test_id: testId,
+        variation_type: variantType,
+        product_id: id,
+      },
+      window.location.pathname
+    );
     onProductClick(product);
   };
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow relative cursor-pointer"
+      className="h-full flex cursor-pointer"
       onClick={handleProductClick}
     >
-      {/* Wishlist Button */}
-      <button 
-        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 z-10"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Heart size={20} />
-      </button>
+      <div className="relative flex flex-col w-full p-4 hover:outline hover:outline-[#0071dc] hover:outline-[1px] rounded">
+        {/* Heart Icon - Top Right */}
+        <button 
+          className="absolute top-2 right-2 z-10 text-gray-400 hover:text-red-500 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Heart size={20} />
+        </button>
 
-      {/* Product Image */}
-      <div className="h-48 mb-4 flex items-center justify-center">
-        <img
-          src={product.image_url || product.image}
-          alt={product.title || product.name}
-          className="max-h-full max-w-full object-contain"
-        />
-      </div>
-
-      {/* Product Info */}
-      <div className="flex-grow flex flex-col">
-        {/* Price */}
-        <p className="text-lg font-bold text-gray-900 mb-2">
-          ${product.price?.toFixed(2) || 'N/A'}
-        </p>
-
-        {/* Product Name */}
-        <p className="text-sm text-gray-700 h-12 overflow-hidden mb-2 line-clamp-2">
-          {product.title || product.name}
-        </p>
-
-        {/* Size/Weight */}
-        {product.size && (
-          <p className="text-xs text-gray-500 mb-2">{product.size}</p>
-        )}
-
-        {/* Rating */}
-        {product.rating && (
-          <div className="flex items-center mb-3">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={16}
-                className={
-                  i < Math.round(product.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                }
-              />
-            ))}
-            <span className="text-xs text-gray-500 ml-1">
-              ({product.reviews || 0})
-            </span>
-          </div>
-        )}
-
-        {/* Add to Cart Button */}
-        <div className="mt-auto pt-2">
+        {/* Product Image with Add Button Overlay */}
+        <div className="h-48 mb-4 flex items-center justify-center relative">
+          <img
+            src={image_url || image}
+            alt={title || name}
+            className="max-h-full max-w-full object-contain"
+          />
+          
+          {/* Add Button Overlay - Left Bottom */}
           <button
-            onClick={handleAddToCart}
-            className="w-full bg-[#0071dc] text-white font-bold py-2 px-3 rounded-full hover:bg-[#005cb4] transition-colors flex items-center justify-center gap-1 text-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddToCart(product);
+            }}
+            className="absolute bottom-2 left-2 bg-[#0071dc] text-white font-bold py-2 px-3 rounded-full hover:bg-[#005cb4] transition-colors flex items-center justify-center gap-1 text-sm shadow-lg"
           >
             <span className="text-lg font-light">+</span> Add
           </button>
+        </div>
+
+        {/* Product Info */}
+        <div className="flex-grow flex flex-col">
+          <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#0071dc] line-clamp-2">
+            {title || name}
+          </h3>
+
+          {/* Rating and Reviews */}
+          {rating && (
+            <div className="flex items-center mb-1">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => {
+                  const fullStars = Math.round(rating || 5);
+                  const isFullStar = i < fullStars;
+                  const isHalfStar = !isFullStar && i < rating;
+                  return (
+                    <Star
+                      key={`${id}-star-${i}`}
+                      className={`h-4 w-4 ${
+                        isFullStar
+                          ? 'text-yellow-400 fill-current'
+                          : isHalfStar
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-200 fill-gray-200'
+                      }`}
+                      style={{
+                        clipPath: isHalfStar ? 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' : 'none',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              {reviews_count && (
+                <span className="ml-1 text-[12px] text-[#0071dc] hover:text-[#005cb4] hover:underline">
+                  {reviews_count.toLocaleString()}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Price */}
+          <div className="flex items-baseline gap-[2px] text-[#0F1111]">
+            <span className="text-xs align-top mt-[1px]">US$</span>
+            <span className="text-[21px] font-medium">{Math.floor(price)}</span>
+            <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
+          </div>
+
+          {/* Walmart Benefits */}
+          <div className="mt-1 flex items-center gap-1">
+            <div className="bg-[#0071dc] text-white text-xs px-2 py-1 rounded">
+              FREE 2-day delivery
+            </div>
+          </div>
         </div>
       </div>
     </div>

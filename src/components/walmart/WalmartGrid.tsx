@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { updateSession } from '../../features/tests/services/testersSessionService';
 import { useSessionStore } from '../../store/useSessionStore';
 import RedirectModal from '../test-setup/RedirectQuestionModal';
@@ -25,6 +26,7 @@ export default function WalmartGrid({
   const [showProductDetail, setShowProductDetail] = useState(false);
   const { shopperId } = useSessionStore();
   const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleAddToCart = (product: any) => {
     addToCart(product);
@@ -71,16 +73,19 @@ export default function WalmartGrid({
     <>
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map(({ product }) => (
-            <WalmartProductCard
-              key={`walmart-product-card-${product.id}`}
-              product={product}
-              onAddToCart={handleAddToCart}
-              onProductClick={handleProductClick}
-              variantType={variantType}
-              testId={testId}
-            />
-          ))}
+          {products.map((item, index) => {
+            const product = item.product || item; // Handle both wrapped and unwrapped products
+            return (
+              <WalmartProductCard
+                key={`walmart-product-card-${product.id || index}`}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onProductClick={handleProductClick}
+                variantType={variantType}
+                testId={testId}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -131,7 +136,6 @@ export default function WalmartGrid({
       <RedirectModal
         isOpen={isRedirectModalOpen}
         onClose={handleRedirectClose}
-        test={testId}
       />
     </>
   );

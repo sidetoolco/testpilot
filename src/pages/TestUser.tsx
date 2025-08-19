@@ -311,7 +311,7 @@ const TestUserPage = () => {
   if (testSkin === 'walmart') {
     return (
       <WalmartHeaderLayout>
-        <div className="bg-[#EAEDED] min-h-[600px]">
+        <div className="bg-white min-h-[1200px]">
           {loading ? (
             <div className="flex justify-center items-center min-h-[600px]">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
@@ -326,7 +326,7 @@ const TestUserPage = () => {
                 captchaVerified={captchaVerified}
                 captchaLoading={captchaLoading}
               />
-              <div className="max-w-screen-2xl mx-auto px-4 py-4">
+              <div className="max-w-screen-2xl mx-auto px-4 py-4 bg-white">
                 <div className="bg-white p-4 mb-4 rounded-sm">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-[#565959]">
