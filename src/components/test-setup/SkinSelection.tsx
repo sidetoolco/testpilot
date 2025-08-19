@@ -66,10 +66,6 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                 <span>Amazon-style product cards</span>
               </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Prime badge support</span>
-              </div>
             </div>
           </div>
         </div>
@@ -113,10 +109,6 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
               <div className="flex items-center justify-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                 <span>Walmart-style product cards</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Location picker</span>
               </div>
             </div>
           </div>

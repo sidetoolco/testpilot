@@ -307,65 +307,23 @@ const TestUserPage = () => {
 
   if (error) return <p>Error: {error}</p>;
 
+  // Show full-screen loading until we have determined the skin and data
+  if (loading || !combinedData) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0071dc] mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading your shopping experience...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Render the appropriate skin based on testSkin
   if (testSkin === 'walmart') {
     return (
       <WalmartHeaderLayout>
         <div className="bg-white min-h-[1200px]">
-          {loading ? (
-            <div className="flex justify-center items-center min-h-[600px]">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : combinedData ? (
-            <div key={combinedData.id}>
-              <Modal 
-                isOpen={isModalOpen} 
-                onClose={closeModal} 
-                test={combinedData.search_term}
-                onCaptchaVerify={handleCaptchaVerify}
-                captchaVerified={captchaVerified}
-                captchaLoading={captchaLoading}
-              />
-              <div className="max-w-screen-2xl mx-auto px-4 py-4 bg-white">
-                <div className="bg-white p-4 mb-4 rounded-sm">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-[#565959]">
-                      {combinedData.competitors.length} results for
-                    </span>
-                    <span className="text-sm font-bold text-[#0F1111]">
-                      "{combinedData.search_term}"
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <WalmartGrid
-                      products={combinedData.competitors}
-                      addToCart={addToCart}
-                      variantType={id ? id[id.length - 1] : ''}
-                      testId={id ? id.slice(0, -2) : ''}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p>No data found</p>
-          )}
-        </div>
-      </WalmartHeaderLayout>
-    );
-  }
-
-  // Default Amazon skin
-  return (
-    <HeaderTesterSessionLayout>
-      <div className="bg-[#EAEDED] min-h-[600px]">
-        {loading ? (
-          <div className="flex justify-center items-center min-h-[600px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : combinedData ? (
           <div key={combinedData.id}>
             <Modal 
               isOpen={isModalOpen} 
@@ -375,7 +333,7 @@ const TestUserPage = () => {
               captchaVerified={captchaVerified}
               captchaLoading={captchaLoading}
             />
-            <div className="max-w-screen-2xl mx-auto px-4 py-4">
+            <div className="max-w-screen-2xl mx-auto px-4 py-4 bg-white">
               <div className="bg-white p-4 mb-4 rounded-sm">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-[#565959]">
@@ -388,7 +346,7 @@ const TestUserPage = () => {
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <FakeAmazonGrid
+                  <WalmartGrid
                     products={combinedData.competitors}
                     addToCart={addToCart}
                     variantType={id ? id[id.length - 1] : ''}
@@ -398,9 +356,47 @@ const TestUserPage = () => {
               </div>
             </div>
           </div>
-        ) : (
-          <p>No data found</p>
-        )}
+        </div>
+      </WalmartHeaderLayout>
+    );
+  }
+
+  // Default Amazon skin
+  return (
+    <HeaderTesterSessionLayout>
+      <div className="bg-[#EAEDED] min-h-[600px]">
+        <div key={combinedData.id}>
+          <Modal 
+            isOpen={isModalOpen} 
+            onClose={closeModal} 
+            test={combinedData.search_term}
+            onCaptchaVerify={handleCaptchaVerify}
+            captchaVerified={captchaVerified}
+            captchaLoading={captchaLoading}
+          />
+          <div className="max-w-screen-2xl mx-auto px-4 py-4">
+            <div className="bg-white p-4 mb-4 rounded-sm">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-[#565959]">
+                  {combinedData.competitors.length} results for
+                </span>
+                <span className="text-sm font-bold text-[#0F1111]">
+                  "{combinedData.search_term}"
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <FakeAmazonGrid
+                  products={combinedData.competitors}
+                  addToCart={addToCart}
+                  variantType={id ? id[id.length - 1] : ''}
+                  testId={id ? id.slice(0, -2) : ''}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </HeaderTesterSessionLayout>
   );
