@@ -109,42 +109,38 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
       </header>
 
       {/* Secondary Navigation */}
-      <nav className="bg-white shadow-sm mt-16 border-b pt-4 border-gray-200 block relative z-30 min-h-[48px]">
-        <div className="max-w-full px-4 flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
-            <Menu size={20}/><span>Departments</span>
+      <nav className="bg-[#C9DCFD] shadow-sm mt-1 border-b pt-1 border-gray-200 block relative z-30 min-h-[48px]">
+        <div className="max-w-full px-4 flex mt-16 items-center p-1 justify-center gap-6 overflow-x-auto scrollbar-hide">
+          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
+            <Menu size={16}/><span>Departments</span>
           </a>
-          <a href="#" className="text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             Services
           </a>
-          <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700 whitespace-nowrap font-medium flex items-center gap-1" onClick={handleClick}>
+          <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700 whitespace-nowrap font-medium flex items-center gap-1 bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             ⚡ Get it Fast
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             🆕 New Arrivals
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             🎒 Back to School
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             🍽️ Dinner Made Easy
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             💊 Pharmacy Delivery
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             🎓 College Shop
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             ❤️ My Items
           </a>
-          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             🔧 Auto Service
           </a>
-          <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700 whitespace-nowrap font-medium" onClick={handleClick}>
-            ✨ Only at Walmart
-          </a>
-          
         </div>
       </nav>
 
