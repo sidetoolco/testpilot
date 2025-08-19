@@ -19,7 +19,7 @@ export function formatPrice(price: number): string {
  * Format credits with 2 decimal places and thousands separators
  */
 export function formatCredits(credits: number): string {
-  return credits.toLocaleString(undefined, { 
+  return credits.toLocaleString('en-US', { 
     minimumFractionDigits: 2, 
     maximumFractionDigits: 2 
   });
