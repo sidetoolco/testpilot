@@ -108,6 +108,7 @@ export const testService = {
         user_id: userId,
         settings: {},
         objective: testData.objective,
+        skin: testData.skin || 'amazon',
       })
       .select()
       .single();

@@ -33,6 +33,8 @@ import Billing from './pages/Billing';
 import Coupons from './pages/Coupons';
 import ExpertModeSettings from './pages/ExpertModeSettings';
 import CompaniesManagement from './pages/CompaniesManagement';
+import SkinDemo from './pages/SkinDemo';
+import ProductPage from './pages/ProductPage';
 
 const queryClient = new QueryClient();
 
@@ -209,6 +211,30 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <ExpertModeSettings />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Demo Routes */}
+              <Route
+                path="/skin-demo"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SkinDemo />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Product Routes */}
+              <Route
+                path="/products"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <ProductPage />
                     </MainLayout>
                   </ProtectedRoute>
                 }

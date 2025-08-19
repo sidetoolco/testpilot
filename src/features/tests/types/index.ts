@@ -20,6 +20,7 @@ export interface TestData {
     customScreening: CustomScreening;
   };
   surveyQuestions: string[];
+  skin: 'amazon' | 'walmart';
 }
 
 export interface ValidationResult {

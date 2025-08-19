@@ -30,14 +30,15 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
       // Automatic navigation based on the step
       const stepRoutes: Record<string, string> = {
         objective: '/create-test',
-        variations: '/create-test/variations',
-        'search-term': '/create-test/search-term',
-        search: '/create-test/search',
-        competitors: '/create-test/competitors',
-        'search-competitors': '/create-test/search-competitors',
-        demographics: '/create-test/demographics',
-        preview: '/create-test/preview',
-        review: '/create-test/review',
+        variations: '/create-test',
+        'search-term': '/create-test',
+        search: '/create-test',
+        competitors: '/create-test',
+        'search-competitors': '/create-test',
+        'skin-selection': '/create-test',
+        demographics: '/create-test',
+        preview: '/create-test',
+        review: '/create-test',
       };
 
       const route = stepRoutes[result.nextStep] || '/create-test';

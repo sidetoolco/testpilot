@@ -13,6 +13,9 @@ export const validateStep = (step: string, data: TestData): boolean => {
     case 'search-competitors':
       return data.searchTerm.trim().length > 0 && data.competitors.length === 11; // Require search term and exactly 11 competitors
 
+    case 'skin-selection':
+      return !!data.skin; // Require a skin to be selected
+
     case 'demographics':
       const isValidDemographics =
         data.demographics.ageRanges.length === 2 &&

@@ -3,6 +3,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
+import WalmartGrid from '../components/walmart/WalmartGrid';
+import WalmartHeaderLayout from '../components/walmart/WalmartHeaderLayout';
 import { useSessionStore } from '../store/useSessionStore';
 import { useTestCompletionStore } from '../store/useTestCompletionStore';
 import {
@@ -43,6 +45,15 @@ const useFetchTestData = (id: string | undefined) => {
   }, [id]);
 
   return { data, loading, error };
+};
+
+// For now, we'll hardcode the skin based on the test ID
+// In the future, this should come from the database
+const getTestSkin = (testId: string): 'amazon' | 'walmart' => {
+  // You can implement your own logic here to determine the skin
+  // For example, based on test ID pattern, company preference, etc.
+  // For now, let's use a simple pattern: if test ID contains 'walmart', use Walmart skin
+  return testId.toLowerCase().includes('walmart') ? 'walmart' : 'amazon';
 };
 
 interface ModalProps {
@@ -164,6 +175,10 @@ const TestUserPage = () => {
   const [captchaLoading, setCaptchaLoading] = useState(false);
 
   const combinedData = data ? combineVariantsAndCompetitors(data) : null;
+
+  // Determine which skin to use based on test data
+  // The skin should come from the database, but for now we'll use a fallback
+  const testSkin = combinedData?.skin || (id ? getTestSkin(id) : 'amazon');
 
   useEffect(() => {
     if (prolificPid) {
@@ -292,6 +307,57 @@ const TestUserPage = () => {
 
   if (error) return <p>Error: {error}</p>;
 
+  // Render the appropriate skin based on testSkin
+  if (testSkin === 'walmart') {
+    return (
+      <WalmartHeaderLayout>
+        <div className="bg-[#EAEDED] min-h-[600px]">
+          {loading ? (
+            <div className="flex justify-center items-center min-h-[600px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : combinedData ? (
+            <div key={combinedData.id}>
+              <Modal 
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+                test={combinedData.search_term}
+                onCaptchaVerify={handleCaptchaVerify}
+                captchaVerified={captchaVerified}
+                captchaLoading={captchaLoading}
+              />
+              <div className="max-w-screen-2xl mx-auto px-4 py-4">
+                <div className="bg-white p-4 mb-4 rounded-sm">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-[#565959]">
+                      {combinedData.competitors.length} results for
+                    </span>
+                    <span className="text-sm font-bold text-[#0F1111]">
+                      "{combinedData.search_term}"
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <WalmartGrid
+                      products={combinedData.competitors}
+                      addToCart={addToCart}
+                      variantType={id ? id[id.length - 1] : ''}
+                      testId={id ? id.slice(0, -2) : ''}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p>No data found</p>
+          )}
+        </div>
+      </WalmartHeaderLayout>
+    );
+  }
+
+  // Default Amazon skin
   return (
     <HeaderTesterSessionLayout>
       <div className="bg-[#EAEDED] min-h-[600px]">

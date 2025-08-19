@@ -53,6 +53,11 @@ export const useStepValidation = (testData: TestData) => {
           return `Please select exactly 11 competitor products (currently selected: ${testData.competitors.length})`;
         }
         return 'Please complete all required fields';
+      case 'skin-selection':
+        if (!testData.skin) {
+          return 'Please select a skin (Amazon or Walmart)';
+        }
+        return 'Please complete all required fields';
       case 'demographics':
         // Check for specific validation failures
         if (testData.demographics.customScreening?.enabled) {

@@ -44,6 +44,7 @@ const getInitialTestData = (expertMode: boolean): TestData => ({
     },
   },
   surveyQuestions: expertMode ? ['value', 'appearance', 'confidence', 'brand', 'convenience'] : ['value', 'appearance', 'confidence', 'brand', 'convenience'],
+  skin: 'amazon',
 });
 
 const LoadingMessages = [
@@ -97,6 +98,7 @@ export default function CreateConsumerTest() {
     { key: 'variations', label: 'Variants' },
     { key: 'search-term', label: 'Search Term' },
     { key: 'search-competitors', label: 'Search Competitors' },
+    { key: 'skin-selection', label: 'Skin Selection' },
     { key: 'demographics', label: 'Demographics' },
     ...(expertMode ? [{ key: 'survey-questions', label: 'Survey Questions' }] : []),
     { key: 'preview', label: 'Preview' },
