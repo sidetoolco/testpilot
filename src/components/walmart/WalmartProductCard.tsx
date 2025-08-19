@@ -70,13 +70,21 @@ export default function WalmartProductCard({
 
         {/* Product Info */}
         <div className="flex-grow flex flex-col">
-          <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-1 hover:text-[#0071dc] line-clamp-2">
+          {/* Price - At the top */}
+          <div className="flex items-baseline gap-[2px] text-[#0F1111] mb-2">
+            <span className="text-xs align-top mt-[1px]">US$</span>
+            <span className="text-[21px] font-medium">{Math.floor(price)}</span>
+            <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
+          </div>
+
+          {/* Product Name - In the middle */}
+          <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-2 hover:text-[#0071dc] line-clamp-2">
             {title || name}
           </h3>
 
-          {/* Rating and Reviews */}
+          {/* Rating and Reviews - At the bottom */}
           {rating && (
-            <div className="flex items-center mb-1">
+            <div className="flex items-center">
               <div className="flex">
                 {[...Array(5)].map((_, i) => {
                   const fullStars = Math.round(rating || 5);
@@ -106,20 +114,6 @@ export default function WalmartProductCard({
               )}
             </div>
           )}
-
-          {/* Price */}
-          <div className="flex items-baseline gap-[2px] text-[#0F1111]">
-            <span className="text-xs align-top mt-[1px]">US$</span>
-            <span className="text-[21px] font-medium">{Math.floor(price)}</span>
-            <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
-          </div>
-
-          {/* Walmart Benefits */}
-          <div className="mt-1 flex items-center gap-1">
-            <div className="bg-[#0071dc] text-white text-xs px-2 py-1 rounded">
-              FREE 2-day delivery
-            </div>
-          </div>
         </div>
       </div>
     </div>
