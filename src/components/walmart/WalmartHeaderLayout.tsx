@@ -39,7 +39,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
   return (
     <div>
       {/* TestPilot Navigation Bar */}
-      <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex flex-wrap justify-between items-center z-50">
+      <div className="fixed top-0 left-0 right-0 bg-[#00A67E] shadow-md flex pb-2flex-wrap justify-between items-center z-50">
         <div className="flex items-center flex-grow sm:flex-grow-0 p-4">
           <div className="bg-white p-1 rounded-lg">
             <img src="/assets/images/testPilot-black.png" alt="TestPilot" className="h-8" />
@@ -56,7 +56,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
       </div>
 
       {/* Walmart Header */}
-      <header className="bg-[#0071dc] text-white p-2 md:p-3 sticky top-[70px] z-40">
+      <header className="bg-[#0071dc] text-white md:p-3 sticky top-[70px] z-40">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <button className="md:hidden">
@@ -109,28 +109,47 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
       </header>
 
       {/* Secondary Navigation */}
-      <nav className="bg-white shadow-sm p-2 hidden md:block">
-        <div className="container mx-auto flex items-center justify-start gap-4 overflow-x-auto scrollbar-hide">
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
+      <nav className="bg-white shadow-sm mt-16 border-b pt-4 border-gray-200 block relative z-30 min-h-[48px]">
+        <div className="max-w-full px-4 flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
+          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
             <Menu size={20}/><span>Departments</span>
           </a>
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Services</span>
+          <a href="#" className="text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            Services
           </a>
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>New Arrivals</span>
+          <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700 whitespace-nowrap font-medium flex items-center gap-1" onClick={handleClick}>
+            ⚡ Get it Fast
           </a>
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Back to School</span>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            🆕 New Arrivals
           </a>
-          <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap">
-            <span>Office & Home</span>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            🎒 Back to School
           </a>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            🍽️ Dinner Made Easy
+          </a>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            💊 Pharmacy Delivery
+          </a>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            🎓 College Shop
+          </a>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            ❤️ My Items
+          </a>
+          <a href="#" className="text-sm text-gray-800 hover:text-[#0071dc] whitespace-nowrap" onClick={handleClick}>
+            🔧 Auto Service
+          </a>
+          <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700 whitespace-nowrap font-medium" onClick={handleClick}>
+            ✨ Only at Walmart
+          </a>
+          
         </div>
       </nav>
 
       {/* Main Content */}
-      <div className="flex-grow sm:flex-grow-0 w-full" style={{ paddingTop: '30px' }}>
+      <div className="flex-grow sm:flex-grow-0 w-full">
         <main className="flex-1">
           {children}
         </main>

@@ -334,7 +334,7 @@ const TestUserPage = () => {
               captchaLoading={captchaLoading}
             />
             <div className="max-w-screen-2xl mx-auto px-4 py-4 bg-white">
-              <div className="bg-white p-4 mb-4 rounded-sm">
+              <div className="bg-white p-4 rounded-sm">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-[#565959]">
                     {combinedData.competitors.length} results for
@@ -375,7 +375,7 @@ const TestUserPage = () => {
             captchaLoading={captchaLoading}
           />
           <div className="max-w-screen-2xl mx-auto px-4 py-4">
-            <div className="bg-white p-4 mb-4 rounded-sm">
+            <div className="bg-white p-4 rounded-sm">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-[#565959]">
                   {combinedData.competitors.length} results for
