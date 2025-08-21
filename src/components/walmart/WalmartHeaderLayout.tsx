@@ -4,9 +4,10 @@ import { useSessionStore } from '../../store/useSessionStore';
 
 interface WalmartHeaderLayoutProps {
   children: React.ReactNode;
+  searchTerm?: string;
 }
 
-export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutProps) {
+export default function WalmartHeaderLayout({ children, searchTerm }: WalmartHeaderLayoutProps) {
   const { shopperId, status, sessionBeginTime } = useSessionStore();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +82,7 @@ export default function WalmartHeaderLayout({ children }: WalmartHeaderLayoutPro
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Search everything at Walmart online and in store" 
+                value={searchTerm || ''}
                 className="w-full p-2 pl-4 pr-12 rounded-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" 
               />
               <button className="absolute right-0 top-0 h-full px-4 bg-yellow-400 rounded-full flex items-center justify-center">

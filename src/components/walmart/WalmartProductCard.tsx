@@ -1,6 +1,5 @@
 import React from 'react';
-import { Heart, Star, ShoppingCart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import {  Star } from 'lucide-react';
 import { trackEvent } from '../../lib/events';
 
 interface WalmartProductCardProps {
@@ -39,14 +38,6 @@ export default function WalmartProductCard({
       onClick={handleProductClick}
     >
       <div className="relative flex flex-col w-full p-4 hover:outline hover:outline-[#0071dc] hover:outline-[1px] rounded">
-        {/* Heart Icon - Top Right */}
-        <button 
-          className="absolute top-2 right-2 z-10 text-gray-400 hover:text-red-500 transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Heart size={20} />
-        </button>
-
         {/* Product Image with Add Button Overlay */}
         <div className="h-48 mb-4 flex items-center justify-center relative">
           <img

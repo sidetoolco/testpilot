@@ -322,7 +322,7 @@ const TestUserPage = () => {
   // Render the appropriate skin based on testSkin
   if (testSkin === 'walmart') {
     return (
-      <WalmartHeaderLayout>
+              <WalmartHeaderLayout searchTerm={combinedData.search_term}>
         <div className="bg-white min-h-[1200px]">
           <div key={combinedData.id}>
             <Modal 

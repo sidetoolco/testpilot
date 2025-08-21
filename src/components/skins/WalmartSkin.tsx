@@ -159,7 +159,7 @@ const MainHeader = ({ searchQuery, onSearch }: { searchQuery?: string; onSearch?
         <div className="relative">
           <input 
             type="text" 
-            placeholder="Pesquise tudo no Walmart online e na loja" 
+            placeholder={searchQuery ? `${searchQuery}` : "Pesquise tudo no Walmart online e na loja"} 
             value={searchQuery || ''}
             onChange={(e) => onSearch?.(e.target.value)}
             className="w-full p-2 pl-4 pr-12 rounded-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" 
