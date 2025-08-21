@@ -121,8 +121,7 @@ export function TestCreationContent({
           searchTerm={testData.searchTerm}
           competitors={testData.competitors}
           variations={testData.variations}
-          onNext={onNext}
-          onBack={onBack}
+          skin={testData.skin}
         />
       )}
 

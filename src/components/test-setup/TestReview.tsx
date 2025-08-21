@@ -115,6 +115,12 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                     {activeVariants} variant{activeVariants !== 1 ? 's' : ''} configured
                   </div>
                 </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Test Interface</div>
+                  <div className="text-gray-900 capitalize">
+                    {testData.skin === 'walmart' ? 'Walmart' : 'Amazon'} Skin
+                  </div>
+                </div>
                 {/* Custom Screening Section */}
                 <div>
                   <h4 className="text-xl font-semibold mb-6">Custom Screening</h4>

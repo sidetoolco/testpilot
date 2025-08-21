@@ -274,7 +274,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                     <div className="border rounded-lg p-4">
                         <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-bold">
-                                ${product.price ? product.price.toFixed(2) : 'N/A'}
+                                {Number.isFinite(product?.price) ? `$${product.price.toFixed(2)}` : 'N/A'}
                             </span>
                             <span className="text-gray-500 text-sm">/cada</span>
                         </div>

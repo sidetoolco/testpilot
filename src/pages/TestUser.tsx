@@ -177,8 +177,7 @@ const TestUserPage = () => {
   const combinedData = data ? combineVariantsAndCompetitors(data) : null;
 
   // Determine which skin to use based on test data
-  // The skin should come from the database, but for now we'll use a fallback
-  const testSkin = combinedData?.skin || (id ? getTestSkin(id) : 'amazon');
+  const testSkin = combinedData?.skin ?? 'amazon';
 
   useEffect(() => {
     if (prolificPid) {

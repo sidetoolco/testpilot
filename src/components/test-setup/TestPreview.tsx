@@ -1,5 +1,6 @@
 import React from 'react';
 import AmazonPreview from './preview/AmazonPreview';
+import WalmartPreview from './preview/WalmartPreview';
 import { AmazonProduct } from '../../features/amazon/types';
 
 interface TestPreviewProps {
@@ -10,9 +11,10 @@ interface TestPreviewProps {
     b: AmazonProduct | null;
     c: AmazonProduct | null;
   };
+  skin?: 'amazon' | 'walmart';
 }
 
-export default function TestPreview({ searchTerm, competitors, variations }: TestPreviewProps) {
+export default function TestPreview({ searchTerm, competitors, variations, skin = 'amazon' }: TestPreviewProps) {
   // Memoize the initial product list with variation A prioritized
   const allProducts = React.useMemo(() => {
     const products = [...competitors];
@@ -82,7 +84,11 @@ export default function TestPreview({ searchTerm, competitors, variations }: Tes
         </div>
       </div>
 
-      <AmazonPreview searchTerm={searchTerm} products={displayProducts} />
+      {skin === 'walmart' ? (
+        <WalmartPreview searchTerm={searchTerm} products={displayProducts} />
+      ) : (
+        <AmazonPreview searchTerm={searchTerm} products={displayProducts} />
+      )}
     </div>
   );
 }

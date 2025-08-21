@@ -17,7 +17,7 @@ export default function WalmartProductDetail({
   // Use actual product images if available, otherwise fallback to main image
   const thumbnails = product.images && product.images.length > 0 
     ? product.images 
-    : [product.image_url || product.image];
+    : [product.image_url];
 
   const handleAddToCart = () => {
     onAddToCart(product);
@@ -100,14 +100,14 @@ export default function WalmartProductDetail({
                 ))}
               </ul>
             ) : (
-                             <p className="text-gray-500">Details not available</p>
+              <p className="text-gray-500">Details not available</p>
             )}
           </div>
           
           {/* Size/Weight if available */}
           {product.size && (
             <div className="mt-4">
-                             <h3 className="font-bold text-sm mb-1">Size/Weight:</h3>
+              <h3 className="font-bold text-sm mb-1">Size/Weight:</h3>
               <p className="text-gray-600">{product.size}</p>
             </div>
           )}
