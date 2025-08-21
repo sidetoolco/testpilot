@@ -230,19 +230,19 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                       (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-')
                     }
                   </td>
-                  {renderCell(Number(item.value), item.count || (item.isTestProduct ? 1 : 0), !!item.isTestProduct)}
+                  {renderCell(Number(item.value), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
                   {renderCell(
                     Number(item.aesthetics || item.appearance || 0),
                     item.count || (item.isTestProduct ? 1 : 0),
-                    !!item.isTestProduct
+                    !!item.product
                   )}
                   {renderCell(
                     Number(item.utility || item.confidence || 0),
                     item.count || (item.isTestProduct ? 1 : 0),
-                    !!item.isTestProduct
+                    !!item.product
                   )}
-                  {renderCell(Number(item.trust || item.brand || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.isTestProduct)}
-                  {renderCell(Number(item.convenience || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.isTestProduct)}
+                  {renderCell(Number(item.trust || item.brand || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
+                  {renderCell(Number(item.convenience || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
                 </tr>
               ))}
             </tbody>

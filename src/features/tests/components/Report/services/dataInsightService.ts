@@ -227,7 +227,7 @@ export const getCompetitiveInsights = async (
         return {
           ...item,
           competitor_product_id: uniqueCompetitorProduct,
-          // Keep the original share_of_buy from the database
+          // Keep the original share_of_buy from the database (this was working before)
           share_of_buy: item.share_of_buy,
         };
       });
