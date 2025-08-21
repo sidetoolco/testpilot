@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Search, Star, ShoppingCart, Menu, MapPin, User } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import WalmartProductDetail from '../../walmart/WalmartProductDetail';
+import { supabase } from '../../../lib/supabase';
+
+interface ProductDetails {
+  images: string[];
+  feature_bullets: string[];
+}
 
 interface WalmartPreviewProps {
   searchTerm: string;
@@ -10,13 +16,62 @@ interface WalmartPreviewProps {
 
 export default function WalmartPreview({ searchTerm, products }: WalmartPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleProductClick = (product: AmazonProduct) => {
-    setSelectedProduct(product);
+  const handleProductClick = async (product: AmazonProduct) => {
+    setIsLoading(true);
+    try {
+      // If the product doesn't have ASIN or it's empty, use its data directly
+      if (!product.asin || product.asin.trim() === '') {
+        setProductDetails({
+          images: (product as any).images || [product.image_url],
+          feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
+        });
+        setSelectedProduct(product);
+        setIsLoading(false);
+        return;
+      }
+
+      // If it has ASIN, search in the database
+      const { data, error } = await supabase
+        .from('amazon_products')
+        .select('*')
+        .eq('asin', product.asin as any)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product details:', error);
+        // If there's an error, use the product data
+        setProductDetails({
+          images: (product as any).images || [product.image_url],
+          feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
+        });
+      } else if (data) {
+        setProductDetails({
+          images: (data as any).images || (product as any).images || [product.image_url],
+          feature_bullets: (data as any).bullet_points || (product as any).bullet_points || (product as any).feature_bullets || [],
+        });
+      }
+      setSelectedProduct(product);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      // In case of error, use the product data
+      setProductDetails({
+        images: (product as any).images || [product.image_url],
+        feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
+      });
+      setSelectedProduct(product);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedProduct(null);
+    setProductDetails(null);
   };
 
   return (
@@ -181,17 +236,15 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
           onClick={handleCloseModal}
         >
           <div 
-            className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto relative"
+            className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto relative rounded-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-              onClick={handleCloseModal}
-            >
-              ✕
-            </button>
             <WalmartProductDetail
-              product={selectedProduct}
+              product={{
+                ...selectedProduct,
+                images: productDetails?.images || [selectedProduct.image_url],
+                bullet_points: productDetails?.feature_bullets || [],
+              }}
               onBack={handleCloseModal}
               onAddToCart={() => {
                 // Mock add to cart for preview

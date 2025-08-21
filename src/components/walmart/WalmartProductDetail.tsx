@@ -24,15 +24,15 @@ export default function WalmartProductDetail({
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-8 bg-white">
+    <div className="container mx-auto p-4 md:p-8 bg-white ">
       <button 
         onClick={onBack} 
-        className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4"
+        className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4 "
       >
         <ArrowLeft size={16} /> Back to results
       </button>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 ">
         {/* Image Column */}
         <div className="lg:col-span-1 flex flex-col md:flex-row gap-4">
           <div className="flex md:flex-col gap-2 order-2 md:order-1">
@@ -50,7 +50,7 @@ export default function WalmartProductDetail({
               </div>
             ))}
           </div>
-          <div className="flex-grow order-1 md:order-2">
+          <div className="flex-grow order-1 md:order-2 ">
             <img 
               src={mainImage} 
               alt={product.title || product.name} 
