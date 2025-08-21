@@ -49,7 +49,6 @@ export default function WalmartGrid({
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentProduct(null);
-    setIsRedirectModalOpen(true);
   };
 
   const handleRedirectClose = () => {
@@ -117,7 +116,7 @@ export default function WalmartGrid({
             <div className="mt-4 flex justify-around">
               <button
                 className="border border-[#0071dc] text-[#0071dc] hover:bg-[#0071dc] hover:text-white font-bold py-2 px-4 rounded"
-                onClick={closeModal}
+                onClick={() => navigate('/questions')}
               >
                 Go to Checkout
               </button>

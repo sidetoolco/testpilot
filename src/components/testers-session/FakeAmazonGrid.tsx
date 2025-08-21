@@ -36,7 +36,6 @@ export default function FakeAmazonGrid({
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentProduct(null);
-    setIsRedirectModalOpen(true);
   };
 
   const handleRedirectClose = () => {
@@ -87,7 +86,7 @@ export default function FakeAmazonGrid({
             <div className="mt-4 flex justify-around">
               <button
                 className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
-                onClick={closeModal}
+                onClick={() => navigate('/questions')}
               >
                 Go to Checkout
               </button>
