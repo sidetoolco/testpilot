@@ -29,6 +29,7 @@ interface InsightItem {
   appearance?: number;
   confidence?: number;
   brand?: number;
+  isTestProduct?: boolean;
 }
 
 interface CompetitiveInsightsProps {
@@ -68,24 +69,20 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   // Get variant-specific AI insights
   const currentVariantInsight = getInsightForVariant(selectedVariant);
 
-  // Filter insights for selected variant
-  const shareOfBuy = sumaryvariations?.find((variation: any) =>
-    variation.title.includes('Variant ' + selectedVariant.toUpperCase())
-  )?.shareOfBuy;
-
-  const filteredVariant = variants?.find(
-    (variant: any) => variant.variant_type === selectedVariant
-  );
-
-  if (filteredVariant) {
-    filteredVariant.share_of_buy = shareOfBuy;
-  }
-
+  // Filter competitive insights for selected variant and sort by share of buy
   const filtered = competitiveinsights
     .filter(item => item.variant_type === selectedVariant)
-    .sort((a, b) => Number(b.share_of_buy || 0) - Number(a.share_of_buy || 0));
+    .sort((a, b) => {
+      // Test products always come first
+      if (a.isTestProduct && !b.isTestProduct) return -1;
+      if (!a.isTestProduct && b.isTestProduct) return 1;
+      
+      // If both are test products or both are competitors, sort by share of buy
+      return Number(b.share_of_buy || 0) - Number(a.share_of_buy || 0);
+    });
 
-  const filteredInsights = filteredVariant ? [filteredVariant, ...filtered] : filtered;
+  // The filtered data now includes both test product and competitors from the dataInsightService
+  const filteredInsights = filtered;
 
   // Define table headers
   const headers = [
@@ -228,21 +225,24 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                     </div>
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-'}
+                    {item.isTestProduct ? 
+                      `${Number(item.share_of_buy || 0).toFixed(2)}%` : 
+                      (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-')
+                    }
                   </td>
-                  {renderCell(Number(item.value), item.count, !!item.product)}
+                  {renderCell(Number(item.value), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
                   {renderCell(
                     Number(item.aesthetics || item.appearance || 0),
-                    item.count,
+                    item.count || (item.isTestProduct ? 1 : 0),
                     !!item.product
                   )}
                   {renderCell(
                     Number(item.utility || item.confidence || 0),
-                    item.count,
+                    item.count || (item.isTestProduct ? 1 : 0),
                     !!item.product
                   )}
-                  {renderCell(Number(item.trust || item.brand || 0), item.count, !!item.product)}
-                  {renderCell(Number(item.convenience || 0), item.count, !!item.product)}
+                  {renderCell(Number(item.trust || item.brand || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
+                  {renderCell(Number(item.convenience || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
                 </tr>
               ))}
             </tbody>

@@ -101,7 +101,7 @@ export function useTestDetail(id: string) {
             ` 
             improve_suggestions,
             likes_most,
-            products(id, title, image_url, price),
+            product_id,
             tester_id(
               variation_type,
               id,
@@ -114,13 +114,23 @@ export function useTestDetail(id: string) {
 
         if (surveysError) throw surveysError;
 
-        // Separate surveys by variation_type
+        // Separate surveys by variation_type and map product data
         const surveysByType = surveysData.reduce((acc: any, item: any) => {
           const type = item.tester_id.variation_type;
           if (!acc[type]) {
             acc[type] = [];
           }
-          acc[type].push(item);
+          
+          // Map the product_id to the actual product data from test_variations
+          const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
+          
+          // Create the item with the correct product data
+          const mappedItem = {
+            ...item,
+            products: productData || null
+          };
+          
+          acc[type].push(mappedItem);
           return acc;
         }, {});
 
@@ -133,7 +143,7 @@ export function useTestDetail(id: string) {
           likes_most,
           choose_reason,
           competitor_id,
-          products(id, title, image_url, price),
+          product_id,
           amazon_products(id, title, image_url, price),
           tester_id(
             variation_type,
@@ -152,13 +162,23 @@ export function useTestDetail(id: string) {
 
         if (comparisonsError) throw comparisonsError;
 
-        // Separate comparisons by variation_type
+        // Separate comparisons by variation_type and map product data
         const comparisonsByType = comparisonsData.reduce((acc: any, item: any) => {
           const type = item.tester_id.variation_type;
           if (!acc[type]) {
             acc[type] = [];
           }
-          acc[type].push(item);
+          
+          // Map the product_id to the actual product data from test_variations
+          const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
+          
+          // Create the item with the correct product data
+          const mappedItem = {
+            ...item,
+            products: productData || null
+          };
+          
+          acc[type].push(mappedItem);
           return acc;
         }, {});
 
