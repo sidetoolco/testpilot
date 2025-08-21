@@ -214,7 +214,7 @@ export const getCompetitiveInsights = async (
 
       const totalSelections = competitorSelections + testProductSelections;
 
-      return variantItems.map((item: any) => {
+      const competitorResults = variantItems.map((item: any) => {
         const originalCompetitorProduct = item.competitor_product_id;
 
         const competitorId = originalCompetitorProduct?.id || item.id || 'unknown';
@@ -224,15 +224,29 @@ export const getCompetitiveInsights = async (
           id: `${competitorId}_${variant}`,
         };
 
-        const shareOfBuy =
-          totalSelections > 0 ? (Number(item.count || 0) / totalSelections) * 100 : 0;
-
         return {
           ...item,
           competitor_product_id: uniqueCompetitorProduct,
-          share_of_buy: shareOfBuy,
+          // Keep the original share_of_buy from the database
+          share_of_buy: item.share_of_buy,
         };
       });
+
+      // Add test product data if available
+      if (testProduct) {
+        const testProductResult = {
+          ...testProduct,
+          variant_type: variant,
+          // Mark this as a test product (not a competitor)
+          isTestProduct: true,
+          // Use the share_of_buy from the summary table
+          share_of_buy: testProduct.share_of_buy || 0,
+        };
+        
+        return [testProductResult, ...competitorResults];
+      }
+
+      return competitorResults;
     });
 
     const sortedData = recalculatedData.sort((a: any, b: any) => {
