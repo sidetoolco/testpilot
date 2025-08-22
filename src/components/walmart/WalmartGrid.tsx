@@ -59,11 +59,62 @@ export default function WalmartGrid({
   // Show product detail if a product is selected
   if (showProductDetail && selectedProduct) {
     return (
-      <WalmartProductDetail
-        product={selectedProduct}
-        onBack={handleBackToGrid}
-        onAddToCart={handleAddToCart}
-      />
+      <>
+        <WalmartProductDetail
+          product={selectedProduct}
+          onBack={handleBackToGrid}
+          onAddToCart={handleAddToCart}
+        />
+        
+        {/* Add to Cart Modal - Available in both states */}
+        {isModalOpen && currentProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                onClick={closeModal}
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="flex items-center flex-row justify-around">
+                <img
+                  src={currentProduct.image_url || currentProduct.image}
+                  alt={currentProduct.title || currentProduct.name}
+                  className="w-[200px] h-[200px] rounded"
+                />
+                <div className="flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
+                  <h2 className="text-xl font-bold">Added to Cart</h2>
+                </div>
+              </div>
+              <p className="mt-2 text-center text-gray-700">
+                You have added <strong>{currentProduct.title || currentProduct.name}</strong> to your
+                cart.
+              </p>
+              <div className="mt-4 flex justify-around">
+                <button
+                  className="border border-[#0071dc] text-[#0071dc] hover:bg-[#0071dc] hover:text-white font-bold py-2 px-4 rounded"
+                  onClick={() => navigate('/questions')}
+                >
+                  Go to Checkout
+                </button>
+                <button
+                  className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Keep Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Redirect Modal */}
+        <RedirectModal
+          isOpen={isRedirectModalOpen}
+          onClose={handleRedirectClose}
+        />
+      </>
     );
   }
 
