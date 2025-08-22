@@ -8,7 +8,7 @@ interface WalmartHeaderLayoutProps {
 }
 
 export default function WalmartHeaderLayout({ children, searchTerm }: WalmartHeaderLayoutProps) {
-  const { shopperId, status, sessionBeginTime } = useSessionStore();
+  const { shopperId, status, sessionBeginTime, itemSelectedAtCheckout } = useSessionStore();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -104,7 +104,9 @@ export default function WalmartHeaderLayout({ children, searchTerm }: WalmartHea
           
           <div className="flex flex-col items-center cursor-pointer">
             <ShoppingCart size={28} />
-            <span className="text-xs font-bold">$0.00</span>
+            <span className="text-xs font-bold">
+              {itemSelectedAtCheckout ? '(1)' : '(0)'}
+            </span>
           </div>
         </div>
       </header>

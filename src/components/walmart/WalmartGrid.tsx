@@ -21,19 +21,28 @@ export default function WalmartGrid({
   testId,
 }: WalmartGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
   const { shopperId } = useSessionStore();
   const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Check if an item is already in the cart
+  const itemSelectedAtCheckout = useSessionStore(state => state.itemSelectedAtCheckout);
 
   const handleAddToCart = (product: any) => {
-    addToCart(product);
-    setCurrentProduct(product);
-    console.log(`Product added to cart: ${product.title}`);
-    updateSession(product, shopperId);
-    setIsModalOpen(true);
+    if (itemSelectedAtCheckout) {
+      setCurrentProduct(product);
+      setIsWarningModalOpen(true);
+    } else {
+      addToCart(product);
+      setCurrentProduct(product);
+      console.log(`Product added to cart: ${product.title}`);
+      updateSession(product, shopperId);
+      setIsModalOpen(true);
+    }
   };
 
   const handleProductClick = (product: any) => {
@@ -49,6 +58,13 @@ export default function WalmartGrid({
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentProduct(null);
+  };
+
+  const handleReplaceProduct = () => {
+    addToCart(currentProduct);
+    updateSession(currentProduct, shopperId);
+    setIsWarningModalOpen(false);
+    setIsModalOpen(true);
   };
 
   const handleRedirectClose = () => {
@@ -103,6 +119,47 @@ export default function WalmartGrid({
                   onClick={() => setIsModalOpen(false)}
                 >
                   Keep Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Warning Modal */}
+        {isWarningModalOpen && currentProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-3 md:p-6 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                onClick={() => setIsWarningModalOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="flex items-center justify-center">
+                <h2 className="text-xl font-bold">You can only have 1 item in the cart</h2>
+              </div>
+              <p className="mt-2 text-center text-gray-700">Would you like to replace this item?</p>
+              {itemSelectedAtCheckout && (
+                <div className="flex justify-center mt-4">
+                  <img
+                    src={itemSelectedAtCheckout.image_url}
+                    alt={itemSelectedAtCheckout.title}
+                    className="max-w-full max-h-32 object-contain"
+                  />
+                </div>
+              )}
+              <div className="mt-4 flex justify-around">
+                <button
+                  className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
+                  onClick={handleReplaceProduct}
+                >
+                  Replace
+                </button>
+                <button
+                  className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+                  onClick={() => setIsWarningModalOpen(false)}
+                >
+                  Cancel
                 </button>
               </div>
             </div>
@@ -176,6 +233,47 @@ export default function WalmartGrid({
                 onClick={() => setIsModalOpen(false)}
               >
                 Keep Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Modal */}
+      {isWarningModalOpen && currentProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-3 md:p-6 rounded-lg shadow-lg max-w-lg w-full mx-4 md:mx-auto flex flex-col justify-around relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsWarningModalOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="flex items-center justify-center">
+              <h2 className="text-xl font-bold">You can only have 1 item in the cart</h2>
+            </div>
+            <p className="mt-2 text-center text-gray-700">Would you like to replace this item?</p>
+            {itemSelectedAtCheckout && (
+              <div className="flex justify-center mt-4">
+                <img
+                  src={itemSelectedAtCheckout.image_url}
+                  alt={itemSelectedAtCheckout.title}
+                  className="max-w-full max-h-32 object-contain"
+                />
+              </div>
+            )}
+            <div className="mt-4 flex justify-around">
+              <button
+                className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
+                onClick={handleReplaceProduct}
+              >
+                Replace
+              </button>
+              <button
+                className="border border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white font-bold py-2 px-4 rounded"
+                onClick={() => setIsWarningModalOpen(false)}
+              >
+                Cancel
               </button>
             </div>
           </div>
