@@ -322,7 +322,7 @@ const TestUserPage = () => {
   if (testSkin === 'walmart') {
     return (
               <WalmartHeaderLayout searchTerm={combinedData.search_term}>
-        <div className="bg-white min-h-[1200px]">
+        <div className="bg-white min-h-[750px]">
           <div key={combinedData.id}>
             <Modal 
               isOpen={isModalOpen} 

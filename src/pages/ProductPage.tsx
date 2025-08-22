@@ -191,7 +191,7 @@ const ProductListingPage = ({ onProductClick }) => (
 );
 
 // Página de Detalhes do Produto
-const ProductDetailPage = ({ product, onBack }) => {
+const ProductDetailPage = ({ product, onBack, fromTest }: { product: Product; onBack: () => void; fromTest?: boolean }) => {
     const [mainImage, setMainImage] = useState(product.imageUrl || product.image_url || product.image);
     const thumbnails = [
         product.imageUrl || product.image_url || product.image, 
@@ -207,7 +207,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4"
             >
                 <ArrowLeft size={16} /> 
-                {location.state?.fromTest ? 'Voltar para o teste' : 'Voltar para os resultados'}
+                {fromTest ? 'Back to test' : 'Back to results'}
             </button>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -376,7 +376,11 @@ export default function ProductPage() {
                     <ProductListingPage onProductClick={handleProductClick} />
                 )}
                 {currentPage === 'detail' && selectedProduct && (
-                    <ProductDetailPage product={selectedProduct} onBack={handleBackToListing} />
+                    <ProductDetailPage 
+                        product={selectedProduct} 
+                        onBack={handleBackToListing} 
+                        fromTest={Boolean(location.state?.fromTest)}
+                    />
                 )}
             </div>
         </>
