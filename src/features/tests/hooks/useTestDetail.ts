@@ -51,43 +51,80 @@ export function useTestDetail(id: string) {
           throw new Error('Usuario no autenticado');
         }
 
+        // Fetch test data without complex joins
         const { data: testData, error: testError } = await supabase
           .from('tests')
-          .select(
-            `
+          .select(`
             id,
             name,
             status,
             search_term,
             objective,
             created_at,
-            competitors:test_competitors(
-              product:amazon_products(id, title, image_url, price)
-            ),
             variations:test_variations(
               product:products(id, title, image_url, price),
               variation_type,
               prolific_status
             ),
             demographics:test_demographics(
-              age_ranges, genders, locations, interests, tester_count
+              age_ranges,
+              genders,
+              locations,
+              interests,
+              tester_count
             ),
             custom_screening:custom_screening(
-              question, valid_option
+              question,
+              valid_option
             )
-          `
-          )
+          `)
           .eq('id', id)
           .single();
 
-        if (testError) throw testError;
-        if (!testData) throw new Error('Test not found');
+        if (testError) {
+          console.error('Error fetching test:', testError);
+          throw testError;
+        }
 
+        // Fetch competitors separately to avoid join issues
+        const { data: competitorsData, error: competitorsError } = await supabase
+          .from('test_competitors')
+          .select(`
+            id,
+            amazon_product_id,
+            walmart_product_id
+          `)
+          .eq('test_id', id);
 
-        // .eq('user_id', userId)
+        if (competitorsError) {
+          console.error('Error fetching competitors:', competitorsError);
+        }
 
-        if (testError) throw testError;
-        if (!testData) throw new Error('Test not found');
+        // Fetch competitor products based on available IDs
+        let competitors = [];
+        if (competitorsData && competitorsData.length > 0) {
+          const competitorPromises = competitorsData.map(async (comp) => {
+            if (comp.amazon_product_id) {
+              const { data: amazonProduct } = await supabase
+                .from('amazon_products')
+                .select('id, title, image_url, price')
+                .eq('id', comp.amazon_product_id)
+                .single();
+              return amazonProduct;
+            } else if (comp.walmart_product_id) {
+              const { data: walmartProduct } = await supabase
+                .from('walmart_products')
+                .select('id, title, image_url, price')
+                .eq('id', comp.walmart_product_id)
+                .single();
+              return walmartProduct;
+            }
+            return null;
+          });
+
+          const competitorResults = await Promise.all(competitorPromises);
+          competitors = competitorResults.filter(Boolean);
+        }
 
         // Debug: Log the raw data from database
         console.log('Raw test data from database:', testData);
@@ -134,7 +171,6 @@ export function useTestDetail(id: string) {
           choose_reason,
           competitor_id,
           products(id, title, image_url, price),
-          amazon_products(id, title, image_url, price),
           tester_id(
             variation_type,
             id,

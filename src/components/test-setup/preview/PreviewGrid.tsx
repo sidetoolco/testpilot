@@ -1,24 +1,25 @@
 import { Star, ShoppingCart } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
+import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 import { useNavigate } from 'react-router-dom';
 
 interface PreviewGridProps {
-  products: AmazonProduct[];
+  products: (AmazonProduct | WalmartProduct)[];
   variations?: {
-    a: AmazonProduct | null;
-    b: AmazonProduct | null;
-    c: AmazonProduct | null;
+    a: any | null;
+    b: any | null;
+    c: any | null;
   };
-  onProductClick?: (product: AmazonProduct) => void;
+  onProductClick?: (product: AmazonProduct | WalmartProduct) => void;
 }
 
 export default function PreviewGrid({ products, variations, onProductClick }: PreviewGridProps) {
-  const handleClick = (product: AmazonProduct) => {
+  const handleClick = (product: AmazonProduct | WalmartProduct) => {
     console.log('Product clicked:', product);
     if (onProductClick) {
       onProductClick(product);
     } else {
-      const identifier = product.id || product.asin;
+      const identifier = 'asin' in product ? (product.id || product.asin) : product.id;
       console.log('Product identifier:', identifier);
       sessionStorage.setItem('previewProduct', JSON.stringify(product));
     }
@@ -28,7 +29,7 @@ export default function PreviewGrid({ products, variations, onProductClick }: Pr
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {products.map(product => (
         <div
-          key={product.id || product.asin}
+          key={'asin' in product ? (product.id || product.asin) : product.id}
           className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col"
           onClick={() => handleClick(product)}
         >

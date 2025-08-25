@@ -74,6 +74,15 @@ export default function WalmartGrid({
 
   // Show product detail if a product is selected
   if (showProductDetail && selectedProduct) {
+    // Debug logging for product detail data
+    console.log('🔍 WalmartGrid - Showing product detail for:', {
+      selectedProduct,
+      hasDescription: !!(selectedProduct.description || selectedProduct.product_description || (selectedProduct.bullet_points && selectedProduct.bullet_points.length > 0)),
+      description: selectedProduct.description,
+      product_description: selectedProduct.product_description,
+      bullet_points: selectedProduct.bullet_points
+    });
+
     return (
       <>
         <WalmartProductDetail
@@ -182,6 +191,7 @@ export default function WalmartGrid({
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((item, index) => {
             const product = item.product || item; // Handle both wrapped and unwrapped products
+            
             return (
               <WalmartProductCard
                 key={`walmart-product-card-${product.id || index}`}

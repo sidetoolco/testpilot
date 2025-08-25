@@ -1,12 +1,13 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
+import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 
 interface ProductCardProps {
-  product: AmazonProduct;
+  product: AmazonProduct | WalmartProduct;
   isSelected: boolean;
   canSelect: boolean;
-  onSelect: (product: AmazonProduct) => void;
+  onSelect: (product: AmazonProduct | WalmartProduct) => void;
   showTooltip?: boolean;
   variant?: 'grid' | 'horizontal';
 }

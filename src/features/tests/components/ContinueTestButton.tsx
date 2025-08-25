@@ -35,7 +35,6 @@ export const ContinueTestButton: React.FC<ContinueTestButtonProps> = ({
         search: '/create-test',
         competitors: '/create-test',
         'search-competitors': '/create-test',
-        'skin-selection': '/create-test',
         demographics: '/create-test',
         preview: '/create-test',
         review: '/create-test',

@@ -1,5 +1,5 @@
 import React from 'react';
-import {  Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { trackEvent } from '../../lib/events';
 
 interface WalmartProductCardProps {
@@ -17,7 +17,7 @@ export default function WalmartProductCard({
   variantType,
   testId,
 }: WalmartProductCardProps) {
-  const { id, image_url, image, title, name, rating, reviews_count, price, images } = product;
+  const { id, image_url, image, title, name, rating, reviews_count, price } = product;
 
   const handleProductClick = () => {
     trackEvent(
@@ -75,7 +75,7 @@ export default function WalmartProductCard({
 
           {/* Rating and Reviews - At the bottom */}
           {rating && (
-            <div className="flex items-center">
+            <div className="flex items-center mt-auto">
               <div className="flex">
                 {[...Array(5)].map((_, i) => {
                   const fullStars = Math.round(rating || 5);

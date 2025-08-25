@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { ArrowLeft, Star, CheckCircle, Truck, MapPin, Building } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Star, CheckCircle, Truck, MapPin, Building, Loader2 } from 'lucide-react';
+import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../features/walmart/services/walmartService';
 
 interface WalmartProductDetailProps {
   product: any;
@@ -14,49 +15,175 @@ export default function WalmartProductDetail({
 }: WalmartProductDetailProps) {
   const [mainImage, setMainImage] = useState(product.image_url || product.image);
   
-  // Use actual product images if available, otherwise fallback to main image
-  const thumbnails = product.images && product.images.length > 0 
-    ? product.images 
-    : [product.image_url];
+  // State for full product details
+  const [fullProductDetails, setFullProductDetails] = useState<WalmartProductDetailType | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [imageLoadStates, setImageLoadStates] = useState<Record<string, boolean>>({});
+  
+  // Memoize thumbnails to prevent unnecessary re-renders
+  const thumbnails = useMemo(() => {
+    
+    // First try to get images from the detailed product data
+    if (fullProductDetails?.variants && fullProductDetails.variants.length > 0) {
+      const variantImages = fullProductDetails.variants
+        .filter(variant => variant.images && variant.images.length > 0)
+        .flatMap(variant => variant.images || []);
+      
+      if (variantImages.length > 0) {
+        return variantImages;
+      }
+    }
+    
+    // Fallback to basic product images
+    if (product.images && product.images.length > 0) {
+      return product.images;
+    }
+    
+    // Final fallback to single image
+    if (product.image_url) {
+      return [product.image_url];
+    }
+    
+    // If no images available, return empty array
+    return [];
+  }, [fullProductDetails, product.images, product.image_url]);
 
+  // Set main image when thumbnails change
+  useEffect(() => {
+    if (thumbnails.length > 0 && !mainImage) {
+      setMainImage(thumbnails[0]);
+    }
+  }, [thumbnails, mainImage]);
+
+  // Optimized image loading with individual load states
+  const handleImageLoad = (imageUrl: string) => {
+    setImageLoadStates(prev => ({ ...prev, [imageUrl]: true }));
+  };
+
+  const handleImageError = (imageUrl: string) => {
+    setImageLoadStates(prev => ({ ...prev, [imageUrl]: false }));
+  };
+
+  // Fetch full product details only when needed
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      // Check if we have a database ID (UUID format) or a Walmart product ID
+      const hasDatabaseId = product.id && product.id.length === 36; // UUIDs are 36 characters
+      const hasWalmartId = product.walmart_id;
+      
+      if (!hasDatabaseId && !hasWalmartId) return; // Skip if no identifier available
+      if (fullProductDetails) return; // Skip if already loaded
+      
+      setIsLoadingDetails(true);
+      try {
+        let details;
+        if (hasDatabaseId) {
+          // Use the saved product endpoint for database UUIDs
+          details = await walmartService.getProductDetails(product.id);
+        } else if (hasWalmartId) {
+          // Use the fresh Walmart endpoint for Walmart product IDs
+          details = await walmartService.getFreshWalmartProductDetails(product.walmart_id);
+        }
+        
+        if (details) {
+          setFullProductDetails(details);
+        }
+      } catch (error) {
+        console.error('Failed to fetch product details:', error);
+      } finally {
+        setIsLoadingDetails(false);
+      }
+    };
+
+    // Small delay to prioritize initial render
+    const timer = setTimeout(fetchProductDetails, 100);
+    return () => clearTimeout(timer);
+  }, [product.id, product.walmart_id, fullProductDetails]);
+  
   const handleAddToCart = () => {
     onAddToCart(product);
   };
 
+  // Optimized description getter
+  const productDescription = useMemo(() => {
+    if (fullProductDetails?.product_short_description) {
+      return fullProductDetails.product_short_description;
+    }
+    if (fullProductDetails?.variants && fullProductDetails.variants.length > 0) {
+      const firstVariant = fullProductDetails.variants[0];
+      return `${firstVariant.criteria}: ${firstVariant.name}`;
+    }
+    
+    if (product.description) return product.description;
+    if (product.product_description) return product.product_description;
+    if (product.bullet_points && product.bullet_points.length > 0) {
+      return product.bullet_points[0];
+    }
+    return null;
+  }, [fullProductDetails, product]);
+
   return (
-    <div className="container mx-auto p-4 md:p-8 bg-white ">
+    <div className="container mx-auto p-4 md:p-8 bg-white">
       <button 
         onClick={onBack} 
-        className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4 "
+        className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#0071dc] mb-4"
       >
         <ArrowLeft size={16} /> Back to results
       </button>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 ">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Image Column */}
         <div className="lg:col-span-1 flex flex-col md:flex-row gap-4">
-          <div className="flex md:flex-col gap-2 order-2 md:order-1">
-            {thumbnails.map((thumb: string, index: number) => (
-              <div 
-                key={index} 
-                className="w-16 h-16 border rounded-md p-1 cursor-pointer hover:border-[#0071dc]" 
-                onClick={() => setMainImage(thumb)}
-              >
+          {thumbnails.length > 0 ? (
+            <>
+              <div className="flex md:flex-col gap-2 order-2 md:order-1">
+                {thumbnails.map((thumb: string, index: number) => (
+                  <div 
+                    key={`thumb-${thumb}-${index}`}
+                    className="w-16 h-16 border rounded-md p-1 cursor-pointer hover:border-[#0071dc] relative" 
+                    onClick={() => setMainImage(thumb)}
+                  >
+                    {!imageLoadStates[thumb] && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 size={16} className="animate-spin text-gray-400" />
+                      </div>
+                    )}
+                    <img 
+                      src={thumb} 
+                      alt={`Thumbnail ${index + 1}`} 
+                      className={`w-full h-full object-contain ${imageLoadStates[thumb] ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => handleImageLoad(thumb)}
+                      onError={() => handleImageError(thumb)}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex-grow order-1 md:order-2 relative">
+                {!imageLoadStates[mainImage] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <Loader2 size={32} className="animate-spin text-gray-400" />
+                  </div>
+                )}
                 <img 
-                  src={thumb} 
-                  alt={`Thumbnail ${index + 1}`} 
-                  className="w-full h-full object-contain" 
+                  src={mainImage} 
+                  alt={product.title || product.name} 
+                  className={`w-full rounded-lg border transition-opacity duration-200 ${imageLoadStates[mainImage] ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => handleImageLoad(mainImage)}
+                  onError={() => handleImageError(mainImage)}
+                  loading="eager"
                 />
               </div>
-            ))}
-          </div>
-          <div className="flex-grow order-1 md:order-2 ">
-            <img 
-              src={mainImage} 
-              alt={product.title || product.name} 
-              className="w-full rounded-lg border" 
-            />
-          </div>
+            </>
+          ) : (
+            <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <div className="text-4xl mb-2">📷</div>
+                <div className="text-sm">No images available</div>
+                <div className="text-xs mt-1">Product details may still load below</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Information Column */}
@@ -73,7 +200,7 @@ export default function WalmartProductDetail({
             <div className="flex items-center mt-2">
               {[...Array(5)].map((_, i) => (
                 <Star 
-                  key={i} 
+                  key={`star-${i}`}
                   size={16} 
                   className={i < Math.round(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
                 />
@@ -82,13 +209,86 @@ export default function WalmartProductDetail({
                 {product.rating.toFixed(1)}
               </span>
               {product.reviews_count && (
-                                 <span className="text-sm text-gray-500 ml-1">
-                   ({product.reviews_count} reviews)
-                 </span>
+                <span className="text-sm text-gray-500 ml-1">
+                  ({product.reviews_count} reviews)
+                </span>
               )}
             </div>
           )}
           
+          {/* Product Description with Loading State */}
+          <div className="mt-4">
+            {isLoadingDetails && !productDescription ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <span className="text-gray-500">Loading description...</span>
+              </div>
+            ) : productDescription ? (
+              <p className="text-gray-700 leading-relaxed">
+                {productDescription}
+              </p>
+            ) : (
+              <p className="text-gray-500">Description not available</p>
+            )}
+          </div>
+          
+          {/* Brand Information with Loading State */}
+          <div className="mt-4">
+            {isLoadingDetails ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <span className="text-gray-500">Loading brand info...</span>
+              </div>
+            ) : fullProductDetails?.brand ? (
+              <>
+                <h3 className="font-bold text-sm mb-1">Brand:</h3>
+                <p className="text-gray-600">{fullProductDetails.brand}</p>
+              </>
+            ) : null}
+          </div>
+          
+          {/* Product Category with Loading State */}
+          <div className="mt-4">
+            {isLoadingDetails ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <span className="text-gray-500">Loading category...</span>
+              </div>
+            ) : fullProductDetails?.product_category ? (
+              <>
+                <h3 className="font-bold text-sm mb-1">Category:</h3>
+                <p className="text-gray-600">{fullProductDetails.product_category}</p>
+              </>
+            ) : null}
+          </div>
+          
+          {/* Variants Information with Loading State */}
+          <div className="mt-4">
+            {isLoadingDetails ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <span className="text-gray-500">Loading variants...</span>
+              </div>
+            ) : fullProductDetails?.variants && fullProductDetails.variants.length > 0 ? (
+              <>
+                <h3 className="font-bold text-sm mb-2">Available Variants:</h3>
+                <div className="space-y-2">
+                  {fullProductDetails.variants.slice(0, 5).map((variant, index) => (
+                    <div key={`variant-${variant.criteria}-${index}`} className="text-sm p-2 bg-gray-50 rounded">
+                      <div className="font-medium">{variant.criteria}: {variant.name}</div>
+                      <div className="text-gray-600">${variant.price} {variant.price_currency}</div>
+                      <div className="text-xs text-gray-500">Status: {variant.availability_status}</div>
+                    </div>
+                  ))}
+                  {fullProductDetails.variants.length > 5 && (
+                    <div className="text-xs text-gray-500">
+                      +{fullProductDetails.variants.length - 5} more variants available
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null}
+          </div>
           
           {/* Product Details */}
           <div className="mt-6">
@@ -96,7 +296,7 @@ export default function WalmartProductDetail({
             {product.bullet_points && product.bullet_points.length > 0 ? (
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 {product.bullet_points.map((detail: string, i: number) => (
-                  <li key={i}>{detail}</li>
+                  <li key={`bullet-${i}`}>{detail}</li>
                 ))}
               </ul>
             ) : (

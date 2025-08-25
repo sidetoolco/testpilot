@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
+import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 import { Star, X, Share2, Heart, ArrowLeft } from 'lucide-react';
 
 interface ProductDetails {
@@ -8,7 +9,7 @@ interface ProductDetails {
 }
 
 interface ProductDetailModalProps {
-  product: AmazonProduct;
+  product: AmazonProduct | WalmartProduct;
   onClose: () => void;
   productDetails: ProductDetails | null;
 }

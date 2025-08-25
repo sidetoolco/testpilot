@@ -15,7 +15,7 @@ import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCre
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
-import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
+import { validateTestDataWithToast, validateDraftDataWithToast } from '../features/tests/utils/testValidation';
 import { TestCost } from '../components/test-setup/TestCost';
 import apiClient from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -98,7 +98,6 @@ export default function CreateConsumerTest() {
     { key: 'variations', label: 'Variants' },
     { key: 'search-term', label: 'Search Term' },
     { key: 'search-competitors', label: 'Search Competitors' },
-    { key: 'skin-selection', label: 'Skin Selection' },
     { key: 'demographics', label: 'Demographics' },
     ...(expertMode ? [{ key: 'survey-questions', label: 'Survey Questions' }] : []),
     { key: 'preview', label: 'Preview' },
@@ -208,8 +207,8 @@ export default function CreateConsumerTest() {
 
   const handleSaveDraft = async () => {
     try {
-      // Validate test data before saving
-      if (!validateTestDataWithToast(testData, toast)) {
+      // Validate test data before saving (use lenient validation for drafts)
+      if (!validateDraftDataWithToast(testData, toast)) {
         return;
       }
 
@@ -231,7 +230,7 @@ export default function CreateConsumerTest() {
       }
 
       // Create test as draft (normal flow for new tests)
-      await testService.createTest(testData);
+      await testService.saveDraft(testData);
 
       toast.success('Test saved as draft successfully');
       navigate('/my-tests');

@@ -6,6 +6,7 @@ import { validateTestData } from '../utils/validators/testDataValidator';
 import { TestCreationError } from '../utils/errors';
 import apiClient from '../../../lib/api';
 import { Profile } from '../../../lib/db';
+import { walmartService } from '../../walmart/services/walmartService';
 
 interface TestResponse {
   id: string;
@@ -64,7 +65,7 @@ export const testService = {
       await this.insertVariations(test.id, testData.variations);
 
       // Step 4: Insertar competidores
-      await this.saveAmazonProducts(test.id, testData.competitors);
+      await this.saveCompetitors(test.id, testData.competitors, testData.skin);
 
       // Step 5: Insertar datos demográficos
       await this.insertDemographics(test.id, testData.demographics);
@@ -90,6 +91,85 @@ export const testService = {
         toast.error(message);
       } else {
         toast.error('An unexpected error occurred');
+      }
+
+      throw error;
+    }
+  },
+
+  // Method to save test as draft with less strict validation
+  async saveDraft(testData: TestData) {
+    try {
+      // Basic validation for draft - only require essential fields
+      const errors: string[] = [];
+      
+      if (!testData?.name?.trim()) {
+        errors.push('Test name is required');
+      }
+
+      if (!testData?.searchTerm?.trim()) {
+        errors.push('Search term is required');
+      }
+
+      if (errors.length > 0) {
+        throw new TestCreationError('Validation failed', { errors });
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id as any)
+        .single();
+
+      const typedProfile = profile as Profile;
+
+      if (profileError || !typedProfile?.company_id) {
+        throw new TestCreationError('Company profile not found');
+      }
+
+      // Create test as draft with minimal required data
+      const test = await this.insertTest(testData, user.id, typedProfile.company_id);
+
+      // Insert variations if available (optional for drafts)
+      if (testData.variations && Object.values(testData.variations).some(v => v !== null)) {
+        await this.insertVariations(test.id, testData.variations);
+      }
+
+      // Insert competitors if available (optional for drafts)
+      if (testData.competitors && testData.competitors.length > 0) {
+        await this.saveCompetitors(test.id, testData.competitors, testData.skin);
+      }
+
+      // Insert demographics if available (optional for drafts)
+      if (testData.demographics && testData.demographics.ageRanges && testData.demographics.ageRanges.length > 0) {
+        await this.insertDemographics(test.id, testData.demographics);
+      }
+
+      // Save custom screening if enabled (optional for drafts)
+      if (testData.demographics?.customScreening?.enabled && testData.demographics.customScreening.question) {
+        await this.saveCustomScreeningQuestion(test.id, testData.demographics.customScreening);
+      }
+
+      // Save survey questions (use defaults if not specified)
+      const defaultQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'];
+      await this.insertSurveyQuestions(test.id, testData.surveyQuestions || defaultQuestions);
+
+      return test;
+    } catch (error) {
+      console.error('Draft save error:', error);
+
+      if (error instanceof TestCreationError) {
+        const message = error.details?.errors?.join('. ') || error.message;
+        toast.error(message);
+      } else {
+        toast.error('An unexpected error occurred while saving draft');
       }
 
       throw error;
@@ -123,6 +203,29 @@ export const testService = {
   async saveAmazonProducts(testId: string, products: any[]) {
     try {
       await apiClient.post(`/amazon/products/${testId}`, { products });
+    } catch (error) {
+      console.error(error);
+      throw new TestCreationError('Failed to save competitors', { error });
+    }
+  },
+
+  async saveWalmartProducts(testId: string, products: any[]) {
+    try {
+      // Use the correct Walmart service method
+      await walmartService.saveProductsWithTest(products, testId);
+    } catch (error) {
+      console.error('Walmart products save error:', error);
+      throw new TestCreationError('Failed to save Walmart competitors', { error });
+    }
+  },
+
+  async saveCompetitors(testId: string, products: any[], skin: 'amazon' | 'walmart') {
+    try {
+      if (skin === 'amazon') {
+        await this.saveAmazonProducts(testId, products);
+      } else if (skin === 'walmart') {
+        await this.saveWalmartProducts(testId, products);
+      }
     } catch (error) {
       console.error(error);
       throw new TestCreationError('Failed to save competitors', { error });
@@ -233,97 +336,32 @@ export const testService = {
       }
     }
   },
-  async getAllTests(): Promise<TestResponse[]> {
+  async getAllTests(): Promise<TestData[]> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        throw new TestCreationError('Not authenticated');
-      }
-
-      // Check if user is admin
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id, role')
-        .eq('id', user.id as any)
-        .single();
-
-      if (profileError) {
-        throw new TestCreationError('Error fetching user profile');
-      }
-
-      const typedProfile = profile as Profile;
-      if (typedProfile?.role !== 'admin') {
-        // For non-admin users, only fetch tests from their company
-        const { data: tests, error: testsError } = await supabase
-          .from('tests')
-          .select(
-            `
-           *,
-            company:companies(name),
-            competitors:test_competitors(
-            product:amazon_products(
-            *,
-            company:companies(name)
-            )),
-            variations:test_variations(
-            product:products(
-            *,
-            company:companies(name)),
-            variation_type
-                ),
-                demographics:test_demographics(*),
-                custom_screening:custom_screening(*)
-          `
-          )
-          .eq('company_id', typedProfile.company_id as any)
-          .order('created_at', { ascending: false });
-
-        if (testsError) {
-          throw new TestCreationError('Error fetching tests');
-        }
-
-        return tests as unknown as TestResponse[];
-      }
-
-      // For admin users, fetch all tests
-      const { data: tests, error: testsError } = await supabase
+      // Fetch tests without complex joins - just basic test data
+      const { data: testsData, error: testsError } = await supabase
         .from('tests')
-        .select(
-          `
-         *,
-          company:companies(name),
-          competitors:test_competitors(
-          product:amazon_products(
+        .select(`
           *,
           company:companies(name)
-          )),
-          variations:test_variations(
-          product:products(
-          *,
-          company:companies(name)),
-          variation_type
-              ),
-              demographics:test_demographics(*),
-              custom_screening:custom_screening(*)
-        `
-        )
+        `)
         .order('created_at', { ascending: false });
 
       if (testsError) {
+        console.error('Error fetching tests:', testsError);
         throw new TestCreationError('Error fetching tests');
       }
 
-      return tests as unknown as TestResponse[];
+      if (!testsData) {
+        return [];
+      }
+
+      // Return basic test data without competitors for now
+      // Competitors can be fetched separately when needed
+      return testsData as TestData[];
     } catch (error) {
       console.error('Error fetching all tests:', error);
-      if (error instanceof TestCreationError) {
-        toast.error(error.message);
-      } else {
-        toast.error('An unexpected error occurred while fetching tests');
-      }
-      throw error;
+      throw new TestCreationError('Error fetching tests');
     }
   },
 
@@ -662,12 +700,12 @@ export const testService = {
       // Cargar todos los datos relacionados en paralelo para mejor rendimiento
       const [competitorsResult, variationsResult, demographicsResult, customScreeningResult] =
         await Promise.all([
-          // Cargar competidores desde test_competitors -> amazon_products
+          // Cargar competidores desde test_competitors -> competitor_products
           supabase
             .from('test_competitors')
             .select(
               `
-            product:amazon_products(*)
+            product:competitor_products(*)
           `
             )
             .eq('test_id', testId as any),

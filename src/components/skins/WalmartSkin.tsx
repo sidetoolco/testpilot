@@ -14,6 +14,7 @@ interface Product {
   discount?: number;
   availability?: string;
   shipping?: string;
+  description?: string; // Added description field
 }
 
 interface WalmartSkinProps {
@@ -248,6 +249,13 @@ const ProductCard = ({ product, onProductClick, onAddToCart }: {
       >
         {product.name}
       </p>
+      
+      {/* Product Description */}
+      {product.description && (
+        <p className="text-xs text-gray-500 mt-1 line-clamp-2 h-8 overflow-hidden">
+          {product.description}
+        </p>
+      )}
       
       {product.size && (
         <p className="text-xs text-gray-500 mt-1">{product.size}</p>

@@ -1,13 +1,14 @@
 import React from 'react';
 import { X, Check } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
+import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 import { ProductCard } from './ProductCard';
 import { MAX_COMPETITORS } from '../constants';
 
 interface SelectedProductsDisplayProps {
-  selectedCompetitors: AmazonProduct[];
+  selectedCompetitors: (AmazonProduct | WalmartProduct)[];
   maxCompetitors?: number;
-  onRemoveCompetitor: (asin: string) => void;
+  onRemoveCompetitor: (productId: string) => void;
   isPopping: boolean;
   isAllSelected: boolean;
 }
@@ -32,30 +33,33 @@ export const SelectedProductsDisplay = React.memo(function SelectedProductsDispl
       </div>
       
       <div className="flex gap-4 overflow-x-auto pb-2 pt-2">
-        {selectedCompetitors.map((product, index) => (
-          <div
-            key={`${product.asin}-${product.id || index}`}
-            className={`flex-shrink-0 relative group ${
-              isPopping && index === selectedCompetitors.length - 1
-                ? 'animate-bounce'
-                : ''
-            }`}
-          >
-            <ProductCard
-              product={product}
-              isSelected={false}
-              canSelect={false}
-              onSelect={() => {}} // No-op for selected products
-              variant="horizontal"
-            />
-            <button
-              onClick={() => onRemoveCompetitor(product.asin)}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
+        {selectedCompetitors.map((product, index) => {
+          const productId = 'asin' in product ? product.asin : product.id;
+          return (
+            <div
+              key={`${productId}-${index}`}
+              className={`flex-shrink-0 relative group ${
+                isPopping && index === selectedCompetitors.length - 1
+                  ? 'animate-bounce'
+                  : ''
+              }`}
             >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+              <ProductCard
+                product={product}
+                isSelected={false}
+                canSelect={false}
+                onSelect={() => {}} // No-op for selected products
+                variant="horizontal"
+              />
+              <button
+                onClick={() => onRemoveCompetitor(productId)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        })}
       </div>
       
       {/* Selection status message */}

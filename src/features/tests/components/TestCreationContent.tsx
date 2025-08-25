@@ -8,7 +8,6 @@ import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelectio
 import { useState } from 'react';
 import SearchAndCompetitorSelection from '../../../components/test-setup/SearchAndCompetitorSelection';
 import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
-import SkinSelection from '../../../components/test-setup/SkinSelection';
 
 interface TestCreationContentProps {
   currentStep: string;
@@ -66,6 +65,8 @@ export function TestCreationContent({
           value={testData.searchTerm}
           onChange={term => handleUpdateData('searchTerm', term)}
           onNext={onNext}
+          skin={testData.skin}
+          onSkinChange={skin => handleUpdateData('skin', skin)}
         />
       )}
 
@@ -75,15 +76,7 @@ export function TestCreationContent({
           selectedCompetitors={testData.competitors}
           onSearchTermChange={term => handleUpdateData('searchTerm', term)}
           onCompetitorsChange={competitors => handleUpdateData('competitors', competitors)}
-        />
-      )}
-
-      {currentStep === 'skin-selection' && (
-        <SkinSelection
-          testData={testData}
-          setTestData={onUpdateTestData}
-          onNext={onNext}
-          onBack={onBack}
+          skin={testData.skin}
         />
       )}
 

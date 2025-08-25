@@ -2,36 +2,77 @@ import React from 'react';
 import AmazonPreview from './preview/AmazonPreview';
 import WalmartPreview from './preview/WalmartPreview';
 import { AmazonProduct } from '../../features/amazon/types';
+import { WalmartProduct } from '../../features/walmart/services/walmartService';
 
 interface TestPreviewProps {
   searchTerm: string;
-  competitors: AmazonProduct[];
+  competitors: (AmazonProduct | WalmartProduct)[];
   variations: {
-    a: AmazonProduct | null;
-    b: AmazonProduct | null;
-    c: AmazonProduct | null;
+    a: any | null;
+    b: any | null;
+    c: any | null;
   };
   skin?: 'amazon' | 'walmart';
 }
 
 export default function TestPreview({ searchTerm, competitors, variations, skin = 'amazon' }: TestPreviewProps) {
+  // Debug logging for competitor data
+  console.log('🔍 TestPreview - Received competitors:', {
+    totalCount: competitors.length,
+    skin,
+    competitors: competitors.map((comp, index) => ({
+      index,
+      id: 'asin' in comp ? comp.asin : comp.id,
+      title: 'asin' in comp ? comp.title : comp.title,
+      description: 'asin' in comp ? (comp as any).description : (comp as any).description,
+      product_description: 'asin' in comp ? (comp as any).product_description : (comp as any).product_description,
+      bullet_points: 'asin' in comp ? (comp as any).bullet_points : (comp as any).bullet_points,
+      hasDescription: 'asin' in comp ? 
+        !!((comp as any).description || (comp as any).product_description || ((comp as any).bullet_points && (comp as any).bullet_points.length > 0)) :
+        !!((comp as any).description || (comp as any).product_description || ((comp as any).bullet_points && (comp as any).bullet_points.length > 0)),
+      type: 'asin' in comp ? 'AmazonProduct' : 'WalmartProduct'
+    }))
+  });
+  
+  // Filter products based on skin type
+  const filteredCompetitors = React.useMemo(() => {
+    if (skin === 'walmart') {
+      return competitors.filter(product => !('asin' in product)) as WalmartProduct[];
+    } else {
+      return competitors.filter(product => 'asin' in product) as AmazonProduct[];
+    }
+  }, [competitors, skin]);
+
   // Memoize the initial product list with variation A prioritized
   const allProducts = React.useMemo(() => {
-    const products = [...competitors];
+    const products = [...filteredCompetitors];
     if (variations.a) {
-      products.unshift(variations.a); // Ensure variation A is first if available
+      // Only add variation if it matches the skin type
+      if (skin === 'walmart' && !('asin' in variations.a)) {
+        products.unshift(variations.a as WalmartProduct);
+      } else if (skin === 'amazon' && 'asin' in variations.a) {
+        products.unshift(variations.a as AmazonProduct);
+      }
     }
     return products;
-  }, [competitors, variations.a]);
+  }, [filteredCompetitors, variations.a, skin]);
 
-  const [displayProducts, setDisplayProducts] = React.useState(allProducts);
+  // Use separate state for each skin type to maintain type safety
+  const [amazonDisplayProducts, setAmazonDisplayProducts] = React.useState<AmazonProduct[]>([]);
+  const [walmartDisplayProducts, setWalmartDisplayProducts] = React.useState<WalmartProduct[]>([]);
   const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
     variations.a ? 'a' : null
   );
 
   React.useEffect(() => {
-    setDisplayProducts(allProducts);
-  }, [allProducts]);
+    if (skin === 'amazon') {
+      setAmazonDisplayProducts(allProducts as AmazonProduct[]);
+      setWalmartDisplayProducts([]);
+    } else {
+      setWalmartDisplayProducts(allProducts as WalmartProduct[]);
+      setAmazonDisplayProducts([]);
+    }
+  }, [allProducts, skin]);
 
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -42,12 +83,27 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
     return shuffled;
   };
 
-  const handleSelectVariant = (variantKey: string, variant: AmazonProduct | null) => {
+  const handleSelectVariant = (variantKey: string, variant: any | null) => {
     if (variant) {
-      const allProductsToShuffle = [variant, ...competitors];
-      const shuffledProducts = shuffleArray(allProductsToShuffle);
-      setDisplayProducts(shuffledProducts);
-      setSelectedVariant(variantKey);
+      // Only use variant if it matches the skin type
+      let variantToUse = null;
+      if (skin === 'walmart' && !('asin' in variant)) {
+        variantToUse = variant as WalmartProduct;
+      } else if (skin === 'amazon' && 'asin' in variant) {
+        variantToUse = variant as AmazonProduct;
+      }
+      
+      if (variantToUse) {
+        const allProductsToShuffle = [variantToUse, ...filteredCompetitors];
+        const shuffledProducts = shuffleArray(allProductsToShuffle);
+        
+        if (skin === 'amazon') {
+          setAmazonDisplayProducts(shuffledProducts as AmazonProduct[]);
+        } else {
+          setWalmartDisplayProducts(shuffledProducts as WalmartProduct[]);
+        }
+        setSelectedVariant(variantKey);
+      }
     }
   };
 
@@ -85,9 +141,24 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
       </div>
 
       {skin === 'walmart' ? (
-        <WalmartPreview searchTerm={searchTerm} products={displayProducts} />
+        (() => {
+          console.log('🔍 TestPreview - Passing to WalmartPreview:', {
+            searchTerm,
+            productsCount: walmartDisplayProducts.length,
+            products: walmartDisplayProducts.map((prod, index) => ({
+              index,
+              id: prod.id,
+              title: prod.title,
+              description: prod.description,
+              product_description: prod.product_description,
+              bullet_points: prod.bullet_points,
+              hasDescription: !!(prod.description || prod.product_description || (prod.bullet_points && prod.bullet_points.length > 0))
+            }))
+          });
+          return <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} />;
+        })()
       ) : (
-        <AmazonPreview searchTerm={searchTerm} products={displayProducts} />
+        <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} />
       )}
     </div>
   );

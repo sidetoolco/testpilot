@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Star, ShoppingCart, Menu, MapPin, User } from 'lucide-react';
-import { AmazonProduct } from '../../../features/amazon/types';
+import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 import WalmartProductDetail from '../../walmart/WalmartProductDetail';
+import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../../features/walmart/services/walmartService';
 import { supabase } from '../../../lib/supabase';
 
 interface ProductDetails {
@@ -11,53 +12,71 @@ interface ProductDetails {
 
 interface WalmartPreviewProps {
   searchTerm: string;
-  products: AmazonProduct[];
+  products: WalmartProduct[];
 }
 
 export default function WalmartPreview({ searchTerm, products }: WalmartPreviewProps) {
-  const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<WalmartProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // State for full product details for each product
+  const [fullProductDetails, setFullProductDetails] = useState<Record<string, WalmartProductDetailType>>({});
 
-  const handleProductClick = async (product: AmazonProduct) => {
+  // Fetch full details for all products when component mounts
+  useEffect(() => {
+    const fetchAllProductDetails = async () => {
+      const details: Record<string, WalmartProductDetailType> = {};
+      
+      for (const product of products) {
+        if (product.id) {
+          try {
+            const productDetail = await walmartService.getProductDetails(product.id);
+            details[product.id] = productDetail;
+            console.log(`🔍 WalmartPreview - Full details loaded for ${product.id}:`, productDetail);
+          } catch (error) {
+            console.error(`Failed to fetch details for product ${product.id}:`, error);
+          }
+        }
+      }
+      
+      setFullProductDetails(details);
+    };
+
+    if (products.length > 0) {
+      fetchAllProductDetails();
+    }
+  }, [products]);
+
+  const handleProductClick = async (product: WalmartProduct) => {
     setIsLoading(true);
     try {
-      // If the product doesn't have ASIN or it's empty, use its data directly
-      if (!product.asin || product.asin.trim() === '') {
-        setProductDetails({
-          images: (product as any).images || [product.image_url],
-          feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
-        });
-        setSelectedProduct(product);
-        setIsLoading(false);
-        return;
-      }
+      // Debug logging for product data
+      console.log('🔍 WalmartPreview - Product clicked:', {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        product_description: product.product_description,
+        bullet_points: product.bullet_points,
+        feature_bullets: (product as any).feature_bullets,
+        fullProduct: product
+      });
 
-      // If it has ASIN, search in the database
-      const { data, error } = await supabase
-        .from('amazon_products')
-        .select('*')
-        .eq('asin', product.asin as any)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      // Set product details from the Walmart product data
+      setProductDetails({
+        images: (product as any).images || [product.image_url],
+        feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
+      });
 
-      if (error) {
-        console.error('Error fetching product details:', error);
-        // If there's an error, use the product data
-        setProductDetails({
-          images: (product as any).images || [product.image_url],
-          feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
-        });
-      } else if (data) {
-        setProductDetails({
-          images: (data as any).images || (product as any).images || [product.image_url],
-          feature_bullets: (data as any).bullet_points || (product as any).bullet_points || (product as any).feature_bullets || [],
-        });
-      }
+      // Debug logging for product details being set
+      console.log('🔍 WalmartPreview - Product details set:', {
+        images: (product as any).images || [product.image_url],
+        feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
+      });
+
       setSelectedProduct(product);
     } catch (error) {
-      console.error('Error fetching product details:', error);
+      console.error('Error setting product details:', error);
       // In case of error, use the product data
       setProductDetails({
         images: (product as any).images || [product.image_url],
@@ -165,8 +184,20 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       {/* Product Grid */}
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => (
-            <div key={`walmart-preview-product-${product.id || index}`} className="bg-white p-4 w-full flex flex-col relative cursor-pointer" onClick={() => handleProductClick(product)}>
+          {products.map((product, index) => {
+            // Debug logging for each product being rendered
+            console.log(`🔍 WalmartPreview - Rendering product ${index}:`, {
+              id: product.id,
+              title: product.title,
+              description: product.description,
+              product_description: product.product_description,
+              bullet_points: product.bullet_points,
+              feature_bullets: (product as any).feature_bullets,
+              hasDescription: !!(product.description || product.product_description || (product.bullet_points && product.bullet_points.length > 0))
+            });
+
+            return (
+              <div key={`walmart-preview-product-${product.id || index}`} className="bg-white p-4 w-full flex flex-col relative cursor-pointer" onClick={() => handleProductClick(product)}>
               {/* Add Button Overlay - Above the image */}
               <div className="h-48 mb-4 flex items-center justify-center relative">
                 <img
@@ -196,9 +227,26 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                   {product.title}
                 </h3>
 
+                {/* Product Description - Now using full product details */}
+                {(() => {
+                  const fullDetails = fullProductDetails[product.id];
+                  const description = fullDetails?.product_short_description || 
+                                   (fullDetails?.variants && fullDetails.variants.length > 0 ? 
+                                     `${fullDetails.variants[0].criteria}: ${fullDetails.variants[0].name}` : null) ||
+                                   product.description || 
+                                   product.product_description || 
+                                   (product.bullet_points && product.bullet_points[0]);
+                  
+                  return description ? (
+                    <p className="text-[11px] leading-[16px] text-[#565959] mb-2 line-clamp-2">
+                      {description}
+                    </p>
+                  ) : null;
+                })()}
+
                 {/* Rating and Reviews - At the bottom */}
                 {product.rating && (
-                  <div className="flex items-center">
+                  <div className="flex items-center mt-auto">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => {
                         const fullStars = Math.round(product.rating || 5);
@@ -230,7 +278,8 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -253,18 +302,29 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
             className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto relative rounded-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-              onClick={handleCloseModal}
-            >
-              ✕
-            </button>
-            
+            {/* Debug logging for modal data */}
+            {(() => {
+              const modalProduct = {
+                ...selectedProduct,
+                images: productDetails?.images || [selectedProduct.image_url],
+                bullet_points: productDetails?.feature_bullets || [],
+              };
+              console.log('🔍 WalmartPreview - Modal product data:', {
+                selectedProduct,
+                productDetails,
+                modalProduct,
+                hasBulletPoints: !!(productDetails?.feature_bullets && productDetails.feature_bullets.length > 0)
+              });
+              return null;
+            })()}
+
             <WalmartProductDetail
               product={{
                 ...selectedProduct,
                 images: productDetails?.images || [selectedProduct.image_url],
                 bullet_points: productDetails?.feature_bullets || [],
+                // Pass the full product details if available
+                ...(fullProductDetails[selectedProduct.id] || {})
               }}
               onBack={handleCloseModal}
               onAddToCart={() => {

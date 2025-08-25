@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
+import { WalmartProduct } from '../../features/walmart/services/walmartService';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
+import { useWalmartProducts } from '../../features/walmart/hooks/useWalmartProducts';
 import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
 import { SearchHeader } from './SearchHeader';
@@ -13,9 +15,10 @@ import { MAX_COMPETITORS } from './constants';
 
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
-  selectedCompetitors: AmazonProduct[];
+  selectedCompetitors: (AmazonProduct | WalmartProduct)[];
   onSearchTermChange: (term: string) => void;
-  onCompetitorsChange: (competitors: AmazonProduct[]) => void;
+  onCompetitorsChange: (competitors: (AmazonProduct | WalmartProduct)[]) => void;
+  skin: 'amazon' | 'walmart';
 }
 
 export default function SearchAndCompetitorSelection({
@@ -23,6 +26,7 @@ export default function SearchAndCompetitorSelection({
   selectedCompetitors,
   onSearchTermChange,
   onCompetitorsChange,
+  skin,
 }: SearchAndCompetitorSelectionProps) {
   const [currentSearchTerm, setCurrentSearchTerm] = useState(searchTerm);
   const [searchInputValue, setSearchInputValue] = useState('');
@@ -30,18 +34,64 @@ export default function SearchAndCompetitorSelection({
   const [hasUserSearched, setHasUserSearched] = useState(false);
   const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
   
-  // Automatically perform initial search when component mounts with a search term
+  // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
+  const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
+    hasUserSearched && skin === 'amazon' ? searchTerm : ''
+  );
+  const { products: walmartProducts, loading: walmartLoading, error: walmartError, searchProducts: walmartSearchProducts } = useWalmartProducts();
+  
+  // Monitor skin prop changes
   useEffect(() => {
+    console.log('SearchAndCompetitorSelection: Skin prop changed to:', skin);
+  }, [skin]);
+
+  // Single consolidated search effect - handles initial search only
+  useEffect(() => {
+    console.log('Initial search useEffect triggered:', {
+      searchTerm: searchTerm.trim(),
+      hasUserSearched,
+      skin,
+      currentSearchTerm
+    });
+    
+    // Only proceed if we have a search term and haven't searched yet
     if (searchTerm.trim() && !hasUserSearched) {
       setCurrentSearchTerm(searchTerm);
       setHasUserSearched(true);
       setIsSearching(true);
+      
+      // Trigger search based on skin
+      if (skin === 'amazon') {
+        console.log('Initial Amazon search for:', searchTerm);
+        // Amazon search is handled by useProductFetch hook
+      } else if (skin === 'walmart') {
+        console.log('Initial Walmart search for:', searchTerm);
+        walmartSearchProducts(searchTerm);
+      }
+      
+      // Reset searching state after a short delay
+      setTimeout(() => setIsSearching(false), 100);
     }
-  }, [searchTerm, hasUserSearched]);
+  }, [searchTerm, hasUserSearched, skin, walmartSearchProducts]);
+
+  // Get products and loading state based on skin
+  const products = skin === 'amazon' ? amazonProducts : walmartProducts;
+  const loading = skin === 'amazon' ? amazonLoading : walmartLoading;
+  const error = skin === 'amazon' ? amazonError : walmartError;
   
-  // Only fetch products when user explicitly searches, not on mount
-  const { products, loading, error, refetch } = useProductFetch(hasUserSearched ? currentSearchTerm : '');
-  
+  // Debug logging
+  console.log('SearchAndCompetitorSelection state:', {
+    skin,
+    hasUserSearched,
+    currentSearchTerm,
+    isSearching,
+    loading,
+    amazonProducts: amazonProducts.length,
+    walmartProducts: walmartProducts.length,
+    products: products.length,
+    error
+  });
+
   const {
     handleProductSelect,
     handleRemoveCompetitor,
@@ -61,8 +111,20 @@ export default function SearchAndCompetitorSelection({
     setCurrentSearchTerm(next);
     setIsSearching(true);
     setHasUserSearched(true);
-    // Note: We don't update the main searchTerm here to preserve the original
-  }, []);
+    
+    // Trigger search based on skin
+    if (skin === 'amazon') {
+      console.log('Using Amazon search for:', next);
+      // Trigger a refetch for Amazon products
+      amazonRefetch();
+    } else if (skin === 'walmart') {
+      console.log('Using Walmart search for:', next);
+      walmartSearchProducts(next);
+    }
+    
+    // Reset searching state after a short delay
+    setTimeout(() => setIsSearching(false), 100);
+  }, [skin, walmartSearchProducts, amazonRefetch]);
 
   const handleSearchInputChange = useCallback((value: string) => {
     setSearchInputValue(value);
@@ -79,19 +141,28 @@ export default function SearchAndCompetitorSelection({
   }, [handleSearchSubmit]);
 
   const hasSearchResults = products.length > 0;
-  const isSearchingForProducts = loading && isSearching;
+  const isSearchingForProducts = (loading || isSearching) && hasUserSearched;
 
   // Memoize expensive computations to prevent re-renders during scrolling
   const memoizedProducts = useMemo(() => {
     return products.map((product, index) => {
-      const isSelected = selectedCompetitors.find(p => p.asin === product.asin);
+      // Handle both Amazon and Walmart products
+      const productId = 'asin' in product ? product.asin : product.id;
+      const isSelected = selectedCompetitors.find(p => {
+        if ('asin' in p && 'asin' in product) {
+          return p.asin === product.asin;
+        } else if ('id' in p && 'id' in product) {
+          return p.id === product.id;
+        }
+        return false;
+      });
       const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
       
       return {
         product,
         isSelected: !!isSelected,
         canSelect,
-        key: `${product.asin}-${product.id || index}`,
+        key: `${productId}-${index}`,
       };
     });
   }, [products, selectedCompetitors, MAX_COMPETITORS]);
@@ -100,7 +171,13 @@ export default function SearchAndCompetitorSelection({
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
     return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
   }
-  if (error) return <ErrorState error={error} onRetry={refetch} />;
+  if (error) return <ErrorState error={error} onRetry={() => {
+    if (skin === 'amazon') {
+      amazonRefetch();
+    } else if (skin === 'walmart') {
+      walmartSearchProducts(currentSearchTerm);
+    }
+  }} />;
 
   return (
     <div className="max-w-6xl mx-auto">

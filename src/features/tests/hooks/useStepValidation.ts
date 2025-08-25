@@ -44,6 +44,9 @@ export const useStepValidation = (testData: TestData) => {
         if (!testData.searchTerm.trim()) {
           return 'Please enter a search term to define your competitive set';
         }
+        if (!testData.skin) {
+          return 'Please select an experience (Amazon or Walmart)';
+        }
         return 'Please complete all required fields';
       case 'search-competitors':
         if (!testData.searchTerm.trim()) {
@@ -51,11 +54,6 @@ export const useStepValidation = (testData: TestData) => {
         }
         if (testData.competitors.length !== 11) {
           return `Please select exactly 11 competitor products (currently selected: ${testData.competitors.length})`;
-        }
-        return 'Please complete all required fields';
-      case 'skin-selection':
-        if (!testData.skin) {
-          return 'Please select a skin (Amazon or Walmart)';
         }
         return 'Please complete all required fields';
       case 'demographics':

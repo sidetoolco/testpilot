@@ -69,3 +69,47 @@ export function validateTestDataWithToast(
   
   return true;
 } 
+
+/**
+ * Validates draft data with minimal requirements for saving drafts
+ * @param testData - The test data to validate for draft
+ * @returns ValidationResult with validation status and error message if invalid
+ */
+export function validateDraftData(testData: TestData): ValidationResult {
+  // Only require essential fields for drafts
+  if (!testData.name?.trim()) {
+    return {
+      isValid: false,
+      errorMessage: 'Please enter a test name'
+    };
+  }
+
+  if (!testData.searchTerm?.trim()) {
+    return {
+      isValid: false,
+      errorMessage: 'Please enter a search term'
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validates draft data and shows toast error if invalid
+ * @param testData - The test data to validate for draft
+ * @param toast - The toast function to show errors
+ * @returns True if validation passes, false otherwise
+ */
+export function validateDraftDataWithToast(
+  testData: TestData, 
+  toast: { error: (message: string) => void }
+): boolean {
+  const validation = validateDraftData(testData);
+  
+  if (!validation.isValid) {
+    toast.error(validation.errorMessage!);
+    return false;
+  }
+  
+  return true;
+} 
