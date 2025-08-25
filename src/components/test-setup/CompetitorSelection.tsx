@@ -64,13 +64,13 @@ export default function CompetitorSelection({
     }
   };
 
-  // Reset selection when search term changes
+  // Reset selection only on initial load, not on every search term change
   React.useEffect(() => {
     if (products.length && isInitialLoad.current) {
       onChange([]);
       isInitialLoad.current = false;
     }
-  }, [searchTerm, products.length, onChange]);
+  }, [products.length, onChange]);
 
   const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchFilter.toLowerCase())

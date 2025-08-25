@@ -34,24 +34,26 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
 
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
+              <img 
+                src="/assets/images/amazon-icon.svg" 
+                alt="Amazon" 
+                className="w-8 h-8"
+              />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Amazon Experience</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Amazon Store Experience</h3>
             <p className="text-gray-600 mb-4">
-              Testers will see an Amazon-like shopping interface with orange header and familiar design
+              Testers will shop from actual Amazon products in a complete Amazon-like shopping interface
             </p>
             
             <div className="space-y-2 text-sm text-gray-500">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Orange header design</span>
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
+                <span>Real Amazon products</span>
               </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Amazon-style product cards</span>
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
+                <span className="leading-tight">Complete Amazon experience</span>
               </div>
             </div>
           </div>
@@ -78,24 +80,26 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
 
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"/>
-              </svg>
+              <img 
+                src="/assets/images/walmart-icon.svg" 
+                alt="Walmart" 
+                className="w-8 h-8"
+              />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Walmart Experience</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Walmart Store Experience</h3>
             <p className="text-gray-600 mb-4">
-              Testers will see a Walmart-like shopping interface with blue header and rounded design
+              Testers will shop from actual Walmart products in a complete Walmart-like shopping interface
             </p>
             
             <div className="space-y-2 text-sm text-gray-500">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Blue header design</span>
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                <span>Real Walmart products</span>
               </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Walmart-style product cards</span>
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                <span className="leading-tight">Complete Walmart experience</span>
               </div>
             </div>
           </div>

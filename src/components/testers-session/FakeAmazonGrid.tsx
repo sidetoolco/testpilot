@@ -47,15 +47,20 @@ export default function FakeAmazonGrid({
     <>
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map(({ product }) => (
-            <AmazonProductCard
-              key={`amazon-product-card-${product.id}`}
-              product={product}
-              onAddToCart={handleAddToCart}
-              variantType={variantType}
-              testId={testId}
-            />
-          ))}
+          {products.map((item, index) => {
+            // Handle both direct products and wrapped variations
+            const product = item.product || item;
+            
+            return (
+              <AmazonProductCard
+                key={`amazon-product-card-${product?.id || index}`}
+                product={product}
+                onAddToCart={handleAddToCart}
+                variantType={variantType}
+                testId={testId}
+              />
+            );
+          })}
         </div>
       </div>
 

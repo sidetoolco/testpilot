@@ -147,12 +147,12 @@ export default function SearchAndCompetitorSelection({
   const memoizedProducts = useMemo(() => {
     return products.map((product, index) => {
       // Handle both Amazon and Walmart products
-      const productId = 'asin' in product ? product.asin : product.id;
+      const productId = 'asin' in product ? product.asin : (product as any).walmart_id;
       const isSelected = selectedCompetitors.find(p => {
         if ('asin' in p && 'asin' in product) {
           return p.asin === product.asin;
-        } else if ('id' in p && 'id' in product) {
-          return p.id === product.id;
+        } else if ('walmart_id' in p && 'walmart_id' in product) {
+          return p.walmart_id === product.walmart_id;
         }
         return false;
       });

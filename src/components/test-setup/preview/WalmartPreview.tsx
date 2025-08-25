@@ -227,22 +227,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                   {product.title}
                 </h3>
 
-                {/* Product Description - Now using full product details */}
-                {(() => {
-                  const fullDetails = fullProductDetails[product.id];
-                  const description = fullDetails?.product_short_description || 
-                                   (fullDetails?.variants && fullDetails.variants.length > 0 ? 
-                                     `${fullDetails.variants[0].criteria}: ${fullDetails.variants[0].name}` : null) ||
-                                   product.description || 
-                                   product.product_description || 
-                                   (product.bullet_points && product.bullet_points[0]);
-                  
-                  return description ? (
-                    <p className="text-[11px] leading-[16px] text-[#565959] mb-2 line-clamp-2">
-                      {description}
-                    </p>
-                  ) : null;
-                })()}
+             
 
                 {/* Rating and Reviews - At the bottom */}
                 {product.rating && (

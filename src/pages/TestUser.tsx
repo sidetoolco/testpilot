@@ -124,7 +124,22 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
 const combineVariantsAndCompetitors = (data: any) => {
   let storedOrder = sessionStorage.getItem(`productOrder-${data.id}`);
 
-  let competitorsWithVariations = [...data.competitors];
+  // Normalize competitors to ensure consistent structure
+  let competitorsWithVariations = data.competitors.map((competitor: any) => {
+    // If competitor is already a direct product object, use it as is
+    if (competitor.id && competitor.title) {
+      return competitor;
+    }
+    // If competitor is wrapped in a product property, extract it
+    if (competitor.product && competitor.product.id) {
+      return competitor.product;
+    }
+    // Fallback: return as is if structure is unknown
+    console.warn('Unknown competitor structure:', competitor);
+    return competitor;
+  });
+  
+  // Add variations with consistent structure
   data.variations.forEach((variation: any) => {
     competitorsWithVariations.push({
       product: { ...variation.product },
@@ -133,11 +148,30 @@ const combineVariantsAndCompetitors = (data: any) => {
 
   if (storedOrder) {
     // Si ya hay un orden guardado, parsearlo y aplicar ese orden
-    const orderedIndexes = JSON.parse(storedOrder);
-    competitorsWithVariations = orderedIndexes.map(
-      (index: number) => competitorsWithVariations[index]
-    );
-  } else {
+    try {
+      const orderedIndexes = JSON.parse(storedOrder);
+      // Validate that all indexes are within bounds
+      const validIndexes = orderedIndexes.filter((index: number) => 
+        index >= 0 && index < competitorsWithVariations.length
+      );
+      
+      if (validIndexes.length === orderedIndexes.length) {
+        competitorsWithVariations = validIndexes.map(
+          (index: number) => competitorsWithVariations[index]
+        );
+      } else {
+        // If indexes are invalid, clear the stored order and regenerate
+        sessionStorage.removeItem(`productOrder-${data.id}`);
+        throw new Error('Invalid stored order, regenerating');
+      }
+    } catch (error) {
+      console.log('Error parsing stored order, regenerating:', error);
+      // Fall through to regenerate order
+    }
+  }
+  
+  // If no stored order or if it was invalid, generate new order
+  if (!storedOrder || competitorsWithVariations.length !== data.competitors.length + data.variations.length) {
     // Si no hay un orden guardado, barajar y almacenar el orden
     let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
     for (let i = shuffledIndexes.length - 1; i > 0; i--) {
@@ -175,6 +209,13 @@ const TestUserPage = () => {
   const [captchaLoading, setCaptchaLoading] = useState(false);
 
   const combinedData = data ? combineVariantsAndCompetitors(data) : null;
+  
+  // Debug logging to identify NaN values
+  if (combinedData) {
+    console.log('Combined data competitors:', combinedData.competitors);
+    console.log('Combined data variations:', combinedData.variations);
+    console.log('Test skin:', combinedData.skin);
+  }
 
   // Determine which skin to use based on test data
   const testSkin = combinedData?.skin ?? 'amazon';
@@ -218,7 +259,9 @@ const TestUserPage = () => {
       const variant = result?.lastCharacter ?? '';
 
       // Only check completion for existing sessions, not new users
+      console.log('Checking for existing session with:', { testId, variant });
       const existingSession: any = await checkAndFetchExistingSession(testId, variant);
+      console.log('Existing session result:', existingSession);
 
       if (existingSession?.ended_at) {
         markTestCompleted(testId, variant);

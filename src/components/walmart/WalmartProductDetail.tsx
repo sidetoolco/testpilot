@@ -77,16 +77,32 @@ export default function WalmartProductDetail({
       setIsLoadingDetails(true);
       try {
         let details;
-        if (hasDatabaseId) {
-          // Use the saved product endpoint for database UUIDs
-          details = await walmartService.getProductDetails(product.id);
-        } else if (hasWalmartId) {
-          // Use the fresh Walmart endpoint for Walmart product IDs
-          details = await walmartService.getFreshWalmartProductDetails(product.walmart_id);
-        }
         
-        if (details) {
-          setFullProductDetails(details);
+        // Choose ONE request strategy: prefer fresh Walmart API, fallback to database
+        if (hasWalmartId) {
+          try {
+            details = await walmartService.getFreshWalmartProductDetails(product.walmart_id);
+            if (details) {
+              setFullProductDetails(details);
+              setIsLoadingDetails(false);
+              return; // Exit early - no fallback needed
+            }
+          } catch (error) {
+            console.log('Fresh Walmart API failed, trying database fallback');
+            // Only try database if Walmart API completely failed
+            if (hasDatabaseId) {
+              details = await walmartService.getProductDetails(product.id);
+              if (details) {
+                setFullProductDetails(details);
+              }
+            }
+          }
+        } else if (hasDatabaseId) {
+          // Only database ID available - use that
+          details = await walmartService.getProductDetails(product.id);
+          if (details) {
+            setFullProductDetails(details);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch product details:', error);
@@ -95,10 +111,9 @@ export default function WalmartProductDetail({
       }
     };
 
-    // Small delay to prioritize initial render
-    const timer = setTimeout(fetchProductDetails, 100);
-    return () => clearTimeout(timer);
-  }, [product.id, product.walmart_id, fullProductDetails]);
+    // OPTIMIZATION: Remove artificial delay - fetch immediately for faster loading
+    fetchProductDetails();
+  }, [product.id, product.walmart_id]);
   
   const handleAddToCart = () => {
     onAddToCart(product);

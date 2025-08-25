@@ -98,28 +98,6 @@ export default function SearchTermEntry({ value, onChange, onNext, skin, onSkinC
           selectedExperience={skin}
           onExperienceChange={onSkinChange}
         />
-
-        <div className="bg-[#00A67E] bg-opacity-5 rounded-xl p-4">
-          <p className="text-sm text-gray-600">
-            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than
-            specific features or benefits. This ensures we capture all relevant competitors.
-          </p>
-        </div>
-
-        {/* Continue Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className={`px-8 py-3 rounded-xl font-semibold transition-colors ${
-              canContinue
-                ? 'bg-[#00A67E] text-white hover:bg-[#008f6b]'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Continue
-          </button>
-        </div>
       </div>
     </div>
   );
