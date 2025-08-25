@@ -253,67 +253,29 @@ export const testService = {
       }
 
       const typedProfile = profile as Profile;
-      if (typedProfile?.role !== 'admin') {
-        // For non-admin users, only fetch tests from their company
-        const { data: tests, error: testsError } = await supabase
-          .from('tests')
-          .select(
-            `
-           *,
-            company:companies(name),
-            competitors:test_competitors(
-            product:amazon_products(
-            *,
-            company:companies(name)
-            )),
-            variations:test_variations(
-            product:products(
-            *,
-            company:companies(name)),
-            variation_type
-                ),
-                demographics:test_demographics(*),
-                custom_screening:custom_screening(*)
-          `
-          )
-          .eq('company_id', typedProfile.company_id as any)
-          .order('created_at', { ascending: false });
-
-        if (testsError) {
-          throw new TestCreationError('Error fetching tests');
-        }
-
-        return tests as unknown as TestResponse[];
-      }
-
-      // For admin users, fetch all tests
-      const { data: tests, error: testsError } = await supabase
+      
+      // Simplified query - just fetch basic test data without complex joins
+      let query = supabase
         .from('tests')
-        .select(
-          `
-         *,
-          company:companies(name),
-          competitors:test_competitors(
-          product:amazon_products(
+        .select(`
           *,
           company:companies(name)
-          )),
-          variations:test_variations(
-          product:products(
-          *,
-          company:companies(name)),
-          variation_type
-              ),
-              demographics:test_demographics(*),
-              custom_screening:custom_screening(*)
-        `
-        )
+        `)
         .order('created_at', { ascending: false });
 
+      // For non-admin users, only fetch tests from their company
+      if (typedProfile?.role !== 'admin') {
+        query = query.eq('company_id', typedProfile.company_id as any);
+      }
+
+      const { data: tests, error: testsError } = await query;
+
       if (testsError) {
+        console.error('Supabase query error:', testsError);
         throw new TestCreationError('Error fetching tests');
       }
 
+      console.log('✅ Tests fetched successfully:', tests?.length || 0);
       return tests as unknown as TestResponse[];
     } catch (error) {
       console.error('Error fetching all tests:', error);

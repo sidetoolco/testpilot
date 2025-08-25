@@ -232,17 +232,12 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
   const testId = result?.modifiedString ? result?.modifiedString : '';
 
   try {
+    // Fetch test data without complex joins
     const { data, error } = await supabase
       .from('tests')
       .select(
         `
                 *,
-                competitors:test_competitors(
-                  product:amazon_products(
-                    *,
-                    company:companies(name)
-                  )
-                ),
                 variations:test_variations(
                   product:products(
                     *,
@@ -261,6 +256,55 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       throw new Error('No variations found');
     }
 
+    // Fetch competitors separately to avoid join issues
+    const { data: competitorsData, error: competitorsError } = await supabase
+      .from('test_competitors')
+      .select(`
+        id,
+        product_id
+      `)
+      .eq('test_id', testId);
+
+    if (competitorsError) {
+      console.error('Error fetching competitors:', competitorsError);
+    }
+
+    // Fetch competitor products based on available IDs
+    let competitors = [];
+    if (competitorsData && competitorsData.length > 0) {
+      const competitorPromises = competitorsData.map(async (comp) => {
+        // Try to find the product in amazon_products first
+        let product = null;
+        
+        // Check amazon_products
+        const { data: amazonProduct } = await supabase
+          .from('amazon_products')
+          .select('*, company:companies(name)')
+          .eq('id', comp.product_id)
+          .single();
+        
+        if (amazonProduct) {
+          product = amazonProduct;
+        } else {
+          // Check walmart_products
+          const { data: walmartProduct } = await supabase
+            .from('walmart_products')
+            .select('*, company:companies(name)')
+            .eq('id', comp.product_id)
+            .single();
+          
+          if (walmartProduct) {
+            product = walmartProduct;
+          }
+        }
+        
+        return product;
+      });
+
+      const competitorResults = await Promise.all(competitorPromises);
+      competitors = competitorResults.filter(Boolean);
+    }
+
     const sessionData = (data.variations as any[]).map((session: any) => {
       if (session.product && session.product.company?.name) {
         session.product.brand = session.product.company.name;
@@ -269,7 +313,7 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       return session;
     });
 
-    return { ...data, variations: sessionData } as unknown as TestData;
+    return { ...data, variations: sessionData, competitors } as unknown as TestData;
   } catch (error) {
     console.error('Error fetching test data:', error);
     return null;
