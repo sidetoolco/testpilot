@@ -36,9 +36,8 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
           try {
             const productDetail = await walmartService.getProductDetails(product.id);
             details[product.id] = productDetail;
-            console.log(`🔍 WalmartPreview - Full details loaded for ${product.id}:`, productDetail);
           } catch (error) {
-            console.error(`Failed to fetch details for product ${product.id}:`, error);
+            // Silently handle errors - testers will see the message below
           }
         }
       }
@@ -54,32 +53,14 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
   const handleProductClick = async (product: WalmartProduct) => {
     setIsLoading(true);
     try {
-      // Debug logging for product data
-      console.log('🔍 WalmartPreview - Product clicked:', {
-        id: product.id,
-        title: product.title,
-        description: product.description,
-        product_description: product.product_description,
-        bullet_points: product.bullet_points,
-        feature_bullets: (product as any).feature_bullets,
-        fullProduct: product
-      });
-
       // Set product details from the Walmart product data
       setProductDetails({
         images: (product as any).images || [product.image_url],
         feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
       });
 
-      // Debug logging for product details being set
-      console.log('🔍 WalmartPreview - Product details set:', {
-        images: (product as any).images || [product.image_url],
-        feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
-      });
-
       setSelectedProduct(product);
     } catch (error) {
-      console.error('Error setting product details:', error);
       // In case of error, use the product data
       setProductDetails({
         images: (product as any).images || [product.image_url],
@@ -223,22 +204,14 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       </nav>
 
       {/* Results Count and Save Draft Button */}
-      <div className="bg-white p-4 mb-4 rounded-sm">
+      <div className="bg-white p-4  rounded-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-[#565959]">{products.length} results for</span>
             <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
           
-          {/* Save Draft Button */}
-          <button
-            onClick={handleSaveDraft}
-            disabled={isSaving || products.length === 0}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
-          </button>
+          
         </div>
       </div>
 
@@ -246,17 +219,6 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => {
-            // Debug logging for each product being rendered
-            console.log(`🔍 WalmartPreview - Rendering product ${index}:`, {
-              id: product.id,
-              title: product.title,
-              description: product.description,
-              product_description: product.product_description,
-              bullet_points: product.bullet_points,
-              feature_bullets: (product as any).feature_bullets,
-              hasDescription: !!(product.description || product.product_description || (product.bullet_points && product.bullet_points.length > 0))
-            });
-
             return (
               <div key={`walmart-preview-product-${product.id || index}`} className="bg-white p-4 w-full flex flex-col relative cursor-pointer" onClick={() => handleProductClick(product)}>
               {/* Add Button Overlay - Above the image */}
@@ -287,8 +249,6 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                 <h3 className="text-[13px] leading-[19px] text-[#0F1111] font-medium mb-2 hover:text-[#0071dc] line-clamp-2 cursor-pointer">
                   {product.title}
                 </h3>
-
-               
 
                 {/* Rating and Reviews - At the bottom */}
                 {product.rating && (
@@ -333,7 +293,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-xl">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0071dc]"></div>
+            <div className="animate-spin rounded-full h-12 w-8 border-b-2 border-[#0071dc]"></div>
           </div>
         </div>
       )}
@@ -348,21 +308,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
             className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto relative rounded-md"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Debug logging for modal data */}
-            {(() => {
-              const modalProduct = {
-                ...selectedProduct,
-                images: productDetails?.images || [selectedProduct.image_url],
-                bullet_points: productDetails?.feature_bullets || [],
-              };
-              console.log('🔍 WalmartPreview - Modal product data:', {
-                selectedProduct,
-                productDetails,
-                modalProduct,
-                hasBulletPoints: !!(productDetails?.feature_bullets && productDetails.feature_bullets.length > 0)
-              });
-              return null;
-            })()}
+
 
             <WalmartProductDetail
               product={{

@@ -274,8 +274,8 @@ const ProductCard = ({ product, onProductClick, onAddToCart }: {
         </div>
       )}
       
-      {product.availability && (
-        <p className="text-xs text-green-600 mt-1">{product.availability}</p>
+      {product.product_availability && (
+        <p className="text-xs text-green-600 mt-1">{product.product_availability}</p>
       )}
       
       {product.shipping && (

@@ -223,7 +223,7 @@ export interface Database {
           product_url: string | null;
           search_term: string | null;
           seller: string | null;
-          availability: string | null;
+          product_availability: string | null;
           description: string | null;
           product_short_description: string | null;
           product_category: string | null;
@@ -243,7 +243,7 @@ export interface Database {
           product_url?: string | null;
           search_term?: string | null;
           seller?: string | null;
-          availability?: string | null;
+          product_availability?: string | null;
           description?: string | null;
           product_short_description?: string | null;
           product_category?: string | null;
@@ -263,7 +263,7 @@ export interface Database {
           product_url?: string | null;
           search_term?: string | null;
           seller?: string | null;
-          availability?: string | null;
+          product_availability?: string | null;
           description?: string | null;
           product_short_description?: string | null;
           product_category?: string | null;

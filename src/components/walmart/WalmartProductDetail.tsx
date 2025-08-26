@@ -105,7 +105,7 @@ export default function WalmartProductDetail({
                 product_url: (dbProduct as any).product_url,
                 search_term: (dbProduct as any).search_term,
                 seller: (dbProduct as any).seller,
-                availability: (dbProduct as any).availability,
+                availability: (dbProduct as any).product_availability,
                 created_at: (dbProduct as any).created_at,
                 updated_at: (dbProduct as any).updated_at,
                 description: (dbProduct as any).description,
@@ -240,6 +240,18 @@ export default function WalmartProductDetail({
           <h1 className="text-2xl font-bold mt-2">
             {product.title || product.name}
           </h1>
+          
+          {/* Tester Info Box - Shows when any loading is happening */}
+          {isLoadingDetails && (
+            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-blue-800 text-xs font-medium">
+                💡 For Testers
+              </p>
+              <p className="text-blue-700 text-xs mt-1">
+                During the actual test, the testers will see all product information instantly without any loading delays.
+              </p>
+            </div>
+          )}
           
           {/* Rating and Reviews */}
           {product.rating && (

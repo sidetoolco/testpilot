@@ -39,10 +39,10 @@ export const walmartProductService = {
         image_url: product.image_url || '',
         product_url: product.product_url || '',
         search_term: product.search_term || '',
-        seller: product.seller || '',
-        availability: product.availability || '',
-        description: product.description || '',
-        product_short_description: product.product_description || '',
+        sold_by: product.seller || product.sold_by || '',
+        product_availability: product.product_availability || product.availability || '',
+        description: product.description || product.product_short_description || '',
+        product_short_description: product.product_description || product.product_short_description || '',
         product_category: '', // Will be filled when we get full details
         brand: '', // Will be filled when we get full details
         company_id: companyId,
@@ -115,11 +115,11 @@ export const walmartProductService = {
               const { error } = await supabase
                 .from('walmart_products')
                 .update({
-                  product_name: richDetails.product_name || product.title,
+                  title: richDetails.product_name || product.title, // Use existing 'title' column instead of 'product_name'
                   product_category: richDetails.product_category || '',
                   product_short_description: richDetails.product_short_description || '',
                   brand: richDetails.brand || '',
-                  product_availability: (richDetails as any).product_availability || product.availability,
+                  product_availability: (richDetails as any).product_availability || product.product_availability,
                   sold_by: (richDetails as any).sold_by || product.seller,
                   sku: (richDetails as any).sku || '',
                   gtin: (richDetails as any).gtin || '',
