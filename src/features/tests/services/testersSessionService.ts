@@ -31,6 +31,8 @@ export const checkAndFetchExistingSession = async (id: string, variant: string) 
       return data; // Return the existing session data
     }
   }
+  
+  // If no existing session found, return null to trigger session creation
   return null;
 };
 export const createNewSession = async (
