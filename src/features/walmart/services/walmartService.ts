@@ -1,6 +1,7 @@
 import apiClient from '../../../lib/api';
 
 export interface WalmartProduct {
+  id?: string; // Add optional id field for database records
   title: string;
   price: number;
   rating: number;
@@ -101,56 +102,46 @@ export const walmartService = {
   // Method to fetch saved product details from your database
   async getProductDetails(productId: string): Promise<WalmartProductDetail> {
     try {
-      console.log('🔍 Walmart service: Fetching saved product details for:', productId);
-      
-      const { data: productDetails } = await apiClient.get<WalmartProductDetail>(`/walmart/products/saved/${productId}`);
-      
-      console.log('🔍 Walmart service: Saved product details received:', productDetails);
-      
-      return productDetails;
-    } catch (error: any) {
-      console.error('Walmart saved product details error:', error);
-      console.error('Walmart saved product details error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
-      return Promise.reject(error);
+      const { data: product } = await apiClient.get<WalmartProductDetail>(`/walmart/products/walmart/${productId}`);
+      return product;
+    } catch (error) {
+      console.error('Failed to fetch product details:', error);
+      throw error;
     }
   },
 
-  // Method to fetch fresh product details from Walmart API
-  async getFreshWalmartProductDetails(walmartProductId: string): Promise<WalmartProductDetail> {
+  async getFreshWalmartProductDetails(productId: string): Promise<WalmartProductDetail | null> {
     try {
-      console.log('🔍 Walmart service: Fetching fresh product details from Walmart for:', walmartProductId);
-      
-      const { data: productDetails } = await apiClient.get<WalmartProductDetail>(`/walmart/products/walmart/${walmartProductId}`);
-      
-      console.log('🔍 Walmart service: Fresh Walmart product details received:', productDetails);
-      
-      return productDetails;
-    } catch (error: any) {
-      console.error('Walmart fresh product details error:', error);
-      console.error('Walmart fresh product details error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
-      return Promise.reject(error);
+      const { data: product } = await apiClient.get<WalmartProductDetail>(`/walmart/products/walmart/${productId}`);
+      return product;
+    } catch (error) {
+      console.error('Failed to fetch fresh product details:', error);
+      return null;
     }
   },
 
   async saveProductsPreview(products: WalmartProduct[]): Promise<WalmartProduct[]> {
     try {
+      console.log('🔍 WalmartService: Saving products preview');
+      console.log('🔍 WalmartService: Products to save:', products);
+      
+      // Save to backend API only (like Amazon does)
       const { data: savedProducts } = await apiClient.post<WalmartProduct[]>('/walmart/products', {
         products,
       });
 
+      console.log('🔍 WalmartService: Products saved successfully:', savedProducts);
       return savedProducts;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Walmart save preview error:', error);
+      console.error('Walmart save preview error details:', {
+        productCount: products.length,
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      
       return Promise.reject(error);
     }
   },

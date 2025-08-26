@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Star, CheckCircle, Truck, MapPin, Building, Loader2 } from 'lucide-react';
 import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../features/walmart/services/walmartService';
+import { supabase } from '../../lib/supabase';
 
 interface WalmartProductDetailProps {
   product: any;
@@ -78,30 +79,60 @@ export default function WalmartProductDetail({
       try {
         let details;
         
-        // Choose ONE request strategy: prefer fresh Walmart API, fallback to database
+        // Prioritize database data first (like Amazon does)
+        if (hasDatabaseId) {
+          try {
+            // Try to get details from database first
+            const { data: dbProduct, error: dbError } = await supabase
+              .from('walmart_products')
+              .select('*')
+              .eq('id', product.id)
+              .single();
+            
+            if (!dbError && dbProduct) {
+              // Convert database product to WalmartProductDetail format
+              details = {
+                id: (dbProduct as any).id,
+                product_name: (dbProduct as any).title || '',
+                product_short_description: (dbProduct as any).product_short_description || (dbProduct as any).description || '',
+                product_category: (dbProduct as any).product_category || '',
+                brand: (dbProduct as any).brand || '',
+                title: (dbProduct as any).title,
+                price: (dbProduct as any).price,
+                rating: (dbProduct as any).rating,
+                reviews_count: (dbProduct as any).reviews_count,
+                image_url: (dbProduct as any).image_url,
+                product_url: (dbProduct as any).product_url,
+                search_term: (dbProduct as any).search_term,
+                seller: (dbProduct as any).seller,
+                availability: (dbProduct as any).availability,
+                created_at: (dbProduct as any).created_at,
+                updated_at: (dbProduct as any).updated_at,
+                description: (dbProduct as any).description,
+                bullet_points: [],
+                variants: []
+              };
+              
+              if (details) {
+                setFullProductDetails(details);
+                setIsLoadingDetails(false);
+                return; // Exit early - database data found
+              }
+            }
+          } catch (error) {
+            console.log('Database fetch failed, trying Walmart API fallback');
+          }
+        }
+        
+        // Fallback to Walmart API if database data not available
         if (hasWalmartId) {
           try {
             details = await walmartService.getFreshWalmartProductDetails(product.walmart_id);
             if (details) {
               setFullProductDetails(details);
-              setIsLoadingDetails(false);
-              return; // Exit early - no fallback needed
             }
           } catch (error) {
-            console.log('Fresh Walmart API failed, trying database fallback');
-            // Only try database if Walmart API completely failed
-            if (hasDatabaseId) {
-              details = await walmartService.getProductDetails(product.id);
-              if (details) {
-                setFullProductDetails(details);
-              }
-            }
-          }
-        } else if (hasDatabaseId) {
-          // Only database ID available - use that
-          details = await walmartService.getProductDetails(product.id);
-          if (details) {
-            setFullProductDetails(details);
+            console.log('Walmart API also failed');
           }
         }
       } catch (error) {

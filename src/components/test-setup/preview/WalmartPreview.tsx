@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Star, ShoppingCart, Menu, MapPin, User } from 'lucide-react';
+import { Search, Star, ShoppingCart, Menu, MapPin, User, Save } from 'lucide-react';
 import { WalmartProduct } from '../../../features/walmart/services/walmartService';
 import WalmartProductDetail from '../../walmart/WalmartProductDetail';
 import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../../features/walmart/services/walmartService';
+import { walmartProductService } from '../../../features/walmart/services/walmartProductService';
 import { supabase } from '../../../lib/supabase';
+import { toast } from 'sonner';
 
 interface ProductDetails {
   images: string[];
@@ -19,6 +21,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
   const [selectedProduct, setSelectedProduct] = useState<WalmartProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // State for full product details for each product
   const [fullProductDetails, setFullProductDetails] = useState<Record<string, WalmartProductDetailType>>({});
@@ -92,6 +95,52 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
     setSelectedProduct(null);
     setProductDetails(null);
   };
+
+  const handleSaveDraft = async () => {
+    if (products.length === 0) {
+      toast.error('No products to save');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Get the current user's company ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id as string)
+        .single();
+
+      if (!profile?.company_id) {
+        toast.error('Company profile not found');
+        return;
+      }
+
+      // Step 1: Save basic product info to database
+      await walmartProductService.cacheProducts(products, profile.company_id as string);
+      
+      // Step 2: Fetch and save rich product details
+      await walmartProductService.fetchAndSaveRichDetails(products);
+      
+      // Step 3: Save to backend API (like Amazon does)
+      await walmartService.saveProductsPreview(products);
+      
+      toast.success(`Successfully saved ${products.length} Walmart products with rich details`);
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center items-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
 
   return (
     <>
@@ -173,11 +222,23 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
         </div>
       </nav>
 
-      {/* Results Count */}
+      {/* Results Count and Save Draft Button */}
       <div className="bg-white p-4 mb-4 rounded-sm">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-[#565959]">{products.length} results for</span>
-          <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-[#565959]">{products.length} results for</span>
+            <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
+          </div>
+          
+          {/* Save Draft Button */}
+          <button
+            onClick={handleSaveDraft}
+            disabled={isSaving || products.length === 0}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4" />
+            <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
+          </button>
         </div>
       </div>
 
@@ -227,7 +288,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                   {product.title}
                 </h3>
 
-             
+               
 
                 {/* Rating and Reviews - At the bottom */}
                 {product.rating && (
@@ -309,7 +370,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                 images: productDetails?.images || [selectedProduct.image_url],
                 bullet_points: productDetails?.feature_bullets || [],
                 // Pass the full product details if available
-                ...(fullProductDetails[selectedProduct.id] || {})
+                ...(selectedProduct.id && fullProductDetails[selectedProduct.id] ? fullProductDetails[selectedProduct.id] : {})
               }}
               onBack={handleCloseModal}
               onAddToCart={() => {

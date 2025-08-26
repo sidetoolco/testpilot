@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { walmartService, WalmartProduct, WalmartProductDetail } from '../services/walmartService';
+import { walmartProductService } from '../services/walmartProductService';
+import { supabase } from '../../../lib/supabase';
 
 export const useWalmartProducts = () => {
   const [products, setProducts] = useState<WalmartProduct[]>([]);
@@ -44,6 +46,26 @@ export const useWalmartProducts = () => {
     }
   };
 
+  const getCachedProducts = async (searchTerm: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id as string)
+        .single();
+
+      if (!profile?.company_id) return [];
+
+      return await walmartProductService.getCachedProducts(searchTerm, profile.company_id as string);
+    } catch (error) {
+      console.error('Failed to get cached products:', error);
+      return [];
+    }
+  };
+
   return {
     products,
     loading,
@@ -51,5 +73,6 @@ export const useWalmartProducts = () => {
     searchProducts,
     getProductDetails,
     saveProducts,
+    getCachedProducts,
   };
 };
