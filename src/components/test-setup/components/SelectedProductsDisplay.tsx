@@ -34,7 +34,8 @@ export const SelectedProductsDisplay = React.memo(function SelectedProductsDispl
       
       <div className="flex gap-4 overflow-x-auto pb-2 pt-2">
         {selectedCompetitors.map((product, index) => {
-          const productId = 'asin' in product ? product.asin : product.id;
+          // Use the correct ID for each product type
+          const productId = 'asin' in product ? product.asin : (product as any).walmart_id || product.id;
           return (
             <div
               key={`${productId}-${index}`}

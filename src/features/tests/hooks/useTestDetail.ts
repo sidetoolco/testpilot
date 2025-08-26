@@ -78,7 +78,7 @@ export function useTestDetail(id: string) {
               valid_option
             )
           `)
-          .eq('id', id)
+          .eq('id', id as any)
           .single();
 
         if (testError) {
@@ -91,39 +91,67 @@ export function useTestDetail(id: string) {
           .from('test_competitors')
           .select(`
             id,
-            amazon_product_id,
-            walmart_product_id
+            product_id
           `)
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (competitorsError) {
           console.error('Error fetching competitors:', competitorsError);
         }
 
-        // Fetch competitor products based on available IDs
+        // Fetch competitor products using batch queries instead of individual calls
         let competitors = [];
         if (competitorsData && competitorsData.length > 0) {
-          const competitorPromises = competitorsData.map(async (comp) => {
-            if (comp.amazon_product_id) {
-              const { data: amazonProduct } = await supabase
-                .from('amazon_products')
-                .select('id, title, image_url, price')
-                .eq('id', comp.amazon_product_id)
-                .single();
-              return amazonProduct;
-            } else if (comp.walmart_product_id) {
-              const { data: walmartProduct } = await supabase
-                .from('walmart_products')
-                .select('id, title, image_url, price')
-                .eq('id', comp.walmart_product_id)
-                .single();
-              return walmartProduct;
+          // Extract all product IDs
+          const productIds = competitorsData
+            .map((comp: any) => comp.product_id)
+            .filter(Boolean);
+          
+          if (productIds.length > 0) {
+            // Batch query amazon_products
+            const { data: amazonProducts, error: amazonError } = await supabase
+              .from('amazon_products')
+              .select('id, title, image_url, price')
+              .in('id', productIds);
+            
+            if (amazonError) {
+              console.error('Error fetching amazon products:', amazonError);
             }
-            return null;
-          });
-
-          const competitorResults = await Promise.all(competitorPromises);
-          competitors = competitorResults.filter(Boolean);
+            
+            // Batch query walmart_products
+            const { data: walmartProducts, error: walmartError } = await supabase
+              .from('walmart_products')
+              .select('id, title, image_url, price')
+              .in('id', productIds);
+            
+            if (walmartError) {
+              console.error('Error fetching walmart products:', walmartError);
+            }
+            
+            // Combine and deduplicate products
+            const allProducts = [
+              ...(amazonProducts || []),
+              ...(walmartProducts || [])
+            ];
+            
+            // Create a map for quick lookup
+            const productMap = new Map();
+            allProducts.forEach((product: any) => {
+              if (product && typeof product === 'object' && 'id' in product) {
+                productMap.set(product.id, product);
+              }
+            });
+            
+            // Map competitors to their products
+            competitors = competitorsData
+              .map((comp: any) => {
+                if (comp.product_id && productMap.has(comp.product_id)) {
+                  return productMap.get(comp.product_id);
+                }
+                return null;
+              })
+              .filter(Boolean);
+          }
         }
 
         // Debug: Log the raw data from database
@@ -147,7 +175,7 @@ export function useTestDetail(id: string) {
             )
           `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (surveysError) throw surveysError;
 
@@ -184,7 +212,7 @@ export function useTestDetail(id: string) {
           )
         `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (comparisonsError) throw comparisonsError;
 
@@ -204,7 +232,7 @@ export function useTestDetail(id: string) {
           name: typedTestData.name,
           status: typedTestData.status,
           searchTerm: typedTestData.search_term,
-          competitors: typedTestData.competitors?.map(c => c.product) || [],
+          competitors: competitors || [], // Use the competitors we fetched separately
           objective: typedTestData.objective,
           variations: {
             a: getVariationWithProduct(typedTestData.variations, 'a'),

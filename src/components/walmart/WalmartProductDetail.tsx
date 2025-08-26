@@ -3,6 +3,16 @@ import { ArrowLeft, Star, CheckCircle, Truck, MapPin, Building, Loader2 } from '
 import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../features/walmart/services/walmartService';
 import { supabase } from '../../lib/supabase';
 
+// Utility function to safely render HTML content
+const renderHtmlSafely = (html: string): string => {
+  if (!html) return '';
+  // Remove script tags and event handlers for security
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/\s*on\w+\s*=\s*[^>\s]+/gi, '');
+};
+
 interface WalmartProductDetailProps {
   product: any;
   onBack: () => void;
@@ -19,6 +29,7 @@ export default function WalmartProductDetail({
   // State for full product details
   const [fullProductDetails, setFullProductDetails] = useState<WalmartProductDetailType | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [showTesterInfo, setShowTesterInfo] = useState(false);
   const [imageLoadStates, setImageLoadStates] = useState<Record<string, boolean>>({});
   
   // Memoize thumbnails to prevent unnecessary re-renders
@@ -76,6 +87,15 @@ export default function WalmartProductDetail({
       if (fullProductDetails) return; // Skip if already loaded
       
       setIsLoadingDetails(true);
+      setShowTesterInfo(false);
+      
+      // Set timer to show tester info after 2 seconds
+      const timer = setTimeout(() => {
+        if (isLoadingDetails) {
+          setShowTesterInfo(true);
+        }
+      }, 2000);
+      
       try {
         let details;
         
@@ -120,7 +140,7 @@ export default function WalmartProductDetail({
               }
             }
           } catch (error) {
-            console.log('Database fetch failed, trying Walmart API fallback');
+            // Database fetch failed, trying Walmart API fallback
           }
         }
         
@@ -132,13 +152,15 @@ export default function WalmartProductDetail({
               setFullProductDetails(details);
             }
           } catch (error) {
-            console.log('Walmart API also failed');
+            // Walmart API also failed
           }
         }
       } catch (error) {
         console.error('Failed to fetch product details:', error);
       } finally {
         setIsLoadingDetails(false);
+        setShowTesterInfo(false);
+        clearTimeout(timer);
       }
     };
 
@@ -241,8 +263,8 @@ export default function WalmartProductDetail({
             {product.title || product.name}
           </h1>
           
-          {/* Tester Info Box - Shows when any loading is happening */}
-          {isLoadingDetails && (
+          {/* Tester Info Box - Shows when loading takes more than 2 seconds */}
+          {showTesterInfo && (
             <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-blue-800 text-xs font-medium">
                 💡 For Testers
@@ -282,9 +304,10 @@ export default function WalmartProductDetail({
                 <span className="text-gray-500">Loading description...</span>
               </div>
             ) : productDescription ? (
-              <p className="text-gray-700 leading-relaxed">
-                {productDescription}
-              </p>
+              <div 
+                className="text-gray-700 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: renderHtmlSafely(productDescription) }}
+              />
             ) : (
               <p className="text-gray-500">Description not available</p>
             )}

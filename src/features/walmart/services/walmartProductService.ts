@@ -13,7 +13,7 @@ export const walmartProductService = {
       const { data, error } = await supabase
         .from('walmart_products')
         .select('*')
-        .eq('company_id', companyId as string)
+        .eq('company_id', companyId as any)
         .ilike('search_term', normalizedTerm)
         .order('reviews_count', { ascending: false })
         .limit(20);
@@ -72,7 +72,7 @@ export const walmartProductService = {
           brand: details.brand || '',
           updated_at: new Date().toISOString(),
         } as any)
-        .eq('id', productId as string);
+        .eq('id', productId as any);
 
       if (error) throw error;
     } catch (error) {
@@ -86,7 +86,7 @@ export const walmartProductService = {
       const { data, error } = await supabase
         .from('walmart_products')
         .select('*')
-        .eq('walmart_id', walmartId as string)
+        .eq('walmart_id', walmartId as any)
         .single();
 
       if (error) throw error;
@@ -105,29 +105,37 @@ export const walmartProductService = {
       for (const product of products) {
         if (product.walmart_id) {
           try {
-            // Fetch rich details from Walmart API
+            // Validate that walmart_id is not a UUID (database ID)
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.walmart_id);
+            
+            if (isUUID) {
+              console.warn(`⚠️ Skipping product ${product.id}: walmart_id is a UUID, not a valid Walmart product ID`);
+              continue;
+            }
+            
+            // Fetch rich details from Walmart API with premium parameter
             const { data: richDetails } = await apiClient.get<WalmartProductDetail>(
-              `/walmart/products/walmart/${product.walmart_id}`
+              `/walmart/products/walmart/${product.walmart_id}?premium=true`
             );
 
             if (richDetails) {
-              // Update the database with rich details
-              const { error } = await supabase
-                .from('walmart_products')
-                .update({
-                  title: richDetails.product_name || product.title, // Use existing 'title' column instead of 'product_name'
-                  product_category: richDetails.product_category || '',
-                  product_short_description: richDetails.product_short_description || '',
-                  brand: richDetails.brand || '',
-                  product_availability: (richDetails as any).product_availability || product.product_availability,
-                  sold_by: (richDetails as any).sold_by || product.seller,
-                  sku: (richDetails as any).sku || '',
-                  gtin: (richDetails as any).gtin || '',
-                  images: (richDetails as any).images ? JSON.stringify((richDetails as any).images) : null,
-                  bullet_points: (richDetails as any).bullet_points ? JSON.stringify((richDetails as any).bullet_points) : null,
-                  updated_at: new Date().toISOString(),
-                } as any)
-                .eq('walmart_id', product.walmart_id as string);
+                          // Update the database with rich details
+            const { error } = await supabase
+              .from('walmart_products')
+              .update({
+                title: richDetails.product_name || product.title, // Use existing 'title' column instead of 'product_name'
+                product_category: richDetails.product_category || '',
+                product_short_description: richDetails.product_short_description || '',
+                brand: richDetails.brand || '',
+                product_availability: (richDetails as any).product_availability || (product as any).product_availability,
+                sold_by: (richDetails as any).sold_by || product.seller,
+                sku: (richDetails as any).sku || '',
+                gtin: (richDetails as any).gtin || '',
+                images: (richDetails as any).images ? JSON.stringify((richDetails as any).images) : null,
+                bullet_points: (richDetails as any).bullet_points ? JSON.stringify((richDetails as any).bullet_points) : null,
+                updated_at: new Date().toISOString(),
+              } as any)
+              .eq('walmart_id', product.walmart_id as any);
 
               if (error) {
                 console.error(`Error updating rich details for ${product.walmart_id}:`, error);
