@@ -48,7 +48,7 @@ export default function FakeAmazonGrid({
     <>
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map(({ product }) => (
+          {products.map((product) => (
             <AmazonProductCard
               key={`amazon-product-card-${product.id}`}
               product={product}

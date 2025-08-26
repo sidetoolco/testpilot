@@ -74,9 +74,10 @@ export default function AmazonProductCard({
           <div className="flex items-center mb-1">
             <div className="flex">
               {[...Array(5)].map((_, i) => {
-                const fullStars = Math.round(rating || 5);
+                const validRating = rating && !isNaN(rating) ? rating : 0;
+                const fullStars = Math.round(validRating);
                 const isFullStar = i < fullStars;
-                const isHalfStar = !isFullStar && i < rating;
+                const isHalfStar = !isFullStar && i < validRating;
                 return (
                   <Star
                     key={`${id}-star-${i}`}
@@ -95,14 +96,18 @@ export default function AmazonProductCard({
               })}
             </div>
             <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-              {reviews_count?.toLocaleString()}
+              {reviews_count && !isNaN(reviews_count) ? reviews_count.toLocaleString() : '0'}
             </span>
           </div>
 
           <div className="flex items-baseline gap-[2px] text-[#0F1111]">
             <span className="text-xs align-top mt-[1px]">US$</span>
-            <span className="text-[21px] font-medium">{Math.floor(price)}</span>
-            <span className="text-[13px]">{(price % 1).toFixed(2).substring(1)}</span>
+            <span className="text-[21px] font-medium">
+              {price && !isNaN(price) ? Math.floor(price) : '0'}
+            </span>
+            <span className="text-[13px]">
+              {price && !isNaN(price) ? (price % 1).toFixed(2).substring(1) : '.00'}
+            </span>
           </div>
 
           <div className="mt-1 flex items-center gap-1">
