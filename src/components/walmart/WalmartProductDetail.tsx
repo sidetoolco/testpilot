@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Star, CheckCircle, Truck, MapPin, Building, Loader2 } from 'lucide-react';
 import { walmartService, WalmartProductDetail as WalmartProductDetailType } from '../../features/walmart/services/walmartService';
 import { supabase } from '../../lib/supabase';
+import { useSessionStore } from '../../store/useSessionStore';
+import { recordTimeSpent } from '../../features/tests/services/testersSessionService';
 
 // Utility function to safely render HTML content
 const renderHtmlSafely = (html: string): string => {
@@ -24,6 +26,7 @@ export default function WalmartProductDetail({
   onBack,
   onAddToCart,
 }: WalmartProductDetailProps) {
+  const { shopperId } = useSessionStore();
   const [mainImage, setMainImage] = useState(product.image_url || product.image);
   
   // State for full product details
@@ -189,6 +192,24 @@ export default function WalmartProductDetail({
     }
     return null;
   }, [fullProductDetails, product]);
+
+  // Time tracking effect - tracks how long user spends viewing this product
+  useEffect(() => {
+    const startTime = Date.now(); // Capture entry time
+
+    return () => {
+      const endTime = Date.now(); // Capture exit time
+      const timeSpent = endTime - startTime; // Calculate time spent
+      
+              // Record time spent if we have valid data
+        if (shopperId && product.id && timeSpent > 0) {
+          console.log(`Time spent on product: ${timeSpent / 1000} seconds`);
+          console.log(`Product ID: ${product.id}, Type: ${typeof product.id}`);
+          // Record time spent in database for Walmart experience
+          recordTimeSpent(shopperId, product.id, startTime, endTime, false, true);
+        }
+    };
+  }, [shopperId, product.id]);
 
   return (
     <div className="container mx-auto p-4 md:p-8 bg-white">

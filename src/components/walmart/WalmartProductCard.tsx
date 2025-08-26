@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { trackEvent } from '../../lib/events';
+import { useSessionStore } from '../../store/useSessionStore';
+import { recordTimeSpent } from '../../features/tests/services/testersSessionService';
 
 interface WalmartProductCardProps {
   product: any;
@@ -17,7 +19,25 @@ export default function WalmartProductCard({
   variantType,
   testId,
 }: WalmartProductCardProps) {
+  const { shopperId } = useSessionStore();
   const { id, image_url, image, title, name, rating, reviews_count, price } = product;
+
+  // Time tracking effect - tracks how long user spends viewing this product card
+  useEffect(() => {
+    const startTime = Date.now(); // Capture entry time
+
+    return () => {
+      const endTime = Date.now(); // Capture exit time
+      const timeSpent = endTime - startTime; // Calculate time spent
+      
+      // Record time spent if we have valid data
+      if (shopperId && id && timeSpent > 0) {
+        console.log(`Time spent on product: ${timeSpent / 1000} seconds`);
+        // Record time spent in database for Walmart experience
+        recordTimeSpent(shopperId, id, startTime, endTime, false, true);
+      }
+    };
+  }, [shopperId, id]);
 
   const handleProductClick = () => {
     trackEvent(

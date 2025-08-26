@@ -217,12 +217,59 @@ export async function recordTimeSpent(
   itemId: string,
   startTime: number,
   endTime: number,
-  isCompetitor: boolean = false
+  isCompetitor: boolean = false,
+  isWalmartExperience: boolean = false
 ): Promise<void> {
   const timeSpent = Math.floor(endTime - startTime);
-  const column = isCompetitor ? 'competitor_id' : 'product_id';
-
+  
   try {
+    let column: 'competitor_id' | 'product_id' | 'walmart_product_id';
+    
+    if (isWalmartExperience) {
+      // In Walmart experience, verify the product exists before tracking
+      try {
+        const { data: walmartProduct, error: walmartError } = await supabase
+          .from('walmart_products')
+          .select('id')
+          .eq('id', itemId)
+          .single();
+        
+        if (walmartProduct && !walmartError) {
+          // Product exists, use walmart_product_id column
+          column = 'walmart_product_id';
+        } else {
+          // Product doesn't exist in walmart_products, skip tracking
+          console.warn(`Walmart product ${itemId} not found in database, skipping time tracking`);
+          return;
+        }
+      } catch (error) {
+        // Product lookup failed, skip tracking
+        console.warn(`Failed to verify Walmart product ${itemId}, skipping time tracking:`, error);
+        return;
+      }
+    } else {
+      // In Amazon experience, determine product type
+      try {
+        const { data: walmartProduct, error: walmartError } = await supabase
+          .from('walmart_products')
+          .select('id')
+          .eq('id', itemId)
+          .single();
+        
+        if (walmartProduct && !walmartError) {
+          // This is a Walmart product, use the new walmart_product_id column
+          column = 'walmart_product_id';
+        } else {
+          // This is an Amazon product, use the original logic
+          column = isCompetitor ? 'competitor_id' : 'product_id';
+        }
+      } catch (error) {
+        // If lookup fails, default to Amazon logic
+        console.log('Product lookup failed, defaulting to Amazon logic:', error);
+        column = isCompetitor ? 'competitor_id' : 'product_id';
+      }
+    }
+
     // Check if the record already exists
     const { data: existingData, error: fetchError } = await supabase
       .from('test_times')
@@ -241,7 +288,7 @@ export async function recordTimeSpent(
       const newTimeSpent = existingData.time_spent + timeSpent / 1000;
       const { error: updateError } = await supabase
         .from('test_times')
-        .update({ time_spent: newTimeSpent } as any)
+        .update({ time_spent: newTimeSpent })
         .eq('id', existingData.id);
 
       if (updateError) {
@@ -251,11 +298,15 @@ export async function recordTimeSpent(
       console.log('Time updated successfully:', newTimeSpent);
     } else {
       // Insert a new record
+      const insertData: any = { 
+        testers_session: testId, 
+        time_spent: timeSpent / 1000 
+      };
+      insertData[column] = itemId;
+
       const { data, error: insertError } = await supabase
         .from('test_times')
-        .insert([
-          { testers_session: testId, [column]: itemId, time_spent: timeSpent / 1000 },
-        ] as any);
+        .insert([insertData]);
 
       if (insertError) {
         throw insertError;
