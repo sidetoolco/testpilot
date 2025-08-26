@@ -113,7 +113,9 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
 const combineVariantsAndCompetitors = (data: any) => {
   let storedOrder = sessionStorage.getItem(`productOrder-${data.id}`);
 
-  let competitorsWithVariations = [...data.competitors];
+  // Normalize to a flat array of product objects
+  let competitorsWithVariations = data.competitors.map((c: any) => c.product ?? c);
+  
   data.variations.forEach((variation: any) => {
     competitorsWithVariations.push(variation.product);
   });
@@ -171,8 +173,11 @@ const TestUserPage = () => {
 
   // Create session immediately when data is available
   useEffect(() => {
+    let isCreatingSession = false;
+    
     const createInitialSession = async () => {
-      if (data && !sessionStarted) {
+      if (data && !sessionStarted && !isCreatingSession) {
+        isCreatingSession = true;
         try {
           const result = processString(id ?? '');
           const testId = result?.modifiedString ?? '';
@@ -187,6 +192,16 @@ const TestUserPage = () => {
             if (sessionId) {
               startSession(sessionId, data.id, data, new Date(), undefined, prolificPid);
               setSessionStarted(true);
+              
+              // Restore analytics tracking
+              if (shopperId) {
+                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}-prolificPID:${prolificPid}`);
+                tracker.trackWs('SessionEvents')?.(
+                  'Session Started',
+                  JSON.stringify({ sessionId, prolificPid }),
+                  'up'
+                );
+              }
             }
           } else {
             // Use existing session
@@ -202,12 +217,14 @@ const TestUserPage = () => {
           }
         } catch (error) {
           console.error('Error creating initial session:', error);
+        } finally {
+          isCreatingSession = false;
         }
       }
     };
 
     createInitialSession();
-  }, [data, id, prolificPid, sessionStarted, startSession]);
+  }, [data, id, prolificPid, sessionStarted, startSession, shopperId]);
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {

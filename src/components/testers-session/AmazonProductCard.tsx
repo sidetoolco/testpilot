@@ -74,10 +74,11 @@ export default function AmazonProductCard({
           <div className="flex items-center mb-1">
             <div className="flex">
               {[...Array(5)].map((_, i) => {
-                const validRating = rating && !isNaN(rating) ? rating : 0;
-                const fullStars = Math.round(validRating);
+                const validRating = typeof rating === 'number' && Number.isFinite(rating) ? Math.max(0, Math.min(5, rating)) : 0;
+                const fullStars = Math.floor(validRating);
+                const hasHalfStar = validRating % 1 >= 0.5;
                 const isFullStar = i < fullStars;
-                const isHalfStar = !isFullStar && i < validRating;
+                const isHalfStar = i === fullStars && hasHalfStar;
                 return (
                   <Star
                     key={`${id}-star-${i}`}
@@ -96,18 +97,23 @@ export default function AmazonProductCard({
               })}
             </div>
             <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-              {reviews_count && !isNaN(reviews_count) ? reviews_count.toLocaleString() : '0'}
+              {typeof reviews_count === 'number' && Number.isFinite(reviews_count) ? reviews_count.toLocaleString() : '0'}
             </span>
           </div>
 
           <div className="flex items-baseline gap-[2px] text-[#0F1111]">
             <span className="text-xs align-top mt-[1px]">US$</span>
-            <span className="text-[21px] font-medium">
-              {price && !isNaN(price) ? Math.floor(price) : '0'}
-            </span>
-            <span className="text-[13px]">
-              {price && !isNaN(price) ? (price % 1).toFixed(2).substring(1) : '.00'}
-            </span>
+            {(() => {
+              const normalizedPrice = typeof price === 'number' && Number.isFinite(price) ? price : 0;
+              const major = Math.floor(normalizedPrice);
+              const minor = (normalizedPrice % 1).toFixed(2).substring(1);
+              return (
+                <>
+                  <span className="text-[21px] font-medium">{major}</span>
+                  <span className="text-[13px]">{minor}</span>
+                </>
+              );
+            })()}
           </div>
 
           <div className="mt-1 flex items-center gap-1">
