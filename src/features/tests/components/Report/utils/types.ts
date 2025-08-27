@@ -6,7 +6,37 @@ export interface Survey {
   confidence: number;
   brand: number;
   convenience: number;
-  tester_id: { variation_type: string };
+  tester_id: { 
+    variation_type: string;
+    shopper_demographic: {
+      age: number | null;
+      sex: string | null;
+      country_residence: string | null;
+    };
+  };
+  likes_most?: string;
+  improve_suggestions?: string;
+}
+
+export interface Comparison {
+  competitor_id: string;
+  choose_reason?: string;
+  likes_most?: string;
+  improve_suggestions?: string;
+  tester_id: { 
+    variation_type: string;
+    shopper_demographic: {
+      age: number | null;
+      sex: string | null;
+      country_residence: string | null;
+    };
+  };
+  amazon_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
 }
 
 export interface Recommendation {

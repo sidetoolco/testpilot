@@ -207,6 +207,26 @@ export function useTestDetail(id: string) {
 
         if (comparisonsError) throw comparisonsError;
 
+        // Separate comparisons by variation_type and map competitor data
+        const comparisonsByType = comparisonsData?.reduce((acc: any, item: any) => {
+          const type = item.tester_id.variation_type;
+          if (!acc[type]) {
+            acc[type] = [];
+          }
+          
+          // Map the competitor_id to the actual competitor product data
+          const competitorData = testDataWithCompetitors.competitors?.find(c => c.product.id === item.competitor_id)?.product;
+          
+          // Create the item with the correct competitor data
+          const mappedItem = {
+            ...item,
+            amazon_products: competitorData || null
+          };
+          
+          acc[type].push(mappedItem);
+          return acc;
+        }, {}) || {};
+
         // Transform the data to match our Test type
         const transformedTest: Test = {
           id: testDataWithCompetitors.id,
@@ -237,7 +257,7 @@ export function useTestDetail(id: string) {
           },
           responses: {
             surveys: surveysByType,
-            comparisons: comparisonsData || [],
+            comparisons: comparisonsByType,
           },
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           createdAt: testDataWithCompetitors.created_at,
