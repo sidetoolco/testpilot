@@ -80,9 +80,6 @@ export function useTestDetail(id: string) {
         if (testError) throw testError;
         if (!testData) throw new Error('Test not found');
 
-        // Debug: Log the raw data from database
-        console.log('Raw test data from database:', testData);
-
         const typedTestData = testData as unknown as TestResponse;
 
         // Fetch competitors separately to avoid join issues
@@ -161,24 +158,25 @@ export function useTestDetail(id: string) {
         if (surveysError) throw surveysError;
 
         // Separate surveys by variation_type and map product data
-        const surveysByType = surveysData.reduce((acc: any, item: any) => {
-          const type = item.tester_id.variation_type;
-          if (!acc[type]) {
-            acc[type] = [];
+        // Ensure required keys exist regardless of data presence
+        const surveysInitial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+        
+        const surveysByType = surveysData.reduce((acc, item) => {
+          const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
+          if (type === 'a' || type === 'b' || type === 'c') {
+            // Map the product_id to the actual product data from test_variations
+            const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
+            
+            // Create the item with the correct product data
+            const mappedItem = {
+              ...item,
+              ...(productData && { products: productData }),
+            };
+            
+            acc[type].push(mappedItem);
           }
-          
-          // Map the product_id to the actual product data from test_variations
-          const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
-          
-          // Create the item with the correct product data
-          const mappedItem = {
-            ...item,
-            products: productData || null
-          };
-          
-          acc[type].push(mappedItem);
           return acc;
-        }, {});
+        }, surveysInitial);
 
         // Fetch comparison responses for the test
         const { data: comparisonsData, error: comparisonsError } = await supabase
@@ -208,24 +206,25 @@ export function useTestDetail(id: string) {
         if (comparisonsError) throw comparisonsError;
 
         // Separate comparisons by variation_type and map competitor data
-        const comparisonsByType = comparisonsData?.reduce((acc: any, item: any) => {
-          const type = item.tester_id.variation_type;
-          if (!acc[type]) {
-            acc[type] = [];
+        // Build competitor map once for efficiency
+        const competitorMap = new Map<string, any>(
+          (testDataWithCompetitors.competitors ?? []).map((c: any) => [c.product.id, c.product])
+        );
+
+        // Ensure required keys exist regardless of data presence
+        const initial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+
+        const comparisonsByType = (comparisonsData ?? []).reduce((acc, item) => {
+          const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
+          if (type === 'a' || type === 'b' || type === 'c') {
+            const competitorData = competitorMap.get(item.competitor_id);
+            acc[type].push({
+              ...item,
+              ...(competitorData && { amazon_products: competitorData }),
+            });
           }
-          
-          // Map the competitor_id to the actual competitor product data
-          const competitorData = testDataWithCompetitors.competitors?.find(c => c.product.id === item.competitor_id)?.product;
-          
-          // Create the item with the correct competitor data
-          const mappedItem = {
-            ...item,
-            amazon_products: competitorData || null
-          };
-          
-          acc[type].push(mappedItem);
           return acc;
-        }, {}) || {};
+        }, initial);
 
         // Transform the data to match our Test type
         const transformedTest: Test = {
