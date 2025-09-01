@@ -349,7 +349,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
             <View
               key={index}
               style={
-                index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
+                index === validCompetitors.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
               }
             >
               <Text style={tableStyles.productCell}>
