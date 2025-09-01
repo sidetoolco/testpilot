@@ -30,6 +30,7 @@ import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 import { CreditIcon } from '../components/ui/CreditIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import TestFilters from '../components/ui/TestFilters';
+import { useAdmin } from '../hooks/useAdmin';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -104,7 +105,7 @@ export default function MyTests() {
   const user = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
   const queryClient = useQueryClient();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin } = useAdmin();
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [deletingTests, setDeletingTests] = useState<string[]>([]);
@@ -123,28 +124,6 @@ export default function MyTests() {
   const [blockedFilter, setBlockedFilter] = useState<'all' | 'blocked' | 'unblocked'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
-
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.user.id as any)
-          .single();
-
-        if (!error && data && typeof data === 'object' && 'role' in data) {
-          setIsAdmin((data as { role: string }).role === 'admin');
-        }
-      } catch (error) {
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.user?.id]);
 
   // Calculate credits needed for a test
   const calculateTestCredits = (test: any) => {

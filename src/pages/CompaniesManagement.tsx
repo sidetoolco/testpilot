@@ -18,6 +18,7 @@ import {
 import apiClient from '../lib/api';
 import { useCompanies } from '../hooks/useCompanies';
 import { CompaniesGrid } from '../components/companies/CompaniesGrid';
+import { useAdmin } from '../hooks/useAdmin';
 
 interface Company {
   id: string;
@@ -192,8 +193,7 @@ const SearchInput = memo(({
 SearchInput.displayName = 'SearchInput';
 
 export default function CompaniesManagement() {
-  const user = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { isAdmin } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithDetails | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -224,31 +224,6 @@ export default function CompaniesManagement() {
     goToPreviousPage,
     resetPagination,
   } = useCompanies(isAdmin);
-
-  // Memoized admin check
-  const checkAdminRole = useCallback(async () => {
-    if (!user?.user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.user.id as any)
-        .single();
-
-      if (!error && data && typeof data === 'object' && 'role' in data) {
-        setIsAdmin(data.role === 'admin');
-      }
-    } catch (error) {
-      console.error('Error checking admin role:', error);
-      setIsAdmin(false);
-    }
-  }, [user?.user?.id]);
-
-  // Check if user is admin
-  useEffect(() => {
-    checkAdminRole();
-  }, [checkAdminRole]);
 
   // Cleanup search timeout on unmount
   useEffect(() => {

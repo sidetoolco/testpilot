@@ -8,10 +8,10 @@ import { UsersTable } from '../components/users/UsersTable';
 import { UserModal } from '../components/users/UserModal';
 import { DeleteUserModal } from '../components/users/DeleteUserModal';
 import { User, FormData } from '../types/user';
+import { useAdmin } from '../hooks/useAdmin';
 
 export const Adminpanel = () => {
-  const user = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -41,30 +41,6 @@ export const Adminpanel = () => {
     goToPreviousPage,
     resetPagination,
   } = useUsers();
-
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.user.id)
-          .single();
-
-        if (!error && data && typeof data === 'object' && 'role' in data) {
-          setIsAdmin(data.role === 'admin');
-        }
-      } catch (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.user?.id]);
 
   // Get pagination data
   const totalPages = getTotalPages();
@@ -130,7 +106,7 @@ export const Adminpanel = () => {
     }
   }, [handleDeleteUser, selectedUser]);
 
-  if (isAdmin === null) {
+  if (adminLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary-500" />

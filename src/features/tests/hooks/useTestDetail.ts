@@ -12,6 +12,7 @@ type TestResponse = {
   objective?: string;
   created_at: string;
   updated_at: string;
+  company?: { name: string };
   competitors: Array<{ product: any }>;
   variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>;
   demographics: Array<{
@@ -61,6 +62,7 @@ export function useTestDetail(id: string) {
             search_term,
             objective,
             created_at,
+            company:companies(name),
             variations:test_variations(
               product:products(id, title, image_url, price),
               variation_type,
@@ -261,6 +263,7 @@ export function useTestDetail(id: string) {
           completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           createdAt: testDataWithCompetitors.created_at,
           updatedAt: testDataWithCompetitors.created_at,
+          companyName: testDataWithCompetitors.company?.name || null,
         };
 
         setTest(transformedTest);
