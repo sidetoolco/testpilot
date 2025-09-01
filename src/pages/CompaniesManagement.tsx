@@ -193,7 +193,7 @@ const SearchInput = memo(({
 SearchInput.displayName = 'SearchInput';
 
 export default function CompaniesManagement() {
-  const { isAdmin } = useAdmin();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithDetails | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -223,7 +223,7 @@ export default function CompaniesManagement() {
     goToNextPage,
     goToPreviousPage,
     resetPagination,
-  } = useCompanies(isAdmin);
+  } = useCompanies(adminLoading ? null : isAdmin);
 
   // Cleanup search timeout on unmount
   useEffect(() => {
@@ -233,6 +233,8 @@ export default function CompaniesManagement() {
       }
     };
   }, [searchTimeout]);
+
+
 
   // Get pagination data
   const totalPages = getTotalPages();
@@ -464,16 +466,25 @@ export default function CompaniesManagement() {
     </div>
   ), [searchQuery]);
 
-  if (isAdmin === null) {
+  // Show loading state while admin status is being determined
+  if (adminLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
       </div>
     );
   }
 
+  // Show access denied if user is not admin
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You need admin privileges to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

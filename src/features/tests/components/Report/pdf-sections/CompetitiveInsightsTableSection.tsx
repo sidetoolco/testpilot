@@ -241,13 +241,14 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   }
 
   // Filter out invalid competitors and ensure data integrity
+  const isFiniteNumber = (n: unknown) => typeof n === 'number' && Number.isFinite(n);
   const validCompetitors = competitiveinsights.filter(competitor => 
     competitor && 
-    typeof competitor.value === 'number' && 
-    typeof competitor.aesthetics === 'number' && 
-    typeof competitor.convenience === 'number' && 
-    typeof competitor.trust === 'number' && 
-    typeof competitor.utility === 'number'
+    isFiniteNumber(competitor.value) && 
+    isFiniteNumber(competitor.aesthetics) && 
+    isFiniteNumber(competitor.convenience) && 
+    isFiniteNumber(competitor.trust) && 
+    isFiniteNumber(competitor.utility)
   );
 
   if (validCompetitors.length === 0) {
