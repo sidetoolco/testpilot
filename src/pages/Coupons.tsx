@@ -8,6 +8,7 @@ import { DEFAULT_ERROR_MSG } from '../lib/constants';
 import ModalLayout from '../layouts/ModalLayout';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useAdmin } from '../hooks/useAdmin';
 
 // Custom styles for DatePicker
 const datePickerStyles = `
@@ -95,10 +96,9 @@ interface EditCouponForm extends CreateCouponForm {
 }
 
 export default function Coupons() {
-  const user = useAuth();
+  const { isAdmin } = useAdmin();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creatingCoupon, setCreatingCoupon] = useState(false);
@@ -126,25 +126,6 @@ export default function Coupons() {
       document.head.removeChild(styleElement);
     };
   }, []);
-
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.user.id as any)
-        .single();
-
-      if (!error && data) {
-        setIsAdmin((data as any).role === 'admin');
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.user?.id]);
 
   // Fetch coupons
   useEffect(() => {

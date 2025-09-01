@@ -20,6 +20,7 @@ import { supabase } from '../../../../lib/supabase';
 import { useAuth } from '../../../auth/hooks/useAuth';
 import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
+import { useAdmin } from '../../../../hooks/useAdmin';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -501,31 +502,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useAuth();
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
-
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.user.id as any)
-        .single();
-
-      if (!error && data) {
-        setIsAdmin((data as any).role === 'admin');
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.user?.id]);
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
