@@ -468,7 +468,7 @@ export default function MyTests() {
   if (loading) {
     return (
       <div className="mx-auto px-8 py-6 w-full">
-        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
         </div>
       </div>
