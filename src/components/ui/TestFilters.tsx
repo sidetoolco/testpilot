@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface TestFiltersProps {
   companyFilter: string;
@@ -49,46 +50,55 @@ export default function TestFilters({
       )}
 
       {/* Test Status Filter */}
-      <select
-        value={statusFilter}
-        onChange={(e) => setStatusFilter(e.target.value)}
-        aria-label="Filter by status"
-        className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
-      >
-        <option value="all">All Statuses</option>
-        <option value="draft">Draft</option>
-        <option value="active">Active</option>
-        <option value="complete">Complete</option>
-        <option value="incomplete">Incomplete</option>
-      </select>
+      <div className="relative">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
+          className="appearance-none px-2 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
+        >
+          <option value="all">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="active">Active</option>
+          <option value="complete">Complete</option>
+          <option value="incomplete">Incomplete</option>
+        </select>
+        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+      </div>
 
       {/* Blocked Status Filter - Admin Only */}
       {isAdmin && (
-        <select
-          value={blockedFilter}
-          onChange={(e) => setBlockedFilter(e.target.value as 'all' | 'blocked' | 'unblocked')}
-          aria-label="Filter by blocked status"
-          className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
-        >
-          <option value="all">All Blocked</option>
-          <option value="blocked">Blocked</option>
-          <option value="unblocked">Unblocked</option>
-        </select>
+        <div className="relative">
+          <select
+            value={blockedFilter}
+            onChange={(e) => setBlockedFilter(e.target.value as 'all' | 'blocked' | 'unblocked')}
+            aria-label="Filter by blocked status"
+            className="appearance-none px-2 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
+          >
+            <option value="all">All Blocked</option>
+            <option value="blocked">Blocked</option>
+            <option value="unblocked">Unblocked</option>
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        </div>
       )}
 
       {/* Time Filter */}
-      <select
-        value={timeFilter}
-        onChange={(e) => setTimeFilter(e.target.value as 'all' | 'today' | 'week' | 'month' | 'year')}
-        aria-label="Filter by created time"
-        className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
-      >
-        <option value="all">All Time</option>
-        <option value="today">Today</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-        <option value="year">Year</option>
-      </select>
+      <div className="relative">
+        <select
+          value={timeFilter}
+          onChange={(e) => setTimeFilter(e.target.value as 'all' | 'today' | 'week' | 'month' | 'year')}
+          aria-label="Filter by created time"
+          className="appearance-none px-2 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent shadow-sm"
+        >
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+          <option value="year">Year</option>
+        </select>
+        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+      </div>
 
       {/* Clear All Filters */}
       {hasActiveFilters && (

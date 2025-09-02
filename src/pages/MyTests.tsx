@@ -484,7 +484,7 @@ export default function MyTests() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/create-test')}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0A0A29] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0a0a29de] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
         >
           <Plus className="h-5 w-5" />
           <span>Create New Test</span>

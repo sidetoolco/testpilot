@@ -9,7 +9,7 @@ const Support: React.FC = () => {
         <div className="space-y-12">
           <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.02] transition-transform">
             <h2 className="text-2xl font-semibold mb-4 text-green-800">TestPilot Overview</h2>
-            <div className="w-full aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
+            <div className="w-full max-w-2xl mx-auto aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
               <iframe
                 src="https://www.youtube.com/embed/9f-g9f1Vh98?modestbranding=1&showinfo=0"
                 className="w-full h-full border-0"
@@ -21,7 +21,7 @@ const Support: React.FC = () => {
 
           <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.02] transition-transform">
             <h2 className="text-2xl font-semibold mb-4 text-green-800">Creating Your Test</h2>
-            <div className="w-full aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
+            <div className="w-full max-w-2xl mx-auto aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
               <iframe
                 src="https://www.youtube.com/embed/2fHblfCsRHA?modestbranding=1&showinfo=0"
                 className="w-full h-full border-0"
@@ -35,7 +35,7 @@ const Support: React.FC = () => {
             <h2 className="text-2xl font-semibold mb-4 text-green-800">
               Interpreting Your Results
             </h2>
-            <div className="w-full aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
+            <div className="w-full max-w-2xl mx-auto aspect-video rounded-lg overflow-hidden border-2 border-indigo-100">
               <iframe
                 src="https://www.youtube.com/embed/6OHXDrahB68?modestbranding=1&showinfo=0"
                 className="w-full h-full border-0"

@@ -354,19 +354,21 @@ export default function SideNav() {
               </ul>
             )}
           </li>
-
-            <li>
-              <button
-                onClick={handleLogout}
-                disabled={loading}
-                className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">{loading ? 'Logging out...' : 'Log out'}</span>
-              </button>
-            </li>
           </ul>
         </nav>
+
+        {/* Logout Button - Fixed at bottom */}
+        <div className="p-4">
+          <div className="border-t border-[#00C495] mb-2"></div>
+          <button
+            onClick={handleLogout}
+            disabled={loading}
+            className="flex items-center space-x-3 px-4 py-3 w-full text-white/90 hover:bg-[#008F6B] hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="font-medium">{loading ? 'Logging out...' : 'Log out'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Confirmation modal for incomplete tests */}
