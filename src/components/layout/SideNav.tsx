@@ -165,23 +165,28 @@ export default function SideNav() {
   return (
     <>
       {/* Mobile Menu Button */}
-      <div className="lg:hidden p-6 border-b border-[#00C495] bg-[#00A67E] flex justify-between items-center">
-        <button
-          onClick={toggleMenu}
-          className="z-50 p-2 rounded-lg bg-[#00A67E] text-white hover:bg-[#008F6B]"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-        {/* Logo */}
-        <a
-          href="/my-tests"
-          onClick={e => handleNavigation('/my-tests', e)}
-          className="flex items-center space-x-2"
-        >
-          <div className="bg-[#00A67E] p-2 rounded-lg">
-            <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
-          </div>
-        </a>
+      <div className="lg:hidden bg-[#00A67E] px-4">
+        {/* Container for your content with vertical padding */}
+        <div className="flex justify-between items-center py-4">
+          <button
+            onClick={toggleMenu}
+            className="z-50  rounded-lg bg-[#00A67E] text-white hover:bg-[#008F6B]"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+          {/* Logo */}
+          <a
+            href="/my-tests"
+            onClick={e => handleNavigation('/my-tests', e)}
+            className="flex items-center space-x-2"
+          >
+            <div className="bg-[#00A67E] p-2 rounded-lg">
+              <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
+            </div>
+          </a>
+        </div>
+        {/* This div acts as the inset border */}
+        <div className="border-b border-[#00C495]"></div>
       </div>
 
       {/* Overlay for mobile */}
@@ -201,11 +206,12 @@ export default function SideNav() {
         bg-[#00A67E]
         flex flex-col
         transition-transform duration-300 ease-in-out
+        
         z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
       >
-        <div className="p-6 border-b border-[#00C495]">
+        <div className="mx-auto px-10 py-6 border-b border-[#00C495]">
           <a
             href="/my-tests"
             onClick={e => handleNavigation('/my-tests', e)}
@@ -215,7 +221,7 @@ export default function SideNav() {
           </a>
         </div>
         {/* Navigation */}
-        <nav className="flex-1 p-4 lg:mt-2 mt-20">
+        <nav className="flex-1 px-4 py-3 ">
           <ul className="space-y-2">
             {menuItems.map(item => (
               <li key={item.path}>
