@@ -23,6 +23,7 @@ import {
 } from '../../features/tests/context/TestCreationContext';
 import IncompleteTestModal from '../ui/IncompleteTestModal';
 import { toast } from 'sonner';
+import { useAdmin } from '../../hooks/useAdmin';
 
 const menuItems = [
   { path: '/my-tests', icon: Beaker, label: 'My Tests' },
@@ -49,26 +50,7 @@ export default function SideNav() {
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id as any)
-        .single();
-
-      if (!error && data) {
-        setIsAdmin((data as any).role === 'admin');
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.id]);
+  const { isAdmin } = useAdmin();
 
   // Safely use the test creation context state and functions
   let testState = null;

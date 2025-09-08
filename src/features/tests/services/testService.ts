@@ -325,21 +325,59 @@ export const testService = {
         };
 
         try {
+          console.log(`Creating Prolific project for variation ${variationType}:`, respondentProjectData);
           const response = await apiClient.post('/tests', respondentProjectData);
 
           console.log(`Response status for variation ${variationType}:`, response.status);
           console.log(`Response data for variation ${variationType}:`, response.data);
-        } catch (error) {
-          await supabase.from('tests').delete().eq('id', test.id);
-          throw new TestCreationError('Failed to create Prolific project', { error });
+        } catch (error: any) {
+          console.error(`Failed to create Prolific project for variation ${variationType}:`, {
+            error: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.config?.data
+          });
+          
+          // Only delete the test if it's a critical error, not a Prolific API issue
+          if (error.response?.status >= 500) {
+            await supabase.from('tests').delete().eq('id', test.id);
+            throw new TestCreationError('Failed to create Prolific project - server error', { error });
+          } else {
+            // For client errors (400-499), keep the test but show warning
+            console.warn(`Prolific project creation failed for variation ${variationType}, but keeping test in database`);
+            throw new TestCreationError(`Failed to create Prolific project for variation ${variationType}: ${error.response?.data?.message || error.message}`, { error });
+          }
         }
       }
     }
   },
   async getAllTests(): Promise<TestData[]> {
     try {
-      // Fetch tests without complex joins - just basic test data
-      const { data: testsData, error: testsError } = await supabase
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new TestCreationError('Not authenticated');
+      }
+
+      // Check if user is admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id, role')
+        .eq('id', user.id as any)
+        .single();
+
+      if (profileError) {
+        throw new TestCreationError('Error fetching user profile');
+      }
+
+      const typedProfile = profile as Profile;
+      
+      // Simplified query - just fetch basic test data without complex joins
+      let query = supabase
         .from('tests')
         .select(`
           *,
@@ -347,36 +385,228 @@ export const testService = {
         `)
         .order('created_at', { ascending: false });
 
+      // For non-admin users, only fetch tests from their company
+      if (typedProfile?.role !== 'admin') {
+        query = query.eq('company_id', typedProfile.company_id as any);
+      }
+
+      const { data: tests, error: testsError } = await query;
+
       if (testsError) {
-        console.error('Error fetching tests:', testsError);
+        console.error('Supabase query error:', testsError);
         throw new TestCreationError('Error fetching tests');
       }
 
-      if (!testsData) {
-        return [];
-      }
-
-      // Return basic test data without competitors for now
-      // Competitors can be fetched separately when needed
-      return testsData as TestData[];
+      console.log('✅ Tests fetched successfully:', tests?.length || 0);
+      return tests as unknown as TestResponse[];
     } catch (error) {
       console.error('Error fetching all tests:', error);
       throw new TestCreationError('Error fetching tests');
     }
   },
 
-  // Función para eliminar un test
+  // Función para eliminar un test con cascade deletion
   async deleteTest(testId: string) {
     try {
-      const { error } = await supabase
+      console.log(`Starting deletion process for test: ${testId}`);
+      
+      // First, let's check what data exists for this test
+      const { data: testData, error: testCheckError } = await supabase
+        .from('tests')
+        .select('id, name, skin')
+        .eq('id', testId as any)
+        .single();
+
+      if (testCheckError) {
+        throw new TestCreationError('Test not found', { error: testCheckError });
+      }
+
+      console.log(`Deleting test: ${testData.name} (${testData.skin})`);
+
+      // Delete in the correct order to respect foreign key constraints
+      // 1. Delete responses first (they reference test_id)
+      console.log('Deleting survey responses...');
+      const { error: responsesError } = await supabase
+        .from('responses_surveys')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (responsesError) {
+        console.error('Error deleting survey responses:', responsesError);
+      } else {
+        console.log('Survey responses deleted successfully');
+      }
+
+      // 2. Delete comparison responses (Amazon)
+      console.log('Deleting Amazon comparison responses...');
+      const { error: comparisonsError } = await supabase
+        .from('responses_comparisons')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (comparisonsError) {
+        console.error('Error deleting comparison responses:', comparisonsError);
+      } else {
+        console.log('Amazon comparison responses deleted successfully');
+      }
+
+      // 3. Delete comparison responses (Walmart) - This is the problematic one
+      console.log('Deleting Walmart comparison responses...');
+      const { error: walmartComparisonsError } = await supabase
+        .from('responses_comparisons_walmart')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (walmartComparisonsError) {
+        console.error('Error deleting Walmart comparison responses:', walmartComparisonsError);
+        // Try to get more details about the error
+        console.error('Walmart comparison error details:', {
+          code: walmartComparisonsError.code,
+          message: walmartComparisonsError.message,
+          details: walmartComparisonsError.details,
+          hint: walmartComparisonsError.hint
+        });
+        
+        // Check if there are any records that couldn't be deleted
+        const { data: remainingRecords, error: checkError } = await supabase
+          .from('responses_comparisons_walmart')
+          .select('id, test_id, tester_id')
+          .eq('test_id', testId as any);
+        
+        if (checkError) {
+          console.error('Error checking remaining Walmart records:', checkError);
+        } else {
+          console.log('Remaining Walmart records:', remainingRecords);
+        }
+      } else {
+        console.log('Walmart comparison responses deleted successfully');
+      }
+
+      // 4. Delete test times (check if table exists first)
+      console.log('Deleting test times...');
+      const { error: timesError } = await supabase
+        .from('test_times')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (timesError) {
+        if (timesError.code === '42703') {
+          console.log('test_times table uses different column name, trying alternative...');
+          // Try with different column name or skip if table structure is different
+          const { error: timesError2 } = await supabase
+            .from('test_times')
+            .delete()
+            .eq('test_id', testId as any);
+          
+          if (timesError2) {
+            console.log('Skipping test_times deletion - table structure may be different');
+          } else {
+            console.log('Test times deleted successfully with alternative column');
+          }
+        } else {
+          console.error('Error deleting test times:', timesError);
+        }
+      } else {
+        console.log('Test times deleted successfully');
+      }
+
+      // 5. Delete test sessions
+      console.log('Deleting test sessions...');
+      const { error: sessionsError } = await supabase
+        .from('testers_session')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (sessionsError) {
+        console.error('Error deleting test sessions:', sessionsError);
+      } else {
+        console.log('Test sessions deleted successfully');
+      }
+
+      // 6. Delete test variations
+      console.log('Deleting test variations...');
+      const { error: variationsError } = await supabase
+        .from('test_variations')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (variationsError) {
+        console.error('Error deleting test variations:', variationsError);
+      } else {
+        console.log('Test variations deleted successfully');
+      }
+
+      // 7. Delete test competitors
+      console.log('Deleting test competitors...');
+      const { error: competitorsError } = await supabase
+        .from('test_competitors')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (competitorsError) {
+        console.error('Error deleting test competitors:', competitorsError);
+      } else {
+        console.log('Test competitors deleted successfully');
+      }
+
+      // 8. Delete test demographics
+      console.log('Deleting test demographics...');
+      const { error: demographicsError } = await supabase
+        .from('test_demographics')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (demographicsError) {
+        console.error('Error deleting test demographics:', demographicsError);
+      } else {
+        console.log('Test demographics deleted successfully');
+      }
+
+      // 9. Delete custom screening
+      console.log('Deleting custom screening...');
+      const { error: screeningError } = await supabase
+        .from('custom_screening')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (screeningError) {
+        console.error('Error deleting custom screening:', screeningError);
+      } else {
+        console.log('Custom screening deleted successfully');
+      }
+
+      // 10. Delete survey questions (check if table exists first)
+      console.log('Deleting survey questions...');
+      const { error: questionsError } = await supabase
+        .from('survey_questions')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (questionsError) {
+        if (questionsError.code === '42P01') {
+          console.log('survey_questions table does not exist, skipping...');
+        } else {
+          console.error('Error deleting survey questions:', questionsError);
+        }
+      } else {
+        console.log('Survey questions deleted successfully');
+      }
+
+      // 11. Finally, delete the test itself
+      console.log('Deleting test record...');
+      const { error: testError } = await supabase
         .from('tests')
         .delete()
         .eq('id', testId as any);
 
-      if (error) {
-        throw new TestCreationError('Failed to delete test', { error });
+      if (testError) {
+        console.error('Error deleting test record:', testError);
+        throw new TestCreationError('Failed to delete test', { error: testError });
+      } else {
+        console.log('Test record deleted successfully');
       }
 
+      console.log(`Test ${testId} deleted successfully`);
       return true;
     } catch (error) {
       console.error('Test deletion error:', error);
@@ -1035,15 +1265,25 @@ export const testService = {
           };
 
           try {
+            console.log(`Creating Prolific project for variation ${variationType}:`, respondentProjectData);
             const response = await apiClient.post('/tests', respondentProjectData);
             console.log(
               `Prolific project created for variation ${variationType}:`,
-              response.status
+              response.status,
+              response.data
             );
-          } catch (error) {
+          } catch (error: any) {
             console.error(
               `Failed to create Prolific project for variation ${variationType}:`,
-              error
+              {
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                url: error.config?.url,
+                method: error.config?.method,
+                data: error.config?.data
+              }
             );
             throw new TestCreationError('Failed to create Prolific project', { error });
           }

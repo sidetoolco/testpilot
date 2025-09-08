@@ -4,6 +4,7 @@ import TestConfiguration from './TestConfiguration';
 import TestStatus from './TestStatus';
 import { DollarSign, Lightbulb, Package, Target } from 'lucide-react';
 import { TestObjective } from '../../../../lib/enum';
+import { useAdmin } from '../../../../hooks/useAdmin';
 
 interface TestSummaryProps {
   test: Test;
@@ -37,18 +38,23 @@ const getObjectiveConfig = (objective: string | undefined) => {
 };
 
 export default function TestSummary({ test }: TestSummaryProps) {
+  const { isAdmin } = useAdmin();
+
   if (!test) {
     return <div>Loading...</div>; // Optional loading state if test data is missing
   }
 
-  const { name, createdAt, objective, status } = test;
+  const { name, createdAt, objective, status, companyName } = test;
   const objectiveConfig = getObjectiveConfig(objective);
 
   return (
     <div className="max-w-[1400px] mx-auto px-4">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h1 className="text-[2.5rem] text-[#1B1B1B] font-normal mb-2">{name}</h1>
+          <h1 className="text-[2.5rem] text-[#1B1B1B] font-normal mb-2">
+            {name} 
+            {isAdmin && companyName && <span className="text-gray-500 mr-2 text-lg pl-2">- {companyName} </span>}
+          </h1>
           <p className="text-gray-600">Created on {new Date(createdAt).toLocaleDateString()}</p>
 
           {objectiveConfig && (

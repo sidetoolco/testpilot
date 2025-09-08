@@ -5,7 +5,7 @@ import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
 
 interface Competitor {
-  competitor_product_id: {
+  competitor_product_id?: {
     title: string;
   };
   share_of_buy: number;
@@ -129,11 +129,11 @@ const calculateAverageMetrics = (competitors: Competitor[]) => {
 
   const sum = competitors.reduce(
     (acc, curr) => ({
-      value: acc.value + curr.value,
-      aesthetics: acc.aesthetics + curr.aesthetics,
-      convenience: acc.convenience + curr.convenience,
-      trust: acc.trust + curr.trust,
-      utility: acc.utility + curr.utility,
+      value: acc.value + (curr.value || 0),
+      aesthetics: acc.aesthetics + (curr.aesthetics || 0),
+      convenience: acc.convenience + (curr.convenience || 0),
+      trust: acc.trust + (curr.trust || 0),
+      utility: acc.utility + (curr.utility || 0),
     }),
     { value: 0, aesthetics: 0, convenience: 0, trust: 0, utility: 0 }
   );
@@ -240,7 +240,32 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
     );
   }
 
-  const averageMetrics = calculateAverageMetrics(competitiveinsights);
+  // Filter out invalid competitors and ensure data integrity
+  const isFiniteNumber = (n: unknown) => typeof n === 'number' && Number.isFinite(n);
+  const validCompetitors = competitiveinsights.filter(competitor => 
+    competitor && 
+    isFiniteNumber(competitor.value) && 
+    isFiniteNumber(competitor.aesthetics) && 
+    isFiniteNumber(competitor.convenience) && 
+    isFiniteNumber(competitor.trust) && 
+    isFiniteNumber(competitor.utility)
+  );
+
+  if (validCompetitors.length === 0) {
+    return (
+      <Page size="A4" orientation={orientation} style={{ padding: 30, backgroundColor: '#fff' }}>
+        <View style={styles.section}>
+          <Header title={`Competitive Insights - Variant ${variantKey.toUpperCase()}`} />
+          <Text style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+            No valid competitive insights data available for this variant
+          </Text>
+        </View>
+        <Footer />
+      </Page>
+    );
+  }
+
+  const averageMetrics = calculateAverageMetrics(validCompetitors);
 
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
@@ -320,33 +345,36 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               <Text style={tableStyles.headerText}>Confidence</Text>
             </View>
           </View>
-          {competitiveinsights.map((competitor, index) => (
+          {validCompetitors.map((competitor, index) => (
             <View
               key={index}
               style={
-                index === competitiveinsights.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
+                index === validCompetitors.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
               }
             >
               <Text style={tableStyles.productCell}>
-                {truncateTitle(competitor.competitor_product_id.title, isLandscape ? 20 : 25)}
+                {truncateTitle(
+                  competitor.competitor_product_id?.title || 'Unknown Product', 
+                  isLandscape ? 45 : 45
+                )}
               </Text>
               <Text style={tableStyles.metricCell}>
-                {competitor.share_of_buy != null ? competitor.share_of_buy.toFixed(2) : '0.00'}%
+                {competitor.share_of_buy != null && !isNaN(competitor.share_of_buy) ? competitor.share_of_buy.toFixed(2) : '0.00'}%
               </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value) }}>
-                {competitor.value.toFixed(1)}
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value || 0) }}>
+                {(competitor.value || 0).toFixed(1)}
               </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.aesthetics) }}>
-                {competitor.aesthetics.toFixed(1)}
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.aesthetics || 0) }}>
+                {(competitor.aesthetics || 0).toFixed(1)}
               </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience) }}>
-                {competitor.convenience.toFixed(1)}
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience || 0) }}>
+                {(competitor.convenience || 0).toFixed(1)}
               </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.trust) }}>
-                {competitor.trust.toFixed(1)}
+              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.trust || 0) }}>
+                {(competitor.trust || 0).toFixed(1)}
               </Text>
-              <Text style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility) }}>
-                {competitor.utility.toFixed(1)}
+              <Text style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility || 0) }}>
+                {(competitor.utility || 0).toFixed(1)}
               </Text>
             </View>
           ))}

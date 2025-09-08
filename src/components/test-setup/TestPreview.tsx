@@ -47,10 +47,13 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
   const allProducts = React.useMemo(() => {
     const products = [...filteredCompetitors];
     if (variations.a) {
-      // Only add variation if it matches the skin type
-      if (skin === 'walmart' && !('asin' in variations.a)) {
+      // During test creation, variations are stored in the generic products table
+      // and don't have 'asin' field. We need to check the skin type instead.
+      if (skin === 'walmart') {
+        // For Walmart skin, add the variation (it should be a Walmart product)
         products.unshift(variations.a as WalmartProduct);
-      } else if (skin === 'amazon' && 'asin' in variations.a) {
+      } else if (skin === 'amazon') {
+        // For Amazon skin, add the variation (it should be an Amazon product)
         products.unshift(variations.a as AmazonProduct);
       }
     }
@@ -85,11 +88,12 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
 
   const handleSelectVariant = (variantKey: string, variant: any | null) => {
     if (variant) {
-      // Only use variant if it matches the skin type
+      // During test creation, variations are stored in the generic products table
+      // and don't have 'asin' field. We need to check the skin type instead.
       let variantToUse = null;
-      if (skin === 'walmart' && !('asin' in variant)) {
+      if (skin === 'walmart') {
         variantToUse = variant as WalmartProduct;
-      } else if (skin === 'amazon' && 'asin' in variant) {
+      } else if (skin === 'amazon') {
         variantToUse = variant as AmazonProduct;
       }
       

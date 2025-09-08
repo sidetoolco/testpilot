@@ -1,4 +1,4 @@
-import { Survey } from '../features/tests/components/Report/utils/types';
+import { Survey, Comparison } from '../features/tests/components/Report/utils/types';
 
 export interface Product {
   id: string | undefined;
@@ -48,8 +48,16 @@ export interface Test {
   };
   surveyQuestions?: string[];
   responses: {
-    surveys: Survey[];
-    comparisons: any[];
+    surveys: {
+      a: Survey[];
+      b: Survey[];
+      c: Survey[];
+    };
+    comparisons: {
+      a: Comparison[];
+      b: Comparison[];
+      c: Comparison[];
+    };
   };
   createdAt: string;
   updatedAt: string;

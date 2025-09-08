@@ -14,6 +14,7 @@ import {
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useCredits } from '../features/credits/hooks/useCredits';
+import { testService } from '../features/tests/services/testService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
@@ -30,6 +31,7 @@ import { StatisticsCards } from '../components/test-setup/StatisticsCards';
 import { CreditIcon } from '../components/ui/CreditIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import TestFilters from '../components/ui/TestFilters';
+import { useAdmin } from '../hooks/useAdmin';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -104,7 +106,7 @@ export default function MyTests() {
   const user = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
   const queryClient = useQueryClient();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin } = useAdmin();
   const [publishingTests, setPublishingTests] = useState<string[]>([]);
   const [gettingDataTests, setGettingDataTests] = useState<string[]>([]);
   const [deletingTests, setDeletingTests] = useState<string[]>([]);
@@ -123,28 +125,6 @@ export default function MyTests() {
   const [blockedFilter, setBlockedFilter] = useState<'all' | 'blocked' | 'unblocked'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
-
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user?.user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.user.id as any)
-          .single();
-
-        if (!error && data && typeof data === 'object' && 'role' in data) {
-          setIsAdmin((data as { role: string }).role === 'admin');
-        }
-      } catch (error) {
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [user?.user?.id]);
 
   // Calculate credits needed for a test
   const calculateTestCredits = (test: any) => {
@@ -326,15 +306,15 @@ export default function MyTests() {
     }
   };
 
-  // Delete test using backend endpoint only
+  // Delete test using frontend service with cascade deletion
   const handleDeleteTest = async (testId: string, testName: string) => {
     setDeletingTests(prev => [...prev, testId]);
 
     try {
-      // Call backend endpoint to handle all deletion logic
-      await apiClient.delete(`/tests/${testId}`);
+      // Use the frontend testService with cascade deletion logic
+      await testService.deleteTest(testId);
 
-      // Axios automatically throws on 4xx/5xx status codes, so if we reach here, it was successful
+      // If successful, show success message
       toast.success(`Test "${testName}" deleted successfully`);
 
       // Add the test ID to the deleted list to hide it from UI
@@ -344,21 +324,14 @@ export default function MyTests() {
       setDeleteModal(null);
     } catch (error: any) {
       console.error('Error deleting test:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
       
       // Handle specific error responses
-      if (error.response?.status === 404) {
+      if (error.message?.includes('Test not found')) {
         toast.error('Test not found');
-      } else if (error.response?.status === 401) {
+      } else if (error.message?.includes('Unauthorized')) {
         toast.error('Unauthorized');
-      } else if (error.response?.status === 500) {
-        // Log detailed error information for debugging
-        const errorDetails = error.response?.data?.message || error.response?.data?.error || 'Internal server error';
-        console.error('Backend error details:', errorDetails);
-        toast.error(`Server error: ${errorDetails}`);
       } else {
-        toast.error(error.response?.data?.message || 'Failed to delete test. Please try again.');
+        toast.error(error.message || 'Failed to delete test. Please try again.');
       }
     } finally {
       setDeletingTests(prev => prev.filter(id => id !== testId));

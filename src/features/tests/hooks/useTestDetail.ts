@@ -12,6 +12,7 @@ type TestResponse = {
   objective?: string;
   created_at: string;
   updated_at: string;
+  company?: { name: string };
   competitors: Array<{ product: any }>;
   variations: Array<{ product: any; variation_type: string; prolific_status: string | null }>;
   demographics: Array<{
@@ -61,6 +62,7 @@ export function useTestDetail(id: string) {
             search_term,
             objective,
             created_at,
+            company:companies(name),
             variations:test_variations(
               product:products(id, title, image_url, price),
               variation_type,
@@ -86,6 +88,8 @@ export function useTestDetail(id: string) {
           throw testError;
         }
 
+        const typedTestData = testData as unknown as TestResponse;
+
         // Fetch competitors separately to avoid join issues
         const { data: competitorsData, error: competitorsError } = await supabase
           .from('test_competitors')
@@ -99,65 +103,47 @@ export function useTestDetail(id: string) {
           console.error('Error fetching competitors:', competitorsError);
         }
 
-        // Fetch competitor products using batch queries instead of individual calls
-        let competitors = [];
+        // Fetch competitor products based on available IDs
+        let competitors: any[] = [];
         if (competitorsData && competitorsData.length > 0) {
-          // Extract all product IDs
-          const productIds = competitorsData
-            .map((comp: any) => comp.product_id)
-            .filter(Boolean);
-          
-          if (productIds.length > 0) {
-            // Batch query amazon_products
-            const { data: amazonProducts, error: amazonError } = await supabase
+          const competitorPromises = competitorsData.map(async (comp: any) => {
+            // Try to find the product in amazon_products first
+            let product = null;
+            
+            // Check amazon_products
+            const { data: amazonProduct } = await supabase
               .from('amazon_products')
               .select('id, title, image_url, price')
-              .in('id', productIds);
+              .eq('id', comp.product_id)
+              .single();
             
-            if (amazonError) {
-              console.error('Error fetching amazon products:', amazonError);
-            }
-            
-            // Batch query walmart_products
-            const { data: walmartProducts, error: walmartError } = await supabase
-              .from('walmart_products')
-              .select('id, title, image_url, price')
-              .in('id', productIds);
-            
-            if (walmartError) {
-              console.error('Error fetching walmart products:', walmartError);
-            }
-            
-            // Combine and deduplicate products
-            const allProducts = [
-              ...(amazonProducts || []),
-              ...(walmartProducts || [])
-            ];
-            
-            // Create a map for quick lookup
-            const productMap = new Map();
-            allProducts.forEach((product: any) => {
-              if (product && typeof product === 'object' && 'id' in product) {
-                productMap.set(product.id, product);
+            if (amazonProduct) {
+              product = amazonProduct;
+            } else {
+              // Check walmart_products
+              const { data: walmartProduct } = await supabase
+                .from('walmart_products')
+                .select('id, title, image_url, price')
+                .eq('id', comp.product_id)
+                .single();
+              
+              if (walmartProduct) {
+                product = walmartProduct;
               }
-            });
+            }
             
-            // Map competitors to their products
-            competitors = competitorsData
-              .map((comp: any) => {
-                if (comp.product_id && productMap.has(comp.product_id)) {
-                  return productMap.get(comp.product_id);
-                }
-                return null;
-              })
-              .filter(Boolean);
-          }
+            return product;
+          });
+
+          const competitorResults = await Promise.all(competitorPromises);
+          competitors = competitorResults.filter(Boolean);
         }
 
-        // Debug: Log the raw data from database
-        console.log('Raw test data from database:', testData);
-
-        const typedTestData = testData as unknown as TestResponse;
+        // Add competitors to the test data
+        const testDataWithCompetitors = {
+          ...typedTestData,
+          competitors: competitors.map(comp => ({ product: comp }))
+        };
 
         // Fetch survey responses for the test
         const { data: surveysData, error: surveysError } = await supabase
@@ -166,7 +152,7 @@ export function useTestDetail(id: string) {
             ` 
             improve_suggestions,
             likes_most,
-            products(id, title, image_url, price),
+            product_id,
             tester_id(
               variation_type,
               id,
@@ -179,15 +165,26 @@ export function useTestDetail(id: string) {
 
         if (surveysError) throw surveysError;
 
-        // Separate surveys by variation_type
-        const surveysByType = surveysData.reduce((acc: any, item: any) => {
-          const type = item.tester_id.variation_type;
-          if (!acc[type]) {
-            acc[type] = [];
+        // Separate surveys by variation_type and map product data
+        // Ensure required keys exist regardless of data presence
+        const surveysInitial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+        
+        const surveysByType = (surveysData || []).reduce((acc, item: any) => {
+          const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
+          if (type === 'a' || type === 'b' || type === 'c') {
+            // Map the product_id to the actual product data from test_variations
+            const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
+            
+            // Create the item with the correct product data
+            const mappedItem = {
+              ...item,
+              ...(productData && { products: productData }),
+            };
+            
+            acc[type].push(mappedItem);
           }
-          acc[type].push(item);
           return acc;
-        }, {});
+        }, surveysInitial);
 
         // Fetch comparison responses for the test
         const { data: comparisonsData, error: comparisonsError } = await supabase
@@ -198,7 +195,7 @@ export function useTestDetail(id: string) {
           likes_most,
           choose_reason,
           competitor_id,
-          products(id, title, image_url, price),
+          product_id,
           tester_id(
             variation_type,
             id,
@@ -216,49 +213,63 @@ export function useTestDetail(id: string) {
 
         if (comparisonsError) throw comparisonsError;
 
-        // Separate comparisons by variation_type
-        const comparisonsByType = comparisonsData.reduce((acc: any, item: any) => {
-          const type = item.tester_id.variation_type;
-          if (!acc[type]) {
-            acc[type] = [];
+        // Separate comparisons by variation_type and map competitor data
+        // Build competitor map once for efficiency
+        const competitorMap = new Map<string, any>(
+          (testDataWithCompetitors.competitors ?? []).map((c: any) => [c.product.id, c.product])
+        );
+
+        // Ensure required keys exist regardless of data presence
+        const initial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+
+        const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
+          const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
+          if (type === 'a' || type === 'b' || type === 'c') {
+            const competitorData = competitorMap.get(item.competitor_id);
+            acc[type].push({
+              ...item,
+              ...(competitorData && { amazon_products: competitorData }),
+            });
           }
-          acc[type].push(item);
           return acc;
-        }, {});
+        }, initial);
 
         // Transform the data to match our Test type
         const transformedTest: Test = {
-          id: typedTestData.id,
-          name: typedTestData.name,
-          status: typedTestData.status,
-          searchTerm: typedTestData.search_term,
-          competitors: competitors || [], // Use the competitors we fetched separately
-          objective: typedTestData.objective,
+          id: testDataWithCompetitors.id,
+          name: testDataWithCompetitors.name,
+          status: testDataWithCompetitors.status as 'draft' | 'active' | 'complete' | 'incomplete',
+          searchTerm: testDataWithCompetitors.search_term,
+          objective: testDataWithCompetitors.objective,
+          competitors: testDataWithCompetitors.competitors?.map((c: any) => c.product) || [],
           variations: {
-            a: getVariationWithProduct(typedTestData.variations, 'a'),
-            b: getVariationWithProduct(typedTestData.variations, 'b'),
-            c: getVariationWithProduct(typedTestData.variations, 'c'),
+            a: getVariationWithProduct(testDataWithCompetitors.variations, 'a'),
+            b: getVariationWithProduct(testDataWithCompetitors.variations, 'b'),
+            c: getVariationWithProduct(testDataWithCompetitors.variations, 'c'),
           },
           demographics: {
-            ageRanges: typedTestData.demographics?.[0]?.age_ranges || [],
-            gender: typedTestData.demographics?.[0]?.genders || [],
-            locations: typedTestData.demographics?.[0]?.locations || [],
-            interests: typedTestData.demographics?.[0]?.interests || [],
-            testerCount: typedTestData.demographics?.[0]?.tester_count || 0,
+            ageRanges: testDataWithCompetitors.demographics?.[0]?.age_ranges || [],
+            gender: testDataWithCompetitors.demographics?.[0]?.genders || [],
+            locations: testDataWithCompetitors.demographics?.[0]?.locations || [],
+            interests: testDataWithCompetitors.demographics?.[0]?.interests || [],
+            testerCount: testDataWithCompetitors.demographics?.[0]?.tester_count || 0,
             customScreening: {
-              question: typedTestData.custom_screening?.[0]?.question || '',
-              validAnswer:
-                (typedTestData.custom_screening?.[0]?.valid_option as 'Yes' | 'No') || undefined,
+              enabled: !!testDataWithCompetitors.custom_screening?.[0],
+              question: testDataWithCompetitors.custom_screening?.[0]?.question || '',
+              validAnswer: (() => {
+                const validOption = testDataWithCompetitors.custom_screening?.[0]?.valid_option;
+                return validOption === 'Yes' || validOption === 'No' ? validOption : undefined;
+              })(),
             },
           },
-          surveyQuestions: ['value', 'appearance', 'confidence', 'brand', 'convenience'],
-          completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
           responses: {
             surveys: surveysByType,
             comparisons: comparisonsByType,
           },
-          createdAt: typedTestData.created_at,
-          updatedAt: typedTestData.updated_at,
+          completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
+          createdAt: testDataWithCompetitors.created_at,
+          updatedAt: testDataWithCompetitors.created_at,
+          companyName: testDataWithCompetitors.company?.name || undefined,
         };
 
         setTest(transformedTest);
