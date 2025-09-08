@@ -9,12 +9,17 @@ export default function TestMetrics({ test }: TestMetricsProps) {
   const variationCount = Object.values(test.variations).filter(
     variation => variation !== null
   ).length;
+  
+  const totalTesters = test.demographics.testerCount * variationCount;
+  const completedSessions = test.completed_sessions || 0;
+  const progressPercentage = Math.min((completedSessions / totalTesters) * 100, 100);
+  
   const metrics = [
     {
       icon: <Users className="h-6 w-6 text-[#00A67E]" />,
       title: 'Completions',
-      value: `${test.completed_sessions} / ${test.demographics.testerCount * variationCount}`,
-      subtitle: 'Completed Sessions / Total Testers',
+      value: `${Math.round(progressPercentage)}%`,
+      subtitle: `${totalTesters} testers`,
     },
     // {
     //   icon: <Target className="h-6 w-6 text-[#00A67E]" />,
@@ -51,12 +56,21 @@ export default function TestMetrics({ test }: TestMetricsProps) {
             <div className="w-12 h-12 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
               {metric.icon}
             </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">{metric.title}</h3>
-              <p className="text-3xl font-semibold text-[#00A67E]">{metric.value}</p>
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-900">
+                {metric.title}
+                <span className="text-sm font-normal text-gray-500 ml-2">({totalTesters} testers)</span>
+              </h3>
+              <p className="text-3xl font-semibold text-[#00A67E] mb-2">{metric.value} </p>
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-[#00A67E] h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
             </div>
           </div>
-          <div className="text-sm text-gray-500">{metric.subtitle}</div>
         </div>
       ))}
       {test.status !== 'complete' && (

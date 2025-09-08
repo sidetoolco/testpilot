@@ -82,7 +82,7 @@ export default function TestPreview({ searchTerm, competitors, variations }: Tes
         </div>
       </div>
 
-      <AmazonPreview searchTerm={searchTerm} products={displayProducts} />
+      <AmazonPreview searchTerm={searchTerm} products={displayProducts} variations={variations} />
     </div>
   );
 }

@@ -14,12 +14,25 @@ interface ProductDetails {
 interface AmazonPreviewProps {
   searchTerm: string;
   products: AmazonProduct[];
+  variations?: {
+    a: AmazonProduct | null;
+    b: AmazonProduct | null;
+    c: AmazonProduct | null;
+  };
 }
 
-export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
+export default function AmazonPreview({ searchTerm, products, variations }: AmazonPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Function to check if a product is a variation (not a competitor)
+  const isVariation = (product: AmazonProduct): boolean => {
+    if (!variations) return false;
+    return Object.values(variations).some(variation => 
+      variation && (variation.id === product.id || variation.asin === product.asin)
+    );
+  };
 
   const handleProductClick = async (product: AmazonProduct) => {
     setIsLoading(true);
@@ -94,7 +107,11 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         <div className="flex gap-4">
           {/* Product Grid */}
           <div className="flex-1">
-            <PreviewGrid products={products} onProductClick={handleProductClick} />
+            <PreviewGrid 
+              products={products} 
+              onProductClick={handleProductClick}
+              variations={variations}
+            />
           </div>
         </div>
       </div>

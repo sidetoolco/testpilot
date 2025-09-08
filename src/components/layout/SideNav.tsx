@@ -14,6 +14,7 @@ import {
   Building2,
   Shield,
   Brain,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { supabase } from '../../lib/supabase';
@@ -211,13 +212,13 @@ export default function SideNav() {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
       >
-        <div className="mx-auto px-10 py-6 border-b border-[#00C495]">
+        <div className="px-10 py-6 border-b border-[#00C495]">
           <a
             href="/my-tests"
             onClick={e => handleNavigation('/my-tests', e)}
             className="flex items-center space-x-2"
           >
-            <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-8" />
+            <img src="/assets/images/testpilot-logo.png" alt="TestPilot" className="h-10" />
           </a>
         </div>
         {/* Navigation */}
@@ -243,11 +244,6 @@ export default function SideNav() {
             {/* Admin Menu Items */}
             {isAdmin && (
               <>
-                <li className="pt-4 border-t border-[#00C495]">
-                  <div className="px-4 py-2">
-                    <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Admin</span>
-                  </div>
-                </li>
                 <li>
                   <a
                     href="/users"
@@ -296,6 +292,7 @@ export default function SideNav() {
                   <Settings className="h-5 w-5" />
                   <span className="font-medium">Settings</span>
                 </div>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isSettingsOpen ? 'rotate-180' : ''}`} />
               </button>
               {isSettingsOpen && (
                 <ul className="mt-2 ml-4 space-y-1">
@@ -365,7 +362,12 @@ export default function SideNav() {
 
         {/* Logout Button - Fixed at bottom */}
         <div className="p-4">
-          <div className="border-t border-[#00C495] mb-2"></div>
+          {isAdmin && (
+            <div className="px-4 py-2 mb-2">
+              <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Admin</span>
+            </div>
+          )}
+          <div className="border-t border-[#00C495] mb-2 -mx-4"></div>
           <button
             onClick={handleLogout}
             disabled={loading}
