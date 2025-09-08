@@ -61,13 +61,16 @@ export default function TestMetrics({ test }: TestMetricsProps) {
                 {metric.title}
                 <span className="text-sm font-normal text-gray-500 ml-2">({totalTesters} testers)</span>
               </h3>
-              <p className="text-3xl font-semibold text-[#00A67E] mb-2">{metric.value} </p>
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-[#00A67E] h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
+              <div className="flex items-center space-x-4">
+                {/* Progress Bar */}
+                <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-[#00A67E] h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+                {/* Completion Percentage */}
+                <p className="text-3xl font-semibold text-[#00A67E]">{metric.value}</p>
               </div>
             </div>
           </div>
