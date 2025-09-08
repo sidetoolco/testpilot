@@ -26,9 +26,11 @@ interface TestResponse {
 export const testService = {
   async createTest(testData: TestData) {
     try {
+   
       // Step 1: Validar datos de entrada
       const validation = validateTestData(testData);
       if (!validation.isValid) {
+        console.error('❌ Validation failed:', validation.errors);
         throw new TestCreationError('Validation failed', { errors: validation.errors });
       }
 
@@ -82,6 +84,7 @@ export const testService = {
       // Step 7: Crear proyecto en Respondent
       await this.createProlificProjectsForVariations(test, testData);
 
+
       return test;
     } catch (error) {
       console.error('Test creation error:', error);
@@ -99,7 +102,7 @@ export const testService = {
 
   // Method to save test as draft with less strict validation
   async saveDraft(testData: TestData) {
-    try {
+    try {    
       // Basic validation for draft - only require essential fields
       const errors: string[] = [];
       
@@ -112,8 +115,10 @@ export const testService = {
       }
 
       if (errors.length > 0) {
+        console.error('❌ Draft validation failed:', errors);
         throw new TestCreationError('Validation failed', { errors });
       }
+      console.log('✅ Draft validation passed');
 
       const {
         data: { user },
@@ -161,6 +166,8 @@ export const testService = {
       const defaultQuestions = ['value', 'appearance', 'confidence', 'brand', 'convenience'];
       await this.insertSurveyQuestions(test.id, testData.surveyQuestions || defaultQuestions);
 
+      // Create Prolific projects for variations (same as in createTest)
+      await this.createProlificProjectsForVariations(test, testData);
       return test;
     } catch (error) {
       console.error('Draft save error:', error);
