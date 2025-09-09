@@ -4,6 +4,27 @@ import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { useAuth } from '../../auth/hooks/useAuth';
 
+// Helper function to get completed sessions count for a test
+async function getCompletedSessionsCount(testId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('testers_session')
+      .select('*', { count: 'exact', head: true })
+      .eq('test_id', testId as any)
+      .not('ended_at', 'is', null);
+
+    if (error) {
+      console.error('Error fetching completed sessions count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error in getCompletedSessionsCount:', error);
+    return 0;
+  }
+}
+
 type TestResponse = {
   id: string;
   name: string;
@@ -266,7 +287,7 @@ export function useTestDetail(id: string) {
             surveys: surveysByType,
             comparisons: comparisonsByType,
           },
-          completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
+          completed_sessions: await getCompletedSessionsCount(testDataWithCompetitors.id),
           createdAt: testDataWithCompetitors.created_at,
           updatedAt: testDataWithCompetitors.created_at,
           companyName: testDataWithCompetitors.company?.name || undefined,

@@ -3,6 +3,28 @@ import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { testService } from '../services/testService';
 import { io } from 'socket.io-client';
+import { supabase } from '../../../lib/supabase';
+
+// Helper function to get completed sessions count for a test
+async function getCompletedSessionsCount(testId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('testers_session')
+      .select('*', { count: 'exact', head: true })
+      .eq('test_id', testId)
+      .not('ended_at', 'is', null);
+
+    if (error) {
+      console.error('Error fetching completed sessions count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error in getCompletedSessionsCount:', error);
+    return 0;
+  }
+}
 
 export function useTests() {
   const [tests, setTests] = useState<Test[]>([]);
@@ -46,7 +68,7 @@ export function useTests() {
         const data = await testService.getAllTests();
 
         // Transform the data to match our Test type
-        const transformedTests: Test[] = (data || []).map(test => {
+        const transformedTests: Test[] = await Promise.all((data || []).map(async test => {
           return {
             id: test.id,
             name: test.name,
@@ -77,7 +99,7 @@ export function useTests() {
               surveys: [],
               comparisons: [],
             },
-            completed_sessions: 0,
+            completed_sessions: await getCompletedSessionsCount(test.id),
             createdAt: test.created_at,
             updatedAt: test.updated_at,
             block: (test as any).block || false, // Add block field with default false
@@ -85,7 +107,7 @@ export function useTests() {
                          (test as any).variations?.[0]?.product?.company?.name ||
                          (test as any).competitors?.[0]?.product?.company?.name || null, // Extract company name for admin users
           };
-        });
+        }));
 
         setTests(transformedTests);
         setError(null);
