@@ -430,6 +430,17 @@ export const testService = {
 
       console.log(`Deleting test: ${testData.name} (${testData.skin})`);
 
+      // First, delete the test from Prolific platform
+      console.log('Deleting test from Prolific platform...');
+      try {
+        await apiClient.delete(`/tests/${testId}`);
+        console.log('Test deleted from Prolific platform successfully');
+      } catch (prolificError: any) {
+        console.warn('Failed to delete test from Prolific platform:', prolificError.message);
+        // Continue with local deletion even if Prolific deletion fails
+        // This ensures the local database is cleaned up
+      }
+
       // Delete in the correct order to respect foreign key constraints
       // 1. Delete responses first (they reference test_id)
       console.log('Deleting survey responses...');
@@ -494,24 +505,20 @@ export const testService = {
       const { error: timesError } = await supabase
         .from('test_times')
         .delete()
-        .eq('test_id', testId as any);
+        .eq('testers_session', testId as any);
 
       if (timesError) {
-        if (timesError.code === '42703') {
-          console.log('test_times table uses different column name, trying alternative...');
-          // Try with different column name or skip if table structure is different
-          const { error: timesError2 } = await supabase
-            .from('test_times')
-            .delete()
-            .eq('test_id', testId as any);
-          
-          if (timesError2) {
-            console.log('Skipping test_times deletion - table structure may be different');
-          } else {
-            console.log('Test times deleted successfully with alternative column');
-          }
+        console.log('test_times table uses different column name, trying alternative...');
+        // Try with test_id column name as fallback
+        const { error: timesError2 } = await supabase
+          .from('test_times')
+          .delete()
+          .eq('test_id', testId as any);
+        
+        if (timesError2) {
+          console.log('Skipping test_times deletion - table structure may be different');
         } else {
-          console.error('Error deleting test times:', timesError);
+          console.log('Test times deleted successfully with alternative column');
         }
       } else {
         console.log('Test times deleted successfully');

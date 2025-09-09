@@ -146,9 +146,15 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
 
       {skin === 'walmart' ? (
         (() => {
+          // Calculate competitor indices - competitors start from index 1 (after variation A)
+          const competitorIndices = walmartDisplayProducts.length > 1 
+            ? Array.from({ length: walmartDisplayProducts.length - 1 }, (_, i) => i + 1)
+            : [];
+          
           console.log('🔍 TestPreview - Passing to WalmartPreview:', {
             searchTerm,
             productsCount: walmartDisplayProducts.length,
+            competitorIndices,
             products: walmartDisplayProducts.map((prod, index) => ({
               index,
               id: prod.id,
@@ -156,10 +162,11 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
               description: prod.description,
               product_description: prod.product_description,
               bullet_points: prod.bullet_points,
-              hasDescription: !!(prod.description || prod.product_description || (prod.bullet_points && prod.bullet_points.length > 0))
+              hasDescription: !!(prod.description || prod.product_description || (prod.bullet_points && prod.bullet_points.length > 0)),
+              isCompetitor: competitorIndices.includes(index)
             }))
           });
-          return <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} />;
+          return <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} competitorIndices={competitorIndices} />;
         })()
       ) : (
         <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} variations={variations} />

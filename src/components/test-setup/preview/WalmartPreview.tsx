@@ -15,9 +15,10 @@ interface ProductDetails {
 interface WalmartPreviewProps {
   searchTerm: string;
   products: WalmartProduct[];
+  competitorIndices?: number[]; // Array of indices that are competitors
 }
 
-export default function WalmartPreview({ searchTerm, products }: WalmartPreviewProps) {
+export default function WalmartPreview({ searchTerm, products, competitorIndices = [] }: WalmartPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<WalmartProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +36,9 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
         if (product.walmart_id) {
           try {
             const productDetail = await walmartService.getProductDetails(product.walmart_id);
-            details[product.id] = productDetail;
+            if (product.id) {
+              details[product.id] = productDetail;
+            }
           } catch (error) {
             console.warn(`Failed to fetch details for product ${product.walmart_id}:`, error);
           }
@@ -50,7 +53,12 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
     }
   }, [products]);
 
-  const handleProductClick = async (product: WalmartProduct) => {
+  const handleProductClick = async (product: WalmartProduct, index: number) => {
+    // Check if this product is a competitor
+    if (competitorIndices.includes(index)) {
+      return; // Don't allow clicking on competitors
+    }
+
     setIsLoading(true);
     try {
       // Set product details from the Walmart product data
@@ -92,19 +100,19 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('company_id')
-        .eq('id', user.id as string)
+        .eq('id', user.id)
         .single();
 
-      if (!profile?.company_id) {
+      if (profileError || !profile?.company_id) {
         toast.error('Company profile not found');
         return;
       }
 
       // Step 1: Save basic product info to database
-      await walmartProductService.cacheProducts(products, profile.company_id as string);
+      await walmartProductService.cacheProducts(products, profile.company_id);
       
       // Step 2: Fetch and save rich product details
       await walmartProductService.fetchAndSaveRichDetails(products);
@@ -211,13 +219,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
             <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
           
-          <button
-            onClick={handleSaveDraft}
-            disabled={isSaving || products.length === 0}
-            className="bg-[#007185] text-white px-4 py-2 rounded-md hover:bg-[#005f73] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? 'Saving...' : 'Save Draft'}
-          </button>
+          
         </div>
       </div>
 
@@ -225,8 +227,15 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => {
+            const isCompetitor = competitorIndices.includes(index);
             return (
-              <div key={`walmart-preview-product-${product.id || index}`} className="bg-white p-4 w-full flex flex-col relative cursor-pointer" onClick={() => handleProductClick(product)}>
+              <div 
+                key={`walmart-preview-product-${product.id || index}`} 
+                className={`bg-white p-4 w-full flex flex-col relative ${
+                  isCompetitor ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`} 
+                onClick={() => handleProductClick(product, index)}
+              >
               {/* Add Button Overlay - Above the image */}
               <div className="h-48 mb-4 flex items-center justify-center relative">
                 <img
@@ -234,6 +243,7 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
                   alt={product.title}
                   className="max-h-full max-w-full object-contain"
                 />
+                
                 
                 <button 
                   className="absolute bottom-2 left-2 bg-[#0071dc] text-white font-bold py-2 px-3 rounded-full flex items-center justify-center gap-1 text-sm shadow-lg cursor-default"
