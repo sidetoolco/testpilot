@@ -62,6 +62,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
               : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="likes_most"
+          value={responses.likes_most}
           onChange={handleChange}
           minLength={50}
           required
@@ -79,6 +80,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
               : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="improve_suggestions"
+          value={responses.improve_suggestions}
           onChange={handleChange}
           minLength={50}
           required
@@ -98,6 +100,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
               : 'border-gray-300 focus:ring-gray-500'
           }`}
           name="choose_reason"
+          value={responses.choose_reason}
           onChange={handleChange}
           minLength={50}
           required

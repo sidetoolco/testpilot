@@ -124,8 +124,11 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
 const combineVariantsAndCompetitors = (data: any) => {
   let storedOrder = sessionStorage.getItem(`productOrder-${data.id}`);
 
+  console.log('🔍 combineVariantsAndCompetitors: data.competitors:', data.competitors);
+  console.log('🔍 combineVariantsAndCompetitors: data.competitors length:', data.competitors?.length);
+
   // Normalize competitors to ensure consistent structure
-  let competitorsWithVariations = data.competitors.map((competitor: any) => {
+  let competitorsWithVariations = (data.competitors || []).map((competitor: any) => {
     // If competitor is already a direct product object, use it as is
     if (competitor.id && competitor.title) {
       return competitor;
@@ -138,6 +141,9 @@ const combineVariantsAndCompetitors = (data: any) => {
     console.warn('Unknown competitor structure:', competitor);
     return competitor;
   });
+
+  console.log('🔍 combineVariantsAndCompetitors: competitorsWithVariations after mapping:', competitorsWithVariations);
+  console.log('🔍 combineVariantsAndCompetitors: competitorsWithVariations length after mapping:', competitorsWithVariations.length);
   
   // Add variations with consistent structure
   console.log('Adding variations to competitors:', data.variations);
@@ -150,26 +156,36 @@ const combineVariantsAndCompetitors = (data: any) => {
       // During test execution, variations should already be filtered by the fetchProductAndCompetitorData function
       // So we can add them directly without additional filtering
       competitorsWithVariations.push(variation.product);
+      console.log('🔍 After adding variation - competitorsWithVariations length:', competitorsWithVariations.length);
     } else {
       console.warn('Variation missing product:', variation);
     }
   });
 
+  console.log('🔍 Before stored order check - competitorsWithVariations length:', competitorsWithVariations.length);
+  
   if (storedOrder) {
     // Si ya hay un orden guardado, parsearlo y aplicar ese orden
     try {
       const orderedIndexes = JSON.parse(storedOrder);
+      console.log('🔍 Stored order indexes:', orderedIndexes);
+      console.log('🔍 Current competitorsWithVariations length:', competitorsWithVariations.length);
+      
       // Validate that all indexes are within bounds
       const validIndexes = orderedIndexes.filter((index: number) => 
         index >= 0 && index < competitorsWithVariations.length
       );
       
-      if (validIndexes.length === orderedIndexes.length) {
+      console.log('🔍 Valid indexes:', validIndexes);
+      
+      if (validIndexes.length === orderedIndexes.length && validIndexes.length === competitorsWithVariations.length) {
         competitorsWithVariations = validIndexes.map(
           (index: number) => competitorsWithVariations[index]
         );
+        console.log('🔍 After applying stored order - competitorsWithVariations length:', competitorsWithVariations.length);
       } else {
-        // If indexes are invalid, clear the stored order and regenerate
+        // If indexes are invalid or count doesn't match, clear the stored order and regenerate
+        console.log('🔍 Invalid stored order - clearing and regenerating');
         sessionStorage.removeItem(`productOrder-${data.id}`);
         throw new Error('Invalid stored order, regenerating');
       }
@@ -180,7 +196,8 @@ const combineVariantsAndCompetitors = (data: any) => {
   }
   
   // If no stored order or if it was invalid, generate new order
-  if (!storedOrder || competitorsWithVariations.length !== data.competitors.length + data.variations.length) {
+  if (!storedOrder) {
+    console.log('🔍 No stored order, generating new order - competitorsWithVariations length:', competitorsWithVariations.length);
     // Si no hay un orden guardado, barajar y almacenar el orden
     let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
     for (let i = shuffledIndexes.length - 1; i > 0; i--) {
@@ -190,6 +207,22 @@ const combineVariantsAndCompetitors = (data: any) => {
 
     // Reordenar la lista basada en los índices aleatorios
     competitorsWithVariations = shuffledIndexes.map(index => competitorsWithVariations[index]);
+    console.log('🔍 After shuffling - competitorsWithVariations length:', competitorsWithVariations.length);
+    sessionStorage.setItem(`productOrder-${data.id}`, JSON.stringify(shuffledIndexes));
+  } else {
+    // Clear stored order if it's invalid (has wrong number of items)
+    console.log('🔍 Clearing invalid stored order and regenerating');
+    sessionStorage.removeItem(`productOrder-${data.id}`);
+    
+    // Generate new order
+    let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
+    for (let i = shuffledIndexes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledIndexes[i], shuffledIndexes[j]] = [shuffledIndexes[j], shuffledIndexes[i]];
+    }
+
+    competitorsWithVariations = shuffledIndexes.map(index => competitorsWithVariations[index]);
+    console.log('🔍 After regenerating - competitorsWithVariations length:', competitorsWithVariations.length);
     sessionStorage.setItem(`productOrder-${data.id}`, JSON.stringify(shuffledIndexes));
   }
 

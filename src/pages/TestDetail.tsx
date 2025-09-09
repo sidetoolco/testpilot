@@ -6,7 +6,7 @@ export default function TestDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   return (
-    <div className="h-screen overflow-hidden bg-[#FFF8F8] flex flex-col">
+    <div className="h-screen overflow-hidden bg-[#f9fcfa] flex flex-col">
       <div className="flex-1 mx-auto w-full overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-8 py-6 h-[100vh]">
           <button

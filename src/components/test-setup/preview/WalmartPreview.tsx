@@ -32,12 +32,12 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       const details: Record<string, WalmartProductDetailType> = {};
       
       for (const product of products) {
-        if (product.id) {
+        if (product.walmart_id) {
           try {
-            const productDetail = await walmartService.getProductDetails(product.id);
+            const productDetail = await walmartService.getProductDetails(product.walmart_id);
             details[product.id] = productDetail;
           } catch (error) {
-            // Silently handle errors - testers will see the message below
+            console.warn(`Failed to fetch details for product ${product.walmart_id}:`, error);
           }
         }
       }
@@ -109,8 +109,8 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
       // Step 2: Fetch and save rich product details
       await walmartProductService.fetchAndSaveRichDetails(products);
       
-      // Step 3: Save to backend API (like Amazon does)
-      await walmartService.saveProductsPreview(products);
+      // Note: Backend API call removed to avoid duplicate key constraint errors
+      // The cacheProducts function already handles database saves with proper upsert logic
       
       toast.success(`Successfully saved ${products.length} Walmart products with rich details`);
     } catch (error) {
@@ -211,7 +211,13 @@ export default function WalmartPreview({ searchTerm, products }: WalmartPreviewP
             <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
           
-          
+          <button
+            onClick={handleSaveDraft}
+            disabled={isSaving || products.length === 0}
+            className="bg-[#007185] text-white px-4 py-2 rounded-md hover:bg-[#005f73] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSaving ? 'Saving...' : 'Save Draft'}
+          </button>
         </div>
       </div>
 

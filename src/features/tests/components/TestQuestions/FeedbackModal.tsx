@@ -36,9 +36,15 @@ const FeedbackModal: React.FC<IProps> = ({
 
     // If it can save the feedback on Supabase, great. If not, let's continue with the workflow
     try {
-      await supabase.from('feedback').insert(input as any);
+      // Convert rating to string for bigint compatibility
+      const feedbackData = {
+        rating: input.rating.toString(),
+        comment: input.comment
+      };
+      
+      await supabase.from('feedback').insert(feedbackData);
     } catch (error) {
-      console.error(error);
+      console.error('Feedback submission error:', error);
     } finally {
       setLoading(false);
       handleSubmit();

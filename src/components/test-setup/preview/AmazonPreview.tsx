@@ -5,6 +5,7 @@ import { AmazonProduct } from '../../../features/amazon/types';
 import AmazonHeader from './AmazonHeader';
 import AmazonNavigation from './AmazonNavigation';
 import ProductDetailModal from './ProductDetailModal';
+import PreviewGrid from './PreviewGrid';
 
 interface ProductDetails {
   images: string[];
@@ -14,12 +15,25 @@ interface ProductDetails {
 interface AmazonPreviewProps {
   searchTerm: string;
   products: AmazonProduct[];
+  variations?: {
+    a: AmazonProduct | null;
+    b: AmazonProduct | null;
+    c: AmazonProduct | null;
+  };
 }
 
-export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
+export default function AmazonPreview({ searchTerm, products, variations }: AmazonPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Function to check if a product is a variation (not a competitor)
+  const isVariation = (product: AmazonProduct): boolean => {
+    if (!variations) return false;
+    return Object.values(variations).some(variation => 
+      variation && (variation.id === product.id || variation.asin === product.asin)
+    );
+  };
 
   const handleProductClick = async (product: AmazonProduct) => {
     setIsLoading(true);
@@ -83,65 +97,11 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         <div className="flex gap-4">
           {/* Product Grid */}
           <div className="flex-1">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map(product => (
-                <div
-                  key={product.id || product.asin}
-                  className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col"
-                  onClick={() => handleProductClick(product)}
-                >
-                  <div className="flex flex-col flex-grow">
-                    <div className="relative">
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className="w-full h-48 object-contain mb-4"
-                      />
-                    </div>
-                    <h3 className="text-sm font-medium text-[#0F1111] mb-2 line-clamp-2">
-                      {product.title}
-                    </h3>
-                    <div className="flex items-center mb-2">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => {
-                          const fullStars = Math.round(product.rating || 5);
-                          const isFullStar = i < fullStars;
-                          return (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                isFullStar
-                                  ? 'text-[#dd8433] fill-[#dd8433]'
-                                  : 'text-gray-200 fill-gray-200'
-                              }`}
-                            />
-                          );
-                        })}
-                      </div>
-                      <span className="ml-1 text-[12px] text-[#007185] hover:text-[#C7511F] hover:underline">
-                        {product.reviews_count?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-[2px] text-[#0F1111]">
-                      <span className="text-xs align-top mt-[1px]">US$</span>
-                      <span className="text-[21px] font-medium">{Math.floor(product.price)}</span>
-                      <span className="text-[13px]">{(product.price % 1).toFixed(2).substring(1)}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1">
-                      <img src="/assets/images/amazon-prime-icon.png" alt="Prime" className="h-12" />
-                      <div>
-                        <span className="text-[12px] text-[#007185]">FREE delivery</span>
-                        <span className="text-[12px] text-[#0F1111] ml-1">Tomorrow</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="w-full mt-auto flex items-center justify-center gap-2 bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-1 text-sm">
-                    <ShoppingCart className="h-4 w-4" />
-                    Add to Cart
-                  </button>
-                </div>
-              ))}
-            </div>
+            <PreviewGrid 
+              products={products} 
+              onProductClick={handleProductClick}
+              variations={variations}
+            />
           </div>
         </div>
       </div>

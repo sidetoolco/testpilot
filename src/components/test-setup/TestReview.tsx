@@ -65,7 +65,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
 
           {/* Credit Summary */}
           <TestCost
@@ -84,20 +84,10 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
             showInsufficientWarning={true}
           />
 
-          {/* Custom Screening Indicator */}
-          {hasCustomScreening && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-blue-800">
-                  Custom screening enabled (+0.1 credit per tester)
-                </span>
-              </div>
-            </div>
-          )}
+    
 
           {/* Configuration Summary */}
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-8 ml-2">
             <div>
               <h4 className="text-xl font-semibold mb-6">Test Configuration</h4>
               <div className="space-y-4">

@@ -171,7 +171,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
 
             <div className="space-y-2 flex flex-col flex-grow">
               <h3
-                className="font-medium text-gray-900 line-clamp-2 min-h-[48px] cursor-pointer hover:text-primary-400"
+                className=" text-gray-900 text-sm line-clamp-2 min-h-[55px] cursor-pointer hover:text-primary-400"
                 onClick={() => onEdit(product)}
               >
                 {product.title}

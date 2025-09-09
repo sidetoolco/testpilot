@@ -162,7 +162,7 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
           return <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} />;
         })()
       ) : (
-        <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} />
+        <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} variations={variations} />
       )}
     </div>
   );

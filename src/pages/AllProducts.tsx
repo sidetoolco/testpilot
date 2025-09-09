@@ -83,7 +83,7 @@ export default function AllProducts() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF8F8] p-8 w-full">
+    <div className="min-h-screen bg-[#f9fcfa] p-8 w-full">
       <ProductHeader
         onAddProduct={() => setShowAddProduct(true)}
         onConnectShopify={() => setShowComingSoon(true)}

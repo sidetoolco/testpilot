@@ -145,11 +145,11 @@ export const updateSession = async (
   // For Walmart products, we need to handle them differently since they don't exist in the products table
   if (isWalmartProduct) {
     try {
-      // For Walmart products, we'll store the ID in a way that doesn't violate foreign key constraints
-      // We can either store it as a competitor_id or create a separate field
+      // For Walmart products, use walmart_product_id column to avoid foreign key constraints
       const updateObject: any = { 
         status: 'questions',
-        competitor_id: combinedData.id, // Store Walmart product ID as competitor_id
+        walmart_product_id: combinedData.id, // Store Walmart product ID in walmart_product_id column
+        competitor_id: null, // Clear competitor_id for Walmart products
         product_id: null // Clear product_id for Walmart products
       };
 
@@ -372,7 +372,8 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       .from('test_competitors')
       .select(`
         id,
-        product_id
+        product_id,
+        product_type
       `)
       .eq('test_id', testId);
 
@@ -380,35 +381,43 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       console.error('Error fetching competitors:', competitorsError);
     }
 
-    // Fetch competitor products based on test type
+    // Fetch competitor products based on product_type
     let competitors = [];
+    console.log('🔍 fetchProductAndCompetitorData: competitorsData:', competitorsData);
+    console.log('🔍 fetchProductAndCompetitorData: competitorsData.length:', competitorsData?.length);
+    
     if (competitorsData && competitorsData.length > 0) {
-      const isWalmartTest = data.skin === 'walmart';
-      
       const competitorPromises = competitorsData.map(async (comp) => {
         if (comp.product_id) {
-          if (isWalmartTest) {
-            // For Walmart tests, fetch from walmart_products
+          if (comp.product_type === 'walmart_product') {
+            // For Walmart products, fetch from walmart_products
             const product = await supabase
               .from('walmart_products')
-              .select('*, company:companies(name)')
+              .select('*')
               .eq('id', comp.product_id)
-              .single();
+              .maybeSingle();
             
             if (product.data) {
+              console.log('🔍 Found Walmart product:', product.data.title, 'ID:', comp.product_id);
               return product.data;
+            } else {
+              console.warn(`Walmart product not found for ID: ${comp.product_id}`);
             }
-          } else {
-            // For Amazon tests, fetch from amazon_products
+          } else if (comp.product_type === 'amazon_product') {
+            // For Amazon products, fetch from amazon_products
             const product = await supabase
               .from('amazon_products')
-              .select('*, company:companies(name)')
+              .select('*')
               .eq('id', comp.product_id)
-              .single();
+              .maybeSingle();
             
             if (product.data) {
               return product.data;
+            } else {
+              console.warn(`Amazon product not found for ID: ${comp.product_id}`);
             }
+          } else {
+            console.warn(`Unknown product type: ${comp.product_type} for product ID: ${comp.product_id}`);
           }
         }
         return null;
@@ -416,11 +425,50 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
 
       const competitorResults = await Promise.all(competitorPromises);
       competitors = competitorResults.filter(Boolean);
+      console.log('🔍 fetchProductAndCompetitorData: Final competitors count:', competitors.length);
+      console.log('🔍 fetchProductAndCompetitorData: Final competitors:', competitors);
+    } else {
+      console.log('🔍 fetchProductAndCompetitorData: No competitors data found');
     }
 
     // Variations should always be included - they are the main product being tested
-    // Only competitors are filtered by skin type
-    const filteredVariations = data.variations;
+    // For Walmart tests, check if variation exists in walmart_products table
+    let filteredVariations = data.variations;
+    
+    if (data.skin === 'walmart') {
+      // For Walmart tests, try to find the variation in walmart_products table
+      const variationPromises = filteredVariations.map(async (variation: any) => {
+        if (variation.product && variation.product.id) {
+          // Check if the product exists in walmart_products
+          const { data: walmartProduct } = await supabase
+            .from('walmart_products')
+            .select('*')
+            .eq('id', variation.product.id)
+            .maybeSingle();
+          
+          if (walmartProduct) {
+            // Use the Walmart product data
+            return {
+              ...variation,
+              product: walmartProduct
+            };
+          } else {
+            // Keep the original product data but add walmart_id if missing
+            console.warn(`Variation product ${variation.product.id} not found in walmart_products, using generic product data`);
+            return {
+              ...variation,
+              product: {
+                ...variation.product,
+                walmart_id: variation.product.walmart_id || variation.product.id // Use product ID as fallback
+              }
+            };
+          }
+        }
+        return variation;
+      });
+      
+      filteredVariations = await Promise.all(variationPromises);
+    }
 
     const sessionData = filteredVariations.map((session: any) => {
       if (session.product && session.product.company?.name) {
@@ -430,7 +478,26 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       return session;
     });
 
-    return { ...data, variations: sessionData, competitors } as unknown as TestData;
+    // Add company information to competitors if they have company_id
+    const competitorsWithCompany = await Promise.all(competitors.map(async (competitor: any) => {
+      if (competitor.company_id) {
+        const { data: company } = await supabase
+          .from('companies')
+          .select('name')
+          .eq('id', competitor.company_id)
+          .single();
+        
+        if (company) {
+          competitor.brand = company.name;
+        }
+      }
+      return competitor;
+    }));
+
+    const result = { ...data, variations: sessionData, competitors: competitorsWithCompany } as unknown as TestData;
+    console.log('🔍 fetchProductAndCompetitorData: Final result competitors count:', result.competitors?.length);
+    console.log('🔍 fetchProductAndCompetitorData: Final result competitors:', result.competitors);
+    return result;
   } catch (error) {
     console.error('Error fetching test data:', error);
     return null;

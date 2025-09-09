@@ -239,7 +239,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
   if (testError) {
     return (
-      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-medium text-gray-900 mb-2">Error loading test</h2>
           <p className="text-gray-600 mb-4">{testError}</p>
@@ -257,7 +257,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   if (loading || insightLoading) {
     return (
       <div className="max-w-[1400px] mx-auto px-8 py-6">
-        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
           <div className="text-center space-y-6 max-w-md mx-auto px-4">
             <div className="inline-flex relative w-16 h-16">
               <div className="absolute w-16 h-16 border-4 border-primary-100 rounded-full"></div>
@@ -281,7 +281,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
 
   if (!testInfo) {
     return (
-      <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-medium text-gray-900 mb-2">Test not found</h2>
           <button

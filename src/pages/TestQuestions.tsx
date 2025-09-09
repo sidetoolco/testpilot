@@ -31,16 +31,32 @@ const TestDisplay: React.FC = () => {
     if (test?.id) {
       const fetchSurveyQuestions = async () => {
         setQuestionsLoading(true);
-        const { data, error } = await supabase
-          .from('test_survey_questions')
-          .select('selected_questions')
-          .eq('test_id', test.id)
-          .single();
-        
-        if (data && !error && 'selected_questions' in data) {
-          setSelectedQuestions((data as any).selected_questions);
-        } else {
-          // Fallback to defaults if no database data
+        try {
+          const { data, error } = await supabase
+            .from('test_survey_questions')
+            .select('selected_questions')
+            .eq('test_id', test.id)
+            .single();
+          
+          if (error) {
+            console.log('Survey questions query error:', error.message, 'Code:', error.code);
+            if (error.code === 'PGRST116') {
+              console.log('No survey questions found for this test, using defaults');
+            } else if (error.code === '406') {
+              console.log('RLS policy blocking access to survey questions, using defaults');
+            } else {
+              console.log('Other error fetching survey questions, using defaults');
+            }
+            setSelectedQuestions(getDefaultQuestions());
+          } else if (data && 'selected_questions' in data) {
+            console.log('Successfully loaded survey questions from database');
+            setSelectedQuestions((data as any).selected_questions);
+          } else {
+            console.log('No survey questions data found, using defaults');
+            setSelectedQuestions(getDefaultQuestions());
+          }
+        } catch (error) {
+          console.error('Exception fetching survey questions:', error);
           setSelectedQuestions(getDefaultQuestions());
         }
         setQuestionsLoading(false);

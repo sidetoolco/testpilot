@@ -47,7 +47,7 @@ export const AVAILABLE_QUESTIONS: Question[] = [
   {
     id: 'appetizing',
     title: 'Appetizing Rating',
-    description: 'This product looks / sounds appetizing.',
+    description: 'This product looks / sounds appetizing?',
     category: 'rating',
     field: 'appetizing',
     required: false,
@@ -55,7 +55,7 @@ export const AVAILABLE_QUESTIONS: Question[] = [
   {
     id: 'target_audience',
     title: 'Target Audience Rating',
-    description: 'This is a product for people like me.',
+    description: 'This is a product for people like me?',
     category: 'rating',
     field: 'target_audience',
     required: false,
@@ -63,7 +63,7 @@ export const AVAILABLE_QUESTIONS: Question[] = [
   {
     id: 'novelty',
     title: 'Novelty Rating',
-    description: 'This product is new and different.',
+    description: 'This product is new and different?',
     category: 'rating',
     field: 'novelty',
     required: false,
