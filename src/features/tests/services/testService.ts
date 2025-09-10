@@ -301,15 +301,16 @@ export const testService = {
       throw new TestCreationError('Failed to add survey questions', { error });
     }
   },
-  generateDynamicTitle(searchTerm: string): string {
-    return `Amazon shopping: Discover '${searchTerm}'!`;
+  generateDynamicTitle(searchTerm: string, skin: 'amazon' | 'walmart' = 'amazon'): string {
+    const storeName = skin === 'walmart' ? 'Walmart' : 'Amazon';
+    return `${storeName} shopping: Discover '${searchTerm}'!`;
   },
   // Función para crear el proyecto en Respondent
   async createProlificProjectsForVariations(test: any, testData: TestData) {
     for (const [variationType, variation] of Object.entries(testData.variations)) {
       if (variation) {
         const respondentProjectData = {
-          publicTitle: this.generateDynamicTitle(test.search_term),
+          publicTitle: this.generateDynamicTitle(test.search_term, testData.skin),
           publicInternalName: `${test.id}-${variationType}`,
           participantTimeRequiredMinutes: 10,
           incentiveAmount: Math.round((20 / 60) * 10 * 100),
@@ -1271,7 +1272,7 @@ export const testService = {
       for (const [variationType, variation] of Object.entries(testData.variations)) {
         if (variation) {
           const respondentProjectData = {
-            publicTitle: this.generateDynamicTitle(testData.searchTerm),
+            publicTitle: this.generateDynamicTitle(testData.searchTerm, testData.skin),
             publicInternalName: `${testId}-${variationType}`,
             participantTimeRequiredMinutes: 10,
             incentiveAmount: Math.round((20 / 60) * 10 * 100),
