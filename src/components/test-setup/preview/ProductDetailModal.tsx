@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { WalmartProduct } from '../../../features/walmart/services/walmartService';
-import { Star, X, Share2, Heart, ArrowLeft } from 'lucide-react';
+import { Star, Share2, Heart, ArrowLeft } from 'lucide-react';
 
 interface ProductDetails {
   images: string[];
@@ -64,7 +64,7 @@ export default function ProductDetailModal({
                       src={
                         currentIndex === 0
                           ? product.image_url
-                          : productDetails?.images?.[currentIndex]
+                          : productDetails?.images?.[currentIndex] || product.image_url
                       }
                       alt={`Product image ${currentIndex + 1}`}
                       className="w-full h-full object-contain p-4"
@@ -107,7 +107,7 @@ export default function ProductDetailModal({
                     href="#"
                     className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200"
                   >
-                    Visit the {product?.brand} Store
+                    Visit the {(product as any)?.brand || 'Product'} Store
                   </a>
                   <div className="items-center flex pb-2">
                     <small className="text-[14px] text-[#0F1111] pr-2">{product.rating}</small>
@@ -146,13 +146,19 @@ export default function ProductDetailModal({
 
                 <div className="border-t border-[#DDD] py-4">
                   <p className="text-[14px] text-[#0F1111] font-bold">About this product:</p>
-                  <ul className="list-disc pl-5 py-2">
-                    {productDetails?.feature_bullets?.map((bullet: string, index: number) => (
-                      <li key={index} className="text-[14px] text-[#0F1111]">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
+                  {productDetails?.feature_bullets && productDetails.feature_bullets.length > 0 ? (
+                    <ul className="list-disc pl-5 py-2">
+                      {productDetails.feature_bullets.map((bullet: string, index: number) => (
+                        <li key={index} className="text-[14px] text-[#0F1111]">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[14px] text-[#565959] py-2">
+                      Product details are not available for this item.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-start justify-between border-t border-[#DDD] w-full pt-4">
@@ -224,7 +230,7 @@ export default function ProductDetailModal({
                 href="#"
                 className="text-[#007185] text-[14px] hover:text-[#C7511F] hover:underline transition-colors duration-200"
               >
-                Visit the {product?.brand} Store
+                Visit the {(product as any)?.brand || 'Product'} Store
               </a>
               <small className="text-[14px] text-[#0F1111] px-1">{product.rating}</small>
               <div className="flex items-center p-1">

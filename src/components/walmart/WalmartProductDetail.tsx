@@ -333,7 +333,7 @@ export default function WalmartProductDetail({
         {/* Information Column */}
         <div className="lg:col-span-1">
     
-          <h1 className="text-2xl font-bold mt-2">
+          <h1 className="text-2xl font-bold">
             {product.title || product.name}
           </h1>
           

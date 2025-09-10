@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
@@ -13,7 +13,6 @@ import {
   processString,
 } from '../features/tests/services/testersSessionService';
 import { createNewSession } from '../features/tests/services/testersSessionService';
-import { checkTestCompletion } from '../features/tests/services/testCompletionService';
 import { Lightbulb } from 'lucide-react';
 import { getTracker } from '../lib/openReplay';
 import { toast } from 'sonner';
@@ -26,16 +25,52 @@ interface TestData {
 }
 
 const useFetchTestData = (id: string | undefined) => {
-  const [data, setData] = useState<TestData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<TestData | null>(() => {
+    // Check if data is already cached in sessionStorage
+    if (id) {
+      const cachedData = sessionStorage.getItem(`testData-${id}`);
+      if (cachedData) {
+        try {
+          return JSON.parse(cachedData);
+        } catch (e) {
+          console.warn('Failed to parse cached test data:', e);
+        }
+      }
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    // If we have cached data, don't show loading
+    if (id) {
+      const cachedData = sessionStorage.getItem(`testData-${id}`);
+      return !cachedData;
+    }
+    return true;
+  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
+      // Check if data is already cached
+      const cachedData = sessionStorage.getItem(`testData-${id}`);
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          setData(parsedData);
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.warn('Failed to parse cached test data:', e);
+        }
+      }
+
+      // Only fetch if not cached
       fetchProductAndCompetitorData(id)
         .then((data: any) => {
           setData(data);
           setLoading(false);
+          // Cache the data
+          sessionStorage.setItem(`testData-${id}`, JSON.stringify(data));
         })
         .catch((error: any) => {
           setError(error.message);
@@ -47,14 +82,6 @@ const useFetchTestData = (id: string | undefined) => {
   return { data, loading, error };
 };
 
-// For now, we'll hardcode the skin based on the test ID
-// In the future, this should come from the database
-const getTestSkin = (testId: string): 'amazon' | 'walmart' => {
-  // You can implement your own logic here to determine the skin
-  // For example, based on test ID pattern, company preference, etc.
-  // For now, let's use a simple pattern: if test ID contains 'walmart', use Walmart skin
-  return testId.toLowerCase().includes('walmart') ? 'walmart' : 'amazon';
-};
 
 interface ModalProps {
   isOpen: boolean;
@@ -66,8 +93,6 @@ interface ModalProps {
 }
 
 const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captchaLoading }: ModalProps) => {
-  const [recaptchaRef, setRecaptchaRef] = useState<any>(null);
-
   if (!isOpen) return null;
 
   const handleButtonClick = () => {
@@ -93,7 +118,6 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
         <div className="flex justify-center py-4">
           {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
             <ReCAPTCHA
-              ref={(ref) => setRecaptchaRef(ref)}
               sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
               onChange={onCaptchaVerify}
               size="normal"
@@ -122,10 +146,8 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
 };
 
 const combineVariantsAndCompetitors = (data: any) => {
-  let storedOrder = sessionStorage.getItem(`productOrder-${data.id}`);
-
-  console.log('🔍 combineVariantsAndCompetitors: data.competitors:', data.competitors);
-  console.log('🔍 combineVariantsAndCompetitors: data.competitors length:', data.competitors?.length);
+  const storedOrderKey = `productOrder-${data.id}`;
+  let storedOrder = sessionStorage.getItem(storedOrderKey);
 
   // Normalize competitors to ensure consistent structure
   let competitorsWithVariations = (data.competitors || []).map((competitor: any) => {
@@ -138,98 +160,57 @@ const combineVariantsAndCompetitors = (data: any) => {
       return competitor.product;
     }
     // Fallback: return as is if structure is unknown
-    console.warn('Unknown competitor structure:', competitor);
     return competitor;
   });
-
-  console.log('🔍 combineVariantsAndCompetitors: competitorsWithVariations after mapping:', competitorsWithVariations);
-  console.log('🔍 combineVariantsAndCompetitors: competitorsWithVariations length after mapping:', competitorsWithVariations.length);
   
   // Add variations with consistent structure
-  console.log('Adding variations to competitors:', data.variations);
-  console.log('Test skin:', data.skin);
-  
   data.variations.forEach((variation: any) => {
     if (variation.product) {
-      console.log('Adding variation product:', variation.product);
-      
-      // During test execution, variations should already be filtered by the fetchProductAndCompetitorData function
-      // So we can add them directly without additional filtering
       competitorsWithVariations.push(variation.product);
-      console.log('🔍 After adding variation - competitorsWithVariations length:', competitorsWithVariations.length);
-    } else {
-      console.warn('Variation missing product:', variation);
     }
   });
 
-  console.log('🔍 Before stored order check - competitorsWithVariations length:', competitorsWithVariations.length);
-  
+  // Check if we have a valid stored order
   if (storedOrder) {
-    // Si ya hay un orden guardado, parsearlo y aplicar ese orden
     try {
       const orderedIndexes = JSON.parse(storedOrder);
-      console.log('🔍 Stored order indexes:', orderedIndexes);
-      console.log('🔍 Current competitorsWithVariations length:', competitorsWithVariations.length);
       
-      // Validate that all indexes are within bounds
+      // Validate that all indexes are within bounds and count matches
       const validIndexes = orderedIndexes.filter((index: number) => 
         index >= 0 && index < competitorsWithVariations.length
       );
       
-      console.log('🔍 Valid indexes:', validIndexes);
-      
       if (validIndexes.length === orderedIndexes.length && validIndexes.length === competitorsWithVariations.length) {
+        // Apply the stored order
         competitorsWithVariations = validIndexes.map(
           (index: number) => competitorsWithVariations[index]
         );
-        console.log('🔍 After applying stored order - competitorsWithVariations length:', competitorsWithVariations.length);
+        return {
+          ...data,
+          competitors: competitorsWithVariations,
+        };
       } else {
-        // If indexes are invalid or count doesn't match, clear the stored order and regenerate
-        console.log('🔍 Invalid stored order - clearing and regenerating');
-        sessionStorage.removeItem(`productOrder-${data.id}`);
-        throw new Error('Invalid stored order, regenerating');
+        // Invalid stored order, clear it
+        sessionStorage.removeItem(storedOrderKey);
       }
     } catch (error) {
-      console.log('Error parsing stored order, regenerating:', error);
-      // Fall through to regenerate order
+      // Invalid stored order, clear it
+      sessionStorage.removeItem(storedOrderKey);
     }
   }
   
-  // If no stored order or if it was invalid, generate new order
-  if (!storedOrder) {
-    console.log('🔍 No stored order, generating new order - competitorsWithVariations length:', competitorsWithVariations.length);
-    // Si no hay un orden guardado, barajar y almacenar el orden
-    let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
-    for (let i = shuffledIndexes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledIndexes[i], shuffledIndexes[j]] = [shuffledIndexes[j], shuffledIndexes[i]];
-    }
-
-    // Reordenar la lista basada en los índices aleatorios
-    competitorsWithVariations = shuffledIndexes.map(index => competitorsWithVariations[index]);
-    console.log('🔍 After shuffling - competitorsWithVariations length:', competitorsWithVariations.length);
-    sessionStorage.setItem(`productOrder-${data.id}`, JSON.stringify(shuffledIndexes));
-  } else {
-    // Clear stored order if it's invalid (has wrong number of items)
-    console.log('🔍 Clearing invalid stored order and regenerating');
-    sessionStorage.removeItem(`productOrder-${data.id}`);
-    
-    // Generate new order
-    let shuffledIndexes = competitorsWithVariations.map((_, index) => index);
-    for (let i = shuffledIndexes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledIndexes[i], shuffledIndexes[j]] = [shuffledIndexes[j], shuffledIndexes[i]];
-    }
-
-    competitorsWithVariations = shuffledIndexes.map(index => competitorsWithVariations[index]);
-    console.log('🔍 After regenerating - competitorsWithVariations length:', competitorsWithVariations.length);
-    sessionStorage.setItem(`productOrder-${data.id}`, JSON.stringify(shuffledIndexes));
+  // Generate new order only if no valid stored order exists
+  const shuffledIndexes = competitorsWithVariations.map((_: any, index: number) => index);
+  for (let i = shuffledIndexes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledIndexes[i], shuffledIndexes[j]] = [shuffledIndexes[j], shuffledIndexes[i]];
   }
 
-  console.log('Final combined data competitors count:', competitorsWithVariations.length);
-  console.log('Final combined data competitors:', competitorsWithVariations);
-  console.log('Skin-based filtering applied. Products with asin (Amazon):', competitorsWithVariations.filter(p => p.asin).length);
-  console.log('Products with walmart_id (Walmart):', competitorsWithVariations.filter(p => p.walmart_id).length);
+  // Reorder the list based on shuffled indexes
+  competitorsWithVariations = shuffledIndexes.map((index: number) => competitorsWithVariations[index]);
+  
+  // Store the new order
+  sessionStorage.setItem(storedOrderKey, JSON.stringify(shuffledIndexes));
   
   return {
     ...data,
@@ -249,15 +230,30 @@ const TestUserPage = () => {
 
   const { startSession, shopperId } = useSessionStore();
   const { isTestCompleted, markTestCompleted } = useTestCompletionStore();
-  const [sessionStarted, setSessionStarted] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [sessionStarted, setSessionStarted] = useState(() => {
+    // Check if session was already started in this session
+    return sessionStorage.getItem(`sessionStarted-${id}`) === 'true';
+  });
+  const [captchaVerified, setCaptchaVerified] = useState(() => {
+    // Check if captcha was already verified in this session
+    return sessionStorage.getItem(`captchaVerified-${id}`) === 'true';
+  });
   const [captchaLoading, setCaptchaLoading] = useState(false);
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  const [hasShownCaptcha, setHasShownCaptcha] = useState(() => {
+    // Check if captcha was already shown in this session
+    return sessionStorage.getItem(`hasShownCaptcha-${id}`) === 'true';
+  });
   
   // Modal should show if no session started yet OR if captcha not verified
   const isModalOpen = !sessionStarted || !captchaVerified || showCaptchaModal;
 
-  const combinedData = data ? combineVariantsAndCompetitors(data) : null;
+  // Memoize the combined data to prevent re-shuffling on every render
+  const combinedData = useMemo(() => {
+    if (!data) return null;
+    return combineVariantsAndCompetitors(data);
+  }, [data?.id, data?.competitors, data?.variations]); // Only recalculate when these specific properties change
+
   const testSkin = combinedData?.skin ?? 'amazon';
 
   useEffect(() => {
@@ -266,9 +262,9 @@ const TestUserPage = () => {
     }
   }, [prolificPid]);
 
-  // Show captcha modal when data is available
+  // Show captcha modal when data is available (only once)
   useEffect(() => {
-    if (data && !sessionStarted) {
+    if (data && !sessionStarted && !hasShownCaptcha) {
       // Check if test is already completed
       const result = processString(id ?? '');
       const testId = result?.modifiedString ?? '';
@@ -281,8 +277,11 @@ const TestUserPage = () => {
       }
       
       setShowCaptchaModal(true);
+      setHasShownCaptcha(true);
+      // Persist that captcha has been shown
+      sessionStorage.setItem(`hasShownCaptcha-${id}`, 'true');
     }
-  }, [data, sessionStarted, id, isTestCompleted, navigate]);
+  }, [data, sessionStarted, hasShownCaptcha, id, isTestCompleted, navigate]);
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {
@@ -300,6 +299,9 @@ const TestUserPage = () => {
       // The reCAPTCHA widget itself provides basic bot protection
       setCaptchaVerified(true);
       setCaptchaLoading(false);
+      
+      // Persist captcha verification state
+      sessionStorage.setItem(`captchaVerified-${id}`, 'true');
       
       // Don't proceed with test here - just mark captcha as verified
       // The test logic will run when user clicks "Ok" button
@@ -338,37 +340,41 @@ const TestUserPage = () => {
       // Check for existing session first
       const existingSession = await checkAndFetchExistingSession(testId, variant);
       
-      if (existingSession?.ended_at) {
-        markTestCompleted(testId, variant);
-        navigate('/thanks', { state: { testId: id + '-' + variant } });
-        return;
-      }
-      
-      if (existingSession) {
+      // Type guard to check if existingSession is a valid session object
+      if (existingSession && typeof existingSession === 'object' && 'id' in existingSession && !('error' in existingSession)) {
+        const session = existingSession as any; // Type assertion for session object
+        if (session.ended_at) {
+          markTestCompleted(testId, variant);
+          navigate('/thanks', { state: { testId: id + '-' + variant } });
+          return;
+        }
+        
         // Use existing session
         startSession(
-          existingSession.id,
+          session.id,
           data.id,
           data,
-          new Date(existingSession.created_at),
-          existingSession.product_id ?? existingSession.competitor_id,
+          new Date(session.created_at),
+          session.product_id ?? session.competitor_id,
           prolificPid
         );
         setSessionStarted(true);
         setShowCaptchaModal(false);
+        // Persist session started state
+        sessionStorage.setItem(`sessionStarted-${id}`, 'true');
         
         // Restore analytics tracking for resumed session
         const tracker = getTracker(
-          `shopperSessionID:${existingSession.id}-testID:${id}-prolificPID:${prolificPid}`
+          `shopperSessionID:${session.id}-testID:${id}-prolificPID:${prolificPid}`
         );
         tracker.trackWs('SessionEvents')?.(
           'Session Resumed',
-          JSON.stringify({ sessionId: existingSession.id, prolificPid }),
+          JSON.stringify({ sessionId: session.id, prolificPid }),
           'up'
         );
         
         // Check if user already selected a product
-        if (existingSession.product_id || existingSession.competitor_id) {
+        if (session.product_id || session.competitor_id) {
           navigate('/questions');
           return;
         }
@@ -379,6 +385,8 @@ const TestUserPage = () => {
           startSession(sessionId, data.id, data, new Date(), undefined, prolificPid);
           setSessionStarted(true);
           setShowCaptchaModal(false);
+          // Persist session started state
+          sessionStorage.setItem(`sessionStarted-${id}`, 'true');
           
           // Restore analytics tracking
           const tracker = getTracker(`shopperSessionID:${sessionId}-testID:${id}-prolificPID:${prolificPid}`);
@@ -406,13 +414,13 @@ const TestUserPage = () => {
     }
   }, [shopperId, sessionStarted, id, loading]); // Solo se invoca el tracker cuando la sesión comienza.
 
-  const addToCart = (item: any) => {
+  const addToCart = useCallback((item: any) => {
     if (cartItems.length === 0) {
       useSessionStore.getState().selectItemAtCheckout(item);
       const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + id);
       tracker.trackWs('CartEvents')?.('Item Added', JSON.stringify({ item }), 'up');
     }
-  };
+  }, [cartItems.length, shopperId, id]);
 
   if (error) return <p>Error: {error}</p>;
 

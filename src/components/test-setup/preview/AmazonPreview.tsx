@@ -49,15 +49,24 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
 
       if (error) {
         console.error('Error fetching product details:', error);
-        // If there's an error, use the product data
+        // If there's an error, use the product data with fallback
         setProductDetails({
-          images: [product.image_url],
-          feature_bullets: [],
+          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
+          feature_bullets: product.bullet_points || [],
         });
       } else if (data) {
+        // Use the fetched data from database
+        console.log('Fetched product data from database:', data);
         setProductDetails({
-          images: [product.image_url],
-          feature_bullets: [],
+          images: data.images && data.images.length > 0 ? data.images : [data.image_url || product.image_url],
+          feature_bullets: data.bullet_points || data.feature_bullets || [],
+        });
+      } else {
+        // No data found, use product data
+        console.log('No data found, using product data:', product);
+        setProductDetails({
+          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
+          feature_bullets: product.bullet_points || product.feature_bullets || [],
         });
       }
       setSelectedProduct(product);
@@ -65,8 +74,8 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
       console.error('Error fetching product details:', error);
       // In case of error, use the product data
       setProductDetails({
-        images: [product.image_url],
-        feature_bullets: [],
+        images: product.images && product.images.length > 0 ? product.images : [product.image_url],
+        feature_bullets: product.bullet_points || [],
       });
       setSelectedProduct(product);
     } finally {

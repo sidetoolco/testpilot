@@ -119,28 +119,21 @@ export const createNewSession = async (
   return null;
 };
 
-interface CombinedData {
-  sessionId: any;
-  id: string;
-  asin: string;
-  walmart_id?: string; // Optional field for Walmart products
-}
-
 export const updateSession = async (
-  combinedData: CombinedData,
+  product: any,
   sessionId: any
 ): Promise<string | null> => {
-  if (!combinedData || !sessionId) {
-    console.error('Invalid parameters: testId or combinedData is missing');
+  if (!product || !sessionId) {
+    console.error('Invalid parameters: product or sessionId is missing');
     return null;
   }
   
   // Check if this is a Walmart product by looking for walmart_id
-  const isWalmartProduct = combinedData.walmart_id;
+  const isWalmartProduct = product.walmart_id;
   // For Amazon products, check if it has asin (which indicates it's from amazon_products table)
-  const isAmazonProduct = combinedData.asin;
+  const isAmazonProduct = product.asin;
   // Determine if it's a competitor based on the product type
-  const isCompetitor = isAmazonProduct ? combinedData.asin : false;
+  const isCompetitor = isAmazonProduct ? product.asin : false;
   
   // For Walmart products, we need to handle them differently since they don't exist in the products table
   if (isWalmartProduct) {
@@ -148,7 +141,7 @@ export const updateSession = async (
       // For Walmart products, use walmart_product_id column to avoid foreign key constraints
       const updateObject: any = { 
         status: 'questions',
-        walmart_product_id: combinedData.id, // Store Walmart product ID in walmart_product_id column
+        walmart_product_id: product.id, // Store Walmart product ID in walmart_product_id column
         competitor_id: null, // Clear competitor_id for Walmart products
         product_id: null // Clear product_id for Walmart products
       };
@@ -188,7 +181,7 @@ export const updateSession = async (
     }
 
     // Prepare the update object to clear existing IDs
-    const updateObject: any = { status: 'questions', [column]: combinedData.id };
+    const updateObject: any = { status: 'questions', [column]: product.id };
     if (existingData) {
       if (existingData.competitor_id) updateObject.competitor_id = null;
       if (existingData.product_id) updateObject.product_id = null;
