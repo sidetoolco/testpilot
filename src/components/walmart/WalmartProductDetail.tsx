@@ -82,6 +82,41 @@ export default function WalmartProductDetail({
   // Fetch full product details only when needed
   useEffect(() => {
     const fetchProductDetails = async () => {
+      // Check if this is your own product (has all necessary data already)
+      const isOwnProduct = product.id && product.id.length === 36 && 
+                          product.title && product.price && 
+                          (product.description || product.product_description);
+      
+      // Skip API calls if this is your own product with complete data
+      if (isOwnProduct) {
+        // Convert your product data to the expected format
+        const details = {
+          id: product.id,
+          product_name: product.title || product.name || '',
+          product_short_description: product.description || product.product_description || '',
+          product_category: product.category || '',
+          brand: product.brand || '',
+          title: product.title || product.name || '',
+          price: product.price,
+          rating: product.rating,
+          reviews_count: product.reviews_count,
+          image_url: product.image_url || product.image,
+          product_url: product.product_url || '',
+          search_term: product.search_term || '',
+          seller: product.seller || '',
+          availability: product.availability || 'in_stock',
+          created_at: product.created_at,
+          updated_at: product.updated_at,
+          description: product.description || product.product_description || '',
+          bullet_points: product.bullet_points || [],
+          variants: product.variants || []
+        };
+        
+        setFullProductDetails(details);
+        setIsLoadingDetails(false);
+        return; // Exit early - no API calls needed
+      }
+      
       // Check if we have a database ID (UUID format) or a Walmart product ID
       const hasDatabaseId = product.id && product.id.length === 36; // UUIDs are 36 characters
       const hasWalmartId = product.walmart_id;
@@ -177,6 +212,26 @@ export default function WalmartProductDetail({
 
   // Optimized description getter
   const productDescription = useMemo(() => {
+    // Check if this is your own product
+    const isOwnProduct = product.id && product.id.length === 36 && 
+                        product.title && product.price && 
+                        (product.description || product.product_description);
+    
+    if (isOwnProduct) {
+      // For your own products, combine description and bullet points
+      let combinedDescription = product.description || product.product_description || '';
+      
+      if (product.bullet_points && product.bullet_points.length > 0) {
+        const bulletPointsText = product.bullet_points.map(point => `• ${point}`).join('<br>');
+        combinedDescription = combinedDescription ? 
+          `${combinedDescription}<br><br>${bulletPointsText}` : 
+          bulletPointsText;
+      }
+      
+      return combinedDescription;
+    }
+    
+    // For Walmart products, use the standard flow
     if (fullProductDetails?.product_short_description) {
       return fullProductDetails.product_short_description;
     }
@@ -277,9 +332,7 @@ export default function WalmartProductDetail({
 
         {/* Information Column */}
         <div className="lg:col-span-1">
-          <span className="text-xs font-bold bg-blue-100 text-[#0071dc] px-2 py-1 rounded-full">
-            Popular choice
-          </span>
+    
           <h1 className="text-2xl font-bold mt-2">
             {product.title || product.name}
           </h1>
@@ -334,35 +387,7 @@ export default function WalmartProductDetail({
             )}
           </div>
           
-          {/* Brand Information with Loading State */}
-          <div className="mt-4">
-            {isLoadingDetails ? (
-              <div className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin text-gray-400" />
-                <span className="text-gray-500">Loading brand info...</span>
-              </div>
-            ) : fullProductDetails?.brand ? (
-              <>
-                <h3 className="font-bold text-sm mb-1">Brand:</h3>
-                <p className="text-gray-600">{fullProductDetails.brand}</p>
-              </>
-            ) : null}
-          </div>
-          
-          {/* Product Category with Loading State */}
-          <div className="mt-4">
-            {isLoadingDetails ? (
-              <div className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin text-gray-400" />
-                <span className="text-gray-500">Loading category...</span>
-              </div>
-            ) : fullProductDetails?.product_category ? (
-              <>
-                <h3 className="font-bold text-sm mb-1">Category:</h3>
-                <p className="text-gray-600">{fullProductDetails.product_category}</p>
-              </>
-            ) : null}
-          </div>
+        
           
           {/* Variants Information with Loading State */}
           <div className="mt-4">
@@ -392,19 +417,6 @@ export default function WalmartProductDetail({
             ) : null}
           </div>
           
-          {/* Product Details */}
-          <div className="mt-6">
-            <h2 className="font-bold text-lg mb-2">About this item</h2>
-            {product.bullet_points && product.bullet_points.length > 0 ? (
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
-                {product.bullet_points.map((detail: string, i: number) => (
-                  <li key={`bullet-${i}`}>{detail}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">Details not available</p>
-            )}
-          </div>
           
           {/* Size/Weight if available */}
           {product.size && (

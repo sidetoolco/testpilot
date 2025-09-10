@@ -113,7 +113,7 @@ export default function WalmartHeaderLayout({ children, searchTerm }: WalmartHea
 
       {/* Secondary Navigation */}
       <nav className="bg-[#C9DCFD] shadow-sm mt-1 border-b pt-1 border-gray-200 block relative z-30 min-h-[48px]">
-        <div className="max-w-full px-4 flex mt-16 items-center p-1 justify-center gap-6 overflow-x-auto scrollbar-hide">
+        <div className="max-w-full px-4 flex mt-16 items-center p-1 justify-center gap-4 overflow-x-auto scrollbar-hide">
           <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-800 hover:text-[#0071dc] whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-sm" onClick={handleClick}>
             <Menu size={16}/><span>Departments</span>
           </a>

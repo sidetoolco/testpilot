@@ -34,7 +34,6 @@ import Coupons from './pages/Coupons';
 import ExpertModeSettings from './pages/ExpertModeSettings';
 import CompaniesManagement from './pages/CompaniesManagement';
 import SkinDemo from './pages/SkinDemo';
-import ProductPage from './pages/ProductPage';
 
 const queryClient = new QueryClient();
 
@@ -228,17 +227,6 @@ function App() {
                 }
               />
 
-              {/* Product Routes */}
-              <Route
-                path="/products"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <ProductPage />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
             </Routes>

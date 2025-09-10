@@ -249,11 +249,13 @@ const TestUserPage = () => {
 
   const { startSession, shopperId } = useSessionStore();
   const { isTestCompleted, markTestCompleted } = useTestCompletionStore();
-  const isModalOpen = !shopperId;
-
   const [sessionStarted, setSessionStarted] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [captchaLoading, setCaptchaLoading] = useState(false);
+  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  
+  // Modal should show if no session started yet OR if captcha not verified
+  const isModalOpen = !sessionStarted || !captchaVerified || showCaptchaModal;
 
   const combinedData = data ? combineVariantsAndCompetitors(data) : null;
   const testSkin = combinedData?.skin ?? 'amazon';
@@ -264,60 +266,23 @@ const TestUserPage = () => {
     }
   }, [prolificPid]);
 
-  // Create session immediately when data is available
+  // Show captcha modal when data is available
   useEffect(() => {
-    let isCreatingSession = false;
-    
-    const createInitialSession = async () => {
-      if (data && !sessionStarted && !isCreatingSession) {
-        isCreatingSession = true;
-        try {
-          const result = processString(id ?? '');
-          const testId = result?.modifiedString ?? '';
-          const variant = result?.lastCharacter ?? '';
-          
-          // Check for existing session first
-          const existingSession = await checkAndFetchExistingSession(testId, variant);
-          
-          if (!existingSession) {
-            // Create new session immediately
-            const sessionId = await createNewSession(id ?? '', data, prolificPid);
-            if (sessionId) {
-              startSession(sessionId, data.id, data, new Date(), undefined, prolificPid);
-              setSessionStarted(true);
-              
-              // Restore analytics tracking
-              if (shopperId) {
-                const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}-prolificPID:${prolificPid}`);
-                tracker.trackWs('SessionEvents')?.(
-                  'Session Started',
-                  JSON.stringify({ sessionId, prolificPid }),
-                  'up'
-                );
-              }
-            }
-          } else {
-            // Use existing session
-            startSession(
-              existingSession.id,
-              data.id,
-              data,
-              new Date(existingSession.created_at),
-              existingSession.product_id ?? existingSession.competitor_id,
-              prolificPid
-            );
-            setSessionStarted(true);
-          }
-        } catch (error) {
-          console.error('Error creating initial session:', error);
-        } finally {
-          isCreatingSession = false;
-        }
+    if (data && !sessionStarted) {
+      // Check if test is already completed
+      const result = processString(id ?? '');
+      const testId = result?.modifiedString ?? '';
+      const variant = result?.lastCharacter ?? '';
+      
+      if (isTestCompleted(testId, variant)) {
+        // Test already completed, redirect to thanks page
+        navigate('/thanks', { state: { testId: id + '-' + variant } });
+        return;
       }
-    };
-
-    createInitialSession();
-  }, [data, id, prolificPid, sessionStarted, startSession, shopperId]);
+      
+      setShowCaptchaModal(true);
+    }
+  }, [data, sessionStarted, id, isTestCompleted, navigate]);
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {
@@ -345,51 +310,6 @@ const TestUserPage = () => {
     }
   };
 
-  const proceedWithTest = async () => {
-    try {
-      const result = processString(id ?? '');
-      const testId = result?.modifiedString ?? '';
-      const variant = result?.lastCharacter ?? '';
-
-      // Check for existing session
-      console.log('Checking for existing session with:', { testId, variant });
-      const existingSession: any = await checkAndFetchExistingSession(testId, variant);
-      console.log('Existing session result:', existingSession);
-
-      if (existingSession?.ended_at) {
-        markTestCompleted(testId, variant);
-        navigate('/thanks', { state: { testId: id + '-' + variant } });
-        return;
-      }
-
-      if (existingSession && combinedData) {
-        // Session already exists and is active
-        if (existingSession.product_id || existingSession.competitor_id) {
-          navigate('/questions');
-          return;
-        }
-
-        // Session exists but no product selected yet
-        if (!shopperId) return;
-
-        const tracker = getTracker(
-          `shopperSessionID:${shopperId}-testID:${id}-prolificPID:${prolificPid}`
-        );
-        tracker.trackWs('SessionEvents')?.(
-          'Session Resumed',
-          JSON.stringify({ sessionId: existingSession.id, prolificPid }),
-          'up'
-        );
-
-        return;
-      }
-
-      // This should not happen now since session is created on page load
-      console.warn('No session found, this should not happen');
-    } catch (error) {
-      console.error(`Error en proceedWithTest al procesar la sesión (ID: ${id}):`, error);
-    }
-  };
 
   const closeModal = async () => {
     // Only proceed if captcha is verified
@@ -397,7 +317,82 @@ const TestUserPage = () => {
       return;
     }
     
-    await proceedWithTest();
+    // Create session after captcha verification
+    await createSessionAfterCaptcha();
+  };
+
+  const createSessionAfterCaptcha = async () => {
+    if (!data || sessionStarted) return;
+    
+    try {
+      const result = processString(id ?? '');
+      const testId = result?.modifiedString ?? '';
+      const variant = result?.lastCharacter ?? '';
+      
+      // Check if test is already completed
+      if (isTestCompleted(testId, variant)) {
+        navigate('/thanks', { state: { testId: id + '-' + variant } });
+        return;
+      }
+      
+      // Check for existing session first
+      const existingSession = await checkAndFetchExistingSession(testId, variant);
+      
+      if (existingSession?.ended_at) {
+        markTestCompleted(testId, variant);
+        navigate('/thanks', { state: { testId: id + '-' + variant } });
+        return;
+      }
+      
+      if (existingSession) {
+        // Use existing session
+        startSession(
+          existingSession.id,
+          data.id,
+          data,
+          new Date(existingSession.created_at),
+          existingSession.product_id ?? existingSession.competitor_id,
+          prolificPid
+        );
+        setSessionStarted(true);
+        setShowCaptchaModal(false);
+        
+        // Restore analytics tracking for resumed session
+        const tracker = getTracker(
+          `shopperSessionID:${existingSession.id}-testID:${id}-prolificPID:${prolificPid}`
+        );
+        tracker.trackWs('SessionEvents')?.(
+          'Session Resumed',
+          JSON.stringify({ sessionId: existingSession.id, prolificPid }),
+          'up'
+        );
+        
+        // Check if user already selected a product
+        if (existingSession.product_id || existingSession.competitor_id) {
+          navigate('/questions');
+          return;
+        }
+      } else {
+        // Create new session
+        const sessionId = await createNewSession(id ?? '', data, prolificPid);
+        if (sessionId) {
+          startSession(sessionId, data.id, data, new Date(), undefined, prolificPid);
+          setSessionStarted(true);
+          setShowCaptchaModal(false);
+          
+          // Restore analytics tracking
+          const tracker = getTracker(`shopperSessionID:${sessionId}-testID:${id}-prolificPID:${prolificPid}`);
+          tracker.trackWs('SessionEvents')?.(
+            'Session Started',
+            JSON.stringify({ sessionId, prolificPid }),
+            'up'
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error creating session after captcha:', error);
+      toast.error('Failed to start session. Please try again.');
+    }
   };
 
   useEffect(() => {
