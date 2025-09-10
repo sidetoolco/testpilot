@@ -74,6 +74,7 @@ export function useTests() {
             name: test.name,
             status: test.status as 'draft' | 'active' | 'complete' | 'incomplete',
             searchTerm: test.search_term,
+            skin: test.skin || 'amazon',
             competitors: test.competitors?.map((c: any) => c.product) || [],
             variations: {
               a: test.variations?.find((v: any) => v.variation_type === 'a')?.product || null,

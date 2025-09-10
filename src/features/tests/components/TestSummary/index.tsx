@@ -44,14 +44,16 @@ export default function TestSummary({ test }: TestSummaryProps) {
     return <div>Loading...</div>; // Optional loading state if test data is missing
   }
 
-  const { name, createdAt, objective, status, companyName } = test;
+  const { name, createdAt, objective, status, companyName, skin } = test;
   const objectiveConfig = getObjectiveConfig(objective);
 
   return (
     <div className="max-w-[1400px] mx-auto px-4">
       <div className="flex items-center justify-between mb-2">
         <div>
+         {skin && <span className={`ml-1 text-lg font-medium ${skin === 'walmart' ? 'text-blue-600' : 'text-orange-600'}`}>{skin.charAt(0).toUpperCase() + skin.slice(1)}</span>}
           <h1 className="text-[2.5rem] text-[#1B1B1B] font-normal mb-2">
+           
             {name} 
             {isAdmin && companyName && <span className="text-gray-500 mr-2 text-lg pl-2">- {companyName} </span>}
           </h1>

@@ -662,6 +662,14 @@ export default function MyTests() {
                         <span className={config.textColor}>
                           {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                         </span>
+                        {test.skin && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <span className={`font-medium ${test.skin === 'walmart' ? 'text-blue-600' : 'text-orange-600'}`}>
+                              {test.skin.charAt(0).toUpperCase() + test.skin.slice(1)}
+                            </span>
+                          </>
+                        )}
                         {test.status === 'complete' && isAdmin && (
                           <>
                             <span className="hidden sm:inline">•</span>
@@ -834,24 +842,7 @@ export default function MyTests() {
                   size="small"
                   showAvailableCredits={true}
                   showInsufficientWarning={true}
-                />
-
-                <div className="mt-4">
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
-                      <div key={variation.id} className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-gray-700 font-medium">
-                            {variation.title || `Variation ${index + 1}`}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                />            
 
                 <p className="text-sm text-gray-500 mt-4">
                   This action will make the test available on Prolific.

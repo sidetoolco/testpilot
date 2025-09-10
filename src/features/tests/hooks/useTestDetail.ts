@@ -31,6 +31,7 @@ type TestResponse = {
   status: 'draft' | 'active' | 'complete' | 'incomplete';
   search_term: string;
   objective?: string;
+  skin?: 'amazon' | 'walmart';
   created_at: string;
   updated_at: string;
   company?: { name: string };
@@ -82,6 +83,7 @@ export function useTestDetail(id: string) {
             status,
             search_term,
             objective,
+            skin,
             created_at,
             company:companies(name),
             variations:test_variations(
@@ -124,24 +126,15 @@ export function useTestDetail(id: string) {
           console.error('Error fetching competitors:', competitorsError);
         }
 
-        // Fetch competitor products based on available IDs
+        // Fetch competitor products based on available IDs and skin
         let competitors: any[] = [];
         if (competitorsData && competitorsData.length > 0) {
           const competitorPromises = competitorsData.map(async (comp: any) => {
-            // Try to find the product in amazon_products first
             let product = null;
             
-            // Check amazon_products
-            const { data: amazonProduct } = await supabase
-              .from('amazon_products')
-              .select('id, title, image_url, price')
-              .eq('id', comp.product_id)
-              .single();
-            
-            if (amazonProduct) {
-              product = amazonProduct;
-            } else {
-              // Check walmart_products
+            // Fetch products based on the test's skin
+            if (typedTestData.skin === 'walmart') {
+              // For Walmart tests, only fetch from walmart_products
               const { data: walmartProduct } = await supabase
                 .from('walmart_products')
                 .select('id, title, image_url, price')
@@ -150,6 +143,17 @@ export function useTestDetail(id: string) {
               
               if (walmartProduct) {
                 product = walmartProduct;
+              }
+            } else {
+              // For Amazon tests (default), only fetch from amazon_products
+              const { data: amazonProduct } = await supabase
+                .from('amazon_products')
+                .select('id, title, image_url, price')
+                .eq('id', comp.product_id)
+                .single();
+              
+              if (amazonProduct) {
+                product = amazonProduct;
               }
             }
             
@@ -262,6 +266,7 @@ export function useTestDetail(id: string) {
           status: testDataWithCompetitors.status as 'draft' | 'active' | 'complete' | 'incomplete',
           searchTerm: testDataWithCompetitors.search_term,
           objective: testDataWithCompetitors.objective,
+          skin: testDataWithCompetitors.skin || 'amazon',
           competitors: testDataWithCompetitors.competitors?.map((c: any) => c.product) || [],
           variations: {
             a: getVariationWithProduct(testDataWithCompetitors.variations, 'a'),

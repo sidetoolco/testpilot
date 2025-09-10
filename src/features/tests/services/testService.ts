@@ -361,7 +361,7 @@ export const testService = {
       }
     }
   },
-  async getAllTests(): Promise<TestData[]> {
+  async getAllTests(): Promise<any[]> {
     try {
       const {
         data: { user },
@@ -383,12 +383,27 @@ export const testService = {
 
       const typedProfile = profile as Profile;
       
-      // Simplified query - just fetch basic test data without complex joins
+      // Fetch test data with necessary joins for credit calculation
       let query = supabase
         .from('tests')
         .select(`
           *,
-          company:companies(name)
+          company:companies(name),
+          demographics:test_demographics(
+            age_ranges,
+            genders,
+            locations,
+            interests,
+            tester_count
+          ),
+          variations:test_variations(
+            product:products(id, title, image_url, price),
+            variation_type
+          ),
+          custom_screening:custom_screening(
+            question,
+            valid_option
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -405,7 +420,7 @@ export const testService = {
       }
 
       console.log('✅ Tests fetched successfully:', tests?.length || 0);
-      return tests as unknown as TestResponse[];
+      return tests as unknown as any[];
     } catch (error) {
       console.error('Error fetching all tests:', error);
       throw new TestCreationError('Error fetching tests');
