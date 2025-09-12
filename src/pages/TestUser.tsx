@@ -285,7 +285,6 @@ const TestUserPage = () => {
 
   const handleCaptchaVerify = async (token: string | null) => {
     if (!token) {
-      console.log('No captcha token received');
       toast.error('Captcha verification failed. Please refresh the page and try again.');
       setCaptchaLoading(false);
       return;
@@ -293,18 +292,9 @@ const TestUserPage = () => {
 
     setCaptchaLoading(true);
     try {
-      console.log('Captcha token received:', token);
-      
-      // Simple frontend verification - sufficient for low-traffic sites
-      // The reCAPTCHA widget itself provides basic bot protection
       setCaptchaVerified(true);
       setCaptchaLoading(false);
-      
-      // Persist captcha verification state
       sessionStorage.setItem(`captchaVerified-${id}`, 'true');
-      
-      // Don't proceed with test here - just mark captcha as verified
-      // The test logic will run when user clicks "Ok" button
     } catch (error) {
       console.error('Captcha verification failed:', error);
       toast.error('Captcha verification failed. Please refresh the page and try again.');
@@ -468,6 +458,7 @@ const TestUserPage = () => {
                     addToCart={addToCart}
                     variantType={id ? id[id.length - 1] : ''}
                     testId={id ? id.slice(0, -2) : ''}
+                    mainProduct={combinedData.variations?.[0]?.product}
                   />
                 </div>
               </div>
@@ -509,6 +500,7 @@ const TestUserPage = () => {
                   addToCart={addToCart}
                   variantType={id ? id[id.length - 1] : ''}
                   testId={id ? id.slice(0, -2) : ''}
+                  mainProduct={combinedData.variations?.[0]?.product}
                 />
               </div>
             </div>

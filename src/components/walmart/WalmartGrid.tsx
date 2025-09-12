@@ -12,6 +12,7 @@ interface WalmartGridProps {
   addToCart: (item: any) => void;
   variantType: string;
   testId: string;
+  mainProduct?: any;
 }
 
 export default function WalmartGrid({
@@ -19,6 +20,7 @@ export default function WalmartGrid({
   addToCart,
   variantType,
   testId,
+  mainProduct,
 }: WalmartGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -39,7 +41,6 @@ export default function WalmartGrid({
     } else {
       addToCart(product);
       setCurrentProduct(product);
-      console.log(`Product added to cart: ${product.title}`);
       updateSession(product, shopperId);
       setIsModalOpen(true);
     }
@@ -74,15 +75,6 @@ export default function WalmartGrid({
 
   // Show product detail if a product is selected
   if (showProductDetail && selectedProduct) {
-    // Debug logging for product detail data
-    console.log('🔍 WalmartGrid - Showing product detail for:', {
-      selectedProduct,
-      hasDescription: !!(selectedProduct.description || selectedProduct.product_description || (selectedProduct.bullet_points && selectedProduct.bullet_points.length > 0)),
-      description: selectedProduct.description,
-      product_description: selectedProduct.product_description,
-      bullet_points: selectedProduct.bullet_points
-    });
-
     return (
       <>
         <WalmartProductDetail
@@ -194,12 +186,13 @@ export default function WalmartGrid({
             
             return (
               <WalmartProductCard
-                key={`walmart-product-card-${product.id || index}`}
+                key={`walmart-product-card-${product.id}-${index}`}
                 product={product}
                 onAddToCart={handleAddToCart}
                 onProductClick={handleProductClick}
                 variantType={variantType}
                 testId={testId}
+                mainProduct={mainProduct}
               />
             );
           })}

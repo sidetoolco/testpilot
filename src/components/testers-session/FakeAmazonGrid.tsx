@@ -11,6 +11,7 @@ interface PreviewGridProps {
   addToCart: (item: any) => void;
   variantType: string;
   testId: string;
+  mainProduct?: any;
 }
 
 export default function FakeAmazonGrid({
@@ -18,6 +19,7 @@ export default function FakeAmazonGrid({
   addToCart,
   variantType,
   testId,
+  mainProduct,
 }: PreviewGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
@@ -58,6 +60,7 @@ export default function FakeAmazonGrid({
                 onAddToCart={handleAddToCart}
                 variantType={variantType}
                 testId={testId}
+                mainProduct={mainProduct}
               />
             );
           })}

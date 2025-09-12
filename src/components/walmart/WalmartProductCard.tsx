@@ -10,6 +10,7 @@ interface WalmartProductCardProps {
   onProductClick: (product: any) => void;
   variantType: string;
   testId: string;
+  mainProduct?: any;
 }
 
 export default function WalmartProductCard({
@@ -18,6 +19,7 @@ export default function WalmartProductCard({
   onProductClick,
   variantType,
   testId,
+  mainProduct,
 }: WalmartProductCardProps) {
   const { shopperId } = useSessionStore();
   const { id, image_url, image, title, name, rating, reviews_count, price } = product;
@@ -34,10 +36,19 @@ export default function WalmartProductCard({
       if (shopperId && id && timeSpent > 0) {
         console.log(`Time spent on product: ${timeSpent / 1000} seconds`);
         // Record time spent in database for Walmart experience
-        recordTimeSpent(shopperId, id, startTime, endTime, false, true);
+        recordTimeSpent(
+          shopperId, 
+          id, 
+          startTime, 
+          endTime, 
+          true, 
+          true, 
+          mainProduct?.id, 
+          id
+        );
       }
     };
-  }, [shopperId, id]);
+  }, [shopperId, id, product.isMainProduct]);
 
   const handleProductClick = () => {
     trackEvent(

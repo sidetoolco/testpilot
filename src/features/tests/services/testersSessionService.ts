@@ -205,13 +205,37 @@ export const updateSession = async (
   return null;
 };
 
+// Helper function to get main product ID for a test
+const getMainProductId = async (testId: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('test_variations')
+      .select('product_id')
+      .eq('test_id', testId)
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching main product ID:', error);
+      return null;
+    }
+    
+    return data?.product_id || null;
+  } catch (error) {
+    console.error('Error in getMainProductId:', error);
+    return null;
+  }
+};
+
 export async function recordTimeSpent(
   testId: string,
   itemId: string,
   startTime: number,
   endTime: number,
   isCompetitor: boolean = false,
-  isWalmartExperience: boolean = false
+  isWalmartExperience: boolean = false,
+  mainProductId?: string,
+  competitorId?: string
 ): Promise<void> {
   const timeSpent = Math.floor(endTime - startTime);
   
@@ -263,7 +287,6 @@ export async function recordTimeSpent(
             if (walmartProduct && !walmartError) {
               column = 'walmart_product_id';
             } else {
-              console.warn(`❌ Product ${itemId} not found in amazon_products or walmart_products, skipping time tracking`);
               return;
             }
           }
@@ -298,18 +321,42 @@ export async function recordTimeSpent(
         throw updateError;
       }
     } else {
-      // Insert a new record
+      // Insert a new record with all required fields
       const insertData: any = { 
         testers_session: testId, 
-        time_spent: timeSpent / 1000 
+        time_spent: timeSpent / 1000,
+        click: 1 // Add click field as required
       };
+      
+      // Set the appropriate column based on product type
       insertData[column] = itemId;
+      
+      // Add competitor and product linking information
+      const actualMainProductId = mainProductId || await getMainProductId(testId);
+      
+      if (isWalmartExperience) {
+        // For Walmart tests, use walmart_product_id and product_id
+        insertData.walmart_product_id = itemId;
+        if (actualMainProductId) {
+          insertData.product_id = actualMainProductId;
+        }
+        // Don't set competitor_id for Walmart tests - it only accepts Amazon product IDs
+      } else {
+        // For Amazon tests, include proper competitor linking
+        if (isCompetitor && competitorId) {
+          insertData.competitor_id = competitorId;
+        }
+        if (actualMainProductId) {
+          insertData.product_id = actualMainProductId;
+        }
+      }
 
       const { data, error: insertError } = await supabase
         .from('test_times')
         .insert([insertData]);
 
       if (insertError) {
+        console.error('Error inserting timing data:', insertError);
         throw insertError;
       }
     }
@@ -374,15 +421,15 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       console.error('Error fetching competitors:', competitorsError);
     }
 
-    // Fetch competitor products based on product_type
+    // Fetch competitor products based on product_type or test skin
     let competitors = [];
-    console.log('🔍 fetchProductAndCompetitorData: competitorsData:', competitorsData);
-    console.log('🔍 fetchProductAndCompetitorData: competitorsData.length:', competitorsData?.length);
     
     if (competitorsData && competitorsData.length > 0) {
       const competitorPromises = competitorsData.map(async (comp) => {
         if (comp.product_id) {
-          if (comp.product_type === 'walmart_product') {
+          // Use the product_type field from the backend (now properly set)
+          const productType = comp.product_type;
+          if (productType === 'walmart_product') {
             // For Walmart products, fetch from walmart_products
             const product = await supabase
               .from('walmart_products')
@@ -391,12 +438,11 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
               .maybeSingle();
             
             if (product.data) {
-              console.log('🔍 Found Walmart product:', product.data.title, 'ID:', comp.product_id);
               return product.data;
             } else {
               console.warn(`Walmart product not found for ID: ${comp.product_id}`);
             }
-          } else if (comp.product_type === 'amazon_product') {
+          } else if (productType === 'amazon_product') {
             // For Amazon products, fetch from amazon_products
             const product = await supabase
               .from('amazon_products')
@@ -410,7 +456,7 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
               console.warn(`Amazon product not found for ID: ${comp.product_id}`);
             }
           } else {
-            console.warn(`Unknown product type: ${comp.product_type} for product ID: ${comp.product_id}`);
+            console.warn(`Unknown product type: ${productType} for product ID: ${comp.product_id}`);
           }
         }
         return null;
@@ -418,18 +464,11 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
 
       const competitorResults = await Promise.all(competitorPromises);
       competitors = competitorResults.filter(Boolean);
-      console.log('🔍 fetchProductAndCompetitorData: Final competitors count:', competitors.length);
-      console.log('🔍 fetchProductAndCompetitorData: Final competitors:', competitors);
-    } else {
-      console.log('🔍 fetchProductAndCompetitorData: No competitors data found');
-    }
+    } 
 
-    // Variations should always be included - they are the main product being tested
-    // For Walmart tests, check if variation exists in walmart_products table
     let filteredVariations = data.variations;
     
     if (data.skin === 'walmart') {
-      // For Walmart tests, try to find the variation in walmart_products table
       const variationPromises = filteredVariations.map(async (variation: any) => {
         if (variation.product && variation.product.id) {
           // Check if the product exists in walmart_products
@@ -488,8 +527,6 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
     }));
 
     const result = { ...data, variations: sessionData, competitors: competitorsWithCompany } as unknown as TestData;
-    console.log('🔍 fetchProductAndCompetitorData: Final result competitors count:', result.competitors?.length);
-    console.log('🔍 fetchProductAndCompetitorData: Final result competitors:', result.competitors);
     return result;
   } catch (error) {
     console.error('Error fetching test data:', error);

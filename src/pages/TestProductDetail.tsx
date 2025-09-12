@@ -92,10 +92,13 @@ export default function ProductDetail() {
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
         console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
-        if (product.asin) {
-          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
+        // Record time spent in database
+        if (product.walmart_id) {
+          // Walmart competitor product
+          recordTimeSpent(shopperId, product.id, startTime, endTime, true, true);
         } else {
-          recordTimeSpent(shopperId, product.id, startTime, endTime);
+          // Amazon competitor product or main product
+          recordTimeSpent(shopperId, product.id, startTime, endTime, true, false);
         }
       }
     };

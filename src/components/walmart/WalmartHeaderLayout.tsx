@@ -8,21 +8,27 @@ interface WalmartHeaderLayoutProps {
 }
 
 export default function WalmartHeaderLayout({ children, searchTerm }: WalmartHeaderLayoutProps) {
-  const { shopperId, status, sessionBeginTime, itemSelectedAtCheckout } = useSessionStore();
+  const { status, sessionBeginTime, itemSelectedAtCheckout } = useSessionStore();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    if (!sessionBeginTime) return;
+    const calculateElapsedTime = () => {
+      if (sessionBeginTime) {
+        const now = Date.now();
+        const elapsed = Math.floor((now - sessionBeginTime.getTime()) / 1000);
+        setElapsedTime(elapsed);
+        setError(null); // Clear any previous error
+      } else {
+        setError('Session has not started.');
+      }
+    };
 
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - sessionBeginTime.getTime();
-      setElapsedTime(elapsed);
-    }, 1000);
+    calculateElapsedTime();
+    const timer = setInterval(calculateElapsedTime, 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [sessionBeginTime]);
 
   const capitalizeFirstLetter = (str: string) => {

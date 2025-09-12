@@ -60,30 +60,9 @@ export interface WalmartProductDetail {
 export const walmartService = {
   async searchProducts(searchTerm: string): Promise<WalmartProduct[]> {
     try {
-      console.log('🔍 Walmart service: Searching for:', searchTerm);
-      console.log('🔍 Walmart service: API URL:', import.meta.env.VITE_API_URL || 'http://localhost:8080');
-      
       const { data: products } = await apiClient.get<WalmartProduct[]>('/walmart/products', {
         params: { term: searchTerm },
       });
-
-      console.log('🔍 Walmart service: Raw API response:', products);
-      console.log('🔍 Walmart service: First product sample:', products[0]);
-      console.log('🔍 Walmart service: Product count:', products.length);
-      
-      // Log each product's available fields
-      products.forEach((product, index) => {
-        console.log(`🔍 Walmart service: Product ${index} fields:`, {
-          title: product.title,
-          description: product.description,
-          product_description: product.product_description,
-          bullet_points: product.bullet_points,
-          hasDescription: !!(product.description || product.product_description || (product.bullet_points && product.bullet_points.length > 0)),
-          allKeys: Object.keys(product),
-          fullProduct: product
-        });
-      });
-
       if (!products.length) throw new Error('No products found');
 
       return products;
@@ -122,15 +101,11 @@ export const walmartService = {
 
   async saveProductsPreview(products: WalmartProduct[]): Promise<WalmartProduct[]> {
     try {
-      console.log('🔍 WalmartService: Saving products preview');
-      console.log('🔍 WalmartService: Products to save:', products);
-      
-      // Save to backend API only (like Amazon does)
+
       const { data: savedProducts } = await apiClient.post<WalmartProduct[]>('/walmart/products', {
         products,
       });
 
-      console.log('🔍 WalmartService: Products saved successfully:', savedProducts);
       return savedProducts;
     } catch (error: any) {
       console.error('Walmart save preview error:', error);
@@ -148,19 +123,10 @@ export const walmartService = {
 
   async saveProductsWithTest(products: WalmartProduct[], testId: string): Promise<WalmartProduct[]> {
     try {
-      console.log('🔍 WalmartService: Saving products with test ID:', testId);
-      console.log('🔍 WalmartService: Products to save:', products);
-      console.log('🔍 WalmartService: API endpoint:', `/walmart/products/${testId}`);
-      
-      // Log the exact data structure being sent
-      const requestData = { products };
-      console.log('🔍 WalmartService: Request payload:', JSON.stringify(requestData, null, 2));
-      
       const { data: savedProducts } = await apiClient.post<WalmartProduct[]>(`/walmart/products/${testId}`, {
         products,
       });
 
-      console.log('🔍 WalmartService: Products saved successfully:', savedProducts);
       return savedProducts;
     } catch (error: any) {
       console.error('Walmart save with test error:', error);
