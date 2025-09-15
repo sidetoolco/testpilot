@@ -212,8 +212,11 @@ export function useTestDetail(id: string) {
         }, surveysInitial);
 
         // Fetch comparison responses for the test
+        // Use the appropriate table based on test skin
+        const comparisonTable = typedTestData.skin === 'walmart' ? 'responses_comparisons_walmart' : 'responses_comparisons';
+        
         const { data: comparisonsData, error: comparisonsError } = await supabase
-          .from('responses_comparisons')
+          .from(comparisonTable)
           .select(
             `
           improve_suggestions,
@@ -253,7 +256,10 @@ export function useTestDetail(id: string) {
             const competitorData = competitorMap.get(item.competitor_id);
             acc[type].push({
               ...item,
-              ...(competitorData && { amazon_products: competitorData }),
+              ...(competitorData && { 
+                // Use the appropriate product key based on test skin
+                [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData 
+              }),
             });
           }
           return acc;

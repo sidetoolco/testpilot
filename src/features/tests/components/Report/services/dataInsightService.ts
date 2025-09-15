@@ -3,16 +3,13 @@ import apiClient from '../../../../../lib/api';
 
 export const checkIdInIaInsights = async (id: string) => {
   try {
-    console.log('Checking if AI insights exist for test:', id);
 
     const response = await apiClient.get(`/insights/${id}?type=ai`);
 
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-      console.log('AI insights found:', response.data[0]);
       return response.data[0];
     }
 
-    console.log('No AI insights found for test:', id);
     return false;
   } catch (error: any) {
     console.error('Error checking AI insights:', error);
@@ -155,8 +152,20 @@ export const getCompetitiveInsights = async (
   }
 
   try {
+    // First check if this is a Walmart test by looking at test_competitors
+    const competitors = await supabase
+      .from('test_competitors')
+      .select('product_type')
+      .eq('test_id', id as any);
+
+    const isWalmartTest = competitors.data?.some((c: any) => c.product_type === 'walmart_product');
+
+    // Use the appropriate table based on test type
+    const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
+    
+
     const { data: summaryData, error: summaryError } = await supabase
-      .from('competitive_insights')
+      .from(tableName)
       .select(
         '*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)'
       )
@@ -164,6 +173,7 @@ export const getCompetitiveInsights = async (
       .order('variant_type');
 
     if (summaryError) throw summaryError;
+
 
     const { data: testProductData, error: testProductError } = await supabase
       .from('summary')
@@ -185,34 +195,38 @@ export const getCompetitiveInsights = async (
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
 
-      const testProduct = testProductData?.find((item: any) => item.variant_type === variant);
+      const testProduct = (testProductData as any[])?.find((item: any) => item.variant_type === variant);
 
+      // Calculate total selections from comparison responses only
       const competitorSelections = variantItems.reduce(
         (sum: number, item: any) => sum + Number(item.count || 0),
         0
       );
 
+      // For competitive insights, we need to estimate test product selections
+      // Since comparison responses only track competitor choices, we need to estimate
+      // the test product's share based on the survey data
       let testProductSelections = 0;
       if (testProduct && (testProduct as any).share_of_buy) {
         const testProductPercentage = Number((testProduct as any).share_of_buy);
-
-        if (testProductPercentage >= 99.5) {
-          testProductSelections = Math.max(competitorSelections * 100, 1000);
-        } else if (testProductPercentage <= 0.5) {
-          testProductSelections = Math.max(
-            1,
-            Math.round(competitorSelections * (testProductPercentage / 100))
-          );
+        
+        // If test product has 100% in surveys, it means it got all the survey responses
+        // But in comparisons, we need to estimate how many would choose it vs competitors
+        // For now, let's estimate that if test product got 100% in surveys,
+        // it would get a reasonable share in comparisons too
+        if (testProductPercentage >= 99) {
+          // Estimate test product got some selections in comparisons
+          // This is a rough estimate - in reality, we'd need different data
+          testProductSelections = Math.max(1, Math.round(competitorSelections * 0.1));
         } else {
-          const estimatedTotalShoppers =
-            (competitorSelections / (100 - testProductPercentage)) * 100;
-          testProductSelections = Math.round(
-            (testProductPercentage / 100) * estimatedTotalShoppers
-          );
+          // For lower percentages, estimate based on the ratio
+          const estimatedTotal = (competitorSelections / (100 - testProductPercentage)) * 100;
+          testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotal);
         }
       }
 
       const totalSelections = competitorSelections + testProductSelections;
+
 
       const competitorResults = variantItems.map((item: any) => {
         const originalCompetitorProduct = item.competitor_product_id;
@@ -224,23 +238,35 @@ export const getCompetitiveInsights = async (
           id: `${competitorId}_${variant}`,
         };
 
+        // Recalculate share_of_buy based on actual counts
+        const competitorCount = Number(item.count || 0);
+        const recalculatedShareOfBuy = totalSelections > 0 
+          ? ((competitorCount / totalSelections) * 100).toFixed(2)
+          : '0.00';
+
         return {
           ...item,
           competitor_product_id: uniqueCompetitorProduct,
-          // Keep the original share_of_buy from the database (this was working before)
-          share_of_buy: item.share_of_buy,
+          // Use recalculated share_of_buy based on actual counts
+          share_of_buy: recalculatedShareOfBuy,
         };
       });
 
-      // Add test product data if available
+      // Add test product to competitive insights with estimated share
       if (testProduct) {
+        const testProductCount = testProductSelections;
+        const recalculatedTestProductShareOfBuy = totalSelections > 0 
+          ? ((testProductCount / totalSelections) * 100).toFixed(2)
+          : '0.00';
+
         const testProductResult = {
           ...testProduct,
           variant_type: variant,
           // Mark this as a test product (not a competitor)
           isTestProduct: true,
-          // Use the share_of_buy from the summary table
-          share_of_buy: testProduct.share_of_buy || 0,
+          // Use estimated share_of_buy based on comparison data
+          share_of_buy: recalculatedTestProductShareOfBuy,
+          count: testProductCount,
         };
         
         return [testProductResult, ...competitorResults];
@@ -255,6 +281,7 @@ export const getCompetitiveInsights = async (
       }
       return (b.share_of_buy || 0) - (a.share_of_buy || 0);
     });
+
 
     return {
       summaryData: sortedData,
@@ -283,11 +310,9 @@ export const getAiInsights = async (
   }
 
   try {
-    console.log('Fetching AI insights from backend API for test:', testId);
 
     const response = await apiClient.get(`/insights/${testId}?type=ai`);
 
-    console.log('AI insights fetched successfully from backend:', response.data);
 
     // Handle both array and single object responses
     let insights = response.data;

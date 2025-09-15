@@ -219,26 +219,42 @@ const PDFDocument = ({
   const safeAveragesurveys = averagesurveys || { summaryData: [] };
   const safeAiInsights = aiInsights || [];
 
+
+
   // Get all available variant keys that have data
   const availableVariants = Object.entries(testDetails.variations || {})
     .filter(([key, variation]) => {
-      if (!variation) return false;
+      // Only include variants that actually exist and have meaningful data
+      if (!variation || !variation.title || !variation.price) return false;
       
       // Check if this variant has any data
       const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
       const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
       
       // Check for AI insights in the new single object structure
-      const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
-        (key === 'a' ? safeAiInsights[0].competitive_insights_a :
-         key === 'b' ? safeAiInsights[0].competitive_insights_b :
-         key === 'c' ? safeAiInsights[0].competitive_insights_c :
-         null);
+      const aiInsightValue = key === 'a' ? safeAiInsights[0]?.competitive_insights_a :
+                            key === 'b' ? safeAiInsights[0]?.competitive_insights_b :
+                            key === 'c' ? safeAiInsights[0]?.competitive_insights_c :
+                            null;
       
-      return hasPurchaseData || hasCompetitiveData || hasAIInsights;
+      const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
+        aiInsightValue && 
+        aiInsightValue !== null && 
+        aiInsightValue !== 'null' && 
+        aiInsightValue.trim() !== '';
+
+      // Include variant ONLY if it has meaningful data AND has any type of insights
+      const hasAnyData = hasPurchaseData || hasCompetitiveData || hasAIInsights;
+      
+      // Additional check: if AI insights are null, don't include the variant
+      const shouldExcludeDueToNullAI = !hasPurchaseData && !hasCompetitiveData && (aiInsightValue === null || aiInsightValue === 'null');
+      
+      const willInclude = variation && variation.title && variation.price && hasAnyData && !shouldExcludeDueToNullAI;
+      return willInclude;
     })
     .map(([key, variation]) => ({ key, variation }))
     .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
+
 
   try {
     return (
@@ -286,13 +302,13 @@ const PDFDocument = ({
 
         {/* New structure: Competitive Insights with general text first */}
         {(() => {
+
           // Collect all competitive insights from AI insights
           const allVariantInsights: { [key: string]: string } = {};
           
           if (safeAiInsights && safeAiInsights.length > 0) {
             const mainInsight = safeAiInsights[0];
-            
-            // Add competitive insights for each available variant
+            // Add competitive insights for each available variant (only those that exist in the test)
             availableVariants.forEach(({ key }) => {
               const variantInsight = 
                 key === 'a' ? mainInsight.competitive_insights_a :
@@ -300,12 +316,14 @@ const PDFDocument = ({
                 key === 'c' ? mainInsight.competitive_insights_c :
                 null;
               
+              
               if (variantInsight && variantInsight.trim()) {
                 allVariantInsights[key] = variantInsight;
               }
             });
           }
 
+          
           // Show the section only if there are variant-specific insights (removed general insights)
           const hasVariantInsights = Object.keys(allVariantInsights).length > 0;
           
@@ -324,7 +342,14 @@ const PDFDocument = ({
         {/* Competitive Insights Tables - only for variants with data */}
         {availableVariants.map(({ key, variation }) => {
           const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+          const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
+            (key === 'a' ? safeAiInsights[0].competitive_insights_a :
+             key === 'b' ? safeAiInsights[0].competitive_insights_b :
+             key === 'c' ? safeAiInsights[0].competitive_insights_c :
+             null);
           
+          // Show competitive insights table if there's database competitive data (not AI insights)
+          // AI insights are shown in the text section above
           if (!hasCompetitiveData || !variation) return null;
           
           return (
@@ -502,9 +527,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useAuth();
+
+  // Debug useEffect to check data flow
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
@@ -623,6 +651,49 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       });
   };
 
+  const handleGenerateSummary = async () => {
+    if (!testDetails?.id) {
+      toast.error('No test ID available');
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+    try {
+      // Get JWT token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      const jwtToken = session?.access_token;
+      
+      if (!jwtToken) {
+        throw new Error('No JWT token found. Please log in again.');
+      }
+
+      const response = await fetch(`http://localhost:8080/insights/${testDetails.id}/generate-summary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      
+      toast.success(`Successfully generated summary data for ${result.results.length} variants`);
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error('Error generating summary data. Check console for details.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
@@ -652,6 +723,16 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           >
             <RefreshCcw size={20} />
             {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            disabled={isGeneratingSummary}
+            onClick={handleGenerateSummary}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <RefreshCcw size={20} />
+            {isGeneratingSummary ? 'Generating...' : 'Generate Summary Data'}
           </button>
         )}
 
