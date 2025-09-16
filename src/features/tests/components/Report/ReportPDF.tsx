@@ -732,7 +732,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             <RefreshCcw size={20} />
-            {isGeneratingSummary ? 'Generating...' : 'Generate Summary Data'}
+            {isGeneratingSummary ? 'Fetching Test Data...' : 'Fetch Test Data'}
           </button>
         )}
 
