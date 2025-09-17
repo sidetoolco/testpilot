@@ -131,7 +131,7 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
         
         <button
           onClick={handleButtonClick}
-          disabled={!captchaVerified || captchaLoading}
+          disabled={captchaLoading || !captchaVerified}
           className={`mt-4 py-2 px-6 md:px-7 rounded-full font-medium ${
             captchaVerified && !captchaLoading
               ? 'bg-[#00A67E] hover:bg-[#00A67E] text-white'
@@ -226,7 +226,6 @@ const TestUserPage = () => {
     ? searchParams.get('PROLIFIC_PID')
     : '123456789';
   const { data, loading, error } = useFetchTestData(id);
-  const [cartItems] = useState<any[]>([]);
 
   const { startSession, shopperId } = useSessionStore();
   const { isTestCompleted, markTestCompleted } = useTestCompletionStore();
@@ -405,12 +404,13 @@ const TestUserPage = () => {
   }, [shopperId, sessionStarted, id, loading]); // Solo se invoca el tracker cuando la sesión comienza.
 
   const addToCart = useCallback((item: any) => {
-    if (cartItems.length === 0) {
+    const hasSelection = Boolean(useSessionStore.getState().itemSelectedAtCheckout);
+    if (!hasSelection) {
       useSessionStore.getState().selectItemAtCheckout(item);
-      const tracker = getTracker('shopperSessionID:' + shopperId + '-' + 'testID:' + id);
+      const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
       tracker.trackWs('CartEvents')?.('Item Added', JSON.stringify({ item }), 'up');
     }
-  }, [cartItems.length, shopperId, id]);
+  }, [shopperId, id]);
 
   if (error) return <p>Error: {error}</p>;
 
