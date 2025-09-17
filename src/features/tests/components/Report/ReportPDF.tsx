@@ -587,10 +587,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const user = useAuth();
-
-  // Debug useEffect to check data flow
-
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
@@ -724,9 +720,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
     setIsGeneratingSummary(true);
     try {
-      const response = await apiClient.post(`/insights/${testDetails.id}/generate-summary`, {
-        testId: testDetails.id,
-      });
+      const response = await apiClient.post(`/insights/${testDetails.id}/generate-summary`);
 
       const result = response.data;
       
