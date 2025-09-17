@@ -14,6 +14,7 @@ import {
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useCredits } from '../features/credits/hooks/useCredits';
+import { testService } from '../features/tests/services/testService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
@@ -305,15 +306,15 @@ export default function MyTests() {
     }
   };
 
-  // Delete test using backend endpoint only
+  // Delete test using frontend service with cascade deletion
   const handleDeleteTest = async (testId: string, testName: string) => {
     setDeletingTests(prev => [...prev, testId]);
 
     try {
-      // Call backend endpoint to handle all deletion logic
-      await apiClient.delete(`/tests/${testId}`);
+      // Use the frontend testService with cascade deletion logic
+      await testService.deleteTest(testId);
 
-      // Axios automatically throws on 4xx/5xx status codes, so if we reach here, it was successful
+      // If successful, show success message
       toast.success(`Test "${testName}" deleted successfully`);
 
       // Add the test ID to the deleted list to hide it from UI
@@ -323,21 +324,14 @@ export default function MyTests() {
       setDeleteModal(null);
     } catch (error: any) {
       console.error('Error deleting test:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
       
       // Handle specific error responses
-      if (error.response?.status === 404) {
+      if (error.message?.includes('Test not found')) {
         toast.error('Test not found');
-      } else if (error.response?.status === 401) {
+      } else if (error.message?.includes('Unauthorized')) {
         toast.error('Unauthorized');
-      } else if (error.response?.status === 500) {
-        // Log detailed error information for debugging
-        const errorDetails = error.response?.data?.message || error.response?.data?.error || 'Internal server error';
-        console.error('Backend error details:', errorDetails);
-        toast.error(`Server error: ${errorDetails}`);
       } else {
-        toast.error(error.response?.data?.message || 'Failed to delete test. Please try again.');
+        toast.error(error.message || 'Failed to delete test. Please try again.');
       }
     } finally {
       setDeletingTests(prev => prev.filter(id => id !== testId));
@@ -468,7 +462,7 @@ export default function MyTests() {
   if (loading) {
     return (
       <div className="mx-auto px-8 py-6 w-full">
-        <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center">
+        <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
         </div>
       </div>
@@ -484,7 +478,7 @@ export default function MyTests() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/create-test')}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0A0A29] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0a0a29de] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
         >
           <Plus className="h-5 w-5" />
           <span>Create New Test</span>
@@ -668,6 +662,14 @@ export default function MyTests() {
                         <span className={config.textColor}>
                           {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
                         </span>
+                        {test.skin && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <span className={`font-medium ${test.skin === 'walmart' ? 'text-blue-600' : 'text-orange-600'}`}>
+                              {test.skin.charAt(0).toUpperCase() + test.skin.slice(1)}
+                            </span>
+                          </>
+                        )}
                         {test.status === 'complete' && isAdmin && (
                           <>
                             <span className="hidden sm:inline">•</span>
@@ -840,24 +842,7 @@ export default function MyTests() {
                   size="small"
                   showAvailableCredits={true}
                   showInsufficientWarning={true}
-                />
-
-                <div className="mt-4">
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    {confirmationModal.variantsArray.map((variation: Variation, index: number) => (
-                      <div key={variation.id} className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-gray-700 font-medium">
-                            {variation.title || `Variation ${index + 1}`}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                />            
 
                 <p className="text-sm text-gray-500 mt-4">
                   This action will make the test available on Prolific.

@@ -32,7 +32,7 @@ export function StatisticsCards({
         {/* Active Tests Card */}
         <motion.div
           whileHover={{ y: -4 }}
-          className="bg-gradient-to-br from-[#E3F9F3] to-[#F0FDFA] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all"
+          className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm hover:shadow-md"
         >
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-[#00A67E] bg-opacity-10 rounded-full flex items-center justify-center">
@@ -48,7 +48,7 @@ export function StatisticsCards({
         {/* Completed Tests Card */}
         <motion.div
           whileHover={{ y: -4 }}
-          className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all"
+          className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm hover:shadow-md "
         >
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-[#2E90FA] bg-opacity-10 rounded-full flex items-center justify-center">
@@ -64,7 +64,7 @@ export function StatisticsCards({
         {/* Available Credits Card */}
         <motion.div
           whileHover={{ y: -4 }}
-          className="rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all bg-primary-50"
+          className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm hover:shadow-md"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4">

@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
-import { useTests } from '../../features/tests/hooks/useTests';
+import ExperienceSelection from './ExperienceSelection';
 
 interface SearchTermEntryProps {
   value: string;
   onChange: (term: string) => void;
   onNext: () => void;
+  skin: 'amazon' | 'walmart';
+  onSkinChange: (skin: 'amazon' | 'walmart') => void;
 }
 
 const defaultSuggestions = [
@@ -17,16 +19,10 @@ const defaultSuggestions = [
   'Bathroom Cleaner',
 ];
 
-export default function SearchTermEntry({ value, onChange, onNext }: SearchTermEntryProps) {
-  const { tests, loading } = useTests();
-
+export default function SearchTermEntry({ value, onChange, onNext, skin, onSkinChange }: SearchTermEntryProps) {
   const allSuggestions = useMemo(() => {
-    if (loading) return [];
-    if (tests.length === 0) return defaultSuggestions;
-    return Array.from(
-      new Set([...defaultSuggestions, ...tests.map(test => test.searchTerm).filter(Boolean)])
-    );
-  }, [loading, tests]);
+    return defaultSuggestions;
+  }, []);
 
   const isExactMatch = allSuggestions.some(
     suggestion => suggestion.toLowerCase() === value.toLowerCase()
@@ -39,10 +35,17 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
         )
       : [];
 
-
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
   };
+
+  const handleContinue = () => {
+    if (value.trim() && skin) {
+      onNext();
+    }
+  };
+
+  const canContinue = value.trim().length > 0 && !!skin;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -65,8 +68,8 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
               value={value}
               onChange={e => onChange(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  onNext();
+                if (e.key === 'Enter' && canContinue) {
+                  handleContinue();
                 }
               }}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
@@ -90,12 +93,11 @@ export default function SearchTermEntry({ value, onChange, onNext }: SearchTermE
           )}
         </div>
 
-        <div className="bg-[#00A67E] bg-opacity-5 rounded-xl p-4">
-          <p className="text-sm text-gray-600">
-            <strong>Tip:</strong> Use broad category terms like "Fabric Softener" rather than
-            specific features or benefits. This ensures we capture all relevant competitors.
-          </p>
-        </div>
+        {/* Experience Selection */}
+        <ExperienceSelection
+          selectedExperience={skin}
+          onExperienceChange={onSkinChange}
+        />
       </div>
     </div>
   );

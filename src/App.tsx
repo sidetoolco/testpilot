@@ -33,6 +33,7 @@ import Billing from './pages/Billing';
 import Coupons from './pages/Coupons';
 import ExpertModeSettings from './pages/ExpertModeSettings';
 import CompaniesManagement from './pages/CompaniesManagement';
+import SkinDemo from './pages/SkinDemo';
 
 const queryClient = new QueryClient();
 
@@ -213,6 +214,19 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Demo Routes */}
+              <Route
+                path="/skin-demo"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <SkinDemo />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
             </Routes>

@@ -28,6 +28,7 @@ export interface Test {
   status: 'draft' | 'active' | 'complete' | 'incomplete';
   searchTerm: string;
   objective?: string;
+  skin?: 'amazon' | 'walmart';
   competitors: Product[];
   variations: {
     a: Product | null;

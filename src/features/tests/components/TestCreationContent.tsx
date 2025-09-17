@@ -65,6 +65,8 @@ export function TestCreationContent({
           value={testData.searchTerm}
           onChange={term => handleUpdateData('searchTerm', term)}
           onNext={onNext}
+          skin={testData.skin}
+          onSkinChange={skin => handleUpdateData('skin', skin)}
         />
       )}
 
@@ -74,6 +76,7 @@ export function TestCreationContent({
           selectedCompetitors={testData.competitors}
           onSearchTermChange={term => handleUpdateData('searchTerm', term)}
           onCompetitorsChange={competitors => handleUpdateData('competitors', competitors)}
+          skin={testData.skin}
         />
       )}
 
@@ -111,8 +114,7 @@ export function TestCreationContent({
           searchTerm={testData.searchTerm}
           competitors={testData.competitors}
           variations={testData.variations}
-          onNext={onNext}
-          onBack={onBack}
+          skin={testData.skin}
         />
       )}
 

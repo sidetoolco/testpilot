@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { Star, ShoppingCart } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
+import { AmazonProduct } from '../../../features/amazon/types';
 import AmazonHeader from './AmazonHeader';
 import AmazonNavigation from './AmazonNavigation';
-import PreviewGrid from './PreviewGrid';
 import ProductDetailModal from './ProductDetailModal';
-import { AmazonProduct } from '../../../features/amazon/types';
-import { supabase } from '../../../lib/supabase';
+import PreviewGrid from './PreviewGrid';
 
 interface ProductDetails {
   images: string[];
@@ -14,55 +15,66 @@ interface ProductDetails {
 interface AmazonPreviewProps {
   searchTerm: string;
   products: AmazonProduct[];
+  variations?: {
+    a: AmazonProduct | null;
+    b: AmazonProduct | null;
+    c: AmazonProduct | null;
+  };
 }
 
-export default function AmazonPreview({ searchTerm, products }: AmazonPreviewProps) {
+export default function AmazonPreview({ searchTerm, products, variations }: AmazonPreviewProps) {
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Function to check if a product is a variation (not a competitor)
+  const isVariation = (product: AmazonProduct): boolean => {
+    if (!variations) return false;
+    return Object.values(variations).some(variation => 
+      variation && (variation.id === product.id || variation.asin === product.asin)
+    );
+  };
+
   const handleProductClick = async (product: AmazonProduct) => {
     setIsLoading(true);
     try {
-      // Si el producto no tiene ASIN o está vacío, usamos sus datos directamente
-      if (!product.asin || product.asin.trim() === '') {
-        setProductDetails({
-          images: product.images || [product.image_url],
-          feature_bullets: product.bullet_points || [],
-        });
-        setSelectedProduct(product);
-        setIsLoading(false);
-        return;
-      }
-
-      // Si tiene ASIN, buscamos en la base de datos
+      // For Amazon products, search in the database using ASIN
       const { data, error } = await supabase
         .from('amazon_products')
         .select('*')
-        .eq('asin', product.asin)
+        .eq('asin', product.asin as any)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
       if (error) {
         console.error('Error fetching product details:', error);
-        // Si hay error, usamos los datos del producto
+        // If there's an error, use the product data with fallback
         setProductDetails({
-          images: product.images || [product.image_url],
+          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
           feature_bullets: product.bullet_points || [],
         });
       } else if (data) {
+        // Use the fetched data from database
+        console.log('Fetched product data from database:', data);
         setProductDetails({
-          images: data.images || product.images || [product.image_url],
-          feature_bullets: data.bullet_points || product.bullet_points || [],
+          images: data.images && data.images.length > 0 ? data.images : [data.image_url || product.image_url],
+          feature_bullets: data.bullet_points || data.feature_bullets || [],
+        });
+      } else {
+        // No data found, use product data
+        console.log('No data found, using product data:', product);
+        setProductDetails({
+          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
+          feature_bullets: product.bullet_points || product.feature_bullets || [],
         });
       }
       setSelectedProduct(product);
     } catch (error) {
       console.error('Error fetching product details:', error);
-      // En caso de error, usamos los datos del producto
+      // In case of error, use the product data
       setProductDetails({
-        images: product.images || [product.image_url],
+        images: product.images && product.images.length > 0 ? product.images : [product.image_url],
         feature_bullets: product.bullet_points || [],
       });
       setSelectedProduct(product);
@@ -94,7 +106,11 @@ export default function AmazonPreview({ searchTerm, products }: AmazonPreviewPro
         <div className="flex gap-4">
           {/* Product Grid */}
           <div className="flex-1">
-            <PreviewGrid products={products} onProductClick={handleProductClick} />
+            <PreviewGrid 
+              products={products} 
+              onProductClick={handleProductClick}
+              variations={variations}
+            />
           </div>
         </div>
       </div>

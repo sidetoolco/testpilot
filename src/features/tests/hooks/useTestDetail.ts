@@ -4,12 +4,34 @@ import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { useAuth } from '../../auth/hooks/useAuth';
 
+// Helper function to get completed sessions count for a test
+async function getCompletedSessionsCount(testId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('testers_session')
+      .select('*', { count: 'exact', head: true })
+      .eq('test_id', testId as any)
+      .not('ended_at', 'is', null);
+
+    if (error) {
+      console.error('Error fetching completed sessions count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error in getCompletedSessionsCount:', error);
+    return 0;
+  }
+}
+
 type TestResponse = {
   id: string;
   name: string;
   status: 'draft' | 'active' | 'complete' | 'incomplete';
   search_term: string;
   objective?: string;
+  skin?: 'amazon' | 'walmart';
   created_at: string;
   updated_at: string;
   company?: { name: string };
@@ -52,15 +74,16 @@ export function useTestDetail(id: string) {
           throw new Error('Usuario no autenticado');
         }
 
+        // Fetch test data without complex joins
         const { data: testData, error: testError } = await supabase
           .from('tests')
-          .select(
-            `
+          .select(`
             id,
             name,
             status,
             search_term,
             objective,
+            skin,
             created_at,
             company:companies(name),
             variations:test_variations(
@@ -69,18 +92,24 @@ export function useTestDetail(id: string) {
               prolific_status
             ),
             demographics:test_demographics(
-              age_ranges, genders, locations, interests, tester_count
+              age_ranges,
+              genders,
+              locations,
+              interests,
+              tester_count
             ),
             custom_screening:custom_screening(
-              question, valid_option
+              question,
+              valid_option
             )
-          `
-          )
-          .eq('id', id)
+          `)
+          .eq('id', id as any)
           .single();
 
-        if (testError) throw testError;
-        if (!testData) throw new Error('Test not found');
+        if (testError) {
+          console.error('Error fetching test:', testError);
+          throw testError;
+        }
 
         const typedTestData = testData as unknown as TestResponse;
 
@@ -91,30 +120,21 @@ export function useTestDetail(id: string) {
             id,
             product_id
           `)
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (competitorsError) {
           console.error('Error fetching competitors:', competitorsError);
         }
 
-        // Fetch competitor products based on available IDs
-        let competitors = [];
+        // Fetch competitor products based on available IDs and skin
+        let competitors: any[] = [];
         if (competitorsData && competitorsData.length > 0) {
-          const competitorPromises = competitorsData.map(async (comp) => {
-            // Try to find the product in amazon_products first
+          const competitorPromises = competitorsData.map(async (comp: any) => {
             let product = null;
             
-            // Check amazon_products
-            const { data: amazonProduct } = await supabase
-              .from('amazon_products')
-              .select('id, title, image_url, price')
-              .eq('id', comp.product_id)
-              .single();
-            
-            if (amazonProduct) {
-              product = amazonProduct;
-            } else {
-              // Check walmart_products
+            // Fetch products based on the test's skin
+            if (typedTestData.skin === 'walmart') {
+              // For Walmart tests, only fetch from walmart_products
               const { data: walmartProduct } = await supabase
                 .from('walmart_products')
                 .select('id, title, image_url, price')
@@ -123,6 +143,17 @@ export function useTestDetail(id: string) {
               
               if (walmartProduct) {
                 product = walmartProduct;
+              }
+            } else {
+              // For Amazon tests (default), only fetch from amazon_products
+              const { data: amazonProduct } = await supabase
+                .from('amazon_products')
+                .select('id, title, image_url, price')
+                .eq('id', comp.product_id)
+                .single();
+              
+              if (amazonProduct) {
+                product = amazonProduct;
               }
             }
             
@@ -155,7 +186,7 @@ export function useTestDetail(id: string) {
             )
           `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (surveysError) throw surveysError;
 
@@ -163,7 +194,7 @@ export function useTestDetail(id: string) {
         // Ensure required keys exist regardless of data presence
         const surveysInitial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
         
-        const surveysByType = surveysData.reduce((acc, item) => {
+        const surveysByType = (surveysData || []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
             // Map the product_id to the actual product data from test_variations
@@ -181,8 +212,11 @@ export function useTestDetail(id: string) {
         }, surveysInitial);
 
         // Fetch comparison responses for the test
+        // Use the appropriate table based on test skin
+        const comparisonTable = typedTestData.skin === 'walmart' ? 'responses_comparisons_walmart' : 'responses_comparisons';
+        
         const { data: comparisonsData, error: comparisonsError } = await supabase
-          .from('responses_comparisons')
+          .from(comparisonTable)
           .select(
             `
           improve_suggestions,
@@ -203,7 +237,7 @@ export function useTestDetail(id: string) {
           )
         `
           )
-          .eq('test_id', id);
+          .eq('test_id', id as any);
 
         if (comparisonsError) throw comparisonsError;
 
@@ -216,13 +250,16 @@ export function useTestDetail(id: string) {
         // Ensure required keys exist regardless of data presence
         const initial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
 
-        const comparisonsByType = (comparisonsData ?? []).reduce((acc, item) => {
+        const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
             const competitorData = competitorMap.get(item.competitor_id);
             acc[type].push({
               ...item,
-              ...(competitorData && { amazon_products: competitorData }),
+              ...(competitorData && { 
+                // Use the appropriate product key based on test skin
+                [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData 
+              }),
             });
           }
           return acc;
@@ -235,6 +272,7 @@ export function useTestDetail(id: string) {
           status: testDataWithCompetitors.status as 'draft' | 'active' | 'complete' | 'incomplete',
           searchTerm: testDataWithCompetitors.search_term,
           objective: testDataWithCompetitors.objective,
+          skin: testDataWithCompetitors.skin || 'amazon',
           competitors: testDataWithCompetitors.competitors?.map((c: any) => c.product) || [],
           variations: {
             a: getVariationWithProduct(testDataWithCompetitors.variations, 'a'),
@@ -260,10 +298,10 @@ export function useTestDetail(id: string) {
             surveys: surveysByType,
             comparisons: comparisonsByType,
           },
-          completed_sessions: (surveysData?.length || 0) + (comparisonsData?.length || 0),
+          completed_sessions: await getCompletedSessionsCount(testDataWithCompetitors.id),
           createdAt: testDataWithCompetitors.created_at,
           updatedAt: testDataWithCompetitors.created_at,
-          companyName: testDataWithCompetitors.company?.name || null,
+          companyName: testDataWithCompetitors.company?.name || undefined,
         };
 
         setTest(transformedTest);

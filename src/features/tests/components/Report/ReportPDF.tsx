@@ -21,6 +21,7 @@ import { useAuth } from '../../../auth/hooks/useAuth';
 import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
 import { useAdmin } from '../../../../hooks/useAdmin';
+import { getCompetitiveInsights } from './services/dataInsightService';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -83,7 +84,7 @@ const getChosenProduct = (
   }
 };
 
-const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData']) => {
+const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData'], isWalmartTest?: boolean) => {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
 
@@ -150,29 +151,85 @@ const generateExcelFile = (exportData: TestExportData, testName: string, shopper
     });
   }
 
-  // Generate file and download it
-  const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_export.xlsx`;
+  // Generate file and download it with proper naming
+  const storePrefix = isWalmartTest ? 'Walmart' : 'Amazon';
+  const cleanTestName = testName.replace(/[^a-zA-Z0-9]/g, '_');
+  const fileName = `${storePrefix}_${cleanTestName}_export.xlsx`;
   XLSX.writeFile(workbook, fileName);
 };
 
 const getTestExportData = async (testId: string): Promise<TestExportData | null> => {
   try {
-    const { data, error } = await supabase.rpc('get_test_export_data', {
-      input_test_id: testId,
-    });
+    // First, determine if this is a Walmart test
+    const { data: competitors } = await supabase
+      .from('test_competitors')
+      .select('product_type')
+      .eq('test_id', testId as any);
 
-    if (error) {
-      console.error('Error calling get_test_export_data RPC:', error);
-      throw error;
-    }
+    const isWalmartTest = competitors?.some((c: any) => c.product_type === 'walmart_product');
 
-    if (!data) {
-      console.warn('No data returned from get_test_export_data RPC');
-      return null;
-    }
+    // Get competitive insights data using the same logic as the PDF
+    const competitiveInsights = await getCompetitiveInsights(testId);
+    
+    // Get summary data
+    const { data: summaryData } = await supabase
+      .from('summary')
+      .select('*')
+      .eq('test_id', testId as any);
 
-    // Verify that the response has the expected structure
-    const exportData = data as TestExportData;
+    // Get purchase drivers data
+    const { data: purchaseDriversData } = await supabase
+      .from('purchase_drivers')
+      .select('*')
+      .eq('test_id', testId as any);
+
+    // Get shopper comments data
+    const commentsTable = isWalmartTest ? 'shopper_comments_walmart' : 'shopper_comments';
+    const { data: shopperCommentsData } = await supabase
+      .from(commentsTable)
+      .select('*')
+      .eq('test_id', testId as any);
+
+    // Transform competitive insights data for Excel export
+    const competitiveRatings = competitiveInsights.summaryData?.map((item: any) => {
+      // For test products, get title from product.title
+      // For competitor products, get title from competitor_product_id.title
+      let productTitle = 'Unknown Product';
+      
+      if (item.isTestProduct && item.product?.title) {
+        productTitle = item.product.title;
+      } else if (item.competitor_product_id?.title) {
+        productTitle = item.competitor_product_id.title;
+      } else if (item.title) {
+        productTitle = item.title;
+      }
+
+      return {
+        variant_type: item.variant_type,
+        product_title: productTitle,
+        share_of_buy: item.share_of_buy,
+        value: item.value || 0,
+        aesthetics: item.aesthetics || 0,
+        convenience: item.convenience || 0,
+        trust: item.trust || 0,
+        utility: item.utility || 0,
+        count: item.count || 0
+      };
+    }) || [];
+
+    // Filter out unwanted fields from summary results
+    const filteredSummaryData = summaryData?.map((item: any) => {
+      const { created_at, test_id, win, product_id, ...filteredItem } = item;
+      return filteredItem;
+    }) || [];
+
+    const exportData: TestExportData = {
+      summary_results: filteredSummaryData,
+      purchase_drivers: purchaseDriversData || [],
+      competitive_ratings: competitiveRatings,
+      shopper_comments: shopperCommentsData || []
+    };
+
     return exportData;
 
   } catch (error) {
@@ -219,26 +276,42 @@ const PDFDocument = ({
   const safeAveragesurveys = averagesurveys || { summaryData: [] };
   const safeAiInsights = aiInsights || [];
 
+
+
   // Get all available variant keys that have data
   const availableVariants = Object.entries(testDetails.variations || {})
     .filter(([key, variation]) => {
-      if (!variation) return false;
+      // Only include variants that actually exist and have meaningful data
+      if (!variation || !variation.title || !variation.price) return false;
       
       // Check if this variant has any data
       const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
       const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
       
       // Check for AI insights in the new single object structure
-      const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
-        (key === 'a' ? safeAiInsights[0].competitive_insights_a :
-         key === 'b' ? safeAiInsights[0].competitive_insights_b :
-         key === 'c' ? safeAiInsights[0].competitive_insights_c :
-         null);
+      const aiInsightValue = key === 'a' ? safeAiInsights[0]?.competitive_insights_a :
+                            key === 'b' ? safeAiInsights[0]?.competitive_insights_b :
+                            key === 'c' ? safeAiInsights[0]?.competitive_insights_c :
+                            null;
       
-      return hasPurchaseData || hasCompetitiveData || hasAIInsights;
+      const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
+        aiInsightValue && 
+        aiInsightValue !== null && 
+        aiInsightValue !== 'null' && 
+        aiInsightValue.trim() !== '';
+
+      // Include variant ONLY if it has meaningful data AND has any type of insights
+      const hasAnyData = hasPurchaseData || hasCompetitiveData || hasAIInsights;
+      
+      // Additional check: if AI insights are null, don't include the variant
+      const shouldExcludeDueToNullAI = !hasPurchaseData && !hasCompetitiveData && (aiInsightValue === null || aiInsightValue === 'null');
+      
+      const willInclude = variation && variation.title && variation.price && hasAnyData && !shouldExcludeDueToNullAI;
+      return willInclude;
     })
     .map(([key, variation]) => ({ key, variation }))
     .filter(({ variation }) => variation !== null); // Additional filter to ensure variation is not null
+
 
   try {
     return (
@@ -286,13 +359,13 @@ const PDFDocument = ({
 
         {/* New structure: Competitive Insights with general text first */}
         {(() => {
+
           // Collect all competitive insights from AI insights
           const allVariantInsights: { [key: string]: string } = {};
           
           if (safeAiInsights && safeAiInsights.length > 0) {
             const mainInsight = safeAiInsights[0];
-            
-            // Add competitive insights for each available variant
+            // Add competitive insights for each available variant (only those that exist in the test)
             availableVariants.forEach(({ key }) => {
               const variantInsight = 
                 key === 'a' ? mainInsight.competitive_insights_a :
@@ -300,12 +373,14 @@ const PDFDocument = ({
                 key === 'c' ? mainInsight.competitive_insights_c :
                 null;
               
+              
               if (variantInsight && variantInsight.trim()) {
                 allVariantInsights[key] = variantInsight;
               }
             });
           }
 
+          
           // Show the section only if there are variant-specific insights (removed general insights)
           const hasVariantInsights = Object.keys(allVariantInsights).length > 0;
           
@@ -324,7 +399,14 @@ const PDFDocument = ({
         {/* Competitive Insights Tables - only for variants with data */}
         {availableVariants.map(({ key, variation }) => {
           const hasCompetitiveData = safeCompetitiveInsights.summaryData?.filter((item: any) => item.variant_type === key)?.length > 0;
+          const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
+            (key === 'a' ? safeAiInsights[0].competitive_insights_a :
+             key === 'b' ? safeAiInsights[0].competitive_insights_b :
+             key === 'c' ? safeAiInsights[0].competitive_insights_c :
+             null);
           
+          // Show competitive insights table if there's database competitive data (not AI insights)
+          // AI insights are shown in the text section above
           if (!hasCompetitiveData || !variation) return null;
           
           return (
@@ -502,9 +584,12 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useAuth();
+
+  // Debug useEffect to check data flow
 
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
@@ -518,11 +603,19 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     setIsExportingExcel(true);
 
     try {
+      // Determine if this is a Walmart test
+      const { data: competitors } = await supabase
+        .from('test_competitors')
+        .select('product_type')
+        .eq('test_id', testDetails.id as any);
+
+      const isWalmartTest = competitors?.some((c: any) => c.product_type === 'walmart_product');
+
       const exportData = await getTestExportData(testDetails.id);
 
       if (exportData) {
         toast.success('Export data retrieved successfully');
-        generateExcelFile(exportData, testDetails.name, shopperComments, testData);
+        generateExcelFile(exportData, testDetails.name, shopperComments, testData, isWalmartTest);
       } else {
         toast.error('No data available for export');
       }
@@ -623,6 +716,49 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       });
   };
 
+  const handleGenerateSummary = async () => {
+    if (!testDetails?.id) {
+      toast.error('No test ID available');
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+    try {
+      // Get JWT token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      const jwtToken = session?.access_token;
+      
+      if (!jwtToken) {
+        throw new Error('No JWT token found. Please log in again.');
+      }
+
+      const response = await fetch(`http://localhost:8080/insights/${testDetails.id}/generate-summary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      
+      toast.success(`Successfully generated summary data for ${result.results.length} variants`);
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error('Error generating summary data. Check console for details.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 justify-center">
@@ -652,6 +788,16 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           >
             <RefreshCcw size={20} />
             {loadingInsights ? 'Regenerating Insights...' : 'Regenerate Insights'}
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            disabled={isGeneratingSummary}
+            onClick={handleGenerateSummary}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <RefreshCcw size={20} />
+            {isGeneratingSummary ? 'Fetching Test Data...' : 'Fetch Test Data'}
           </button>
         )}
 

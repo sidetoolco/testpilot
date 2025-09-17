@@ -92,11 +92,10 @@ export default function ProductDetail() {
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
         console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
-        if (product.asin) {
-          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
-        } else {
-          recordTimeSpent(shopperId, product.id, startTime, endTime);
-        }
+        // Record time spent in database
+        const isWalmart = Boolean(product.walmart_id);
+        const isCompetitor = Boolean(product.walmart_id || product.asin);
+        recordTimeSpent(shopperId, product.id, startTime, endTime, isCompetitor, isWalmart);
       }
     };
   }, [product]); // Dependencia en el producto para recalcular si cambia

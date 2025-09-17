@@ -4,6 +4,7 @@ import { styles } from '../utils/styles';
 import { TestDetails } from '../utils/types';
 import { Header } from './Header';
 import { PDFOrientation } from '../types';
+import { cleanImageUrlForPDF, getFallbackImageUrl } from '../utils/imageUtils';
 
 // Register Font Awesome font
 Font.register({
@@ -616,7 +617,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                         }}
                       >
                         <Image
-                          src={competitor.image_url}
+                          src={cleanImageUrlForPDF(competitor.image_url) || getFallbackImageUrl()}
                           style={{
                             width: '100%',
                             height: '100%',
@@ -647,7 +648,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                           }}
                         >
                           <Image
-                            src={variation.image_url}
+                            src={cleanImageUrlForPDF(variation.image_url) || getFallbackImageUrl()}
                             style={{
                               width: 60,
                               height: 60,
@@ -824,7 +825,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                     }}
                   >
                     <Image
-                      src={competitor.image_url}
+                      src={cleanImageUrlForPDF(competitor.image_url) || getFallbackImageUrl()}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -855,7 +856,7 @@ export const TestDetailsPDFSection: React.FC<TestDetailsPDFSectionProps> = ({
                       }}
                     >
                       <Image
-                        src={variation.image_url}
+                        src={cleanImageUrlForPDF(variation.image_url) || getFallbackImageUrl()}
                         style={{
                           width: 60,
                           height: 60,

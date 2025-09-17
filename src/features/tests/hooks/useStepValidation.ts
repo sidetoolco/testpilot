@@ -44,6 +44,9 @@ export const useStepValidation = (testData: TestData) => {
         if (!testData.searchTerm.trim()) {
           return 'Please enter a search term to define your competitive set';
         }
+        if (!testData.skin) {
+          return 'Please select an experience (Amazon or Walmart)';
+        }
         return 'Please complete all required fields';
       case 'search-competitors':
         if (!testData.searchTerm.trim()) {

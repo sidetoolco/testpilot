@@ -10,6 +10,7 @@ interface AmazonProductCardProps {
   onAddToCart: (product: any) => void;
   variantType: string;
   testId: string;
+  mainProduct?: any;
 }
 
 export default function AmazonProductCard({
@@ -17,6 +18,7 @@ export default function AmazonProductCard({
   onAddToCart: handleAddToCart,
   testId,
   variantType,
+  mainProduct,
 }: AmazonProductCardProps) {
   const { shopperId } = useSessionStore();
 
@@ -31,11 +33,19 @@ export default function AmazonProductCard({
       // Aquí puedes enviar el tiempo a un servidor o almacenarlo en algún lugar
       if (shopperId && product.id && timeSpent > 0) {
         console.log(`Tiempo gastado en el producto: ${timeSpent / 1000} segundos`);
-        if (product.asin) {
-          recordTimeSpent(shopperId, product.id, startTime, endTime, true);
-        } else {
-          recordTimeSpent(shopperId, product.id, startTime, endTime);
-        }
+        console.log(`Product isMainProduct: ${product.isMainProduct}`);
+        
+        // Record time spent in database for Amazon experience
+        recordTimeSpent(
+          shopperId, 
+          product.id, 
+          startTime, 
+          endTime, 
+          true, 
+          false, 
+          mainProduct?.id, 
+          product.id
+        );
       }
     };
   }, [product]);

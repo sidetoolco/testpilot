@@ -14,6 +14,7 @@ interface Competitor {
   convenience: number;
   trust: number;
   utility: number;
+  isTestProduct?: boolean;
 }
 
 interface CompetitiveInsightsTableSectionProps {
@@ -173,7 +174,6 @@ const Footer: React.FC = () => (
 
 export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableSectionProps> = ({
   variantKey,
-  variantTitle,
   competitiveinsights,
   orientation = 'landscape',
 }) => {
@@ -242,14 +242,19 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
 
   // Filter out invalid competitors and ensure data integrity
   const isFiniteNumber = (n: unknown) => typeof n === 'number' && Number.isFinite(n);
-  const validCompetitors = competitiveinsights.filter(competitor => 
-    competitor && 
-    isFiniteNumber(competitor.value) && 
-    isFiniteNumber(competitor.aesthetics) && 
-    isFiniteNumber(competitor.convenience) && 
-    isFiniteNumber(competitor.trust) && 
-    isFiniteNumber(competitor.utility)
-  );
+  const validCompetitors = competitiveinsights.filter(competitor => {
+    if (!competitor) return false;
+    
+    // Test products should always be included, even if they don't have all metrics
+    if (competitor.isTestProduct) return true;
+    
+    // For regular competitors, check that they have all required metrics
+    return isFiniteNumber(competitor.value) && 
+           isFiniteNumber(competitor.aesthetics) && 
+           isFiniteNumber(competitor.convenience) && 
+           isFiniteNumber(competitor.trust) && 
+           isFiniteNumber(competitor.utility);
+  });
 
   if (validCompetitors.length === 0) {
     return (
@@ -359,7 +364,8 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 )}
               </Text>
               <Text style={tableStyles.metricCell}>
-                {competitor.share_of_buy != null && !isNaN(competitor.share_of_buy) ? competitor.share_of_buy.toFixed(2) : '0.00'}%
+                {competitor.share_of_buy != null && !isNaN(Number(competitor.share_of_buy)) ? 
+                  (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(2)) : '0.00'}%
               </Text>
               <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value || 0) }}>
                 {(competitor.value || 0).toFixed(1)}

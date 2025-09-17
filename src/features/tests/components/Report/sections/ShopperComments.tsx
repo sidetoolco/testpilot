@@ -26,6 +26,12 @@ interface Comment {
     image_url: string;
     price: number;
   };
+  walmart_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
   competitor_id?: string;
 }
 
@@ -58,7 +64,8 @@ const getChosenProduct = (
   if (comment.competitor_id) {
     return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
   } else {
-    return comment.products || null;
+    // Check for both amazon_products and walmart_products
+    return comment.products || comment.amazon_products || comment.walmart_products || null;
   }
 };
 

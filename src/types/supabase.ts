@@ -211,6 +211,68 @@ export interface Database {
           created_at?: string;
         };
       };
+      walmart_products: {
+        Row: {
+          id: string;
+          walmart_id: string;
+          title: string;
+          price: number | null;
+          rating: number | null;
+          reviews_count: number | null;
+          image_url: string | null;
+          product_url: string | null;
+          search_term: string | null;
+          seller: string | null;
+          product_availability: string | null;
+          description: string | null;
+          product_short_description: string | null;
+          product_category: string | null;
+          brand: string | null;
+          company_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          walmart_id: string;
+          title: string;
+          price?: number | null;
+          rating?: number | null;
+          reviews_count?: number | null;
+          image_url?: string | null;
+          product_url?: string | null;
+          search_term?: string | null;
+          seller?: string | null;
+          product_availability?: string | null;
+          description?: string | null;
+          product_short_description?: string | null;
+          product_category?: string | null;
+          brand?: string | null;
+          company_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          walmart_id?: string;
+          title?: string;
+          price?: number | null;
+          rating?: number | null;
+          reviews_count?: number | null;
+          image_url?: string | null;
+          product_url?: string | null;
+          search_term?: string | null;
+          seller?: string | null;
+          product_availability?: string | null;
+          description?: string | null;
+          product_short_description?: string | null;
+          product_category?: string | null;
+          brand?: string | null;
+          company_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       responses_surveys: {
         Row: {
           id: string;

@@ -21,7 +21,8 @@ export function formatPrice(price: number): string {
 export function formatCredits(credits: number): string {
   return credits.toLocaleString('en-US', { 
     minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
+    maximumFractionDigits: 2,
+    useGrouping: false
   });
 }
 

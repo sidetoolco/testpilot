@@ -4,6 +4,7 @@ import { TestDetails } from '../utils/types';
 import logo from '../utils/testpilot-logo.png';
 import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
+import { cleanImageUrlForPDF, getFallbackImageUrl } from '../utils/imageUtils';
 
 // Register Font Awesome font
 Font.register({

@@ -5,30 +5,44 @@ export const checkAndFetchExistingSession = async (id: string, variant: string) 
   if (!id) {
     return null;
   }
+  
   const existingSessionId = localStorage.getItem('testerSessionId');
   const testId = id;
   const variationType = variant;
 
-  if (existingSessionId && testId) {
-    const { data, error } = await supabase
-      .from('testers_session')
-      .select(
-        `
-                *,
-                product_id:products(*),
-                competitor_id:amazon_products(*)
-            `
-      )
-      .eq('id', existingSessionId)
-      .eq('test_id', testId)
-      .eq('variation_type', variationType)
-      .single();
 
-    if (error) {
-      console.error('Error fetching the existing session from the database:', error);
+  if (existingSessionId && testId) {
+    try {
+      // First try to find the session by ID only
+      const { data: sessionById, error: idError } = await supabase
+        .from('testers_session')
+        .select('*')
+        .eq('id', existingSessionId)
+        .single();
+
+      if (idError) {
+        if (idError.code === 'PGRST116') {
+        } else {
+          console.error('Unexpected error fetching session:', idError);
+        }
+        localStorage.removeItem('testerSessionId');
+        return null;
+      }
+
+      // If session exists, check if it matches the current test
+      if (sessionById) {
+        
+        if (sessionById.test_id === testId && sessionById.variation_type === variationType) {
+          return sessionById;
+        } else {
+          localStorage.removeItem('testerSessionId');
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error('Error in checkAndFetchExistingSession:', error);
+      localStorage.removeItem('testerSessionId');
       return null;
-    } else if (data) {
-      return data; // Return the existing session data
     }
   }
   
@@ -105,21 +119,52 @@ export const createNewSession = async (
   return null;
 };
 
-interface CombinedData {
-  sessionId: any;
-  id: string;
-  asin: string;
-}
-
 export const updateSession = async (
-  combinedData: CombinedData,
+  product: any,
   sessionId: any
 ): Promise<string | null> => {
-  if (!combinedData || !sessionId) {
-    console.error('Invalid parameters: testId or combinedData is missing');
+  if (!product || !sessionId) {
+    console.error('Invalid parameters: product or sessionId is missing');
     return null;
   }
-  const isCompetitor = combinedData.asin;
+  
+  // Check if this is a Walmart product by looking for walmart_id
+  const isWalmartProduct = product.walmart_id;
+  // For Amazon products, check if it has asin (which indicates it's from amazon_products table)
+  const isAmazonProduct = product.asin;
+  // Determine if it's a competitor based on the product type
+  const isCompetitor = isAmazonProduct ? product.asin : false;
+  
+  // For Walmart products, we need to handle them differently since they don't exist in the products table
+  if (isWalmartProduct) {
+    try {
+      // For Walmart products, use walmart_product_id column to avoid foreign key constraints
+      const updateObject: any = { 
+        status: 'questions',
+        walmart_product_id: product.id, // Store Walmart product ID in walmart_product_id column
+        competitor_id: null, // Clear competitor_id for Walmart products
+        product_id: null // Clear product_id for Walmart products
+      };
+
+      const { error } = await supabase
+        .from('testers_session')
+        .update(updateObject)
+        .eq('id', sessionId)
+        .select('id');
+
+      if (error) {
+        console.error('Error updating session for Walmart product:', error);
+        return null;
+      }
+      
+      return sessionId;
+    } catch (error) {
+      console.error('Unexpected error while updating session for Walmart product:', error);
+      return null;
+    }
+  }
+  
+  // Handle Amazon products as before
   const column = isCompetitor ? 'competitor_id' : 'product_id';
 
   try {
@@ -136,7 +181,7 @@ export const updateSession = async (
     }
 
     // Prepare the update object to clear existing IDs
-    const updateObject: any = { status: 'questions', [column]: combinedData.id };
+    const updateObject: any = { status: 'questions', [column]: product.id };
     if (existingData) {
       if (existingData.competitor_id) updateObject.competitor_id = null;
       if (existingData.product_id) updateObject.product_id = null;
@@ -160,56 +205,160 @@ export const updateSession = async (
   return null;
 };
 
+// Helper function to get main product ID for a test
+const getMainProductId = async (testId: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('test_variations')
+      .select('product_id')
+      .eq('test_id', testId)
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching main product ID:', error);
+      return null;
+    }
+    
+    return data?.product_id || null;
+  } catch (error) {
+    console.error('Error in getMainProductId:', error);
+    return null;
+  }
+};
+
 export async function recordTimeSpent(
   testId: string,
   itemId: string,
   startTime: number,
   endTime: number,
-  isCompetitor: boolean = false
+  isCompetitor: boolean = false,
+  isWalmartExperience: boolean = false,
+  mainProductId?: string,
+  competitorId?: string
 ): Promise<void> {
   const timeSpent = Math.floor(endTime - startTime);
-  const column = isCompetitor ? 'competitor_id' : 'product_id';
-
+  
   try {
+    let column: 'competitor_id' | 'product_id' | 'walmart_product_id';
+    
+    if (isWalmartExperience) {
+      // In Walmart experience, verify the product exists before tracking
+      try {
+        const { data: walmartProduct, error: walmartError } = await supabase
+          .from('walmart_products')
+          .select('id')
+          .eq('id', itemId)
+          .single();
+        
+        if (walmartProduct && !walmartError) {
+          // Product exists, use walmart_product_id column
+          column = 'walmart_product_id';
+        } else {
+          // Product doesn't exist in walmart_products, skip tracking
+          console.warn(`Walmart product ${itemId} not found in database, skipping time tracking`);
+          return;
+        }
+      } catch (error) {
+        // Product lookup failed, skip tracking
+        console.warn(`Failed to verify Walmart product ${itemId}, skipping time tracking:`, error);
+        return;
+      }
+      } else {
+        try {
+
+          const { data: amazonProduct, error: amazonError } = await supabase
+            .from('amazon_products')
+            .select('id, asin')
+            .eq('id', itemId)
+            .single();
+             
+          if (amazonProduct && !amazonError) {
+            // This is an Amazon product, use the original logic
+            column = isCompetitor ? 'competitor_id' : 'product_id';
+          } else {
+            // Check if it's a Walmart product
+            const { data: walmartProduct, error: walmartError } = await supabase
+              .from('walmart_products')
+              .select('id, walmart_id')
+              .eq('id', itemId)
+              .single();
+                     
+            if (walmartProduct && !walmartError) {
+              column = 'walmart_product_id';
+            } else {
+              return;
+            }
+          }
+        } catch (error) {
+          column = isCompetitor ? 'competitor_id' : 'product_id';
+        }
+      }
+
     // Check if the record already exists
-    const { data: existingData, error: fetchError } = await supabase
+    const { data: existingRecords, error: fetchError } = await supabase
       .from('test_times')
       .select('id, time_spent')
       .eq('testers_session', testId)
-      .eq(column, itemId)
-      .single();
+      .eq(column, itemId);
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 is the code for no rows found
+    if (fetchError) {
+      console.error('Error fetching existing time records:', fetchError);
       throw fetchError;
     }
+
+    const existingData = existingRecords && existingRecords.length > 0 ? existingRecords[0] : null;
 
     if (existingData) {
       // Update the existing record
       const newTimeSpent = existingData.time_spent + timeSpent / 1000;
       const { error: updateError } = await supabase
         .from('test_times')
-        .update({ time_spent: newTimeSpent } as any)
+        .update({ time_spent: newTimeSpent })
         .eq('id', existingData.id);
 
       if (updateError) {
         throw updateError;
       }
-
-      console.log('Time updated successfully:', newTimeSpent);
     } else {
-      // Insert a new record
-      const { data, error: insertError } = await supabase
-        .from('test_times')
-        .insert([
-          { testers_session: testId, [column]: itemId, time_spent: timeSpent / 1000 },
-        ] as any);
-
-      if (insertError) {
-        throw insertError;
+      // Insert a new record with all required fields
+      const insertData: any = { 
+        testers_session: testId, 
+        time_spent: timeSpent / 1000,
+        click: 1 // Add click field as required
+      };
+      
+      // Set the appropriate column based on product type
+      insertData[column] = itemId;
+      
+      // Add competitor and product linking information
+      const actualMainProductId = mainProductId || await getMainProductId(testId);
+      
+      if (isWalmartExperience) {
+        // For Walmart tests, use walmart_product_id and product_id
+        insertData.walmart_product_id = itemId;
+        if (actualMainProductId) {
+          insertData.product_id = actualMainProductId;
+        }
+        // Don't set competitor_id for Walmart tests - it only accepts Amazon product IDs
+      } else {
+        // For Amazon tests, include proper competitor linking
+        if (isCompetitor && competitorId) {
+          insertData.competitor_id = competitorId;
+        }
+        if (actualMainProductId) {
+          insertData.product_id = actualMainProductId;
+        }
       }
 
-      console.log('Data inserted successfully:', data);
+      const { data, error: insertError } = await supabase
+        .from('test_times')
+        .insert([insertData]);
+
+      if (insertError) {
+        console.error('Error inserting timing data:', insertError);
+        throw insertError;
+      }
     }
   } catch (error) {
     console.error('Error processing time spent:', error);
@@ -263,7 +412,8 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       .from('test_competitors')
       .select(`
         id,
-        product_id
+        product_id,
+        product_type
       `)
       .eq('test_id', testId);
 
@@ -271,43 +421,88 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       console.error('Error fetching competitors:', competitorsError);
     }
 
-    // Fetch competitor products based on available IDs
+    // Fetch competitor products based on product_type or test skin
     let competitors = [];
+    
     if (competitorsData && competitorsData.length > 0) {
       const competitorPromises = competitorsData.map(async (comp) => {
-        // Try to find the product in amazon_products first
-        let product = null;
-        
-        // Check amazon_products
-        const { data: amazonProduct } = await supabase
-          .from('amazon_products')
-          .select('*, company:companies(name)')
-          .eq('id', comp.product_id)
-          .single();
-        
-        if (amazonProduct) {
-          product = amazonProduct;
-        } else {
-          // Check walmart_products
-          const { data: walmartProduct } = await supabase
-            .from('walmart_products')
-            .select('*, company:companies(name)')
-            .eq('id', comp.product_id)
-            .single();
-          
-          if (walmartProduct) {
-            product = walmartProduct;
+        if (comp.product_id) {
+          // Use the product_type field from the backend (now properly set)
+          const productType = comp.product_type;
+          if (productType === 'walmart_product') {
+            // For Walmart products, fetch from walmart_products
+            const product = await supabase
+              .from('walmart_products')
+              .select('*')
+              .eq('id', comp.product_id)
+              .maybeSingle();
+            
+            if (product.data) {
+              return product.data;
+            } else {
+              console.warn(`Walmart product not found for ID: ${comp.product_id}`);
+            }
+          } else if (productType === 'amazon_product') {
+            // For Amazon products, fetch from amazon_products
+            const product = await supabase
+              .from('amazon_products')
+              .select('*')
+              .eq('id', comp.product_id)
+              .maybeSingle();
+            
+            if (product.data) {
+              return product.data;
+            } else {
+              console.warn(`Amazon product not found for ID: ${comp.product_id}`);
+            }
+          } else {
+            console.warn(`Unknown product type: ${productType} for product ID: ${comp.product_id}`);
           }
         }
-        
-        return product;
+        return null;
       });
 
       const competitorResults = await Promise.all(competitorPromises);
       competitors = competitorResults.filter(Boolean);
+    } 
+
+    let filteredVariations = data.variations;
+    
+    if (data.skin === 'walmart') {
+      const variationPromises = filteredVariations.map(async (variation: any) => {
+        if (variation.product && variation.product.id) {
+          // Check if the product exists in walmart_products
+          const { data: walmartProduct } = await supabase
+            .from('walmart_products')
+            .select('*')
+            .eq('id', variation.product.id)
+            .maybeSingle();
+          
+          if (walmartProduct) {
+            // Use the Walmart product data
+            return {
+              ...variation,
+              product: walmartProduct
+            };
+          } else {
+            // Keep the original product data but add walmart_id if missing
+            console.warn(`Variation product ${variation.product.id} not found in walmart_products, using generic product data`);
+            return {
+              ...variation,
+              product: {
+                ...variation.product,
+                walmart_id: variation.product.walmart_id || variation.product.id // Use product ID as fallback
+              }
+            };
+          }
+        }
+        return variation;
+      });
+      
+      filteredVariations = await Promise.all(variationPromises);
     }
 
-    const sessionData = (data.variations as any[]).map((session: any) => {
+    const sessionData = filteredVariations.map((session: any) => {
       if (session.product && session.product.company?.name) {
         session.product.brand = session.product.company.name;
         delete session.product.company;
@@ -315,7 +510,24 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
       return session;
     });
 
-    return { ...data, variations: sessionData, competitors } as unknown as TestData;
+    // Add company information to competitors if they have company_id
+    const competitorsWithCompany = await Promise.all(competitors.map(async (competitor: any) => {
+      if (competitor.company_id) {
+        const { data: company } = await supabase
+          .from('companies')
+          .select('name')
+          .eq('id', competitor.company_id)
+          .single();
+        
+        if (company) {
+          competitor.brand = company.name;
+        }
+      }
+      return competitor;
+    }));
+
+    const result = { ...data, variations: sessionData, competitors: competitorsWithCompany } as unknown as TestData;
+    return result;
   } catch (error) {
     console.error('Error fetching test data:', error);
     return null;

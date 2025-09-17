@@ -11,6 +11,7 @@ interface PreviewGridProps {
   addToCart: (item: any) => void;
   variantType: string;
   testId: string;
+  mainProduct?: any;
 }
 
 export default function FakeAmazonGrid({
@@ -18,6 +19,7 @@ export default function FakeAmazonGrid({
   addToCart,
   variantType,
   testId,
+  mainProduct,
 }: PreviewGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
@@ -36,7 +38,6 @@ export default function FakeAmazonGrid({
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentProduct(null);
-    setIsRedirectModalOpen(true);
   };
 
   const handleRedirectClose = () => {
@@ -48,15 +49,21 @@ export default function FakeAmazonGrid({
     <>
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <AmazonProductCard
-              key={`amazon-product-card-${product.id}`}
-              product={product}
-              onAddToCart={handleAddToCart}
-              variantType={variantType}
-              testId={testId}
-            />
-          ))}
+          {products.map((item, index) => {
+            // Handle both direct products and wrapped variations
+            const product = item.product || item;
+            
+            return (
+              <AmazonProductCard
+                key={`amazon-product-card-${product?.id || index}`}
+                product={product}
+                onAddToCart={handleAddToCart}
+                variantType={variantType}
+                testId={testId}
+                mainProduct={mainProduct}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -87,7 +94,7 @@ export default function FakeAmazonGrid({
             <div className="mt-4 flex justify-around">
               <button
                 className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-4 rounded"
-                onClick={closeModal}
+                onClick={() => navigate('/questions')}
               >
                 Go to Checkout
               </button>

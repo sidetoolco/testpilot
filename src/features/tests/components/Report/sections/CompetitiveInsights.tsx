@@ -70,6 +70,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   const currentVariantInsight = getInsightForVariant(selectedVariant);
 
   // Filter competitive insights for selected variant and sort by share of buy
+
   const filtered = competitiveinsights
     .filter(item => item.variant_type === selectedVariant)
     .sort((a, b) => {
@@ -80,6 +81,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
       // If both are test products or both are competitors, sort by share of buy
       return Number(b.share_of_buy || 0) - Number(a.share_of_buy || 0);
     });
+
 
   // The filtered data now includes both test product and competitors from the dataInsightService
   const filteredInsights = filtered;
@@ -96,18 +98,29 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   ];
   const columnCount = headers.length;
 
-  // Get available variants from both competitive insights and AI insights
+  // Get available variants only from competitive insights data
+  // Only show variants that actually have competitive insights data
   const availableVariants = [
-    ...new Set([
-      ...competitiveinsights.map(item => item.variant_type),
-      // Check which variants have competitive insights in the single AI insight object
-      ...(insight ? [
-        ...(insight.competitive_insights_a ? ['a'] : []),
-        ...(insight.competitive_insights_b ? ['b'] : []),
-        ...(insight.competitive_insights_c ? ['c'] : [])
-      ] : []),
-    ]),
+    ...new Set(competitiveinsights.map(item => item.variant_type))
   ].sort();
+
+
+  // If selected variant is not available, switch to the first available variant
+  if (availableVariants.length > 0 && !availableVariants.includes(selectedVariant)) {
+    setSelectedVariant(availableVariants[0] as 'a' | 'b' | 'c');
+  }
+
+  // If no variants have competitive insights data, show a message
+  if (availableVariants.length === 0) {
+    return (
+      <div className="w-full p-4 bg-white rounded-xl shadow-sm">
+        <h2 className="text-xl font-bold mb-6 text-gray-800 text-start">Competitive Insights</h2>
+        <div className="text-center py-8 text-gray-500">
+          No competitive insights data available for this test.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-4 bg-white rounded-xl shadow-sm">

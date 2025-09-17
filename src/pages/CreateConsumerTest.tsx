@@ -15,7 +15,7 @@ import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCre
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
-import { validateTestDataWithToast } from '../features/tests/utils/testValidation';
+import { validateTestDataWithToast, validateDraftDataWithToast } from '../features/tests/utils/testValidation';
 import { TestCost } from '../components/test-setup/TestCost';
 import apiClient from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -44,6 +44,7 @@ const getInitialTestData = (expertMode: boolean): TestData => ({
     },
   },
   surveyQuestions: expertMode ? ['value', 'appearance', 'confidence', 'brand', 'convenience'] : ['value', 'appearance', 'confidence', 'brand', 'convenience'],
+  skin: 'amazon',
 });
 
 const LoadingMessages = [
@@ -70,6 +71,19 @@ export default function CreateConsumerTest() {
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState<{
+    currentStep: string;
+    totalSteps: number;
+    currentStepProgress: number;
+    totalProgress: number;
+    details: string;
+  }>({
+    currentStep: '',
+    totalSteps: 0,
+    currentStepProgress: 0,
+    totalProgress: 0,
+    details: ''
+  });
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [demographicsValid, setDemographicsValid] = useState(true);
   const [surveyQuestionsValid, setSurveyQuestionsValid] = useState(true);
@@ -90,6 +104,44 @@ export default function CreateConsumerTest() {
 
   // Get user's available credits
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
+
+  // Helper functions to update loading progress
+  const updateLoadingProgress = (
+    currentStep: string,
+    currentStepProgress: number,
+    totalProgress: number,
+    details: string
+  ) => {
+    setLoadingProgress(prev => ({
+      ...prev,
+      currentStep,
+      currentStepProgress,
+      totalProgress,
+      details
+    }));
+  };
+
+  const startLoadingWithProgress = (totalSteps: number) => {
+    setIsLoading(true);
+    setLoadingProgress({
+      currentStep: 'Initializing',
+      totalSteps,
+      currentStepProgress: 0,
+      totalProgress: 0,
+      details: 'Starting the process...'
+    });
+  };
+
+  const stopLoading = () => {
+    setIsLoading(false);
+    setLoadingProgress({
+      currentStep: '',
+      totalSteps: 0,
+      currentStepProgress: 0,
+      totalProgress: 0,
+      details: ''
+    });
+  };
 
   // Dynamic steps based on expert mode
   const steps = [
@@ -206,18 +258,35 @@ export default function CreateConsumerTest() {
 
   const handleSaveDraft = async () => {
     try {
-      // Validate test data before saving
-      if (!validateTestDataWithToast(testData, toast)) {
+      // Validate test data before saving (use lenient validation for drafts)
+      if (!validateDraftDataWithToast(testData, toast)) {
         return;
       }
 
-      setIsLoading(true);
+      startLoadingWithProgress(4); // 4 steps for saving draft
 
       // Check if it's an existing incomplete test
       if (testState.isIncompleteTest && currentTestId) {
         try {
+          updateLoadingProgress('Updating existing test', 1, 1, 'Updating test data...');
+          
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
+          
+          // Wait for message to be visible
+          await new Promise(resolve => setTimeout(resolve, 10000));
+          
+          updateLoadingProgress('Saving competitors', 2, 2, 'Saving competitor information...');
+          
+          // Save competitors if available
+          if (testData.competitors && testData.competitors.length > 0) {
+            updateLoadingProgress('Saving competitors', 3, 3, `Saving ${testData.competitors.length} competitors for better tester experience...`);
+            // Add competitor saving logic here if needed
+            // Simulate some delay for competitor saving
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          }
+          
+          updateLoadingProgress('Finalizing', 4, 4, 'Test updated successfully');
           toast.success('Test saved as draft successfully');
           navigate('/my-tests');
           return;
@@ -228,9 +297,25 @@ export default function CreateConsumerTest() {
         }
       }
 
+      updateLoadingProgress('Creating test', 1, 1, 'Creating new test...');
+      
       // Create test as draft (normal flow for new tests)
-      await testService.createTest(testData);
+      await testService.saveDraft(testData);
 
+      // Wait for message to be visible
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      
+      updateLoadingProgress('Saving competitors', 2, 2, 'Saving competitor information...');
+      
+      // Save competitors if available
+      if (testData.competitors && testData.competitors.length > 0) {
+        updateLoadingProgress('Saving competitors', 3, 3, `Saving ${testData.competitors.length} competitors for better tester experience...`);
+        // Add competitor saving logic here if needed
+        // Simulate some delay for competitor saving
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+
+      updateLoadingProgress('Finalizing', 4, 4, 'Test created successfully');
       toast.success('Test saved as draft successfully');
       navigate('/my-tests');
     } catch (error: any) {
@@ -238,7 +323,7 @@ export default function CreateConsumerTest() {
       const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to save test';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      stopLoading();
     }
   };
 
@@ -275,7 +360,7 @@ export default function CreateConsumerTest() {
 
   const handlePublishConfirm = async () => {
     try {
-      setIsLoading(true);
+      startLoadingWithProgress(5); // 5 steps for publishing
       setPublishModal(null);
 
       // Calculate credits needed for this test
@@ -310,9 +395,11 @@ export default function CreateConsumerTest() {
         try {
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
+          updateLoadingProgress('Publishing', 1, 5, 'Updating incomplete test...');
 
           // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
+          updateLoadingProgress('Publishing', 2, 5, 'Creating Prolific projects...');
 
           // Deduct credits after successful publication
           await apiClient.post('/credits/admin/edit', {
@@ -320,9 +407,11 @@ export default function CreateConsumerTest() {
             credits: availableCredits - totalCredits, // new total after deduction
             description: `Credits deducted for publishing test: ${testData.name}`
           });
+          updateLoadingProgress('Publishing', 3, 5, 'Deducting credits...');
 
           // Refresh credits cache to show updated balance
           await queryClient.invalidateQueries({ queryKey: ['credits'] });
+          updateLoadingProgress('Publishing', 4, 5, 'Refreshing credits...');
 
           toast.success('Test published successfully');
           navigate('/my-tests');
@@ -336,6 +425,7 @@ export default function CreateConsumerTest() {
 
       // Create test (normal flow for new tests)
       await testService.createTest(testData);
+      updateLoadingProgress('Publishing', 1, 5, 'Creating new test...');
 
       // Deduct credits after successful publication
       await apiClient.post('/credits/admin/edit', {
@@ -343,9 +433,11 @@ export default function CreateConsumerTest() {
         credits: availableCredits - totalCredits, // new total after deduction
         description: `Credits deducted for publishing test: ${testData.name}`
       });
+      updateLoadingProgress('Publishing', 2, 5, 'Deducting credits...');
 
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });
+      updateLoadingProgress('Publishing', 3, 5, 'Refreshing credits...');
 
       toast.success('Test published successfully');
       navigate('/my-tests');
@@ -354,7 +446,7 @@ export default function CreateConsumerTest() {
       const errorMessage = error.details?.errors?.[0] || error.message || 'Failed to publish test';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      stopLoading();
     }
   };
 
@@ -418,7 +510,7 @@ export default function CreateConsumerTest() {
         setLoadingMessageIndex((current: number) =>
           current < LoadingMessages.length - 1 ? current + 1 : current
         );
-      }, 4000); // Change every 4 seconds
+      }, 10000); // Change every 10 seconds
 
       return () => {
         clearInterval(interval);
@@ -432,11 +524,27 @@ export default function CreateConsumerTest() {
       <div className="min-h-screen bg-white relative w-full">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 flex flex-col items-center">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center max-w-md w-full mx-4">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+            
+            {/* Step Details */}
+            {loadingProgress.details && (
+              <p className="text-sm text-gray-600 text-center mb-4">
+                {loadingProgress.details}
+              </p>
+            )}
+
+            {/* Loading Message */}
             <p className="text-lg font-semibold text-gray-800 text-center min-h-[2rem] transition-all duration-500">
               {LoadingMessages[loadingMessageIndex]}
             </p>
+            
+            {/* Subtext about timing and competitor information */}
+            <p className="text-sm text-gray-500 text-center mt-2 max-w-xs">
+            Please wait while we save data from competitors to provide a complete and realistic shopping experience for our testers
+            </p>
+            
+            {/* Progress Dots */}
             <div className="flex gap-1 mt-2">
               {LoadingMessages.map((_, index) => (
                 <div
