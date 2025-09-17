@@ -21,6 +21,7 @@ import { useAuth } from '../../../auth/hooks/useAuth';
 import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
 import { useAdmin } from '../../../../hooks/useAdmin';
+import { getCompetitiveInsights } from './services/dataInsightService';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -83,7 +84,7 @@ const getChosenProduct = (
   }
 };
 
-const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData']) => {
+const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData'], isWalmartTest?: boolean) => {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
 
@@ -150,29 +151,85 @@ const generateExcelFile = (exportData: TestExportData, testName: string, shopper
     });
   }
 
-  // Generate file and download it
-  const fileName = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_export.xlsx`;
+  // Generate file and download it with proper naming
+  const storePrefix = isWalmartTest ? 'Walmart' : 'Amazon';
+  const cleanTestName = testName.replace(/[^a-zA-Z0-9]/g, '_');
+  const fileName = `${storePrefix}_${cleanTestName}_export.xlsx`;
   XLSX.writeFile(workbook, fileName);
 };
 
 const getTestExportData = async (testId: string): Promise<TestExportData | null> => {
   try {
-    const { data, error } = await supabase.rpc('get_test_export_data', {
-      input_test_id: testId,
-    });
+    // First, determine if this is a Walmart test
+    const { data: competitors } = await supabase
+      .from('test_competitors')
+      .select('product_type')
+      .eq('test_id', testId as any);
 
-    if (error) {
-      console.error('Error calling get_test_export_data RPC:', error);
-      throw error;
-    }
+    const isWalmartTest = competitors?.some((c: any) => c.product_type === 'walmart_product');
 
-    if (!data) {
-      console.warn('No data returned from get_test_export_data RPC');
-      return null;
-    }
+    // Get competitive insights data using the same logic as the PDF
+    const competitiveInsights = await getCompetitiveInsights(testId);
+    
+    // Get summary data
+    const { data: summaryData } = await supabase
+      .from('summary')
+      .select('*')
+      .eq('test_id', testId as any);
 
-    // Verify that the response has the expected structure
-    const exportData = data as TestExportData;
+    // Get purchase drivers data
+    const { data: purchaseDriversData } = await supabase
+      .from('purchase_drivers')
+      .select('*')
+      .eq('test_id', testId as any);
+
+    // Get shopper comments data
+    const commentsTable = isWalmartTest ? 'shopper_comments_walmart' : 'shopper_comments';
+    const { data: shopperCommentsData } = await supabase
+      .from(commentsTable)
+      .select('*')
+      .eq('test_id', testId as any);
+
+    // Transform competitive insights data for Excel export
+    const competitiveRatings = competitiveInsights.summaryData?.map((item: any) => {
+      // For test products, get title from product.title
+      // For competitor products, get title from competitor_product_id.title
+      let productTitle = 'Unknown Product';
+      
+      if (item.isTestProduct && item.product?.title) {
+        productTitle = item.product.title;
+      } else if (item.competitor_product_id?.title) {
+        productTitle = item.competitor_product_id.title;
+      } else if (item.title) {
+        productTitle = item.title;
+      }
+
+      return {
+        variant_type: item.variant_type,
+        product_title: productTitle,
+        share_of_buy: item.share_of_buy,
+        value: item.value || 0,
+        aesthetics: item.aesthetics || 0,
+        convenience: item.convenience || 0,
+        trust: item.trust || 0,
+        utility: item.utility || 0,
+        count: item.count || 0
+      };
+    }) || [];
+
+    // Filter out unwanted fields from summary results
+    const filteredSummaryData = summaryData?.map((item: any) => {
+      const { created_at, test_id, win, product_id, ...filteredItem } = item;
+      return filteredItem;
+    }) || [];
+
+    const exportData: TestExportData = {
+      summary_results: filteredSummaryData,
+      purchase_drivers: purchaseDriversData || [],
+      competitive_ratings: competitiveRatings,
+      shopper_comments: shopperCommentsData || []
+    };
+
     return exportData;
 
   } catch (error) {
@@ -546,11 +603,19 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     setIsExportingExcel(true);
 
     try {
+      // Determine if this is a Walmart test
+      const { data: competitors } = await supabase
+        .from('test_competitors')
+        .select('product_type')
+        .eq('test_id', testDetails.id as any);
+
+      const isWalmartTest = competitors?.some((c: any) => c.product_type === 'walmart_product');
+
       const exportData = await getTestExportData(testDetails.id);
 
       if (exportData) {
         toast.success('Export data retrieved successfully');
-        generateExcelFile(exportData, testDetails.name, shopperComments, testData);
+        generateExcelFile(exportData, testDetails.name, shopperComments, testData, isWalmartTest);
       } else {
         toast.error('No data available for export');
       }
