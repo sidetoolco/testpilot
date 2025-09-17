@@ -587,10 +587,6 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const user = useAuth();
-
-  // Debug useEffect to check data flow
-
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
@@ -724,29 +720,9 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
     setIsGeneratingSummary(true);
     try {
-      // Get JWT token from Supabase session
-      const { data: { session } } = await supabase.auth.getSession();
-      const jwtToken = session?.access_token;
-      
-      if (!jwtToken) {
-        throw new Error('No JWT token found. Please log in again.');
-      }
+      const response = await apiClient.post(`/insights/${testDetails.id}/generate-summary`);
 
-      const response = await fetch(`http://localhost:8080/insights/${testDetails.id}/generate-summary`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response body:', errorText);
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
       
       toast.success(`Successfully generated summary data for ${result.results.length} variants`);
       window.location.reload();
