@@ -3,28 +3,7 @@ import { Test } from '../../../types';
 import { toast } from 'sonner';
 import { testService } from '../services/testService';
 import { io } from 'socket.io-client';
-import { supabase } from '../../../lib/supabase';
-
-// Helper function to get completed sessions count for a test
-async function getCompletedSessionsCount(testId: string): Promise<number> {
-  try {
-    const { count, error } = await supabase
-      .from('testers_session')
-      .select('*', { count: 'exact', head: true })
-      .eq('test_id', testId)
-      .not('ended_at', 'is', null);
-
-    if (error) {
-      console.error('Error fetching completed sessions count:', error);
-      return 0;
-    }
-
-    return count || 0;
-  } catch (error) {
-    console.error('Error in getCompletedSessionsCount:', error);
-    return 0;
-  }
-}
+import { getCompletedSessionsCount } from '../services/sessionMetrics';
 
 export function useTests() {
   const [tests, setTests] = useState<Test[]>([]);
@@ -97,8 +76,8 @@ export function useTests() {
               },
             },
             responses: {
-              surveys: [],
-              comparisons: [],
+              surveys: { a: [], b: [], c: [] },
+              comparisons: { a: [], b: [], c: [] },
             },
             completed_sessions: await getCompletedSessionsCount(test.id),
             createdAt: test.created_at,

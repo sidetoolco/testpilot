@@ -136,6 +136,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
       if (!testInfo || fetchingRef.current || dataLoaded) return;
 
       fetchingRef.current = true;
+      const currentTestId = testInfo.id; // Capture test ID to prevent stale data
 
       try {
         setLoading(true);
@@ -147,26 +148,29 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           getAiInsights(id),
         ]);
 
-        setSummaryData(data);
-        setAveragesurveys(averagesurveys);
-        setCompetitiveinsights(competitiveinsights);
+        // Only update state if test hasn't changed during fetch
+        if (testInfo && testInfo.id === currentTestId) {
+          setSummaryData(data);
+          setAveragesurveys(averagesurveys);
+          setCompetitiveinsights(competitiveinsights);
 
-        // Handle the new single object structure
-        if (!aiInsightsData.error && aiInsightsData.insights) {
-          // Set the single insight object
-          setInsight(aiInsightsData.insights);
-          // For backward compatibility, also set it as aiInsights array with single item
-          setAiInsights([aiInsightsData.insights]);
-        } else if (aiInsightsData.error) {
-          console.warn('AI insights error:', aiInsightsData.error);
-          setInsight(null);
-          setAiInsights([]);
-        } else {
-          setInsight(null);
-          setAiInsights([]);
+          // Handle the new single object structure
+          if (!aiInsightsData.error && aiInsightsData.insights) {
+            // Set the single insight object
+            setInsight(aiInsightsData.insights);
+            // For backward compatibility, also set it as aiInsights array with single item
+            setAiInsights([aiInsightsData.insights]);
+          } else if (aiInsightsData.error) {
+            console.warn('AI insights error:', aiInsightsData.error);
+            setInsight(null);
+            setAiInsights([]);
+          } else {
+            setInsight(null);
+            setAiInsights([]);
+          }
+
+          setDataLoaded(true);
         }
-
-        setDataLoaded(true);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

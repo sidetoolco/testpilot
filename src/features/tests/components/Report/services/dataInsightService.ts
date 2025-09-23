@@ -39,16 +39,6 @@ export const checkTestStatus = async (id: string) => {
   }
 };
 
-interface Survey {
-  product_id: string;
-  products: { title: string };
-  value: number;
-  appearance: number;
-  confidence: number;
-  brand: number;
-  convenience: number;
-  tester_id: { variation_type: string };
-}
 
 interface SummaryRow {
   title: string;
@@ -82,6 +72,7 @@ export const getSummaryData = async (
   }
 
   try {
+    // Get summary data from database
     const { data: summaryData, error: summaryError } = await supabase
       .from('summary')
       .select('*, product:product_id(title)')
@@ -90,8 +81,97 @@ export const getSummaryData = async (
 
     if (summaryError) throw summaryError;
 
+    // Use testers_session as source of truth for selections (exclude unknown rows)
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('testers_session')
+      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .eq('test_id', id as any);
+
+    if (sessionsError) throw sessionsError;
+
+    const selectionsByVariant: { [variant: string]: { testProduct: number; competitors: number; total: number } } = {};
+
+    (sessions || []).forEach((row: any) => {
+      try {
+        const variant = String(row.variation_type || '').toLowerCase();
+        if (variant === 'a' || variant === 'b' || variant === 'c') {
+          if (!selectionsByVariant[variant]) {
+            selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+          }
+          const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+          const isTestProduct = !!row.product_id && !isCompetitor;
+
+          if (isCompetitor) selectionsByVariant[variant].competitors++;
+          if (isTestProduct) selectionsByVariant[variant].testProduct++;
+
+          if (isCompetitor || isTestProduct) selectionsByVariant[variant].total++;
+        }
+      } catch (error) {
+        console.error('Error processing session data row in getSummaryData:', error, row);
+      }
+    });
+
+    // Align test-product selections with ShopperComments: use responses_surveys by variant via test_variations
+    const { data: variations, error: variationsError } = await supabase
+      .from('test_variations')
+      .select('variation_type, product_id')
+      .eq('test_id', id as any);
+
+    if (variationsError) throw variationsError;
+
+    const variantByProductId = new Map<string, string>();
+    (variations || []).forEach((v: any) => {
+      const variant = String(v.variation_type || '').toLowerCase();
+      if (variant === 'a' || variant === 'b' || variant === 'c') {
+        variantByProductId.set(String(v.product_id), variant);
+        if (!selectionsByVariant[variant]) {
+          selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+        }
+      }
+    });
+
+    const { data: surveys, error: surveysError } = await supabase
+      .from('responses_surveys')
+      .select('product_id')
+      .eq('test_id', id as any);
+
+    if (surveysError) throw surveysError;
+
+    // Use surveys as fallback only when sessions had zero test picks for a variant
+    (surveys || []).forEach((row: any) => {
+      try {
+        const variant = variantByProductId.get(String(row.product_id));
+        if (!variant) {
+          console.warn(`No variant found for product_id in getSummaryData: ${row.product_id}`);
+          return;
+        }
+        if ((selectionsByVariant[variant]?.testProduct || 0) === 0) {
+          selectionsByVariant[variant].testProduct = 1;
+          selectionsByVariant[variant].total = (selectionsByVariant[variant].total || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing survey data row in getSummaryData:', error, row);
+      }
+    });
+
+    // Recalculate summary data with correct share_of_buy values
+    const correctedSummaryData = summaryData.map((item: any) => {
+      const variant = String(item.variant_type).toLowerCase();
+      const selections = selectionsByVariant[variant] || { testProduct: 0, competitors: 0, total: 0 };
+      
+      // Calculate correct share_of_buy for the test product
+      const correctShareOfBuy = selections.total > 0 
+        ? ((selections.testProduct / selections.total) * 100).toFixed(1)
+        : '0.0';
+
+      return {
+        ...item,
+        share_of_buy: correctShareOfBuy,
+      };
+    });
+
     return {
-      rows: summaryData.map(transformDataToSummaryRow),
+      rows: correctedSummaryData.map(transformDataToSummaryRow),
       error: null,
     };
   } catch (error) {
@@ -152,28 +232,141 @@ export const getCompetitiveInsights = async (
   }
 
   try {
-    // First check if this is a Walmart test by looking at test_competitors
-    const competitors = await supabase
-      .from('test_competitors')
-      .select('product_type')
-      .eq('test_id', id as any);
+    // Robust Walmart detection with parallel queries
+    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
+      supabase
+        .from('competitive_insights_walmart')
+        .select('id')
+        .eq('test_id', id as any)
+        .limit(1),
+      supabase
+        .from('testers_session')
+        .select('walmart_product_id')
+        .eq('test_id', id as any)
+        .limit(1),
+      supabase
+        .from('test_competitors')
+        .select('product_type')
+        .eq('test_id', id as any)
+        .limit(1)
+    ]);
 
-    const isWalmartTest = competitors.data?.some((c: any) => c.product_type === 'walmart_product');
+    const isWalmartTest = !!(
+      (walmartInsightsResult.data && walmartInsightsResult.data.length > 0) ||
+      (sessionProbeResult.data && sessionProbeResult.data.some((r: any) => r.walmart_product_id)) ||
+      (compProbeResult.data && compProbeResult.data.some((c: any) => c.product_type === 'walmart_product'))
+    );
 
     // Use the appropriate table based on test type
     const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
     
-
     const { data: summaryData, error: summaryError } = await supabase
       .from(tableName)
       .select(
-        '*, competitor_product_id: competitor_product_id(title, image_url, product_url,price)'
+        `*, competitor_product_id: competitor_product_id(id, title, image_url, product_url, price)`
       )
       .eq('test_id', id as any)
       .order('variant_type');
 
     if (summaryError) throw summaryError;
 
+    const { data: sessions2, error: sessionsError2 } = await supabase
+      .from('testers_session')
+      .select('id, variation_type, product_id, competitor_id, walmart_product_id')
+      .eq('test_id', id as any);
+
+    if (sessionsError2) throw sessionsError2;
+
+    // Map testers_session.id -> variant from testers_session
+    const variantByTesterId = new Map<string, string>();
+    (sessions2 || []).forEach((row: any) => {
+      const v = String(row.variation_type || '').toLowerCase();
+      if (v === 'a' || v === 'b' || v === 'c') {
+        variantByTesterId.set(String(row.id), v);
+      }
+    });
+
+    // Build competitor counts per variant from COMPARISONS (ground truth)
+    const comparisonTable2 = isWalmartTest ? 'responses_comparisons_walmart' : 'responses_comparisons';
+    const { data: compData2, error: compErr2 } = await supabase
+      .from(comparisonTable2)
+      .select('competitor_id, tester_id')
+      .eq('test_id', id as any);
+    if (compErr2) throw compErr2;
+
+    const competitorCountsByVariant: { [variant: string]: { [competitorId: string]: number } } = {};
+    (compData2 || []).forEach((row: any) => {
+      try {
+        const variant = variantByTesterId.get(String(row.tester_id));
+        if (!variant) {
+          console.warn(`No variant found for tester_id: ${row.tester_id}`);
+          return;
+        }
+        const competitorId = String(row.competitor_id || '');
+        if ((variant === 'a' || variant === 'b' || variant === 'c') && competitorId) {
+          if (!competitorCountsByVariant[variant]) competitorCountsByVariant[variant] = {};
+          competitorCountsByVariant[variant][competitorId] = (competitorCountsByVariant[variant][competitorId] || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing competitor data row:', error, row);
+      }
+    });
+
+    // Count actual test product selections per variant from responses_surveys using test_variations mapping
+    const { data: variations2, error: variationsError2 } = await supabase
+      .from('test_variations')
+      .select('variation_type, product_id')
+      .eq('test_id', id as any);
+
+    if (variationsError2) throw variationsError2;
+
+    const variantByProductId2 = new Map<string, string>();
+    (variations2 || []).forEach((v: any) => {
+      const variant = String(v.variation_type || '').toLowerCase();
+      if (variant === 'a' || variant === 'b' || variant === 'c') {
+        variantByProductId2.set(String(v.product_id), variant);
+      }
+    });
+
+    const { data: surveys2, error: surveysError2 } = await supabase
+      .from('responses_surveys')
+      .select('product_id')
+      .eq('test_id', id as any);
+
+    if (surveysError2) throw surveysError2;
+
+    const testProductSelectionsByVariant: { [variant: string]: number } = {};
+
+    // from testers_session: product pick rows (no competitor)
+    (sessions2 || []).forEach((row: any) => {
+      try {
+        const variant = String(row.variation_type || '').toLowerCase();
+        const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+        const isTestProduct = !!row.product_id && !isCompetitor;
+        if ((variant === 'a' || variant === 'b' || variant === 'c') && isTestProduct) {
+          testProductSelectionsByVariant[variant] = (testProductSelectionsByVariant[variant] || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing session data row:', error, row);
+      }
+    });
+
+    // from responses_surveys: map product_id back to owning variant
+    // Use surveys as fallback only when sessions had zero test picks for a variant
+    (surveys2 || []).forEach((row: any) => {
+      try {
+        const variant = variantByProductId2.get(String(row.product_id));
+        if (!variant) {
+          console.warn(`No variant found for product_id: ${row.product_id}`);
+          return;
+        }
+        if ((testProductSelectionsByVariant[variant] || 0) === 0) {
+          testProductSelectionsByVariant[variant] = 1;
+        }
+      } catch (error) {
+        console.error('Error processing survey data row:', error, row);
+      }
+    });
 
     const { data: testProductData, error: testProductError } = await supabase
       .from('summary')
@@ -194,44 +387,22 @@ export const getCompetitiveInsights = async (
 
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
+      const normalizedVariant = String(variant).toLowerCase();
 
-      const testProduct = (testProductData as any[])?.find((item: any) => item.variant_type === variant);
+      const testProduct = (testProductData as any[])?.find((item: any) => String(item.variant_type).toLowerCase() === normalizedVariant);
 
-      // Calculate total selections from comparison responses only
-      const competitorSelections = variantItems.reduce(
-        (sum: number, item: any) => sum + Number(item.count || 0),
-        0
-      );
+      // Calculate competitor selections for this variant from testers_session-derived counts
+      const competitorCountsMap = competitorCountsByVariant[variant] || {};
+      const competitorSelections = Object.values(competitorCountsMap).reduce((sum, n) => sum + Number(n || 0), 0);
 
-      // For competitive insights, we need to estimate test product selections
-      // Since comparison responses only track competitor choices, we need to estimate
-      // the test product's share based on the survey data
-      let testProductSelections = 0;
-      if (testProduct && (testProduct as any).share_of_buy) {
-        const testProductPercentage = Number((testProduct as any).share_of_buy);
-        
-        // If test product has 100% in surveys, it means it got all the survey responses
-        // But in comparisons, we need to estimate how many would choose it vs competitors
-        // For now, let's estimate that if test product got 100% in surveys,
-        // it would get a reasonable share in comparisons too
-        if (testProductPercentage >= 99) {
-          // Estimate test product got some selections in comparisons
-          // This is a rough estimate - in reality, we'd need different data
-          testProductSelections = Math.max(1, Math.round(competitorSelections * 0.1));
-        } else {
-          // For lower percentages, estimate based on the ratio
-          const estimatedTotal = (competitorSelections / (100 - testProductPercentage)) * 100;
-          testProductSelections = Math.round((testProductPercentage / 100) * estimatedTotal);
-        }
-      }
-
+      // Get actual test product selections from comparison data
+      const testProductSelections = testProductSelectionsByVariant[variant] || 0;
       const totalSelections = competitorSelections + testProductSelections;
 
 
       const competitorResults = variantItems.map((item: any) => {
         const originalCompetitorProduct = item.competitor_product_id;
-
-        const competitorId = originalCompetitorProduct?.id || item.id || 'unknown';
+        const competitorId = String(originalCompetitorProduct?.id || '');
 
         const uniqueCompetitorProduct = {
           ...originalCompetitorProduct,
@@ -239,7 +410,7 @@ export const getCompetitiveInsights = async (
         };
 
         // Recalculate share_of_buy based on actual counts
-        const competitorCount = Number(item.count || 0);
+        const competitorCount = Number((competitorCountsMap as any)[competitorId] || 0);
         const recalculatedShareOfBuy = totalSelections > 0 
           ? ((competitorCount / totalSelections) * 100).toFixed(2)
           : '0.00';
@@ -249,10 +420,11 @@ export const getCompetitiveInsights = async (
           competitor_product_id: uniqueCompetitorProduct,
           // Use recalculated share_of_buy based on actual counts
           share_of_buy: recalculatedShareOfBuy,
+          count: competitorCount,
         };
       });
 
-      // Add test product to competitive insights with estimated share
+      // Add test product to competitive insights with actual share based on comparison data
       if (testProduct) {
         const testProductCount = testProductSelections;
         const recalculatedTestProductShareOfBuy = totalSelections > 0 
@@ -264,7 +436,7 @@ export const getCompetitiveInsights = async (
           variant_type: variant,
           // Mark this as a test product (not a competitor)
           isTestProduct: true,
-          // Use estimated share_of_buy based on comparison data
+          // Use actual share_of_buy based on comparison data
           share_of_buy: recalculatedTestProductShareOfBuy,
           count: testProductCount,
         };
