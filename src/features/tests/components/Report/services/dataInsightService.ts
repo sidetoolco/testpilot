@@ -39,16 +39,6 @@ export const checkTestStatus = async (id: string) => {
   }
 };
 
-interface Survey {
-  product_id: string;
-  products: { title: string };
-  value: number;
-  appearance: number;
-  confidence: number;
-  brand: number;
-  convenience: number;
-  tester_id: { variation_type: string };
-}
 
 interface SummaryRow {
   title: string;
@@ -91,32 +81,31 @@ export const getSummaryData = async (
 
     if (summaryError) throw summaryError;
 
-    // Robust Walmart detection with fallbacks
-    const { data: walmartInsights } = await supabase
-      .from('competitive_insights_walmart')
-      .select('id')
-      .eq('test_id', id as any)
-      .limit(1);
-
-    let isWalmartTest = !!(walmartInsights && walmartInsights.length > 0);
-
-    if (!isWalmartTest) {
-      const { data: sessionProbe } = await supabase
+    // Robust Walmart detection with parallel queries (for future use if needed)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
+      supabase
+        .from('competitive_insights_walmart')
+        .select('id')
+        .eq('test_id', id as any)
+        .limit(1),
+      supabase
         .from('testers_session')
         .select('walmart_product_id')
         .eq('test_id', id as any)
-        .limit(1);
-      isWalmartTest = !!(sessionProbe && sessionProbe.some((r: any) => r.walmart_product_id));
-    }
-
-    if (!isWalmartTest) {
-      const { data: compProbe } = await supabase
+        .limit(1),
+      supabase
         .from('test_competitors')
         .select('product_type')
         .eq('test_id', id as any)
-        .limit(1);
-      isWalmartTest = !!(compProbe && compProbe.some((c: any) => c.product_type === 'walmart_product'));
-    }
+        .limit(1)
+    ]);
+
+    // Note: Walmart detection results are available but not used in getSummaryData as it uses testers_session for all test types
+    // Suppress unused variable warnings
+    void walmartInsightsResult;
+    void sessionProbeResult;
+    void compProbeResult;
 
     // Use testers_session as source of truth for selections (exclude unknown rows)
     const { data: sessions, error: sessionsError } = await supabase
@@ -129,18 +118,22 @@ export const getSummaryData = async (
     const selectionsByVariant: { [variant: string]: { testProduct: number; competitors: number; total: number } } = {};
 
     (sessions || []).forEach((row: any) => {
-      const variant = String(row.variation_type || '').toLowerCase();
-      if (variant === 'a' || variant === 'b' || variant === 'c') {
-        if (!selectionsByVariant[variant]) {
-          selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+      try {
+        const variant = String(row.variation_type || '').toLowerCase();
+        if (variant === 'a' || variant === 'b' || variant === 'c') {
+          if (!selectionsByVariant[variant]) {
+            selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+          }
+          const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+          const isTestProduct = !!row.product_id && !isCompetitor;
+
+          if (isCompetitor) selectionsByVariant[variant].competitors++;
+          if (isTestProduct) selectionsByVariant[variant].testProduct++;
+
+          if (isCompetitor || isTestProduct) selectionsByVariant[variant].total++;
         }
-        const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
-        const isTestProduct = !!row.product_id && !isCompetitor;
-
-        if (isCompetitor) selectionsByVariant[variant].competitors++;
-        if (isTestProduct) selectionsByVariant[variant].testProduct++;
-
-        if (isCompetitor || isTestProduct) selectionsByVariant[variant].total++;
+      } catch (error) {
+        console.error('Error processing session data row in getSummaryData:', error, row);
       }
     });
 
@@ -172,11 +165,18 @@ export const getSummaryData = async (
 
     // Use surveys as fallback only when sessions had zero test picks for a variant
     (surveys || []).forEach((row: any) => {
-      const variant = variantByProductId.get(String(row.product_id));
-      if (!variant) return;
-      if ((selectionsByVariant[variant]?.testProduct || 0) === 0) {
-        selectionsByVariant[variant].testProduct = (selectionsByVariant[variant].testProduct || 0) + 1;
-        selectionsByVariant[variant].total = (selectionsByVariant[variant].total || 0) + 1;
+      try {
+        const variant = variantByProductId.get(String(row.product_id));
+        if (!variant) {
+          console.warn(`No variant found for product_id in getSummaryData: ${row.product_id}`);
+          return;
+        }
+        if ((selectionsByVariant[variant]?.testProduct || 0) === 0) {
+          selectionsByVariant[variant].testProduct = 1;
+          selectionsByVariant[variant].total = (selectionsByVariant[variant].total || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing survey data row in getSummaryData:', error, row);
       }
     });
 
@@ -258,32 +258,30 @@ export const getCompetitiveInsights = async (
   }
 
   try {
-    // Robust Walmart detection with fallbacks
-    const { data: walmartInsights } = await supabase
-      .from('competitive_insights_walmart')
-      .select('id')
-      .eq('test_id', id as any)
-      .limit(1);
-
-    let isWalmartTest = !!(walmartInsights && walmartInsights.length > 0);
-
-    if (!isWalmartTest) {
-      const { data: sessionProbe } = await supabase
+    // Robust Walmart detection with parallel queries
+    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
+      supabase
+        .from('competitive_insights_walmart')
+        .select('id')
+        .eq('test_id', id as any)
+        .limit(1),
+      supabase
         .from('testers_session')
         .select('walmart_product_id')
         .eq('test_id', id as any)
-        .limit(1);
-      isWalmartTest = !!(sessionProbe && sessionProbe.some((r: any) => r.walmart_product_id));
-    }
-
-    if (!isWalmartTest) {
-      const { data: compProbe } = await supabase
+        .limit(1),
+      supabase
         .from('test_competitors')
         .select('product_type')
         .eq('test_id', id as any)
-        .limit(1);
-      isWalmartTest = !!(compProbe && compProbe.some((c: any) => c.product_type === 'walmart_product'));
-    }
+        .limit(1)
+    ]);
+
+    const isWalmartTest = !!(
+      (walmartInsightsResult.data && walmartInsightsResult.data.length > 0) ||
+      (sessionProbeResult.data && sessionProbeResult.data.some((r: any) => r.walmart_product_id)) ||
+      (compProbeResult.data && compProbeResult.data.some((c: any) => c.product_type === 'walmart_product'))
+    );
 
     // Use the appropriate table based on test type
     const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
@@ -324,12 +322,19 @@ export const getCompetitiveInsights = async (
 
     const competitorCountsByVariant: { [variant: string]: { [competitorId: string]: number } } = {};
     (compData2 || []).forEach((row: any) => {
-      const variant = variantByTesterId.get(String(row.tester_id));
-      if (!variant) return;
-      const competitorId = String(row.competitor_id || '');
-      if ((variant === 'a' || variant === 'b' || variant === 'c') && competitorId) {
-        if (!competitorCountsByVariant[variant]) competitorCountsByVariant[variant] = {};
-        competitorCountsByVariant[variant][competitorId] = (competitorCountsByVariant[variant][competitorId] || 0) + 1;
+      try {
+        const variant = variantByTesterId.get(String(row.tester_id));
+        if (!variant) {
+          console.warn(`No variant found for tester_id: ${row.tester_id}`);
+          return;
+        }
+        const competitorId = String(row.competitor_id || '');
+        if ((variant === 'a' || variant === 'b' || variant === 'c') && competitorId) {
+          if (!competitorCountsByVariant[variant]) competitorCountsByVariant[variant] = {};
+          competitorCountsByVariant[variant][competitorId] = (competitorCountsByVariant[variant][competitorId] || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing competitor data row:', error, row);
       }
     });
 
@@ -360,21 +365,32 @@ export const getCompetitiveInsights = async (
 
     // from testers_session: product pick rows (no competitor)
     (sessions2 || []).forEach((row: any) => {
-      const variant = String(row.variation_type || '').toLowerCase();
-      const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
-      const isTestProduct = !!row.product_id && !isCompetitor;
-      if ((variant === 'a' || variant === 'b' || variant === 'c') && isTestProduct) {
-        testProductSelectionsByVariant[variant] = (testProductSelectionsByVariant[variant] || 0) + 1;
+      try {
+        const variant = String(row.variation_type || '').toLowerCase();
+        const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+        const isTestProduct = !!row.product_id && !isCompetitor;
+        if ((variant === 'a' || variant === 'b' || variant === 'c') && isTestProduct) {
+          testProductSelectionsByVariant[variant] = (testProductSelectionsByVariant[variant] || 0) + 1;
+        }
+      } catch (error) {
+        console.error('Error processing session data row:', error, row);
       }
     });
 
     // from responses_surveys: map product_id back to owning variant
     // Use surveys as fallback only when sessions had zero test picks for a variant
     (surveys2 || []).forEach((row: any) => {
-      const variant = variantByProductId2.get(String(row.product_id));
-      if (!variant) return;
-      if (!(testProductSelectionsByVariant[variant] > 0)) {
-        testProductSelectionsByVariant[variant] = 1;
+      try {
+        const variant = variantByProductId2.get(String(row.product_id));
+        if (!variant) {
+          console.warn(`No variant found for product_id: ${row.product_id}`);
+          return;
+        }
+        if ((testProductSelectionsByVariant[variant] || 0) === 0) {
+          testProductSelectionsByVariant[variant] = 1;
+        }
+      } catch (error) {
+        console.error('Error processing survey data row:', error, row);
       }
     });
 

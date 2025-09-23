@@ -12,7 +12,7 @@ export default function TestMetrics({ test }: TestMetricsProps) {
   
   const totalTesters = test.demographics.testerCount * variationCount;
   const completedSessions = test.completed_sessions || 0;
-  const progressPercentage = Math.min((completedSessions / totalTesters) * 100, 100);
+  const progressPercentage = totalTesters > 0 ? Math.min((completedSessions / totalTesters) * 100, 100) : 0;
   
   const metrics = [
     {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, Edit } from 'lucide-react';
+import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, Edit, FileWarning } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
 import { TestDetailsPDFSection } from './pdf-sections/TestDetailsPDFSection';
@@ -772,8 +772,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
             onClick={handleGenerateSummary}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            <RefreshCcw size={20} />
-            {isGeneratingSummary ? 'Fetching Test Data...' : 'Fetch Test Data'}
+            <FileWarning size={20} />
+            {isGeneratingSummary ? 'Completing Test...' : 'Complete Test'}
           </button>
         )}
 
