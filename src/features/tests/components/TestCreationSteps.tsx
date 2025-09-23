@@ -95,7 +95,7 @@ export function TestCreationSteps({
                 <span>Save Draft</span>
               </button>
               
-              {onPublish && (
+              {/* {onPublish && (
                 <button
                   onClick={onPublish}
                   disabled={!canPublish}
@@ -107,7 +107,7 @@ export function TestCreationSteps({
                 >
                   <span>Publish Test</span>
                 </button>
-              )}
+              )} */}
             </div>
           ) : (
             <button
