@@ -26,14 +26,6 @@ interface TestResponse {
 export const testService = {
   async createTest(testData: TestData) {
     try {
-   
-      // Step 1: Validar datos de entrada
-      const validation = validateTestData(testData);
-      if (!validation.isValid) {
-        console.error('❌ Validation failed:', validation.errors);
-        throw new TestCreationError('Validation failed', { errors: validation.errors });
-      }
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -43,7 +35,7 @@ export const testService = {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('company_id')
+        .select('company_id, role')
         .eq('id', user.id as any)
         .single();
 
@@ -51,6 +43,15 @@ export const testService = {
 
       if (profileError || !typedProfile?.company_id) {
         throw new TestCreationError('Company profile not found');
+      }
+
+      const isAdmin = typedProfile.role === 'admin';
+   
+      // Step 1: Validar datos de entrada
+      const validation = validateTestData(testData, isAdmin);
+      if (!validation.isValid) {
+        console.error('❌ Validation failed:', validation.errors);
+        throw new TestCreationError('Validation failed', { errors: validation.errors });
       }
 
       // Validar productos relacionados
