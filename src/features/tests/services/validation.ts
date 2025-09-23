@@ -49,7 +49,7 @@ export async function validateProducts(companyId: string, productIds: string[]) 
   }
 }
 
-export function validateTestData(testData: TestData): void {
+export function validateTestData(testData: TestData, isAdmin: boolean = false): void {
   if (!testData) {
     throw new ValidationError('Test data is required');
   }
@@ -102,8 +102,9 @@ export function validateTestData(testData: TestData): void {
       errors.push('At least one location is required');
     }
 
-    if (!testerCount || testerCount < 25) {
-      errors.push('Minimum 25 testers required');
+    const minTesterCount = isAdmin ? 10 : 25;
+    if (!testerCount || testerCount < minTesterCount) {
+      errors.push(`Minimum ${minTesterCount} testers required`);
     }
   }
 

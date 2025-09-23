@@ -5,7 +5,7 @@ interface ValidationResult {
   errors: string[];
 }
 
-export function validateTestData(testData: TestData): ValidationResult {
+export function validateTestData(testData: TestData, isAdmin: boolean = false): ValidationResult {
   const errors: string[] = [];
 
   try {
@@ -52,8 +52,9 @@ export function validateTestData(testData: TestData): ValidationResult {
         errors.push('At least one location is required');
       }
 
-      if (!testerCount || testerCount < 10) {
-        errors.push('Minimum 10 testers required');
+      const minTesterCount = isAdmin ? 10 : 25;
+      if (!testerCount || testerCount < minTesterCount) {
+        errors.push(`Minimum ${minTesterCount} testers required`);
       }
 
       if (testData.demographics.customScreening?.enabled) {

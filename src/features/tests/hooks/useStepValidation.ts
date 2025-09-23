@@ -3,19 +3,21 @@ import { validateStep } from '../utils/validation';
 import { TestData } from '../types';
 import { toast } from 'sonner';
 import { useCredits } from '../../credits/hooks/useCredits';
+import { useAdmin } from '../../../hooks/useAdmin';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
 
 export const useStepValidation = (testData: TestData) => {
   const [currentStep, setCurrentStep] = useState<string>('objective');
+  const { isAdmin } = useAdmin();
   
   // Get user's available credits
   const { data: creditsData } = useCredits();
 
   const canProceed = useCallback(() => {
     // First check basic step validation
-    const basicValidation = validateStep(currentStep, testData);
+    const basicValidation = validateStep(currentStep, testData, isAdmin);
     
     // If basic validation fails, return false
     if (!basicValidation) {
@@ -28,7 +30,7 @@ export const useStepValidation = (testData: TestData) => {
     }
     
     return true;
-  }, [currentStep, testData]);
+  }, [currentStep, testData, isAdmin]);
 
   const getErrorMessage = useCallback(() => {
     switch (currentStep) {
@@ -70,8 +72,9 @@ export const useStepValidation = (testData: TestData) => {
         if (testData.demographics.ageRanges.length !== 2) {
           return 'Please set both minimum and maximum age';
         }
-        if (testData.demographics.testerCount < 25 || testData.demographics.testerCount > 500) {
-          return 'Please enter a valid number of testers (25-500)';
+        const minTesterCount = isAdmin ? 10 : 25;
+        if (testData.demographics.testerCount < minTesterCount || testData.demographics.testerCount > 500) {
+          return `Please enter a valid number of testers (${minTesterCount}-500)`;
         }
         return 'Please complete all demographic selections';
       case 'review':
@@ -79,7 +82,7 @@ export const useStepValidation = (testData: TestData) => {
       default:
         return 'Please complete all required fields';
     }
-  }, [currentStep, testData]);
+  }, [currentStep, testData, isAdmin]);
 
   const handleNext = useCallback(() => {
     if (!canProceed()) {

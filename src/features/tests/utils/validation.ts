@@ -1,6 +1,6 @@
 import { TestData } from '../types';
 
-export const validateStep = (step: string, data: TestData): boolean => {
+export const validateStep = (step: string, data: TestData, isAdmin: boolean = false): boolean => {
   switch (step) {
     case 'objective':
       return true; // The only time this function is called is after the user selects an objective, so its never going to be null.
@@ -14,11 +14,12 @@ export const validateStep = (step: string, data: TestData): boolean => {
       return data.searchTerm.trim().length > 0 && data.competitors.length === 11; // Require search term and exactly 11 competitors
 
     case 'demographics':
+      const minTesterCount = isAdmin ? 10 : 25;
       const isValidDemographics =
         data.demographics.ageRanges.length === 2 &&
         data.demographics.gender.length > 0 &&
         data.demographics.locations.length > 0 &&
-        data.demographics.testerCount >= 25 &&
+        data.demographics.testerCount >= minTesterCount &&
         data.demographics.testerCount <= 500;
       // && data.demographics.interests.length > 0
 

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Users, Info } from 'lucide-react';
-import { toast } from 'sonner';
 import { Tooltip } from 'react-tooltip';
 import { PriceCalculator } from './PriceCalculator';
 import CustomScreening from './CustomScreening';
 import { CustomScreening as CustomScreeningType } from '../../features/tests/types';
 import Checkbox from '../ui/Checkbox';
+import { useAdmin } from '../../hooks/useAdmin';
 
 type Demographics = {
   ageRanges: string[];
@@ -36,6 +36,7 @@ export default function DemographicSelection({
   onChange,
   onValidationChange,
 }: DemographicSelectionProps) {
+  const { isAdmin } = useAdmin();
   const activeVariantCount = Object.values(variations).filter(v => v !== null).length;
 
   const [testerCount, setTesterCount] = useState<string>(
@@ -62,8 +63,9 @@ export default function DemographicSelection({
   const isTesterCountValid = useCallback(() => {
     if (testerCount === '') return false;
     const parsedValue = parseInt(testerCount);
-    return !isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 500;
-  }, [testerCount]);
+    const minTesterCount = isAdmin ? 10 : 25;
+    return !isNaN(parsedValue) && parsedValue >= minTesterCount && parsedValue <= 500;
+  }, [testerCount, isAdmin]);
 
 
   const isDemographicsValid = useCallback(() => {
@@ -195,9 +197,10 @@ export default function DemographicSelection({
     }
 
     const parsedValue = parseInt(value);
+    const minTesterCount = isAdmin ? 10 : 25;
 
-    if (isNaN(parsedValue) || parsedValue < 25 || parsedValue > 500) {
-      setError('Please enter a number between 25 and 500.');
+    if (isNaN(parsedValue) || parsedValue < minTesterCount || parsedValue > 500) {
+      setError(`Please enter a number between ${minTesterCount} and 500.`);
     } else {
       setError(null);
       onChange(prev => ({ ...prev, testerCount: parsedValue }));
@@ -241,7 +244,7 @@ export default function DemographicSelection({
               data-tooltip-id="tester-count-tooltip"
             />
             <Tooltip id="tester-count-tooltip" className="!px-2 !py-1 !text-sm">
-              Number of testers per variation from 25 to 500
+              Number of testers per variation from {isAdmin ? "10" : "25"} to 500
             </Tooltip>
           </h4>
           <div className="flex items-center space-x-4">
@@ -249,7 +252,7 @@ export default function DemographicSelection({
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 id="testerCount"
-                min="25"
+                min={isAdmin ? "10" : "25"}
                 max="500"
                 type="number"
                
@@ -263,7 +266,7 @@ export default function DemographicSelection({
                 placeholder="Number of testers"
               />
             </div>
-            <span className="text-sm text-gray-500">Min: 25, Max: 500 testers</span>
+            <span className="text-sm text-gray-500">Min: {isAdmin ? "10" : "25"}, Max: 500 testers</span>
           </div>
           {error && <p className="text-red-500 text-sm mt-1 sm:mt-2 md:mt-3 lg:mt-1">{error}</p>}
         </div>
