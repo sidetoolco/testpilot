@@ -360,7 +360,7 @@ export default function CreateConsumerTest() {
 
   const handlePublishConfirm = async () => {
     try {
-      startLoadingWithProgress(5); // 5 steps for publishing
+      startLoadingWithProgress(6); // 6 steps for publishing (added save draft step)
       setPublishModal(null);
 
       // Calculate credits needed for this test
@@ -395,11 +395,11 @@ export default function CreateConsumerTest() {
         try {
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
-          updateLoadingProgress('Publishing', 1, 5, 'Updating incomplete test...');
+          updateLoadingProgress('Publishing', 1, 6, 'Updating incomplete test...');
 
           // Proceed with normal launch (create Prolific projects)
           await testService.createProlificProjectsForTest(currentTestId, testData);
-          updateLoadingProgress('Publishing', 2, 5, 'Creating Prolific projects...');
+          updateLoadingProgress('Publishing', 2, 6, 'Creating Prolific projects...');
 
           // Deduct credits after successful publication
           await apiClient.post('/credits/admin/edit', {
@@ -407,11 +407,11 @@ export default function CreateConsumerTest() {
             credits: availableCredits - totalCredits, // new total after deduction
             description: `Credits deducted for publishing test: ${testData.name}`
           });
-          updateLoadingProgress('Publishing', 3, 5, 'Deducting credits...');
+          updateLoadingProgress('Publishing', 3, 6, 'Deducting credits...');
 
           // Refresh credits cache to show updated balance
           await queryClient.invalidateQueries({ queryKey: ['credits'] });
-          updateLoadingProgress('Publishing', 4, 5, 'Refreshing credits...');
+          updateLoadingProgress('Publishing', 4, 6, 'Refreshing credits...');
 
           toast.success('Test published successfully');
           navigate('/my-tests');
@@ -423,9 +423,13 @@ export default function CreateConsumerTest() {
         }
       }
 
-      // Create test (normal flow for new tests)
-      await testService.createTest(testData);
-      updateLoadingProgress('Publishing', 1, 5, 'Creating new test...');
+      // First, save the test as a draft
+      const savedTest = await testService.saveDraft(testData);
+      updateLoadingProgress('Publishing', 1, 6, 'Saving draft...');
+
+      // Then publish the test using the publish API
+      await apiClient.post(`/tests/${savedTest.id}/publish`);
+      updateLoadingProgress('Publishing', 2, 6, 'Publishing test...');
 
       // Deduct credits after successful publication
       await apiClient.post('/credits/admin/edit', {
@@ -433,11 +437,11 @@ export default function CreateConsumerTest() {
         credits: availableCredits - totalCredits, // new total after deduction
         description: `Credits deducted for publishing test: ${testData.name}`
       });
-      updateLoadingProgress('Publishing', 2, 5, 'Deducting credits...');
+      updateLoadingProgress('Publishing', 3, 6, 'Deducting credits...');
 
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });
-      updateLoadingProgress('Publishing', 3, 5, 'Refreshing credits...');
+      updateLoadingProgress('Publishing', 4, 6, 'Refreshing credits...');
 
       toast.success('Test published successfully');
       navigate('/my-tests');
