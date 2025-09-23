@@ -91,14 +91,32 @@ export const getSummaryData = async (
 
     if (summaryError) throw summaryError;
 
-    // Check if this is a Walmart test by looking at the test name or checking if competitive_insights_walmart has data
+    // Robust Walmart detection with fallbacks
     const { data: walmartInsights } = await supabase
       .from('competitive_insights_walmart')
       .select('id')
       .eq('test_id', id as any)
       .limit(1);
 
-    const isWalmartTest = walmartInsights && walmartInsights.length > 0;
+    let isWalmartTest = !!(walmartInsights && walmartInsights.length > 0);
+
+    if (!isWalmartTest) {
+      const { data: sessionProbe } = await supabase
+        .from('testers_session')
+        .select('walmart_product_id')
+        .eq('test_id', id as any)
+        .limit(1);
+      isWalmartTest = !!(sessionProbe && sessionProbe.some((r: any) => r.walmart_product_id));
+    }
+
+    if (!isWalmartTest) {
+      const { data: compProbe } = await supabase
+        .from('test_competitors')
+        .select('product_type')
+        .eq('test_id', id as any)
+        .limit(1);
+      isWalmartTest = !!(compProbe && compProbe.some((c: any) => c.product_type === 'walmart_product'));
+    }
 
     // Use testers_session as source of truth for selections (exclude unknown rows)
     const { data: sessions, error: sessionsError } = await supabase
@@ -152,11 +170,13 @@ export const getSummaryData = async (
 
     if (surveysError) throw surveysError;
 
+    // Use surveys as fallback only when sessions had zero test picks for a variant
     (surveys || []).forEach((row: any) => {
       const variant = variantByProductId.get(String(row.product_id));
-      if (variant) {
-        selectionsByVariant[variant].testProduct++;
-        selectionsByVariant[variant].total++;
+      if (!variant) return;
+      if ((selectionsByVariant[variant]?.testProduct || 0) === 0) {
+        selectionsByVariant[variant].testProduct = (selectionsByVariant[variant].testProduct || 0) + 1;
+        selectionsByVariant[variant].total = (selectionsByVariant[variant].total || 0) + 1;
       }
     });
 
@@ -238,14 +258,32 @@ export const getCompetitiveInsights = async (
   }
 
   try {
-    // Check if this is a Walmart test by checking if competitive_insights_walmart has data
+    // Robust Walmart detection with fallbacks
     const { data: walmartInsights } = await supabase
       .from('competitive_insights_walmart')
       .select('id')
       .eq('test_id', id as any)
       .limit(1);
 
-    const isWalmartTest = walmartInsights && walmartInsights.length > 0;
+    let isWalmartTest = !!(walmartInsights && walmartInsights.length > 0);
+
+    if (!isWalmartTest) {
+      const { data: sessionProbe } = await supabase
+        .from('testers_session')
+        .select('walmart_product_id')
+        .eq('test_id', id as any)
+        .limit(1);
+      isWalmartTest = !!(sessionProbe && sessionProbe.some((r: any) => r.walmart_product_id));
+    }
+
+    if (!isWalmartTest) {
+      const { data: compProbe } = await supabase
+        .from('test_competitors')
+        .select('product_type')
+        .eq('test_id', id as any)
+        .limit(1);
+      isWalmartTest = !!(compProbe && compProbe.some((c: any) => c.product_type === 'walmart_product'));
+    }
 
     // Use the appropriate table based on test type
     const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
@@ -262,18 +300,34 @@ export const getCompetitiveInsights = async (
 
     const { data: sessions2, error: sessionsError2 } = await supabase
       .from('testers_session')
-      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .select('id, variation_type, product_id, competitor_id, walmart_product_id')
       .eq('test_id', id as any);
 
     if (sessionsError2) throw sessionsError2;
 
-    // Build competitor counts per variant from testers_session
-    const competitorCountsByVariant: { [variant: string]: { [competitorId: string]: number } } = {};
+    // Map tester_id -> variant from testers_session
+    const variantByTesterId = new Map<string, string>();
     (sessions2 || []).forEach((row: any) => {
-      const variant = String(row.variation_type || '').toLowerCase();
-      const competitorId = String((isWalmartTest ? row.walmart_product_id : row.competitor_id) || '');
-      const isCompetitorPick = !!competitorId;
-      if ((variant === 'a' || variant === 'b' || variant === 'c') && isCompetitorPick) {
+      const v = String(row.variation_type || '').toLowerCase();
+      if (v === 'a' || v === 'b' || v === 'c') {
+        variantByTesterId.set(String(row.id), v);
+      }
+    });
+
+    // Build competitor counts per variant from COMPARISONS (ground truth)
+    const comparisonTable2 = isWalmartTest ? 'responses_comparisons_walmart' : 'responses_comparisons';
+    const { data: compData2, error: compErr2 } = await supabase
+      .from(comparisonTable2)
+      .select('competitor_id, tester_id')
+      .eq('test_id', id as any);
+    if (compErr2) throw compErr2;
+
+    const competitorCountsByVariant: { [variant: string]: { [competitorId: string]: number } } = {};
+    (compData2 || []).forEach((row: any) => {
+      const variant = variantByTesterId.get(String(row.tester_id));
+      if (!variant) return;
+      const competitorId = String(row.competitor_id || '');
+      if ((variant === 'a' || variant === 'b' || variant === 'c') && competitorId) {
         if (!competitorCountsByVariant[variant]) competitorCountsByVariant[variant] = {};
         competitorCountsByVariant[variant][competitorId] = (competitorCountsByVariant[variant][competitorId] || 0) + 1;
       }
@@ -315,10 +369,12 @@ export const getCompetitiveInsights = async (
     });
 
     // from responses_surveys: map product_id back to owning variant
+    // Use surveys as fallback only when sessions had zero test picks for a variant
     (surveys2 || []).forEach((row: any) => {
       const variant = variantByProductId2.get(String(row.product_id));
-      if (variant) {
-        testProductSelectionsByVariant[variant] = (testProductSelectionsByVariant[variant] || 0) + 1;
+      if (!variant) return;
+      if (!(testProductSelectionsByVariant[variant] > 0)) {
+        testProductSelectionsByVariant[variant] = 1;
       }
     });
 
@@ -355,8 +411,7 @@ export const getCompetitiveInsights = async (
 
       const competitorResults = variantItems.map((item: any) => {
         const originalCompetitorProduct = item.competitor_product_id;
-
-        const competitorId = originalCompetitorProduct?.id || item.competitor_product_id || item.id || 'unknown';
+        const competitorId = String(originalCompetitorProduct?.id || '');
 
         const uniqueCompetitorProduct = {
           ...originalCompetitorProduct,
