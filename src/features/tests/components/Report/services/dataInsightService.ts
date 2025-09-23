@@ -81,32 +81,6 @@ export const getSummaryData = async (
 
     if (summaryError) throw summaryError;
 
-    // Robust Walmart detection with parallel queries (for future use if needed)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
-      supabase
-        .from('competitive_insights_walmart')
-        .select('id')
-        .eq('test_id', id as any)
-        .limit(1),
-      supabase
-        .from('testers_session')
-        .select('walmart_product_id')
-        .eq('test_id', id as any)
-        .limit(1),
-      supabase
-        .from('test_competitors')
-        .select('product_type')
-        .eq('test_id', id as any)
-        .limit(1)
-    ]);
-
-    // Note: Walmart detection results are available but not used in getSummaryData as it uses testers_session for all test types
-    // Suppress unused variable warnings
-    void walmartInsightsResult;
-    void sessionProbeResult;
-    void compProbeResult;
-
     // Use testers_session as source of truth for selections (exclude unknown rows)
     const { data: sessions, error: sessionsError } = await supabase
       .from('testers_session')
@@ -182,7 +156,7 @@ export const getSummaryData = async (
 
     // Recalculate summary data with correct share_of_buy values
     const correctedSummaryData = summaryData.map((item: any) => {
-      const variant = item.variant_type;
+      const variant = String(item.variant_type).toLowerCase();
       const selections = selectionsByVariant[variant] || { testProduct: 0, competitors: 0, total: 0 };
       
       // Calculate correct share_of_buy for the test product
@@ -303,7 +277,7 @@ export const getCompetitiveInsights = async (
 
     if (sessionsError2) throw sessionsError2;
 
-    // Map tester_id -> variant from testers_session
+    // Map testers_session.id -> variant from testers_session
     const variantByTesterId = new Map<string, string>();
     (sessions2 || []).forEach((row: any) => {
       const v = String(row.variation_type || '').toLowerCase();
@@ -413,8 +387,9 @@ export const getCompetitiveInsights = async (
 
     const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
       const variantItems = items as any[];
+      const normalizedVariant = String(variant).toLowerCase();
 
-      const testProduct = (testProductData as any[])?.find((item: any) => item.variant_type === variant);
+      const testProduct = (testProductData as any[])?.find((item: any) => String(item.variant_type).toLowerCase() === normalizedVariant);
 
       // Calculate competitor selections for this variant from testers_session-derived counts
       const competitorCountsMap = competitorCountsByVariant[variant] || {};
