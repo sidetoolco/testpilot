@@ -630,7 +630,7 @@ export default function MyTests() {
                     {deletingTests.includes(test.id) ? (
                       <div className="w-4 h-4 text-gray-400 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <X className="h-4 w-4 text-gray-500 bg-white rounded-full hover:text-red-500 transition-colors" />
+                      <X className="h-5 w-5 text-gray-500 bg-white rounded-full hover:text-red-500 transition-colors" />
                     )}
                   </button>
                 )}
