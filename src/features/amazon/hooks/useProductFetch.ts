@@ -20,6 +20,8 @@ export function useProductFetch(searchTerm: string) {
         return;
       }
 
+      // Clear products before each new search to prevent duplicates
+      setProducts([]);
       setLoading(true);
       setError(null);
 

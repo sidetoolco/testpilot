@@ -65,17 +65,56 @@ export const walmartService = {
       });
       if (!products.length) throw new Error('No products found');
 
-      return products;
+      // Filter out duplicates and invalid products
+      const filteredProducts = this.filterValidProducts(products);
+      
+      if (!filteredProducts.length) throw new Error('No valid products found after filtering');
+
+      return filteredProducts;
     } catch (error: any) {
       console.error('Walmart search error:', error);
-      console.error('Walmart search error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
       return Promise.reject(error);
     }
+  },
+
+  // Helper method to filter out duplicates and invalid products
+  filterValidProducts(products: WalmartProduct[]): WalmartProduct[] {
+    const seenIds = new Set<string>();
+    const seenTitles = new Set<string>();
+    const validProducts: WalmartProduct[] = [];
+
+    for (const product of products) {
+      // Skip products with invalid data
+      if (!product.walmart_id || !product.title || product.price <= 0 || !product.image_url) {
+        continue;
+      }
+
+      // Skip duplicates based on walmart_id
+      if (seenIds.has(product.walmart_id)) {
+        continue;
+      }
+
+      // Skip duplicates based on title (normalized)
+      const normalizedTitle = this.normalizeTitle(product.title);
+      if (seenTitles.has(normalizedTitle)) {
+        continue;
+      }
+
+      seenIds.add(product.walmart_id);
+      seenTitles.add(normalizedTitle);
+      validProducts.push(product);
+    }
+
+    return validProducts;
+  },
+
+  // Helper method to normalize product titles for comparison
+  normalizeTitle(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '') // Remove special characters
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
   },
 
   // Method to fetch saved product details from your database

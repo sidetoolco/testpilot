@@ -202,9 +202,13 @@ export default function MyTests() {
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
+      // Update the test status in the local state to show as active
+      updateTest(testId, { status: 'active' });
+
       toast.success('Test published successfully');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || DEFAULT_ERROR_MSG;
+      toast.error(errorMessage);
       setErrorModal({ isOpen: true, message: errorMessage });
     } finally {
       setPublishingTests(prev => prev.filter(id => id !== testId));
