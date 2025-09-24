@@ -36,7 +36,7 @@ export default function SearchAndCompetitorSelection({
   
   // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
-    hasUserSearched && skin === 'amazon' ? searchTerm : ''
+    hasUserSearched && skin === 'amazon' ? currentSearchTerm : ''
   );
   const { products: walmartProducts, loading: walmartLoading, error: walmartError, searchProducts: walmartSearchProducts } = useWalmartProducts();
   

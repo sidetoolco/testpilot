@@ -66,7 +66,14 @@ export function TestCreationContent({
           onChange={term => handleUpdateData('searchTerm', term)}
           onNext={onNext}
           skin={testData.skin}
-          onSkinChange={skin => handleUpdateData('skin', skin)}
+          onSkinChange={skin => {
+            // Clear competitors when skin changes to prevent showing wrong products
+            onUpdateTestData(prevTestData => ({
+              ...prevTestData,
+              skin,
+              competitors: []
+            }));
+          }}
         />
       )}
 

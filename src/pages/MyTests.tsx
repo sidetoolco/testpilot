@@ -202,9 +202,13 @@ export default function MyTests() {
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });
 
+      // Update the test status in the local state to show as active
+      updateTest(testId, { status: 'active' });
+
       toast.success('Test published successfully');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || DEFAULT_ERROR_MSG;
+      toast.error(errorMessage);
       setErrorModal({ isOpen: true, message: errorMessage });
     } finally {
       setPublishingTests(prev => prev.filter(id => id !== testId));
@@ -626,7 +630,7 @@ export default function MyTests() {
                     {deletingTests.includes(test.id) ? (
                       <div className="w-4 h-4 text-gray-400 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <X className="h-4 w-4 text-gray-500 bg-white rounded-full hover:text-red-500 transition-colors" />
+                      <X className="h-5 w-5 text-gray-500 bg-white rounded-full hover:text-red-500 transition-colors" />
                     )}
                   </button>
                 )}

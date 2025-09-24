@@ -56,7 +56,7 @@ export const ProductCard = React.memo(function ProductCard({
       }`}
       onClick={handleClick}
     >
-      <div className="w-full h-32 mb-3 rounded overflow-hidden bg-white">
+      <div className="w-full h-52 mb-3 rounded overflow-hidden bg-white">
         <img
           src={product.image_url}
           alt={product.title}

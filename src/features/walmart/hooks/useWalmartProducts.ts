@@ -11,6 +11,8 @@ export const useWalmartProducts = () => {
   const searchProducts = async (searchTerm: string) => {
     if (!searchTerm.trim()) return;
     
+    // Clear products before each new search to prevent duplicates
+    setProducts([]);
     setLoading(true);
     setError(null);
     
