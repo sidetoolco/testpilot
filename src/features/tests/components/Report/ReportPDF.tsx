@@ -585,6 +585,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [showCompleteTestModal, setShowCompleteTestModal] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isTestActiveOrComplete =
@@ -712,6 +713,10 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
       });
   };
 
+  const handleCompleteTest = () => {
+    setShowCompleteTestModal(true);
+  };
+
   const handleGenerateSummary = async () => {
     if (!testDetails?.id) {
       toast.error('No test ID available');
@@ -719,6 +724,8 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
     }
 
     setIsGeneratingSummary(true);
+    setShowCompleteTestModal(false);
+    
     try {
       const response = await apiClient.post(`/insights/${testDetails.id}/generate-summary`);
 
@@ -769,7 +776,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         {isAdmin && (
           <button
             disabled={isGeneratingSummary}
-            onClick={handleGenerateSummary}
+            onClick={handleCompleteTest}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             <FileWarning size={20} />
@@ -805,6 +812,47 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
         testId={testDetails?.id || ''}
         testName={testDetails?.name || ''}
       />
+
+      {/* Complete Test Confirmation Modal */}
+      {showCompleteTestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <FileWarning className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Complete Test</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to complete this test? This action will generate the final summary data and mark the test as complete. This action cannot be undone.
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowCompleteTestModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateSummary}
+                disabled={isGeneratingSummary}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isGeneratingSummary ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Completing...
+                  </>
+                ) : (
+                  'Complete Test'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
