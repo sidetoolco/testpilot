@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AuthLayout from './AuthLayout';
@@ -11,7 +11,6 @@ import { supabase } from '../../../lib/supabase';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { loading: authLoading } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [status, setStatus] = useState<
@@ -23,6 +22,8 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    let isActive = true;
+
     const handlePasswordReset = async () => {
       setStatus('authenticating');
 
@@ -50,7 +51,11 @@ export default function ResetPassword() {
             throw new Error('User email not found');
           }
 
+          if (!isActive) return;
+
           setEmail(data.user.email);
+          // Clean URL to remove sensitive auth artifacts
+          window.history.replaceState({}, document.title, window.location.pathname);
           setStatus('idle');
           return;
         }
@@ -84,16 +89,27 @@ export default function ResetPassword() {
           throw new Error('User email not found');
         }
 
+        if (!isActive) return;
+
         setEmail(data.user.email);
+        // Clean URL to remove sensitive auth artifacts
+        window.history.replaceState({}, document.title, window.location.pathname);
         setStatus('idle');
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error handling password reset:', err);
+        if (!isActive) return;
+        
+        const errorMessage = err instanceof Error ? err.message : 'Error verifying the reset link. Please request a new one.';
         setStatus('error');
-        setFormError(err.message || 'Error verifying the reset link. Please request a new one.');
+        setFormError(errorMessage);
       }
     };
 
     handlePasswordReset();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

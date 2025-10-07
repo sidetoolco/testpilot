@@ -85,13 +85,19 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true, error: null });
 
+          // SSR-safe origin resolution with environment fallback
+          const origin = typeof window !== 'undefined' && window.location?.origin
+            ? window.location.origin
+            : import.meta.env.VITE_SITE_URL ?? 'https://testpilot-1.vercel.app';
+
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`,
+            redirectTo: `${origin}/reset-password`,
           });
 
           if (error) throw error;
-        } catch (error: any) {
-          set({ error: error.message });
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to send password reset email';
+          set({ error: errorMessage });
           throw error;
         } finally {
           set({ loading: false });
