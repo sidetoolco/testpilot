@@ -62,8 +62,7 @@ export const authService = {
   async resetPassword(email: string) {
     console.log(window.location.origin, 'window.location.origin');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // redirectTo: `${window.location.origin}/reset-password`,
-      redirectTo: `https://testpilot-1.vercel.app/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {

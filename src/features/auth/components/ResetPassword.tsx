@@ -23,51 +23,77 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const getTokenFromLocalStorage = () => {
-      const tokenString = localStorage.getItem('sb-hykelmayopljuguuueme-auth-token');
-      if (!tokenString) return { access_token: null, refresh_token: null };
-
-      try {
-        const tokens = JSON.parse(tokenString);
-        return tokens;
-      } catch (error) {
-        console.error('Error parsing token from localStorage:', error);
-        return { access_token: null, refresh_token: null };
-      }
-    };
-
-    const restoreSession = async () => {
-      const tokens = getTokenFromLocalStorage();
-
-      if (!tokens.access_token) {
-        setStatus('error');
-        setFormError('Authentication token not found. Please request a new link.');
-        return;
-      }
-
+    const handlePasswordReset = async () => {
       setStatus('authenticating');
 
       try {
-        const { data, error } = await supabase.auth.setSession({
-          access_token: tokens.access_token as string,
-          refresh_token: tokens.refresh_token as string,
-        });
+        // Check for URL parameters (new flow with code)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        // Check for errors in the URL
         if (error) {
-          throw error;
+          throw new Error(errorDescription || error);
         }
+
+        if (code) {
+          // New flow: exchange code for session
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (exchangeError) {
+            throw exchangeError;
+          }
+
+          if (!data.user?.email) {
+            throw new Error('User email not found');
+          }
+
+          setEmail(data.user.email);
+          setStatus('idle');
+          return;
+        }
+
+        // Fallback: Check hash fragment for tokens (old flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const hashError = hashParams.get('error');
+        const hashErrorDescription = hashParams.get('error_description');
+
+        if (hashError) {
+          throw new Error(hashErrorDescription || hashError);
+        }
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('Reset link is invalid or has expired. Please request a new one.');
+        }
+
+        // Set the session with the tokens from the URL
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          throw sessionError;
+        }
+
         if (!data.user?.email) {
           throw new Error('User email not found');
         }
+
         setEmail(data.user.email);
         setStatus('idle');
       } catch (err: any) {
-        console.error('Error restoring session:', err);
+        console.error('Error handling password reset:', err);
         setStatus('error');
-        setFormError(err.message || 'Error verifying the link. Please request a new one.');
+        setFormError(err.message || 'Error verifying the reset link. Please request a new one.');
       }
     };
 
-    restoreSession();
+    handlePasswordReset();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
