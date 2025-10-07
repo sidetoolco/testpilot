@@ -28,23 +28,62 @@ export default function ResetPassword() {
       setStatus('authenticating');
 
       try {
-        // Check for URL parameters (new flow with code)
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+        // First check hash fragment for tokens (most common flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const hashError = hashParams.get('error');
+        const hashErrorDescription = hashParams.get('error_description');
 
-        // Check for errors in the URL
-        if (error) {
-          throw new Error(errorDescription || error);
+        if (hashError) {
+          throw new Error(hashErrorDescription || hashError);
         }
 
-        if (code) {
-          // New flow: exchange code for session
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (accessToken && refreshToken) {
+          console.log('Found tokens in hash fragment, setting session...');
           
-          if (exchangeError) {
-            throw exchangeError;
+          // Check if we're in local development with production tokens
+          const isLocalDev = window.location.hostname === 'localhost';
+          const isProductionToken = accessToken.includes('testpilot-1.vercel.app') || 
+                                   accessToken.includes('hykelmayopljuguuueme.supabase.co');
+          
+          if (isLocalDev && isProductionToken) {
+            console.warn('⚠️ Local development with production tokens detected. This may cause security errors.');
+            console.warn('💡 Consider testing in production or requesting a new reset link from localhost.');
+            
+            // Try to extract email from the JWT token as a fallback
+            try {
+              const payload = JSON.parse(atob(accessToken.split('.')[1]));
+              const userEmail = payload.email;
+              
+              if (userEmail) {
+                console.log('Extracted email from token:', userEmail);
+                setEmail(userEmail);
+                // Clean URL to remove sensitive auth artifacts
+                window.history.replaceState({}, document.title, window.location.pathname);
+                setStatus('idle');
+                return;
+              }
+            } catch (jwtError) {
+              console.error('Failed to extract email from token:', jwtError);
+            }
+          }
+          
+          // Set the session with the tokens from the URL
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            
+            // If it's a security error in local dev, provide helpful message
+            if (isLocalDev && sessionError.message?.includes('denied')) {
+              throw new Error('Security error: This reset link was generated for production. Please test in production or request a new reset link from localhost.');
+            }
+            
+            throw sessionError;
           }
 
           if (!data.user?.email) {
@@ -60,41 +99,75 @@ export default function ResetPassword() {
           return;
         }
 
-        // Fallback: Check hash fragment for tokens (old flow)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const hashError = hashParams.get('error');
-        const hashErrorDescription = hashParams.get('error_description');
+        // Fallback: Check for URL parameters (new flow with code)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
 
-        if (hashError) {
-          throw new Error(hashErrorDescription || hashError);
+        // Check for errors in the URL
+        if (error) {
+          throw new Error(errorDescription || error);
         }
 
-        if (!accessToken || !refreshToken) {
-          throw new Error('Reset link is invalid or has expired. Please request a new one.');
+        if (code) {
+          console.log('Found code parameter, attempting verification...');
+          
+          // Try verifyOtp method first (more reliable for password reset)
+          try {
+            const { data, error: verifyError } = await supabase.auth.verifyOtp({
+              token_hash: code,
+              type: 'recovery'
+            });
+            
+            console.log('OTP verification result:', { data, error: verifyError });
+            
+            if (verifyError) {
+              console.log('OTP verification failed, trying code exchange...');
+              
+              // Fallback to exchangeCodeForSession
+              const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              
+              console.log('Code exchange result:', { data: exchangeData, error: exchangeError });
+              
+              if (exchangeError) {
+                console.error('Both methods failed:', { verifyError, exchangeError });
+                throw exchangeError;
+              }
+              
+              if (!exchangeData.user?.email) {
+                throw new Error('User email not found');
+              }
+
+              if (!isActive) return;
+
+              setEmail(exchangeData.user.email);
+              // Clean URL to remove sensitive auth artifacts
+              window.history.replaceState({}, document.title, window.location.pathname);
+              setStatus('idle');
+              return;
+            }
+
+            if (!data.user?.email) {
+              throw new Error('User email not found');
+            }
+
+            if (!isActive) return;
+
+            setEmail(data.user.email);
+            // Clean URL to remove sensitive auth artifacts
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setStatus('idle');
+            return;
+            
+          } catch (err) {
+            console.error('Error in code verification:', err);
+            throw err;
+          }
         }
 
-        // Set the session with the tokens from the URL
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        if (!data.user?.email) {
-          throw new Error('User email not found');
-        }
-
-        if (!isActive) return;
-
-        setEmail(data.user.email);
-        // Clean URL to remove sensitive auth artifacts
-        window.history.replaceState({}, document.title, window.location.pathname);
-        setStatus('idle');
+        // If we get here, no valid tokens or code found
+        throw new Error('Reset link is invalid or has expired. Please request a new one.');
       } catch (err: unknown) {
         console.error('Error handling password reset:', err);
         if (!isActive) return;
