@@ -54,7 +54,18 @@ export function useTestDetail(id: string) {
           throw new Error('Usuario no autenticado');
         }
 
-        // Fetch test data without complex joins
+        // First, get user's profile to check company and role
+        const { data: userProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id, role')
+          .eq('id', userId as any)
+          .single();
+
+        if (profileError || !userProfile) {
+          throw new Error('Error fetching user profile');
+        }
+
+        // Fetch test data with company_id to check access
         const { data: testData, error: testError } = await supabase
           .from('tests')
           .select(`
@@ -65,6 +76,7 @@ export function useTestDetail(id: string) {
             objective,
             skin,
             created_at,
+            company_id,
             company:companies(name),
             variations:test_variations(
               product:products(id, title, image_url, price),
@@ -89,6 +101,21 @@ export function useTestDetail(id: string) {
         if (testError) {
           console.error('Error fetching test:', testError);
           throw testError;
+        }
+
+        if (!testData) {
+          throw new Error('Test not found');
+        }
+
+        // Check access permissions
+        const typedUserProfile = userProfile as { company_id: string; role: string };
+        const isAdmin = typedUserProfile.role === 'admin';
+        const userCompanyId = typedUserProfile.company_id;
+        const testCompanyId = (testData as any).company_id;
+
+        // Allow access if user is admin OR if user belongs to the same company as the test
+        if (!isAdmin && userCompanyId !== testCompanyId) {
+          throw new Error('Access denied: You do not have permission to view this test');
         }
 
         const typedTestData = testData as unknown as TestResponse;
