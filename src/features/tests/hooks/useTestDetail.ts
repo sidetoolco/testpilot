@@ -54,8 +54,24 @@ export function useTestDetail(id: string) {
           throw new Error('Usuario no autenticado');
         }
 
-        // Fetch test data without complex joins
-        const { data: testData, error: testError } = await supabase
+        // First, get user's profile to check company and role
+        const { data: userProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id, role')
+          .eq('id', userId as any)
+          .single();
+
+        if (profileError || !userProfile) {
+          throw new Error('Error fetching user profile');
+        }
+
+        // Check access permissions before fetching data
+        const typedUserProfile = userProfile as { company_id: string; role: string };
+        const isAdmin = typedUserProfile.role === 'admin';
+        const userCompanyId = typedUserProfile.company_id;
+
+        // Build query with access control at query-time
+        let query = supabase
           .from('tests')
           .select(`
             id,
@@ -65,6 +81,7 @@ export function useTestDetail(id: string) {
             objective,
             skin,
             created_at,
+            company_id,
             company:companies(name),
             variations:test_variations(
               product:products(id, title, image_url, price),
@@ -83,12 +100,30 @@ export function useTestDetail(id: string) {
               valid_option
             )
           `)
-          .eq('id', id as any)
-          .single();
+          .eq('id', id as any);
+
+        // For non-admin users, filter by company_id at query-time
+        if (!isAdmin) {
+          query = query.eq('company_id', userCompanyId as any);
+        }
+
+        const { data: testData, error: testError } = await query.single();
 
         if (testError) {
           console.error('Error fetching test:', testError);
-          throw testError;
+          // Always return generic "test not found" for security
+          // This prevents attackers from knowing if a test exists or if they lack permission
+          throw new Error('Test not found');
+        }
+
+        if (!testData) {
+          throw new Error('Test not found');
+        }
+
+        // Defense-in-depth: Additional check after fetch (should not be needed with proper RLS)
+        // Return generic error to prevent information disclosure
+        if (!isAdmin && (testData as any).company_id !== userCompanyId) {
+          throw new Error('Test not found');
         }
 
         const typedTestData = testData as unknown as TestResponse;
