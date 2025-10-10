@@ -31,4 +31,15 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+
+  // Add proxy for development to avoid CORS issues
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://tespilot-api-301794542770.us-central1.run.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 });

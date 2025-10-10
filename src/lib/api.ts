@@ -1,7 +1,11 @@
 import axios, { HttpStatusCode } from 'axios';
 import { supabase } from './supabase';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// Use proxy in development, direct URL in production
+const isDevelopment = import.meta.env.DEV;
+const baseURL = isDevelopment 
+  ? '/api'  // Use Vite proxy in development
+  : (import.meta.env.VITE_API_URL);
 
 const apiClient = axios.create({
   baseURL,
