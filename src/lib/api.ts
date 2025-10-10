@@ -1,11 +1,8 @@
 import axios, { HttpStatusCode } from 'axios';
 import { supabase } from './supabase';
 
-// Use proxy in development, direct URL in production
-const isDevelopment = import.meta.env.DEV;
-const baseURL = isDevelopment 
-  ? '/api'  // Use Vite proxy in development
-  : (import.meta.env.VITE_API_URL);
+// Use direct URL in both development and production
+const baseURL = import.meta.env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app';
 
 const apiClient = axios.create({
   baseURL,
