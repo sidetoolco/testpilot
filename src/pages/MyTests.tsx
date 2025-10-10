@@ -234,8 +234,6 @@ export default function MyTests() {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        mode: 'cors',
       });
 
       if (!response.ok) {
