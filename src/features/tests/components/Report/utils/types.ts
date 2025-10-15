@@ -102,6 +102,17 @@ export interface TestDetails {
       participant_count?: number;      
       reward_amount?: number;         
     } | null;
+    d: {
+      id: string;
+      price: number;
+      title: string;
+      image_url: string;
+      prolificStatus: string;
+      calculated_cost?: number;        
+      last_cost_calculation?: string;  
+      participant_count?: number;      
+      reward_amount?: number;         
+    } | null;
   };
   responses?: {
     surveys: any;

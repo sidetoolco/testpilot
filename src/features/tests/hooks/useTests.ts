@@ -59,6 +59,7 @@ export function useTests() {
               a: test.variations?.find((v: any) => v.variation_type === 'a')?.product || null,
               b: test.variations?.find((v: any) => v.variation_type === 'b')?.product || null,
               c: test.variations?.find((v: any) => v.variation_type === 'c')?.product || null,
+              d: test.variations?.find((v: any) => v.variation_type === 'd')?.product || null,
             },
             demographics: {
               ageRanges: test.demographics?.[0]?.age_ranges || [],
@@ -76,8 +77,8 @@ export function useTests() {
               },
             },
             responses: {
-              surveys: { a: [], b: [], c: [] },
-              comparisons: { a: [], b: [], c: [] },
+              surveys: { a: [], b: [], c: [], d: [] },
+              comparisons: { a: [], b: [], c: [], d: [] },
             },
             completed_sessions: await getCompletedSessionsCount(test.id),
             createdAt: test.created_at,

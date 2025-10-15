@@ -11,6 +11,7 @@ interface TestPreviewProps {
     a: any | null;
     b: any | null;
     c: any | null;
+    d: any | null;
   };
   skin?: 'amazon' | 'walmart';
 }

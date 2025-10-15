@@ -56,11 +56,13 @@ interface PDFDocumentProps {
       a: any[];
       b: any[];
       c: any[];
+      d: any[];
     };
     surveys: {
       a: any[];
       b: any[];
       c: any[];
+      d: any[];
     };
   };
   testData?: {
@@ -69,6 +71,7 @@ interface PDFDocumentProps {
       a: { id: string; title: string; image_url: string; price: number } | null;
       b: { id: string; title: string; image_url: string; price: number } | null;
       c: { id: string; title: string; image_url: string; price: number } | null;
+      d: { id: string; title: string; image_url: string; price: number } | null;
     };
   };
 }
@@ -108,7 +111,7 @@ const generateExcelFile = (exportData: TestExportData, testName: string, shopper
 
   // 4. Shopper Comments - Separate tabs for each variant
   if (shopperComments) {
-    ['a', 'b', 'c'].forEach(variantKey => {
+    ['a', 'b', 'c', 'd'].forEach(variantKey => {
       const variantComparision = shopperComments.comparision[variantKey as keyof typeof shopperComments.comparision] || [];
       const variantSurveys = shopperComments.surveys[variantKey as keyof typeof shopperComments.surveys] || [];
 
@@ -263,6 +266,7 @@ const PDFDocument = ({
     testDetails.variations?.a,
     testDetails.variations?.b,
     testDetails.variations?.c,
+    testDetails.variations?.d,
   ].filter(v => v);
 
   // Ensure optional data has valid structure
@@ -292,6 +296,7 @@ const PDFDocument = ({
       const aiInsightValue = key === 'a' ? safeAiInsights[0]?.competitive_insights_a :
                             key === 'b' ? safeAiInsights[0]?.competitive_insights_b :
                             key === 'c' ? safeAiInsights[0]?.competitive_insights_c :
+                            key === 'd' ? safeAiInsights[0]?.competitive_insights_d :
                             null;
       
       const hasAIInsights = safeAiInsights && safeAiInsights.length > 0 && 
@@ -371,6 +376,7 @@ const PDFDocument = ({
                 key === 'a' ? mainInsight.competitive_insights_a :
                 key === 'b' ? mainInsight.competitive_insights_b :
                 key === 'c' ? mainInsight.competitive_insights_c :
+                key === 'd' ? mainInsight.competitive_insights_d :
                 null;
               
               
@@ -403,6 +409,7 @@ const PDFDocument = ({
             (key === 'a' ? safeAiInsights[0].competitive_insights_a :
              key === 'b' ? safeAiInsights[0].competitive_insights_b :
              key === 'c' ? safeAiInsights[0].competitive_insights_c :
+             key === 'd' ? safeAiInsights[0].competitive_insights_d :
              null);
           
           // Show competitive insights table if there's database competitive data (not AI insights)

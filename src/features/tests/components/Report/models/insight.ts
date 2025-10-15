@@ -1,4 +1,4 @@
-export type VariationType = 'a' | 'b' | 'c';
+export type VariationType = 'a' | 'b' | 'c' | 'd';
 
 export interface Variant {
   id: string;

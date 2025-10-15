@@ -94,7 +94,7 @@ export const getSummaryData = async (
     (sessions || []).forEach((row: any) => {
       try {
         const variant = String(row.variation_type || '').toLowerCase();
-        if (variant === 'a' || variant === 'b' || variant === 'c') {
+        if (variant === 'a' || variant === 'b' || variant === 'c' || variant === 'd') {
           if (!selectionsByVariant[variant]) {
             selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
           }
@@ -122,7 +122,7 @@ export const getSummaryData = async (
     const variantByProductId = new Map<string, string>();
     (variations || []).forEach((v: any) => {
       const variant = String(v.variation_type || '').toLowerCase();
-      if (variant === 'a' || variant === 'b' || variant === 'c') {
+      if (variant === 'a' || variant === 'b' || variant === 'c' || variant === 'd') {
         variantByProductId.set(String(v.product_id), variant);
         if (!selectionsByVariant[variant]) {
           selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
@@ -281,7 +281,7 @@ export const getCompetitiveInsights = async (
     const variantByTesterId = new Map<string, string>();
     (sessions2 || []).forEach((row: any) => {
       const v = String(row.variation_type || '').toLowerCase();
-      if (v === 'a' || v === 'b' || v === 'c') {
+      if (v === 'a' || v === 'b' || v === 'c' || v === 'd') {
         variantByTesterId.set(String(row.id), v);
       }
     });
@@ -303,7 +303,7 @@ export const getCompetitiveInsights = async (
           return;
         }
         const competitorId = String(row.competitor_id || '');
-        if ((variant === 'a' || variant === 'b' || variant === 'c') && competitorId) {
+        if ((variant === 'a' || variant === 'b' || variant === 'c' || variant === 'd') && competitorId) {
           if (!competitorCountsByVariant[variant]) competitorCountsByVariant[variant] = {};
           competitorCountsByVariant[variant][competitorId] = (competitorCountsByVariant[variant][competitorId] || 0) + 1;
         }
@@ -323,7 +323,7 @@ export const getCompetitiveInsights = async (
     const variantByProductId2 = new Map<string, string>();
     (variations2 || []).forEach((v: any) => {
       const variant = String(v.variation_type || '').toLowerCase();
-      if (variant === 'a' || variant === 'b' || variant === 'c') {
+      if (variant === 'a' || variant === 'b' || variant === 'c' || variant === 'd') {
         variantByProductId2.set(String(v.product_id), variant);
       }
     });
@@ -343,7 +343,7 @@ export const getCompetitiveInsights = async (
         const variant = String(row.variation_type || '').toLowerCase();
         const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
         const isTestProduct = !!row.product_id && !isCompetitor;
-        if ((variant === 'a' || variant === 'b' || variant === 'c') && isTestProduct) {
+        if ((variant === 'a' || variant === 'b' || variant === 'c' || variant === 'd') && isTestProduct) {
           testProductSelectionsByVariant[variant] = (testProductSelectionsByVariant[variant] || 0) + 1;
         }
       } catch (error) {

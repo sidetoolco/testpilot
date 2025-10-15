@@ -34,6 +34,7 @@ export interface Test {
     a: Product | null;
     b: Product | null;
     c: Product | null;
+    d: Product | null;
   };
   demographics: {
     ageRanges: string[];
@@ -53,11 +54,13 @@ export interface Test {
       a: Survey[];
       b: Survey[];
       c: Survey[];
+      d: Survey[];
     };
     comparisons: {
       a: Comparison[];
       b: Comparison[];
       c: Comparison[];
+      d: Comparison[];
     };
   };
   createdAt: string;

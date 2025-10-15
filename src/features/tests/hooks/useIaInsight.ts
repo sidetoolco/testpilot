@@ -9,6 +9,7 @@ interface AiInsight {
   competitive_insights_a?: string;
   competitive_insights_b?: string;
   competitive_insights_c?: string;
+  competitive_insights_d?: string;
   competitive_insights?: string;
   recommendations: string;
   comment_summary?: string;
@@ -42,6 +43,7 @@ export const useInsightStore = create<InsightState>((set, get) => ({
       variantType === 'a' ? insight.competitive_insights_a :
       variantType === 'b' ? insight.competitive_insights_b :
       variantType === 'c' ? insight.competitive_insights_c :
+      variantType === 'd' ? insight.competitive_insights_d :
       null;
     
     // Only return the insight if it has competitive insights for this variant

@@ -40,11 +40,13 @@ interface ShopperCommentsProps {
     a: Comment[];
     b: Comment[];
     c: Comment[];
+    d: Comment[];
   };
   surveys: {
     a: Comment[];
     b: Comment[];
     c: Comment[];
+    d: Comment[];
   };
   testName?: string;
   testData?: {
@@ -53,6 +55,7 @@ interface ShopperCommentsProps {
       a: { id: string; title: string; image_url: string; price: number } | null;
       b: { id: string; title: string; image_url: string; price: number } | null;
       c: { id: string; title: string; image_url: string; price: number } | null;
+      d: { id: string; title: string; image_url: string; price: number } | null;
     };
   };
 }
@@ -219,11 +222,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   const availableVariants = useMemo(() => {
     return Object.entries(comparision)
       .filter(([_, comments]) => comments && comments.length > 0)
-      .map(([variant]) => variant as 'a' | 'b' | 'c')
+      .map(([variant]) => variant as 'a' | 'b' | 'c' | 'd')
       .sort();
   }, [comparision]);
 
-  const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
+  const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'd' | 'summary'>('summary');
 
   const { currentComparision, currentSurveys, hasComparision, hasSurveys } = useMemo(() => {
     const currentComp = variant === 'summary' ? [] : comparision[variant];

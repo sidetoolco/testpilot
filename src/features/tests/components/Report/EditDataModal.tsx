@@ -19,6 +19,7 @@ interface AIInsightData {
   competitive_insights_a?: string;
   competitive_insights_b?: string;
   competitive_insights_c?: string;
+  competitive_insights_d?: string;
   recommendations: string;
   sendEmail: boolean | null;
   comment_summary: string;
@@ -33,6 +34,7 @@ interface EditableInsightData {
   competitive_insights_a?: string;
   competitive_insights_b?: string;
   competitive_insights_c?: string;
+  competitive_insights_d?: string;
   recommendations: string;
   comment_summary: string;
   edited: boolean;
@@ -80,6 +82,7 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
           competitive_insights_a: insightData.competitive_insights_a || '',
           competitive_insights_b: insightData.competitive_insights_b || '',
           competitive_insights_c: insightData.competitive_insights_c || '',
+          competitive_insights_d: insightData.competitive_insights_d || '',
           recommendations: insightData.recommendations || '',
           comment_summary: insightData.comment_summary || '',
           edited: false,
@@ -118,6 +121,9 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
         }
         if (item.competitive_insights_c !== '') {
           updateData.competitive_insights_c = item.competitive_insights_c;
+        }
+        if (item.competitive_insights_d !== '') {
+          updateData.competitive_insights_d = item.competitive_insights_d;
         }
         if (item.recommendations !== '') {
           updateData.recommendations = item.recommendations;
@@ -221,7 +227,7 @@ export const EditDataModal: React.FC<EditDataModalProps> = ({
                       </div>
 
                       {/* 3. Competitive Insights */}
-                      {['a', 'b', 'c'].map(variant => {
+                      {['a', 'b', 'c', 'd'].map(variant => {
                         const fieldName = `competitive_insights_${variant}` as keyof EditableInsightData;
                         const content = item[fieldName] as string;
                         

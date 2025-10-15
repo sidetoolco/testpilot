@@ -207,11 +207,11 @@ export function useTestDetail(id: string) {
 
         // Separate surveys by variation_type and map product data
         // Ensure required keys exist regardless of data presence
-        const surveysInitial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+        const surveysInitial = { a: [], b: [], c: [], d: [] } as Record<'a' | 'b' | 'c' | 'd', any[]>;
         
         const surveysByType = (surveysData || []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
-          if (type === 'a' || type === 'b' || type === 'c') {
+          if (type === 'a' || type === 'b' || type === 'c' || type === 'd') {
             // Map the product_id to the actual product data from test_variations
             const productData = typedTestData.variations?.find(v => v.product.id === item.product_id)?.product;
             
@@ -263,11 +263,11 @@ export function useTestDetail(id: string) {
         );
 
         // Ensure required keys exist regardless of data presence
-        const initial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
+        const initial = { a: [], b: [], c: [], d: [] } as Record<'a' | 'b' | 'c' | 'd', any[]>;
 
         const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
-          if (type === 'a' || type === 'b' || type === 'c') {
+          if (type === 'a' || type === 'b' || type === 'c' || type === 'd') {
             const competitorData = competitorMap.get(item.competitor_id);
             acc[type].push({
               ...item,
@@ -293,6 +293,7 @@ export function useTestDetail(id: string) {
             a: getVariationWithProduct(testDataWithCompetitors.variations, 'a'),
             b: getVariationWithProduct(testDataWithCompetitors.variations, 'b'),
             c: getVariationWithProduct(testDataWithCompetitors.variations, 'c'),
+            d: getVariationWithProduct(testDataWithCompetitors.variations, 'd'),
           },
           demographics: {
             ageRanges: testDataWithCompetitors.demographics?.[0]?.age_ranges || [],

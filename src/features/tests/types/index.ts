@@ -11,6 +11,7 @@ export interface TestData {
     a: { id: string; name?: string } | null;
     b: { id: string; name?: string } | null;
     c: { id: string; name?: string } | null;
+    d: { id: string; name?: string } | null;
   };
   demographics: {
     ageRanges: string[];

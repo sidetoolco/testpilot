@@ -107,7 +107,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   // If selected variant is not available, switch to the first available variant
   if (availableVariants.length > 0 && !availableVariants.includes(selectedVariant)) {
-    setSelectedVariant(availableVariants[0] as 'a' | 'b' | 'c');
+    setSelectedVariant(availableVariants[0] as 'a' | 'b' | 'c' | 'd');
   }
 
   // If no variants have competitive insights data, show a message
@@ -162,7 +162,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           <MarkdownContent content={
             selectedVariant === 'a' ? insight.competitive_insights_a || '' :
             selectedVariant === 'b' ? insight.competitive_insights_b || '' :
-            selectedVariant === 'c' ? insight.competitive_insights_c || '' : ''
+            selectedVariant === 'c' ? insight.competitive_insights_c || '' :
+            selectedVariant === 'd' ? insight.competitive_insights_d || '' : ''
           } />
         </div>
       )}
