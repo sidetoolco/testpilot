@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
 import { useAdmin } from '../../../../hooks/useAdmin';
 import { getCompetitiveInsights } from './services/dataInsightService';
+import { useExpertMode } from '../../../../hooks/useExpertMode';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -87,7 +88,7 @@ const getChosenProduct = (
   }
 };
 
-const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData'], isWalmartTest?: boolean) => {
+const generateExcelFile = (exportData: TestExportData, testName: string, shopperComments?: PDFDocumentProps['shopperComments'], testData?: PDFDocumentProps['testData'], isWalmartTest?: boolean, expertMode?: boolean) => {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
 
@@ -111,7 +112,8 @@ const generateExcelFile = (exportData: TestExportData, testName: string, shopper
 
   // 4. Shopper Comments - Separate tabs for each variant
   if (shopperComments) {
-    ['a', 'b', 'c', 'd'].forEach(variantKey => {
+    const variants = expertMode ? ['a', 'b', 'c', 'd'] : ['a', 'b', 'c'];
+    variants.forEach(variantKey => {
       const variantComparision = shopperComments.comparision[variantKey as keyof typeof shopperComments.comparision] || [];
       const variantSurveys = shopperComments.surveys[variantKey as keyof typeof shopperComments.surveys] || [];
 
@@ -241,15 +243,7 @@ const getTestExportData = async (testId: string): Promise<TestExportData | null>
   }
 };
 
-const PDFDocument = ({
-  testDetails,
-  summaryData,
-  insights,
-  competitiveinsights,
-  averagesurveys,
-  aiInsights,
-  orientation = 'landscape',
-}: {
+const PDFDocument: React.FC<{
   testDetails: PDFDocumentProps['testDetails'];
   summaryData: PDFDocumentProps['summaryData'];
   insights: PDFDocumentProps['insights'];
@@ -257,7 +251,16 @@ const PDFDocument = ({
   averagesurveys: PDFDocumentProps['averagesurveys'];
   aiInsights?: PDFDocumentProps['aiInsights'];
   orientation?: PDFOrientation;
+}> = ({
+  testDetails,
+  summaryData,
+  insights,
+  competitiveinsights,
+  averagesurveys,
+  aiInsights,
+  orientation = 'landscape',
 }) => {
+  const { expertMode } = useExpertMode();
   if (!testDetails || !summaryData) {
     return null;
   }
@@ -266,7 +269,7 @@ const PDFDocument = ({
     testDetails.variations?.a,
     testDetails.variations?.b,
     testDetails.variations?.c,
-    testDetails.variations?.d,
+    ...(expertMode ? [testDetails.variations?.d] : []),
   ].filter(v => v);
 
   // Ensure optional data has valid structure
@@ -287,6 +290,9 @@ const PDFDocument = ({
     .filter(([key, variation]) => {
       // Only include variants that actually exist and have meaningful data
       if (!variation || !variation.title || !variation.price) return false;
+      
+      // Filter out variant D if expert mode is not enabled
+      if (key === 'd' && !expertMode) return false;
       
       // Check if this variant has any data
       const hasPurchaseData = safeAveragesurveys.summaryData?.find((item: any) => item.variant_type === key);
@@ -594,6 +600,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [showCompleteTestModal, setShowCompleteTestModal] = useState(false);
   const { isAdmin } = useAdmin();
+  const { expertMode } = useExpertMode();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
@@ -619,7 +626,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
 
       if (exportData) {
         toast.success('Export data retrieved successfully');
-        generateExcelFile(exportData, testDetails.name, shopperComments, testData, isWalmartTest);
+        generateExcelFile(exportData, testDetails.name, shopperComments, testData, isWalmartTest, expertMode);
       } else {
         toast.error('No data available for export');
       }

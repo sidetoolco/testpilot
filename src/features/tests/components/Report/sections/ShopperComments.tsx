@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 import ChosenProductCard, { Product } from './ChosenProductCard';
+import { useExpertMode } from '../../../../../hooks/useExpertMode';
 
 interface Comment {
   likes_most?: string;
@@ -206,6 +207,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   testData,
 }) => {
   const { insight } = useInsightStore();
+  const { expertMode } = useExpertMode();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
@@ -220,11 +222,16 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   }, []);
 
   const availableVariants = useMemo(() => {
-    return Object.entries(comparision)
+    const variantsWithComments = Object.entries(comparision)
       .filter(([_, comments]) => comments && comments.length > 0)
       .map(([variant]) => variant as 'a' | 'b' | 'c' | 'd')
       .sort();
-  }, [comparision]);
+    
+    // Filter out variant D if expert mode is not enabled
+    return expertMode 
+      ? variantsWithComments 
+      : variantsWithComments.filter(variant => variant !== 'd');
+  }, [comparision, expertMode]);
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'd' | 'summary'>('summary');
 

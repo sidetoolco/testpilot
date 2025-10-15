@@ -7,6 +7,7 @@ import { ErrorMessage } from '../ui/ErrorMessage';
 import ProductModal from '../../features/products/components/ProductModal';
 import { useProductStore } from '../../store/useProductStore';
 import { toast } from 'sonner';
+import { useExpertMode } from '../../hooks/useExpertMode';
 
 interface TestVariationsProps {
   variations: {
@@ -34,6 +35,7 @@ export default function TestVariations({ variations, onChange, testData, onUpdat
   } | null>(null);
   const { products, loading, error } = useProducts();
   const { addProduct, updateProduct } = useProductStore();
+  const { expertMode } = useExpertMode();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
@@ -221,7 +223,7 @@ export default function TestVariations({ variations, onChange, testData, onUpdat
       <div className="text-center mb-12">
         <h3 className="text-3xl font-semibold text-gray-900 mb-3">Create Product Variants</h3>
         <p className="text-lg text-gray-500">
-          Set up to four variants (A/B/C/D) of your product to test different versions. Variant A is
+          Set up {expertMode ? 'up to four variants (A/B/C/D)' : 'up to three variants (A/B/C)'} of your product to test different versions. Variant A is
           required.
         </p>
       </div>
@@ -249,7 +251,7 @@ export default function TestVariations({ variations, onChange, testData, onUpdat
         {renderVariation('a')}
         {renderVariation('b')}
         {renderVariation('c')}
-        {renderVariation('d')}
+        {expertMode && renderVariation('d')}
       </div>
 
       {showProductSelector && (

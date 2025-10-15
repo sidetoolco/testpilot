@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
+import { useExpertMode } from '../../../../../hooks/useExpertMode';
 
 interface CompetitorProduct {
   product_url: string;
@@ -61,6 +62,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 }) => {
   const [selectedVariant, setSelectedVariant] = useState('a');
   const { insight, aiInsights, getInsightForVariant } = useInsightStore();
+  const { expertMode } = useExpertMode();
 
   if (!competitiveinsights || competitiveinsights.length === 0) {
     return null;
@@ -98,11 +100,15 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   ];
   const columnCount = headers.length;
 
-  // Get available variants only from competitive insights data
-  // Only show variants that actually have competitive insights data
-  const availableVariants = [
+  // Get available variants from competitive insights data
+  // Filter out variant D if expert mode is not enabled
+  const dataVariants = [
     ...new Set(competitiveinsights.map(item => item.variant_type))
   ].sort();
+  
+  const availableVariants = expertMode 
+    ? dataVariants 
+    : dataVariants.filter(variant => variant !== 'd');
 
 
   // If selected variant is not available, switch to the first available variant
