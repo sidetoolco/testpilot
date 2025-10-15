@@ -1,10 +1,18 @@
 import axios, { HttpStatusCode } from 'axios';
 import { supabase } from './supabase';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// For local development, use proxy to avoid CORS issues
+// For production, use the environment variable or fallback to production URL
+const baseURL = import.meta.env.DEV 
+  ? '/api' 
+  : (import.meta.env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app');
 
 const apiClient = axios.create({
   baseURL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 apiClient.interceptors.request.use(
