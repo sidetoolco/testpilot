@@ -60,10 +60,14 @@ export const authService = {
   },
 
   async resetPassword(email: string) {
-    console.log(window.location.origin, 'window.location.origin');
+    // SSR-safe origin resolution with environment fallback
+    const origin = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : import.meta.env.VITE_SITE_URL ?? 'https://testpilot-1.vercel.app';
+    
+    console.log(origin, 'resolved origin for password reset');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // redirectTo: `${window.location.origin}/reset-password`,
-      redirectTo: `https://testpilot-1.vercel.app/reset-password`,
+      redirectTo: `${origin}/reset-password`,
     });
 
     if (error) {

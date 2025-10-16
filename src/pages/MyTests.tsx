@@ -221,7 +221,10 @@ export default function MyTests() {
       }
 
       // Use the configured API client instead of hardcoded URL
-      const apiUrl = `https://tespilot-api-301794542770.us-central1.run.app/insights/${testId}`;
+      const isDevelopment = import.meta.env.DEV;
+      const apiUrl = isDevelopment 
+        ? `/api/insights/${testId}`  // Use Vite proxy in development
+        : `${import.meta.env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app'}/insights/${testId}`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -229,8 +232,6 @@ export default function MyTests() {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        mode: 'cors',
       });
 
       if (!response.ok) {

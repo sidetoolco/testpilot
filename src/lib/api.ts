@@ -1,10 +1,10 @@
 import axios, { HttpStatusCode } from 'axios';
 import { supabase } from './supabase';
 
-// For local development, use proxy to avoid CORS issues
-// For production, use the environment variable or fallback to production URL
-const baseURL = import.meta.env.DEV 
-  ? '/api' 
+// Use proxy in development, direct URL in production
+const isDevelopment = import.meta.env.DEV;
+const baseURL = isDevelopment 
+  ? '/api'  // Use Vite proxy in development
   : (import.meta.env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app');
 
 const apiClient = axios.create({
