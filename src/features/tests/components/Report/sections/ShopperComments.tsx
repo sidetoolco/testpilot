@@ -98,6 +98,20 @@ const sortCommentsByCompetitorPopularity = (
   });
 };
 
+// Question mapping for different comment fields
+const getQuestionForField = (field: keyof Comment): string => {
+  switch (field) {
+    case 'likes_most':
+      return 'What do you like most about this product?';
+    case 'improve_suggestions':
+      return 'What suggestions do you have to improve this product?';
+    case 'choose_reason':
+      return 'What would make you choose our product (Item A) over the selected competitor (Item B)?';
+    default:
+      return 'Question not available';
+  }
+};
+
 const CommentItem: React.FC<{
   comment: Comment;
   field: keyof Comment;
@@ -105,10 +119,14 @@ const CommentItem: React.FC<{
   onProductClick: (product: Product) => void;
   competitorCounts?: { [competitorId: string]: number };
   index: number;
-}> = React.memo(({ comment, field, testData, onProductClick, competitorCounts, index }) => {
+  showQuestions?: boolean;
+}> = React.memo(({ comment, field, testData, onProductClick, competitorCounts, index, showQuestions = true }) => {
   const chosenProduct = getChosenProduct(comment, testData);
   const isCompetitor = !!comment.competitor_id;
   const count = comment.competitor_id ? competitorCounts?.[comment.competitor_id] : undefined;
+  const question = getQuestionForField(field);
+  const answer = typeof comment[field] === 'string' ? comment[field] : '';
+  const hasAnswer = answer && answer.trim() !== '';
 
   return (
     <div
@@ -124,7 +142,20 @@ const CommentItem: React.FC<{
         />
       )}
 
-      <p className="text-gray-700">{typeof comment[field] === 'string' ? comment[field] : ''}</p>
+      {showQuestions && hasAnswer && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-600 not-italic">
+            <span className="font-semibold">Q:</span> {question}
+          </p>
+          <p className="text-gray-700 italic">
+            <span className="font-semibold not-italic">A:</span> {answer}
+          </p>
+        </div>
+      )}
+
+      {!showQuestions && hasAnswer && (
+        <p className="text-gray-700">{answer}</p>
+      )}
 
       <div className="mt-2 text-sm text-gray-500">
         {comment.tester_id?.shopper_demographic?.age && (
@@ -150,8 +181,9 @@ const CommentSection: React.FC<{
   testData?: ShopperCommentsProps['testData'];
   onProductClick: (product: Product) => void;
   sortByCompetitor?: boolean;
+  showQuestions?: boolean;
 }> = React.memo(
-  ({ title, comments, field, testData, onProductClick, sortByCompetitor = false }) => {
+  ({ title, comments, field, testData, onProductClick, sortByCompetitor = false, showQuestions = true }) => {
     const { sortedComments, competitorCounts } = useMemo(() => {
       const sorted = sortByCompetitor
         ? sortCommentsByCompetitorPopularity(comments, testData)
@@ -174,6 +206,7 @@ const CommentSection: React.FC<{
         <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
         {sortedComments.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
+            
             {sortedComments.map((comment, index) => (
               <CommentItem
                 key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
@@ -183,6 +216,7 @@ const CommentSection: React.FC<{
                 onProductClick={onProductClick}
                 competitorCounts={competitorCounts}
                 index={index}
+                showQuestions={showQuestions}
               />
             ))}
           </div>
@@ -341,6 +375,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             field="choose_reason"
             testData={testData}
             onProductClick={handleProductClick}
+            showQuestions={false}
           />
         </div>
       ) : null}
