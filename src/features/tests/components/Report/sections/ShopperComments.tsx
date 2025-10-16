@@ -225,17 +225,29 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
 
-  const { currentComparision, currentSurveys, hasComparision, hasSurveys } = useMemo(() => {
+  const { currentComparision, currentSurveys, hasComparision, hasSurveys, testProductBuyers, competitorBuyers, hasTestProductBuyers, hasCompetitorBuyers } = useMemo(() => {
     const currentComp = variant === 'summary' ? [] : comparision[variant];
     const currentSurv = variant === 'summary' ? [] : surveys[variant];
     const hasComp = variant !== 'summary' && currentComp?.length > 0;
     const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
+
+    // Separate test product buyers (synthetic entries without comments) from competitor buyers (with comments)
+    // Use the explicit isTestProductBuyer flag to identify test-product buyers
+    // Competitors are identified by having competitor_id (works for both Amazon and Walmart)
+    const testBuyers = (currentComp || []).filter((c: any) => c.isTestProductBuyer === true);
+    const compBuyers = (currentComp || []).filter((c: any) => 
+      !c.isTestProductBuyer && !!c.competitor_id
+    );
 
     return {
       currentComparision: currentComp,
       currentSurveys: currentSurv,
       hasComparision: hasComp,
       hasSurveys: hasSurv,
+      testProductBuyers: testBuyers,
+      competitorBuyers: compBuyers,
+      hasTestProductBuyers: testBuyers.length > 0,
+      hasCompetitorBuyers: compBuyers.length > 0,
     };
   }, [variant, comparision, surveys]);
 
@@ -311,7 +323,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
         </div>
       )}
 
-      {hasSurveys && (
+      {hasSurveys ? (
         <div className="mb-8">
           <CommentSection
             title={`Suggested improvement from your buyers (${currentSurveys.length})`}
@@ -321,13 +333,23 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             onProductClick={handleProductClick}
           />
         </div>
-      )}
+      ) : hasTestProductBuyers ? (
+        <div className="mb-8">
+          <CommentSection
+            title={`Your chosen product buyers (${testProductBuyers.length})`}
+            comments={testProductBuyers}
+            field="choose_reason"
+            testData={testData}
+            onProductClick={handleProductClick}
+          />
+        </div>
+      ) : null}
 
-      {hasComparision && (
+      {hasCompetitorBuyers && (
         <div>
           <CommentSection
-            title={`Suggested improvements from competitive buyers (${currentComparision.length})`}
-            comments={currentComparision}
+            title={`Suggested improvements from competitive buyers (${competitorBuyers.length})`}
+            comments={competitorBuyers}
             field="choose_reason"
             testData={testData}
             onProductClick={handleProductClick}
