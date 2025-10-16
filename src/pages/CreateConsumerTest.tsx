@@ -11,6 +11,7 @@ import {
 } from '../features/tests/utils/testStateManager';
 import { useTestCreation } from '../features/tests/context/TestCreationContext';
 import { useCredits } from '../features/credits/hooks/useCredits';
+import { creditsService } from '../features/credits/services/creditsService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
@@ -402,11 +403,7 @@ export default function CreateConsumerTest() {
           updateLoadingProgress('Publishing', 2, 5, 'Creating Prolific projects...');
 
           // Deduct credits after successful publication
-          await apiClient.post('/credits/admin/edit', {
-            company_id: typedProfile.company_id,
-            credits: availableCredits - totalCredits, // new total after deduction
-            description: `Credits deducted for publishing test: ${testData.name}`
-          });
+          await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${testData.name}`);
           updateLoadingProgress('Publishing', 3, 5, 'Deducting credits...');
 
           // Refresh credits cache to show updated balance
@@ -428,11 +425,7 @@ export default function CreateConsumerTest() {
       updateLoadingProgress('Publishing', 1, 5, 'Creating new test...');
 
       // Deduct credits after successful publication
-      await apiClient.post('/credits/admin/edit', {
-        company_id: typedProfile.company_id,
-        credits: availableCredits - totalCredits, // new total after deduction
-        description: `Credits deducted for publishing test: ${testData.name}`
-      });
+      await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${testData.name}`);
       updateLoadingProgress('Publishing', 2, 5, 'Deducting credits...');
 
       // Refresh credits cache to show updated balance

@@ -14,6 +14,7 @@ import {
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useCredits } from '../features/credits/hooks/useCredits';
+import { creditsService } from '../features/credits/services/creditsService';
 import { testService } from '../features/tests/services/testService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
@@ -187,17 +188,11 @@ export default function MyTests() {
         throw new Error('Unable to get company information');
       }
 
-      const typedProfile = profile as { company_id: string };
-
       // First, publish the test
       await apiClient.post(`/tests/${testId}/publish`);
 
-      // Then, deduct credits using the same API as admin companies
-      await apiClient.post('/credits/admin/edit', {
-        company_id: typedProfile.company_id,
-        credits: availableCredits - totalCredits, // new total after deduction
-        description: `Credits deducted for publishing test: ${confirmationModal.test.name}`
-      });
+      // Then, deduct credits using the user-specific endpoint
+      await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${confirmationModal.test.name}`);
 
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });

@@ -73,4 +73,12 @@ export const creditsService = {
       };
     }
   },
+
+  async deductCredits(creditsToDeduct: number, description: string): Promise<void> {
+    const { data } = await apiClient.post('/credits/deduct', {
+      credits: creditsToDeduct,
+      description: description
+    });
+    return data;
+  },
 };
