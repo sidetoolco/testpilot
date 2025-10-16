@@ -23,6 +23,19 @@ const getStatusIcon = (status: string) => {
   }
 };
 
+const getTransactionIcon = (type: string) => {
+  switch (type) {
+    case 'payment':
+      return <ArrowDownRight className="h-4 w-4 text-green-500 mr-2" />;
+    case 'usage':
+      return <ArrowUpRight className="h-4 w-4 text-red-500 mr-2" />;
+    case 'admin_adjustment':
+      return <ArrowUpRight className="h-4 w-4 text-blue-500 mr-2" />;
+    default:
+      return <ArrowUpRight className="h-4 w-4 text-gray-500 mr-2" />;
+  }
+};
+
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case 'completed':
@@ -91,20 +104,17 @@ export function TransactionsTable({
               <tr key={transaction.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    {transaction.type === 'payment' ? (
-                      <ArrowDownRight className="h-4 w-4 text-green-500 mr-2" />
-                    ) : (
-                      <ArrowUpRight className="h-4 w-4 text-red-500 mr-2" />
-                    )}
+                    {getTransactionIcon(transaction.type)}
                     <span className="text-sm font-medium text-gray-900 capitalize">
-                      {transaction.type}
+                      {transaction.type.replace('_', ' ')}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`text-sm font-medium ${
-                      transaction.type === 'payment' ? 'text-green-600' : 'text-red-600'
+                      transaction.type === 'payment' ? 'text-green-600' : 
+                      transaction.type === 'admin_adjustment' ? 'text-blue-600' : 'text-red-600'
                     }`}
                   >
                     {transaction.amount_cents ? formatPrice(transaction.amount_cents / 100) : '—'}
