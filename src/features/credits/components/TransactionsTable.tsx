@@ -23,7 +23,7 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getTransactionIcon = (type: string) => {
+const getTransactionIcon = (type: Transaction['type']) => {
   switch (type) {
     case 'payment':
       return <ArrowDownRight className="h-4 w-4 text-green-500 mr-2" />;
