@@ -232,12 +232,12 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
 
     // Separate test product buyers (synthetic entries without comments) from competitor buyers (with comments)
-    // Test buyers are identified by isTestProductBuyer flag or by having no competitor_id and null comment fields
-    const testBuyers = currentComp?.filter((comment: Comment) => 
-      !comment.competitor_id && 
-      (!comment.choose_reason || (comment as any).isTestProductBuyer)
-    ) || [];
-    const compBuyers = currentComp?.filter((comment: Comment) => !!comment.competitor_id) || [];
+    // Use the explicit isTestProductBuyer flag to identify test-product buyers
+    // For competitors, check both competitor_id AND walmart_product_id (for Walmart tests)
+    const testBuyers = (currentComp || []).filter((c: any) => c.isTestProductBuyer === true);
+    const compBuyers = (currentComp || []).filter((c: any) => 
+      !c.isTestProductBuyer && !!(c.competitor_id ?? (c as any).walmart_product_id)
+    );
 
     return {
       currentComparision: currentComp,
