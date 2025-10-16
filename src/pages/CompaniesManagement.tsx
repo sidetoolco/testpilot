@@ -279,11 +279,14 @@ export default function CompaniesManagement() {
       const creditsDifference = newCredits - initialCredits;
 
       // Update credits using the new edit endpoint
-      await apiClient.post('/credits/admin/edit', {
+      const response = await apiClient.post('/credits/admin/edit', {
         company_id: selectedCompany.id,
         credits: newCredits,
         description: `Admin set credits from ${initialCredits} to ${newCredits}`
       });
+
+      // The response now includes the new balance and transaction details
+      const { new_balance, transaction } = response.data;
 
       const action = creditsDifference >= 0 ? 'Increased' : 'Decreased';
       const absCredits = Math.abs(creditsDifference);
@@ -292,13 +295,13 @@ export default function CompaniesManagement() {
       setCreditsToEdit('');
       setInitialCredits(0);
       
-      // Update the company credits in state
-      updateCompanyCredits(selectedCompany.id, newCredits);
+      // Update the company credits in state using the confirmed new balance
+      updateCompanyCredits(selectedCompany.id, new_balance);
       
       // Update the selected company state as well
       setSelectedCompany(prev => 
         prev && prev.id === selectedCompany.id 
-          ? { ...prev, credits: newCredits }
+          ? { ...prev, credits: new_balance }
           : prev
       );
 

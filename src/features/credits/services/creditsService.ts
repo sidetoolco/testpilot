@@ -1,5 +1,5 @@
 import apiClient from '../../../lib/api';
-import { CreditsData, PaymentIntentResponse } from '../../../types/credits';
+import { CreditsData, AdminCreditsData, AdminEditCreditsRequest, AdminEditCreditsResponse, PaymentIntentResponse } from '../../../types/credits';
 
 export interface CouponValidationResponse {
   valid: boolean;
@@ -79,6 +79,19 @@ export const creditsService = {
       credits: creditsToDeduct,
       description: description
     });
+    return data;
+  },
+
+  // Admin credit management methods
+  async getCompanyCreditsAdmin(companyId: string, page = 1, limit = 20): Promise<AdminCreditsData> {
+    const { data } = await apiClient.get<AdminCreditsData>(`/credits/company/${companyId}`, {
+      params: { page, limit },
+    });
+    return data;
+  },
+
+  async editCompanyCredits(request: AdminEditCreditsRequest): Promise<AdminEditCreditsResponse> {
+    const { data } = await apiClient.post<AdminEditCreditsResponse>('/credits/admin/edit', request);
     return data;
   },
 };
