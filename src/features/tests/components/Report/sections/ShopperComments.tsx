@@ -231,8 +231,12 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
     const hasComp = variant !== 'summary' && currentComp?.length > 0;
     const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
 
-    // Separate test product buyers from competitor buyers
-    const testBuyers = currentComp?.filter((comment: Comment) => !comment.competitor_id) || [];
+    // Separate test product buyers (synthetic entries without comments) from competitor buyers (with comments)
+    // Test buyers are identified by isTestProductBuyer flag or by having no competitor_id and null comment fields
+    const testBuyers = currentComp?.filter((comment: Comment) => 
+      !comment.competitor_id && 
+      (!comment.choose_reason || (comment as any).isTestProductBuyer)
+    ) || [];
     const compBuyers = currentComp?.filter((comment: Comment) => !!comment.competitor_id) || [];
 
     return {

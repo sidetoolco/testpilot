@@ -296,14 +296,17 @@ export function useTestDetail(id: string) {
         const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
-            if (item.competitor_id) {
+            // Support both competitor_id and walmart_product_id for Walmart tests
+            const competitorKey = item.competitor_id ?? item.walmart_product_id;
+            if (competitorKey) {
               // This is a competitor buyer
-              const competitorData = competitorMap.get(item.competitor_id);
+              const competitorData = competitorMap.get(competitorKey);
               acc[type].push({
                 ...item,
                 ...(competitorData && { 
                   // Use the appropriate product key based on test skin
-                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData 
+                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData,
+                  products: competitorData
                 }),
               });
             }
@@ -313,19 +316,22 @@ export function useTestDetail(id: string) {
 
         // Now add test product buyers as synthetic comparison entries at the TOP
         // These users don't have responses_comparisons entries, so we create them from testers_session
-        // Use unshift instead of push to add them at the beginning (top of the list)
+        // Use unshift to add them at the beginning (top of the list)
+        // Note: These have null comment fields - they're meant for display in a separate "buyers without comments" section
         (testProductSessions ?? []).forEach((session: any) => {
           const type = String(session.variation_type || '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
             const testProductData = testProductByVariant.get(type);
             
             // Create a synthetic comparison entry for test product buyers
+            // These will be filtered out in ShopperComments if surveys exist
             comparisonsByType[type].unshift({
               competitor_id: null,
               product_id: session.product_id,
-              choose_reason: null, // Test product buyers may not have choose_reason comments
+              choose_reason: null, // No comments - for display only
               improve_suggestions: null,
               likes_most: null,
+              isTestProductBuyer: true, // Flag to identify these synthetic entries
               tester_id: {
                 id: session.id,
                 variation_type: session.variation_type,

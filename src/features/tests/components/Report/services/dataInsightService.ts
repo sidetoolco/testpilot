@@ -310,6 +310,19 @@ export const getCompetitiveInsights = async (
 
     if (testProductError) throw testProductError;
 
+    // Precompute competitor counts by variant once (avoid redundant scanning)
+    const competitorCountsByVariant: { [variant: string]: { [competitorId: string]: number } } = {};
+    (sessions || []).forEach((session: any) => {
+      const v = String(session.variation_type || '').toLowerCase();
+      if (v === 'a' || v === 'b' || v === 'c') {
+        const cid = session.competitor_id || session.walmart_product_id;
+        if (cid) {
+          if (!competitorCountsByVariant[v]) competitorCountsByVariant[v] = {};
+          competitorCountsByVariant[v][cid] = (competitorCountsByVariant[v][cid] || 0) + 1;
+        }
+      }
+    });
+
     // Group by variant
     const groupedByVariant = (summaryData || []).reduce((acc: any, item: any) => {
       const variant = item.variant_type;
@@ -327,19 +340,8 @@ export const getCompetitiveInsights = async (
 
       const testProduct = (testProductData as any[])?.find((item: any) => String(item.variant_type).toLowerCase() === normalizedVariant);
 
-      // Calculate competitor counts for this variant from sessions data
-      const competitorCountsMap: { [competitorId: string]: number } = {};
-      
-      // Count competitors from sessions data
-      (sessions || []).forEach((session: any) => {
-        const sessionVariant = String(session.variation_type || '').toLowerCase();
-        if (sessionVariant === normalizedVariant) {
-          const competitorId = session.competitor_id || session.walmart_product_id;
-          if (competitorId) {
-            competitorCountsMap[competitorId] = (competitorCountsMap[competitorId] || 0) + 1;
-          }
-        }
-      });
+      // Use precomputed competitor counts for this variant
+      const competitorCountsMap = competitorCountsByVariant[normalizedVariant] || {};
 
 
       const competitorResults = variantItems.map((item: any) => {
