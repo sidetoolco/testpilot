@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app',
+          target: env.VITE_DEV_PROXY_TARGET || env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
