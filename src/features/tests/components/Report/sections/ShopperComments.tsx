@@ -233,10 +233,10 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
     // Separate test product buyers (synthetic entries without comments) from competitor buyers (with comments)
     // Use the explicit isTestProductBuyer flag to identify test-product buyers
-    // For competitors, check both competitor_id AND walmart_product_id (for Walmart tests)
+    // Competitors are identified by having competitor_id (works for both Amazon and Walmart)
     const testBuyers = (currentComp || []).filter((c: any) => c.isTestProductBuyer === true);
     const compBuyers = (currentComp || []).filter((c: any) => 
-      !c.isTestProductBuyer && !!(c.competitor_id ?? (c as any).walmart_product_id)
+      !c.isTestProductBuyer && !!c.competitor_id
     );
 
     return {

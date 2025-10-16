@@ -296,17 +296,14 @@ export function useTestDetail(id: string) {
         const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
-            // Support both competitor_id and walmart_product_id for Walmart tests
-            const competitorKey = item.competitor_id ?? item.walmart_product_id;
-            if (competitorKey) {
+            if (item.competitor_id) {
               // This is a competitor buyer
-              const competitorData = competitorMap.get(competitorKey);
+              const competitorData = competitorMap.get(item.competitor_id);
               acc[type].push({
                 ...item,
                 ...(competitorData && { 
                   // Use the appropriate product key based on test skin
-                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData,
-                  products: competitorData
+                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData
                 }),
               });
             }
