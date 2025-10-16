@@ -225,17 +225,25 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
 
-  const { currentComparision, currentSurveys, hasComparision, hasSurveys } = useMemo(() => {
+  const { currentComparision, currentSurveys, hasComparision, hasSurveys, testProductBuyers, competitorBuyers, hasTestProductBuyers, hasCompetitorBuyers } = useMemo(() => {
     const currentComp = variant === 'summary' ? [] : comparision[variant];
     const currentSurv = variant === 'summary' ? [] : surveys[variant];
     const hasComp = variant !== 'summary' && currentComp?.length > 0;
     const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
+
+    // Separate test product buyers from competitor buyers
+    const testBuyers = currentComp?.filter((comment: Comment) => !comment.competitor_id) || [];
+    const compBuyers = currentComp?.filter((comment: Comment) => !!comment.competitor_id) || [];
 
     return {
       currentComparision: currentComp,
       currentSurveys: currentSurv,
       hasComparision: hasComp,
       hasSurveys: hasSurv,
+      testProductBuyers: testBuyers,
+      competitorBuyers: compBuyers,
+      hasTestProductBuyers: testBuyers.length > 0,
+      hasCompetitorBuyers: compBuyers.length > 0,
     };
   }, [variant, comparision, surveys]);
 
@@ -311,7 +319,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
         </div>
       )}
 
-      {hasSurveys && (
+      {hasSurveys ? (
         <div className="mb-8">
           <CommentSection
             title={`Suggested improvement from your buyers (${currentSurveys.length})`}
@@ -321,13 +329,23 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             onProductClick={handleProductClick}
           />
         </div>
-      )}
+      ) : hasTestProductBuyers ? (
+        <div className="mb-8">
+          <CommentSection
+            title={`Your chosen product buyers (${testProductBuyers.length})`}
+            comments={testProductBuyers}
+            field="choose_reason"
+            testData={testData}
+            onProductClick={handleProductClick}
+          />
+        </div>
+      ) : null}
 
-      {hasComparision && (
+      {hasCompetitorBuyers && (
         <div>
           <CommentSection
-            title={`Suggested improvements from competitive buyers (${currentComparision.length})`}
-            comments={currentComparision}
+            title={`Suggested improvements from competitive buyers (${competitorBuyers.length})`}
+            comments={competitorBuyers}
             field="choose_reason"
             testData={testData}
             onProductClick={handleProductClick}

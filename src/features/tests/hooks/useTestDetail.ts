@@ -256,6 +256,33 @@ export function useTestDetail(id: string) {
 
         if (comparisonsError) throw comparisonsError;
 
+        // Fetch test product selections from testers_session
+        // These are users who selected the test product (not a competitor)
+        const { data: testProductSessions, error: testProductSessionsError } = await supabase
+          .from('testers_session')
+          .select(`
+            id,
+            variation_type,
+            product_id,
+            prolific_pid,
+            shopper_demographic(id_prolific, age, sex, country_residence)
+          `)
+          .eq('test_id', id as any)
+          .not('product_id', 'is', null)
+          .is('competitor_id', null)
+          .is('walmart_product_id', null);
+
+        if (testProductSessionsError) throw testProductSessionsError;
+
+        // Build test product variations map
+        const testProductByVariant = new Map<string, any>();
+        (typedTestData.variations ?? []).forEach((v: any) => {
+          const variant = String(v.variation_type || '').toLowerCase();
+          if ((variant === 'a' || variant === 'b' || variant === 'c') && v.product) {
+            testProductByVariant.set(variant, v.product);
+          }
+        });
+
         // Separate comparisons by variation_type and map competitor data
         // Build competitor map once for efficiency
         const competitorMap = new Map<string, any>(
@@ -265,20 +292,54 @@ export function useTestDetail(id: string) {
         // Ensure required keys exist regardless of data presence
         const initial = { a: [], b: [], c: [] } as Record<'a' | 'b' | 'c', any[]>;
 
+        // First, add all competitor comparison responses
         const comparisonsByType = (comparisonsData ?? []).reduce((acc, item: any) => {
           const type = String(item?.tester_id?.variation_type ?? '').toLowerCase();
           if (type === 'a' || type === 'b' || type === 'c') {
-            const competitorData = competitorMap.get(item.competitor_id);
-            acc[type].push({
-              ...item,
-              ...(competitorData && { 
-                // Use the appropriate product key based on test skin
-                [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData 
-              }),
-            });
+            if (item.competitor_id) {
+              // This is a competitor buyer
+              const competitorData = competitorMap.get(item.competitor_id);
+              acc[type].push({
+                ...item,
+                ...(competitorData && { 
+                  // Use the appropriate product key based on test skin
+                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData 
+                }),
+              });
+            }
           }
           return acc;
         }, initial);
+
+        // Now add test product buyers as synthetic comparison entries at the TOP
+        // These users don't have responses_comparisons entries, so we create them from testers_session
+        // Use unshift instead of push to add them at the beginning (top of the list)
+        (testProductSessions ?? []).forEach((session: any) => {
+          const type = String(session.variation_type || '').toLowerCase();
+          if (type === 'a' || type === 'b' || type === 'c') {
+            const testProductData = testProductByVariant.get(type);
+            
+            // Create a synthetic comparison entry for test product buyers
+            comparisonsByType[type].unshift({
+              competitor_id: null,
+              product_id: session.product_id,
+              choose_reason: null, // Test product buyers may not have choose_reason comments
+              improve_suggestions: null,
+              likes_most: null,
+              tester_id: {
+                id: session.id,
+                variation_type: session.variation_type,
+                prolific_pid: session.prolific_pid,
+                shopper_demographic: session.shopper_demographic || null,
+              },
+              ...(testProductData && { 
+                // Use the appropriate product key based on test skin
+                [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: testProductData,
+                products: testProductData // Also set products for compatibility
+              }),
+            });
+          }
+        });
 
         // Transform the data to match our Test type
         const transformedTest: Test = {
