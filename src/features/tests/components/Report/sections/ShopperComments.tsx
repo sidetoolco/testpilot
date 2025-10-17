@@ -230,6 +230,10 @@ const CommentSection: React.FC<{
 
 CommentSection.displayName = 'CommentSection';
 
+const getStableKey = (comment: Comment, prefix: string, index: number): string => {
+  return `${prefix}-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || `fallback-${index}`}`;
+};
+
 const MergedBuyersSection: React.FC<{
   title: string;
   buyersWithComments: Comment[];
@@ -238,39 +242,33 @@ const MergedBuyersSection: React.FC<{
   onProductClick: (product: Product) => void;
 }> = React.memo(
   ({ title, buyersWithComments, buyersWithoutComments, testData, onProductClick }) => {
-    const allBuyers = [...buyersWithComments, ...buyersWithoutComments];
-
     return (
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
-        {allBuyers.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
-            {buyersWithComments.map((comment, index) => (
-              <CommentItem
-                key={`comment-with-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || index}-${index}`}
-                comment={comment}
-                field="improve_suggestions"
-                testData={testData}
-                onProductClick={onProductClick}
-                index={index}
-                showQuestions={true}
-              />
-            ))}
-            {buyersWithoutComments.map((comment, index) => (
-              <CommentItem
-                key={`comment-without-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || index}-${index}`}
-                comment={comment}
-                field="choose_reason"
-                testData={testData}
-                onProductClick={onProductClick}
-                index={buyersWithComments.length + index}
-                showQuestions={false}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No comments available.</p>
-        )}
+        <div className="grid grid-cols-2 gap-4">
+          {buyersWithComments.map((comment, index) => (
+            <CommentItem
+              key={getStableKey(comment, 'with', index)}
+              comment={comment}
+              field="improve_suggestions"
+              testData={testData}
+              onProductClick={onProductClick}
+              index={index}
+              showQuestions={true}
+            />
+          ))}
+          {buyersWithoutComments.map((comment, index) => (
+            <CommentItem
+              key={getStableKey(comment, 'without', index)}
+              comment={comment}
+              field="choose_reason"
+              testData={testData}
+              onProductClick={onProductClick}
+              index={buyersWithComments.length + index}
+              showQuestions={false}
+            />
+          ))}
+        </div>
       </div>
     );
   }
