@@ -172,22 +172,26 @@ export default function SearchAndCompetitorSelection({
     const displaySearchTerm = searchTerm || currentSearchTerm;
     return <LoadingState showProgress message={`Searching for products matching "${displaySearchTerm}"...`} />;
   }
-  if (error) return <ErrorState 
-    error={error} 
-    onRetry={() => {
-      if (skin === 'amazon') {
-        amazonRefetch();
-      } else if (skin === 'walmart') {
-        walmartSearchProducts(currentSearchTerm);
-      }
-    }}
-    onNewSearch={() => {
-      setHasUserSearched(false);
-      setCurrentSearchTerm('');
-      setSearchInputValue('');
-      onSearchTermChange('');
-    }}
-  />;
+  
+  // Only show error if user has searched and there are no selected competitors yet
+  if (error && hasUserSearched && selectedCompetitors.length === 0) return (
+    <ErrorState 
+      error={error} 
+      onRetry={() => {
+        if (skin === 'amazon') {
+          amazonRefetch();
+        } else if (skin === 'walmart') {
+          walmartSearchProducts(currentSearchTerm);
+        }
+      }}
+      onNewSearch={() => {
+        setHasUserSearched(false);
+        setCurrentSearchTerm('');
+        setSearchInputValue('');
+        onSearchTermChange('');
+      }}
+    />
+  );
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -248,9 +252,9 @@ export default function SearchAndCompetitorSelection({
               Search Results ({products.length} products)
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {currentSearchTerm === (originalSearchTerm || currentSearchTerm)
-                ? `Showing results for your original search: "${currentSearchTerm}"`
-                : `Showing results for additional search: "${currentSearchTerm}"`
+              {originalSearchTerm && currentSearchTerm === originalSearchTerm
+                ? `Showing results for your original search: "${originalSearchTerm}"`
+                : `Showing results for "${currentSearchTerm}"`
               }
             </p>
           </div>

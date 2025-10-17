@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle, RefreshCw, Search } from 'lucide-react';
 
 interface ErrorStateProps {
@@ -14,6 +13,7 @@ export function ErrorState({ error, onRetry, onNewSearch }: ErrorStateProps) {
       <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onRetry}
           className="px-4 py-2 bg-primary-400 text-white rounded-lg hover:bg-primary-500 flex items-center space-x-2"
         >
@@ -22,6 +22,7 @@ export function ErrorState({ error, onRetry, onNewSearch }: ErrorStateProps) {
         </button>
         {onNewSearch && (
           <button
+            type="button"
             onClick={onNewSearch}
             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
           >
