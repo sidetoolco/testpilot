@@ -230,6 +230,54 @@ const CommentSection: React.FC<{
 
 CommentSection.displayName = 'CommentSection';
 
+const MergedBuyersSection: React.FC<{
+  title: string;
+  buyersWithComments: Comment[];
+  buyersWithoutComments: Comment[];
+  testData?: ShopperCommentsProps['testData'];
+  onProductClick: (product: Product) => void;
+}> = React.memo(
+  ({ title, buyersWithComments, buyersWithoutComments, testData, onProductClick }) => {
+    const allBuyers = [...buyersWithComments, ...buyersWithoutComments];
+
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
+        {allBuyers.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {buyersWithComments.map((comment, index) => (
+              <CommentItem
+                key={`comment-with-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || index}-${index}`}
+                comment={comment}
+                field="improve_suggestions"
+                testData={testData}
+                onProductClick={onProductClick}
+                index={index}
+                showQuestions={true}
+              />
+            ))}
+            {buyersWithoutComments.map((comment, index) => (
+              <CommentItem
+                key={`comment-without-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || index}-${index}`}
+                comment={comment}
+                field="choose_reason"
+                testData={testData}
+                onProductClick={onProductClick}
+                index={buyersWithComments.length + index}
+                showQuestions={false}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No comments available.</p>
+        )}
+      </div>
+    );
+  }
+);
+
+MergedBuyersSection.displayName = 'MergedBuyersSection';
+
 const ShopperComments: React.FC<ShopperCommentsProps> = ({
   comparision,
   surveys,
@@ -259,7 +307,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
 
-  const { currentComparision, currentSurveys, hasComparision, hasSurveys, testProductBuyers, competitorBuyers, hasTestProductBuyers, hasCompetitorBuyers } = useMemo(() => {
+  const { currentComparision, currentSurveys, hasComparision, hasSurveys, testProductBuyers, competitorBuyers, hasTestProductBuyers, hasCompetitorBuyers, allTestProductBuyers, hasAllTestProductBuyers } = useMemo(() => {
     const currentComp = variant === 'summary' ? [] : comparision[variant];
     const currentSurv = variant === 'summary' ? [] : surveys[variant];
     const hasComp = variant !== 'summary' && currentComp?.length > 0;
@@ -273,6 +321,11 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       !c.isTestProductBuyer && !!c.competitor_id
     );
 
+    // Merge surveys (buyers with comments) and testBuyers (buyers without comments)
+    // Put buyers with comments first, then buyers without comments
+    const mergedTestProductBuyers = [...currentSurv, ...testBuyers];
+    const hasAnyTestProductBuyers = mergedTestProductBuyers.length > 0;
+
     return {
       currentComparision: currentComp,
       currentSurveys: currentSurv,
@@ -282,6 +335,8 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       competitorBuyers: compBuyers,
       hasTestProductBuyers: testBuyers.length > 0,
       hasCompetitorBuyers: compBuyers.length > 0,
+      allTestProductBuyers: mergedTestProductBuyers,
+      hasAllTestProductBuyers: hasAnyTestProductBuyers,
     };
   }, [variant, comparision, surveys]);
 
@@ -357,28 +412,17 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
         </div>
       )}
 
-      {hasSurveys ? (
+      {hasAllTestProductBuyers && (
         <div className="mb-8">
-          <CommentSection
-            title={`Suggested improvement from your buyers (${currentSurveys.length})`}
-            comments={currentSurveys}
-            field="improve_suggestions"
+          <MergedBuyersSection
+            title={`Your chosen product buyers (${allTestProductBuyers.length})`}
+            buyersWithComments={currentSurveys}
+            buyersWithoutComments={testProductBuyers}
             testData={testData}
             onProductClick={handleProductClick}
           />
         </div>
-      ) : hasTestProductBuyers ? (
-        <div className="mb-8">
-          <CommentSection
-            title={`Your chosen product buyers (${testProductBuyers.length})`}
-            comments={testProductBuyers}
-            field="choose_reason"
-            testData={testData}
-            onProductClick={handleProductClick}
-            showQuestions={false}
-          />
-        </div>
-      ) : null}
+      )}
 
       {hasCompetitorBuyers && (
         <div>
@@ -446,3 +490,4 @@ const ProductModal: React.FC<{
 };
 
 export default ShopperComments;
+
