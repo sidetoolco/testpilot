@@ -60,23 +60,6 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
     return products;
   }, [filteredCompetitors, variations.a, skin]);
 
-  // Use separate state for each skin type to maintain type safety
-  const [amazonDisplayProducts, setAmazonDisplayProducts] = React.useState<AmazonProduct[]>([]);
-  const [walmartDisplayProducts, setWalmartDisplayProducts] = React.useState<WalmartProduct[]>([]);
-  const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
-    variations.a ? 'a' : null
-  );
-
-  React.useEffect(() => {
-    if (skin === 'amazon') {
-      setAmazonDisplayProducts(allProducts as AmazonProduct[]);
-      setWalmartDisplayProducts([]);
-    } else {
-      setWalmartDisplayProducts(allProducts as WalmartProduct[]);
-      setAmazonDisplayProducts([]);
-    }
-  }, [allProducts, skin]);
-
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -85,6 +68,24 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
     }
     return shuffled;
   };
+
+  // Use separate state for each skin type to maintain type safety
+  const [amazonDisplayProducts, setAmazonDisplayProducts] = React.useState<AmazonProduct[]>([]);
+  const [walmartDisplayProducts, setWalmartDisplayProducts] = React.useState<WalmartProduct[]>([]);
+  const [selectedVariant, setSelectedVariant] = React.useState<string | null>(
+    variations.a ? 'a' : null
+  );
+
+  React.useEffect(() => {
+    const shuffledProducts = shuffleArray(allProducts);
+    if (skin === 'amazon') {
+      setAmazonDisplayProducts(shuffledProducts as AmazonProduct[]);
+      setWalmartDisplayProducts([]);
+    } else {
+      setWalmartDisplayProducts(shuffledProducts as WalmartProduct[]);
+      setAmazonDisplayProducts([]);
+    }
+  }, [allProducts, skin]);
 
   const handleSelectVariant = (variantKey: string, variant: any | null) => {
     if (variant) {

@@ -169,20 +169,30 @@ export default function SearchAndCompetitorSelection({
 
   // Show loading screen for initial search or when searching with no results
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
-    return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
+    const displaySearchTerm = searchTerm || currentSearchTerm;
+    return <LoadingState showProgress message={`Searching for products matching "${displaySearchTerm}"...`} />;
   }
-  if (error) return <ErrorState error={error} onRetry={() => {
-    if (skin === 'amazon') {
-      amazonRefetch();
-    } else if (skin === 'walmart') {
-      walmartSearchProducts(currentSearchTerm);
-    }
-  }} />;
+  if (error) return <ErrorState 
+    error={error} 
+    onRetry={() => {
+      if (skin === 'amazon') {
+        amazonRefetch();
+      } else if (skin === 'walmart') {
+        walmartSearchProducts(currentSearchTerm);
+      }
+    }}
+    onNewSearch={() => {
+      setHasUserSearched(false);
+      setCurrentSearchTerm('');
+      setSearchInputValue('');
+      onSearchTermChange('');
+    }}
+  />;
 
   return (
     <div className="max-w-6xl mx-auto">
       <SearchHeader
-        title={`Search & Select Competitors - "${originalSearchTerm}"`}
+        title={`Search & Select Competitors - "${originalSearchTerm || currentSearchTerm}"`}
         subtitle={` Search for additional products or select from existing results. You can also search for specific brands if needed.`}
       />
 
@@ -214,7 +224,7 @@ export default function SearchAndCompetitorSelection({
         </div>
         
         {/* Show current search term if there are results */}
-        {hasSearchResults && currentSearchTerm && currentSearchTerm !== originalSearchTerm && (
+        {hasSearchResults && currentSearchTerm && currentSearchTerm !== (originalSearchTerm || currentSearchTerm) && originalSearchTerm && (
           <div className="mt-2 text-sm text-gray-500">
             Additional search: <span className="font-medium">"{currentSearchTerm}"</span>
           </div>
@@ -238,7 +248,7 @@ export default function SearchAndCompetitorSelection({
               Search Results ({products.length} products)
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {currentSearchTerm === originalSearchTerm 
+              {currentSearchTerm === (originalSearchTerm || currentSearchTerm)
                 ? `Showing results for your original search: "${currentSearchTerm}"`
                 : `Showing results for additional search: "${currentSearchTerm}"`
               }
@@ -292,11 +302,8 @@ export default function SearchAndCompetitorSelection({
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">
-            Preparing your search...
+            You are ready to start your search...
           </h3>
-          <p className="text-gray-400">
-            Setting up search for "{originalSearchTerm}". This will only take a moment.
-          </p>
         </div>
       )}
 
