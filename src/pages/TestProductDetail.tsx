@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
 import RedirectModal from '../components/test-setup/RedirectQuestionModal';
 import { trackEvent } from '../lib/events';
+import { ProductReviews } from '../components/ProductReviews';
 
 const RatingStars = ({ rating }: { rating: number }) => (
   <>
@@ -37,6 +38,7 @@ const RatingStars = ({ rating }: { rating: number }) => (
 export default function ProductDetail() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { productId: _productId } = useParams<{ productId: string }>();
   const product = location.state?.product;
   const addToCart = useSessionStore(state => state.selectItemAtCheckout); // Usa el hook
   const { shopperId } = useSessionStore(); // Obtén la sesión actual
@@ -326,17 +328,24 @@ export default function ProductDetail() {
           </table>
           <div className="border-t border-[#DDD] py-6">
             <h2 className="text-[20px] font-medium text-[#0F1111] mb-4">Customer reviews</h2>
-            <div className="bg-[#F3F3F3] p-6 rounded-lg">
-              <div className="flex items-center justify-center flex-col text-center">
-                <p className="text-[#565959] text-[14px] mb-2">
-                  Reviews are not included in this test
-                </p>
-                <p className="text-[#565959] text-[12px]">
-                  This is a test environment where reviews are not available. In a real shopping
-                  experience, you would see customer reviews here.
-                </p>
+            {product?.asin ? (
+              <ProductReviews asin={product.asin} />
+            ) : (
+              <div className="bg-[#F3F3F3] p-6 rounded-lg">
+                <div className="flex items-center justify-center flex-col text-center">
+                  <p className="text-[#565959] text-[14px] mb-2">
+                    Reviews are not included in this test
+                  </p>
+                  <p className="text-[#565959] text-[12px]">
+                    This is a test environment where reviews are not available. In a real shopping
+                    experience, you would see customer reviews here.
+                  </p>
+                  <p className="text-[#565959] text-[10px] mt-2">
+                    Debug: Product ASIN: {product?.asin || 'No ASIN found'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

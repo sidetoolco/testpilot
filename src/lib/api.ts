@@ -52,4 +52,9 @@ export const updateTestBlock = async (testId: string, block: boolean) => {
   });
 };
 
+// Add function to fetch product reviews
+export const fetchProductReviews = async (productId: string) => {
+  return apiClient.get(`/amazon/products/${productId}/reviews`);
+};
+
 export default apiClient;
