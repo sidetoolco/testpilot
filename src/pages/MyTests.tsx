@@ -14,13 +14,11 @@ import {
 import { useTests } from '../features/tests/hooks/useTests';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useCredits } from '../features/credits/hooks/useCredits';
-import { creditsService } from '../features/credits/services/creditsService';
 import { testService } from '../features/tests/services/testService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
-import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import ModalLayout from '../layouts/ModalLayout';
 import apiClient, { updateTestBlock } from '../lib/api';
@@ -173,26 +171,8 @@ export default function MyTests() {
     setConfirmationModal(null);
 
     try {
-      // Get user's company ID
-      if (!user?.user?.id) {
-        throw new Error('User not authenticated');
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.user.id as any)
-        .single();
-
-      if (profileError || !profile || !profile.company_id) {
-        throw new Error('Unable to get company information');
-      }
-
-      // First, publish the test
+      // Publish the test (backend handles credit deduction automatically)
       await apiClient.post(`/tests/${testId}/publish`);
-
-      // Then, deduct credits using the user-specific endpoint
-      await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${confirmationModal.test.name}`);
 
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });

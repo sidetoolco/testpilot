@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStepValidation } from '../features/tests/hooks/useStepValidation';
 import { testService } from '../features/tests/services/testService';
@@ -11,16 +11,12 @@ import {
 } from '../features/tests/utils/testStateManager';
 import { useTestCreation } from '../features/tests/context/TestCreationContext';
 import { useCredits } from '../features/credits/hooks/useCredits';
-import { creditsService } from '../features/credits/services/creditsService';
 import { PurchaseCreditsModal } from '../features/credits/components/PurchaseCreditsModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../lib/stripe';
 import ModalLayout from '../layouts/ModalLayout';
 import { validateTestDataWithToast, validateDraftDataWithToast } from '../features/tests/utils/testValidation';
 import { TestCost } from '../components/test-setup/TestCost';
-import apiClient from '../lib/api';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useExpertMode } from '../hooks/useExpertMode';
 
@@ -61,12 +57,10 @@ const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
 
 export default function CreateConsumerTest() {
   const navigate = useNavigate();
-  const location = useLocation();
   
   // Check if company has expert mode enabled
   const { expertMode } = useExpertMode();
   
-  const user = useAuth();
   const queryClient = useQueryClient();
   const [testData, setTestData] = useState<TestData>(() => getInitialTestData(expertMode));
   const { currentStep, setCurrentStep, canProceed, handleNext } = useStepValidation(testData);
@@ -361,54 +355,23 @@ export default function CreateConsumerTest() {
 
   const handlePublishConfirm = async () => {
     try {
-      startLoadingWithProgress(5); // 5 steps for publishing
+      startLoadingWithProgress(3); // 3 steps for publishing
       setPublishModal(null);
-
-      // Calculate credits needed for this test
-      const activeVariants = Object.values(testData.variations).filter(v => v !== null).length;
-      const totalTesters = testData.demographics.testerCount * activeVariants;
-      const hasCustomScreening = testData.demographics.customScreening?.enabled && 
-        testData.demographics.customScreening.question && 
-        testData.demographics.customScreening.validAnswer;
-      const creditsPerTester = hasCustomScreening ? CREDITS_PER_TESTER_CUSTOM_SCREENING : CREDITS_PER_TESTER;
-      const totalCredits = totalTesters * creditsPerTester;
-      const availableCredits = creditsData?.total || 0;
-
-      // Get user's company ID
-      if (!user?.user?.id) {
-        throw new Error('User not authenticated');
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.user.id as any)
-        .single();
-
-      if (profileError || !profile || !profile.company_id) {
-        throw new Error('Unable to get company information');
-      }
-
-      const typedProfile = profile as { company_id: string };
 
       // Check if it's an existing incomplete test
       if (testState.isIncompleteTest && currentTestId) {
         try {
           // Update incomplete test to draft and update data
           await testService.updateIncompleteTestToDraft(currentTestId, testData);
-          updateLoadingProgress('Publishing', 1, 5, 'Updating incomplete test...');
+          updateLoadingProgress('Publishing', 1, 3, 'Updating incomplete test...');
 
-          // Proceed with normal launch (create Prolific projects)
+          // Proceed with normal launch (create Prolific projects - backend handles credit deduction)
           await testService.createProlificProjectsForTest(currentTestId, testData);
-          updateLoadingProgress('Publishing', 2, 5, 'Creating Prolific projects...');
-
-          // Deduct credits after successful publication
-          await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${testData.name}`);
-          updateLoadingProgress('Publishing', 3, 5, 'Deducting credits...');
+          updateLoadingProgress('Publishing', 2, 3, 'Creating Prolific projects...');
 
           // Refresh credits cache to show updated balance
           await queryClient.invalidateQueries({ queryKey: ['credits'] });
-          updateLoadingProgress('Publishing', 4, 5, 'Refreshing credits...');
+          updateLoadingProgress('Publishing', 3, 3, 'Refreshing credits...');
 
           toast.success('Test published successfully');
           navigate('/my-tests');
@@ -420,17 +383,13 @@ export default function CreateConsumerTest() {
         }
       }
 
-      // Create test (normal flow for new tests)
+      // Create test (normal flow for new tests - backend handles credit deduction)
       await testService.createTest(testData);
-      updateLoadingProgress('Publishing', 1, 5, 'Creating new test...');
-
-      // Deduct credits after successful publication
-      await creditsService.deductCredits(totalCredits, `Credits deducted for publishing test: ${testData.name}`);
-      updateLoadingProgress('Publishing', 2, 5, 'Deducting credits...');
+      updateLoadingProgress('Publishing', 1, 2, 'Creating new test...');
 
       // Refresh credits cache to show updated balance
       await queryClient.invalidateQueries({ queryKey: ['credits'] });
-      updateLoadingProgress('Publishing', 3, 5, 'Refreshing credits...');
+      updateLoadingProgress('Publishing', 2, 2, 'Refreshing credits...');
 
       toast.success('Test published successfully');
       navigate('/my-tests');
