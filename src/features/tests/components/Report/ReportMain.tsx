@@ -128,7 +128,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>(getDefaultQuestions());
   const fetchingRef = useRef(false);
 
   const navigate = useNavigate();

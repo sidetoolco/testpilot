@@ -227,7 +227,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(true)}
-                      className="text-gray-500 hover:text-gray-600 transition-colors"
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
                       aria-label="View example"
                     >
                       <Info className="h-4 w-4" />

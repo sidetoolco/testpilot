@@ -3,7 +3,7 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
-import { getQuestionsByIds } from '../../TestQuestions/questionConfig';
+import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
 interface Competitor {
@@ -214,7 +214,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   variantKey,
   competitiveinsights,
   orientation = 'landscape',
-  selectedQuestions = [],
+  selectedQuestions = getDefaultQuestions(),
 }) => {
   const isLandscape = orientation === 'landscape';
 

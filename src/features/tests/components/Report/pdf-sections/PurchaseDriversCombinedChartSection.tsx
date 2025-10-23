@@ -3,7 +3,7 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { PDFOrientation } from '../types';
-import { getQuestionsByIds } from '../../TestQuestions/questionConfig';
+import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
 const COLORS = ['#34A270', '#075532', '#E0D30D', '#FF6B35', '#4ECDC4'] as const;
@@ -116,7 +116,7 @@ const Footer: React.FC = () => (
 export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombinedChartSectionProps> = ({
   averagesurveys,
   orientation = 'landscape',
-  selectedQuestions = ['value', 'appearance', 'brand', 'confidence', 'convenience'],
+  selectedQuestions = getDefaultQuestions(),
 }) => {
   // Map question IDs to display names
   const questionDisplayNames: { [key: string]: string } = {
