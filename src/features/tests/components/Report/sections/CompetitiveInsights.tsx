@@ -260,7 +260,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                       className="text-gray-500 hover:text-gray-600 transition-colors"
                       aria-label="View example"
                     >
-                      <Info className="h-3 w-3" />
+                      <Info className="h-4 w-4" />
                     </button>
                   </div>
                 </th>
