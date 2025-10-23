@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
@@ -75,6 +75,23 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   
   const selectedQuestions = propSelectedQuestions;
 
+  // Memoize question configs to avoid recomputing on every row render
+  const questionConfigs = useMemo(() => getQuestionsByIds(selectedQuestions), [selectedQuestions]);
+
+  // Memoize field mappings to avoid recreating the object on every row render
+  const fieldMappings = useMemo<{ [key: string]: string[] }>(() => ({
+    'value': ['value'],
+    'appearance': ['appearance', 'aesthetics'],
+    'aesthetics': ['aesthetics', 'appearance'],
+    'brand': ['brand', 'trust'],
+    'confidence': ['confidence', 'utility'],
+    'convenience': ['convenience'],
+    'utility': ['utility', 'confidence'],
+    'appetizing': ['appetizing', 'aesthetics'],
+    'target_audience': ['target_audience', 'utility'],
+    'novelty': ['novelty', 'utility']
+  }), []);
+
   if (!competitiveinsights || competitiveinsights.length === 0) {
     return null;
   }
@@ -101,8 +118,6 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
   // Generate dynamic headers based on selected questions
   const getDynamicHeaders = () => {
-    const questionConfigs = getQuestionsByIds(selectedQuestions);
-
     // Create headers array
     const headers = ['Product', 'Share of Buy'];
     
@@ -249,24 +264,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             </thead>
             <tbody>
               {filteredInsights.map((item, index) => {
-                const questionConfigs = getQuestionsByIds(selectedQuestions);
-                
                 // Map question IDs to their corresponding data fields with fallbacks for legacy data
                 const getValueForQuestion = (questionId: string): number => {
-                  // Define primary field and fallback fields for each question
-                  const fieldMappings: { [key: string]: string[] } = {
-                    'value': ['value'],
-                    'appearance': ['appearance', 'aesthetics'], // appearance falls back to aesthetics
-                    'aesthetics': ['aesthetics', 'appearance'],
-                    'brand': ['brand', 'trust'], // brand falls back to trust
-                    'confidence': ['confidence', 'utility'], // confidence falls back to utility
-                    'convenience': ['convenience'],
-                    'utility': ['utility', 'confidence'],
-                    'appetizing': ['appetizing', 'aesthetics'], // appetizing falls back to aesthetics
-                    'target_audience': ['target_audience', 'utility'], // target_audience falls back to utility
-                    'novelty': ['novelty', 'utility'] // novelty falls back to utility
-                  };
-
                   const possibleFields = fieldMappings[questionId] || [questionId];
                   
                   // Try each field in order until we find one that exists (not undefined/null)
