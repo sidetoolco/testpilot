@@ -10,6 +10,9 @@ interface Competitor {
   competitor_product_id?: {
     title: string;
   };
+  product?: {
+    title: string;
+  };
   share_of_buy: number;
   value: number;
   aesthetics: number;
@@ -459,7 +462,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               >
                 <Text style={tableStyles.productCell}>
                   {truncateTitle(
-                    competitor.competitor_product_id?.title || 'Unknown Product', 
+                    competitor.competitor_product_id?.title || competitor.product?.title || 'Unknown Product', 
                     isLandscape ? 45 : 45
                   )}
                 </Text>

@@ -40,7 +40,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({ content, className = '
         className={`text-gray-600 hover:text-gray-600 transition-colors ${className}`}
         aria-label="More information"
       >
-        <Info className="h-4 w-4 pt-1" />
+        <Info className="h-5 w-5 pt-1" />
       </button>
       
       {isVisible && (
