@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { PDFOrientation } from '../types';
 import { getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
+import { getValueForMetric } from '../../TestQuestions/metricHelpers';
 
 const COLORS = ['#34A270', '#075532', '#E0D30D', '#FF6B35', '#4ECDC4'] as const;
 
@@ -44,41 +45,13 @@ interface PurchaseDriversCombinedChartSectionProps {
   selectedQuestions?: string[];
 }
 
-const getValueForQuestion = (survey: Survey, questionId: string): number => {
-  const fieldMappings: { [key: string]: string[] } = {
-    'value': ['value'],
-    'appearance': ['appearance', 'aesthetics'],
-    'aesthetics': ['aesthetics', 'appearance'],
-    'brand': ['brand', 'trust'],
-    'confidence': ['confidence', 'utility'],
-    'convenience': ['convenience'],
-    'utility': ['utility', 'confidence'],
-    'appetizing': ['appetizing', 'aesthetics'],
-    'target_audience': ['target_audience', 'convenience'],
-    'novelty': ['novelty', 'utility']
-  };
-
-  const possibleFields = fieldMappings[questionId] || [questionId];
-  
-  for (const fieldName of possibleFields) {
-    const raw = survey[fieldName as keyof Survey];
-    const value = typeof raw === 'number' ? raw : Number(raw);
-    if (raw !== undefined && raw !== null && !Number.isNaN(value)) {
-      return value;
-    }
-  }
-  
-  const fallback = survey[possibleFields[0] as keyof Survey];
-  return typeof fallback === 'number' ? fallback : Number(fallback) || 0;
-};
-
 const getChartData = (surveys: Survey[], selectedQuestions: string[]): Dataset[] => {
   if (!surveys || surveys.length === 0) {
     return [];
   }
 
   return surveys.map((survey, index) => {
-    const data = selectedQuestions.map(questionId => getValueForQuestion(survey, questionId));
+    const data = selectedQuestions.map(questionId => getValueForMetric(survey, questionId));
 
     return {
       label: `Variant ${survey.variant_type.toUpperCase()}`,

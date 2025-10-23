@@ -5,7 +5,7 @@ import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '
 import { InfoTooltip } from '../../../../../components/ui/InfoTooltip';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 import { SurveyExampleModal } from '../../../../../components/ui/SurveyExampleModal';
-import { Info } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 interface CompetitorProduct {
   product_url: string;
@@ -213,10 +213,11 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(true)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label="View example"
+                      className="text-blue-500 hover:text-blue-700 transition-colors"
+                      aria-label="View example of how testers answer questions"
+                      title="Click to see example"
                     >
-                      <Info className="h-4 w-4" />
+                      <HelpCircle className="h-5 w-5" />
                     </button>
                   </div>
                 </th>

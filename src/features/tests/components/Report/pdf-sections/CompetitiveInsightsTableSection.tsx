@@ -5,6 +5,7 @@ import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
 import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
+import { getValueForMetric } from '../../TestQuestions/metricHelpers';
 
 interface Competitor {
   competitor_product_id?: {
@@ -140,40 +141,11 @@ const getColorStyle = (value: number) => {
 const calculateAverageMetrics = (competitors: Competitor[], selectedQuestions: string[] = []) => {
   if (!competitors.length) return null;
 
-  // Get value with fallback logic for each competitor
-  const getValueForQuestion = (competitor: Competitor, questionId: string): number => {
-    const fieldMappings: { [key: string]: string[] } = {
-      'value': ['value'],
-      'appearance': ['appearance', 'aesthetics'],
-      'aesthetics': ['aesthetics', 'appearance'],
-      'brand': ['brand', 'trust'],
-      'confidence': ['confidence', 'utility'],
-      'convenience': ['convenience'],
-      'utility': ['utility', 'confidence'],
-      'appetizing': ['appetizing', 'aesthetics'],
-      'target_audience': ['target_audience', 'utility'],
-      'novelty': ['novelty', 'utility']
-    };
-
-    const possibleFields = fieldMappings[questionId] || [questionId];
-    
-    for (const fieldName of possibleFields) {
-      const raw = competitor[fieldName as keyof Competitor];
-      const value = typeof raw === 'number' ? raw : Number(raw);
-      if (raw !== undefined && raw !== null && !Number.isNaN(value)) {
-        return value;
-      }
-    }
-    
-    const fallback = competitor[possibleFields[0] as keyof Competitor];
-    return typeof fallback === 'number' ? fallback : Number(fallback) || 0;
-  };
-
-  // Calculate sum for each question using fallback logic
+  // Calculate sum for each question using centralized helper
   const sums: Record<string, number> = {};
   selectedQuestions.forEach(questionId => {
     sums[questionId] = competitors.reduce((sum, competitor) => {
-      return sum + getValueForQuestion(competitor, questionId);
+      return sum + getValueForMetric(competitor, questionId);
     }, 0);
   });
 
@@ -234,6 +206,9 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   };
 
   const dynamicHeaders = getDynamicHeaders();
+  
+  // Compute question configs once (performance optimization)
+  const questionConfigs = getQuestionsByIds(selectedQuestions);
 
   // Ajustar estilos para landscape
   const tableStyles = {
@@ -363,10 +338,6 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               }}
             >
               {selectedQuestions.map(questionId => {
-                const questionConfigs = getQuestionsByIds([questionId]);
-                const question = questionConfigs[0];
-                if (!question) return null;
-
                 const displayName = getQuestionDisplayName(questionId);
                 const value = averageMetrics[questionId] || 0;
 
@@ -396,38 +367,6 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
             ))}
           </View>
           {validCompetitors.map((competitor, index) => {
-            const questionConfigs = getQuestionsByIds(selectedQuestions);
-            
-            // Map question IDs to their corresponding data fields with fallbacks for legacy data
-            const getValueForQuestion = (questionId: string): number => {
-              // Define primary field and fallback fields for each question
-              const fieldMappings: { [key: string]: string[] } = {
-                'value': ['value'],
-                'appearance': ['appearance', 'aesthetics'], // appearance falls back to aesthetics
-                'aesthetics': ['aesthetics', 'appearance'],
-                'brand': ['brand', 'trust'], // brand falls back to trust
-                'confidence': ['confidence', 'utility'], // confidence falls back to utility
-                'convenience': ['convenience'],
-                'utility': ['utility', 'confidence'],
-                'appetizing': ['appetizing', 'aesthetics'], // appetizing falls back to aesthetics
-                'target_audience': ['target_audience', 'utility'], // target_audience falls back to utility
-                'novelty': ['novelty', 'utility'] // novelty falls back to utility
-              };
-
-              const possibleFields = fieldMappings[questionId] || [questionId];
-              
-              // Try each field in order until we find one with a value
-              for (const fieldName of possibleFields) {
-                const value = competitor[fieldName as keyof Competitor] as number;
-                if (value !== undefined && value !== null && value !== 0) {
-                  return value;
-                }
-              }
-              
-              // If all fields are 0 or undefined, return the first field's value (which might be 0)
-              return (competitor[possibleFields[0] as keyof Competitor] as number) || 0;
-            };
-
             return (
               <View
                 key={index}
@@ -446,7 +385,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                     (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(1)) : '0.0'}%
                 </Text>
                 {questionConfigs.map((question, questionIndex) => {
-                  const value = getValueForQuestion(question.id);
+                  const value = getValueForMetric(competitor, question.id);
                   const isLastColumn = questionIndex === questionConfigs.length - 1;
                   
                   return (

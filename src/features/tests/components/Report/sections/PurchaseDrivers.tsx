@@ -3,6 +3,7 @@ import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
 import { getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
+import { getValueForMetric } from '../../TestQuestions/metricHelpers';
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -39,33 +40,6 @@ const PurchaseDrivers: React.FC<{
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
-  // Function to get value with fallback for legacy data
-  const getValueForQuestion = (survey: Survey, questionId: string): number | null => {
-    const fieldMappings: { [key: string]: string[] } = {
-      'value': ['value'],
-      'appearance': ['appearance', 'aesthetics'],
-      'aesthetics': ['aesthetics', 'appearance'],
-      'brand': ['brand', 'trust'],
-      'confidence': ['confidence', 'utility'],
-      'convenience': ['convenience'],
-      'utility': ['utility', 'confidence'],
-      'appetizing': ['appetizing', 'aesthetics'],
-      'target_audience': ['target_audience', 'convenience'],
-      'novelty': ['novelty', 'utility']
-    };
-
-    const possibleFields = fieldMappings[questionId] || [questionId];
-    
-    for (const fieldName of possibleFields) {
-      const value = survey[fieldName as keyof Survey] as number | null;
-      if (value !== null && value !== undefined && !isNaN(Number(value))) {
-        return value;
-      }
-    }
-    
-    return null;
-  };
-
   // Use selected questions to determine active questions
   const activeQuestions = selectedQuestions.map(questionId => ({
     field: questionId,
@@ -82,7 +56,7 @@ const PurchaseDrivers: React.FC<{
         productId: product.id,
         backgroundColor: COLORS[productIndex % COLORS.length],
         borderRadius: 5,
-        data: activeQuestions.map(q => getValueForQuestion(product, q.field) || 0),
+        data: activeQuestions.map(q => getValueForMetric(product, q.field)),
       };
     }
     return {
@@ -90,7 +64,7 @@ const PurchaseDrivers: React.FC<{
       productId: product.id,
       backgroundColor: COLORS[productIndex % COLORS.length],
       borderRadius: 5,
-      data: activeQuestions.map(q => getValueForQuestion(product, q.field) || 0),
+      data: activeQuestions.map(q => getValueForMetric(product, q.field)),
     };
   });
 
