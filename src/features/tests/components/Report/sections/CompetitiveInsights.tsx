@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
-import { supabase } from '../../../../../lib/supabase';
 import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
 import { InfoTooltip } from '../../../../../components/ui/InfoTooltip';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
@@ -45,7 +44,7 @@ interface CompetitiveInsightsProps {
   competitiveinsights: InsightItem[];
   variants: any;
   sumaryvariations: any;
-  testId?: string;
+  selectedQuestions?: string[];
 }
 
 const getColorClass = (value: number): string => {
@@ -59,7 +58,7 @@ const renderCell = (value: number, count: number, isProductCell: boolean) => {
   const diff = value;
   return (
     <td className={`border border-gray-300 p-2 ${isProductCell ? '' : getColorClass(diff)}`}>
-      {isProductCell ? '—' : diff > 3 ? (diff / 3).toFixed(1) : diff}
+      {isProductCell ? '—' : diff > 3 ? (diff / 3).toFixed(1) : diff.toFixed(1)}
     </td>
   );
 };
@@ -68,42 +67,13 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   competitiveinsights,
   variants,
   sumaryvariations,
-  testId,
+  selectedQuestions: propSelectedQuestions = getDefaultQuestions(),
 }) => {
   const [selectedVariant, setSelectedVariant] = useState('a');
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { insight, aiInsights, getInsightForVariant } = useInsightStore();
-
-  // Fetch selected questions from database
-  useEffect(() => {
-    if (!testId) {
-      setSelectedQuestions(getDefaultQuestions());
-      return;
-    }
-    
-    const fetchSelectedQuestions = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('test_survey_questions')
-          .select('selected_questions')
-          .eq('test_id', testId as any)
-          .single();
-        
-        if (error) {
-          setSelectedQuestions(getDefaultQuestions());
-        } else if (data && 'selected_questions' in data) {
-          setSelectedQuestions((data as any).selected_questions);
-        } else {
-          setSelectedQuestions(getDefaultQuestions());
-        }
-      } catch (error) {
-        setSelectedQuestions(getDefaultQuestions());
-      }
-    };
-
-    fetchSelectedQuestions();
-  }, [testId]);
+  
+  const selectedQuestions = propSelectedQuestions;
 
   if (!competitiveinsights || competitiveinsights.length === 0) {
     return null;
@@ -312,16 +282,18 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 
                   const possibleFields = fieldMappings[questionId] || [questionId];
                   
-                  // Try each field in order until we find one with a value
+                  // Try each field in order until we find one that exists (not undefined/null)
                   for (const fieldName of possibleFields) {
-                    const value = item[fieldName as keyof InsightItem] as number;
-                    if (value !== undefined && value !== null && value !== 0) {
+                    const raw = item[fieldName as keyof InsightItem];
+                    const value = typeof raw === 'number' ? raw : Number(raw);
+                    if (raw !== undefined && raw !== null && !Number.isNaN(value)) {
                       return value;
                     }
                   }
                   
-                  // If all fields are 0 or undefined, return the first field's value (which might be 0)
-                  return (item[possibleFields[0] as keyof InsightItem] as number) || 0;
+                  // Fallback to the first field
+                  const fallback = item[possibleFields[0] as keyof InsightItem];
+                  return typeof fallback === 'number' ? fallback : Number(fallback) || 0;
                 };
 
                 return (
@@ -370,8 +342,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
                     </td>
                     <td className="border border-gray-300 p-2">
                       {item.isTestProduct ? 
-                        `${Number(item.share_of_buy || 0).toFixed(2)}%` : 
-                        (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-')
+                        `${Number(item.share_of_buy || 0).toFixed(1)}%` : 
+                        (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(1)}%` : '-')
                       }
                     </td>
                     {selectedQuestions.length > 0 ? (

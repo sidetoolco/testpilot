@@ -419,6 +419,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           competitiveinsights={competitiveinsights?.summaryData}
           aiInsights={aiInsights}
           testId={id}
+          selectedQuestions={selectedQuestions}
         />
       )}
     </div>

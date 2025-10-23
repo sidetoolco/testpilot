@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, Edit, FileWarning } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
 import { useAdmin } from '../../../../hooks/useAdmin';
 import { getCompetitiveInsights } from './services/dataInsightService';
+import { getDefaultQuestions } from '../TestQuestions/questionConfig';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -594,41 +595,9 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [showCompleteTestModal, setShowCompleteTestModal] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>(propSelectedQuestions || []);
+  const selectedQuestions = propSelectedQuestions || getDefaultQuestions();
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
-
-  // Fetch selected questions from database if not provided as props
-  useEffect(() => {
-    if (!propSelectedQuestions && testDetails?.id) {
-      const fetchSelectedQuestions = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('test_survey_questions')
-            .select('selected_questions')
-            .eq('test_id', testDetails.id as any)
-            .single();
-          
-          if (error) {
-            console.log('Survey questions query error:', error.message, 'Code:', error.code);
-            // Use default questions if no data found
-            setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
-          } else if (data && 'selected_questions' in data) {
-            console.log('Successfully loaded survey questions from database');
-            setSelectedQuestions((data as any).selected_questions);
-          } else {
-            console.log('No survey questions data found, using defaults');
-            setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
-          }
-        } catch (error) {
-          console.error('Exception fetching survey questions:', error);
-          setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
-        }
-      };
-
-      fetchSelectedQuestions();
-    }
-  }, [testDetails?.id, propSelectedQuestions]);
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {

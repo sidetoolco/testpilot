@@ -158,13 +158,15 @@ const calculateAverageMetrics = (competitors: Competitor[], selectedQuestions: s
     const possibleFields = fieldMappings[questionId] || [questionId];
     
     for (const fieldName of possibleFields) {
-      const value = competitor[fieldName as keyof Competitor] as number;
-      if (value !== undefined && value !== null && value !== 0) {
+      const raw = competitor[fieldName as keyof Competitor];
+      const value = typeof raw === 'number' ? raw : Number(raw);
+      if (raw !== undefined && raw !== null && !Number.isNaN(value)) {
         return value;
       }
     }
     
-    return (competitor[possibleFields[0] as keyof Competitor] as number) || 0;
+    const fallback = competitor[possibleFields[0] as keyof Competitor];
+    return typeof fallback === 'number' ? fallback : Number(fallback) || 0;
   };
 
   // Calculate sum for each question using fallback logic
@@ -468,7 +470,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 </Text>
                 <Text style={tableStyles.metricCell}>
                   {competitor.share_of_buy != null && !isNaN(Number(competitor.share_of_buy)) ? 
-                    (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(2)) : '0.00'}%
+                    (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(1)) : '0.0'}%
                 </Text>
                 {questionConfigs.map((question, questionIndex) => {
                   const value = getValueForQuestion(question.id);

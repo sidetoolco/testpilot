@@ -1,8 +1,7 @@
-import React, { CSSProperties, useState, useEffect } from 'react';
+import React, { CSSProperties } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
-import { supabase } from '../../../../../lib/supabase';
 import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
 
 // Define interfaces for surveys and products
@@ -26,43 +25,17 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?: any[]; testId?: string }> = ({
+const PurchaseDrivers: React.FC<{ 
+  surveys: Survey[]; 
+  insights?: any; 
+  aiInsights?: any[]; 
+  selectedQuestions?: string[];
+}> = ({
   surveys,
   insights,
   aiInsights,
-  testId,
+  selectedQuestions = getDefaultQuestions(),
 }) => {
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
-
-  // Fetch selected questions from database
-  useEffect(() => {
-    if (!testId) {
-      setSelectedQuestions(getDefaultQuestions());
-      return;
-    }
-    
-    const fetchSelectedQuestions = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('test_survey_questions')
-          .select('selected_questions')
-          .eq('test_id', testId as any)
-          .single();
-        
-        if (error) {
-          setSelectedQuestions(getDefaultQuestions());
-        } else if (data && 'selected_questions' in data) {
-          setSelectedQuestions((data as any).selected_questions);
-        } else {
-          setSelectedQuestions(getDefaultQuestions());
-        }
-      } catch (error) {
-        setSelectedQuestions(getDefaultQuestions());
-      }
-    };
-
-    fetchSelectedQuestions();
-  }, [testId]);
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 

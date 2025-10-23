@@ -61,13 +61,15 @@ const getValueForQuestion = (survey: Survey, questionId: string): number => {
   const possibleFields = fieldMappings[questionId] || [questionId];
   
   for (const fieldName of possibleFields) {
-    const value = survey[fieldName as keyof Survey] as number | undefined;
-    if (value !== undefined && value !== null && !isNaN(Number(value)) && value !== 0) {
+    const raw = survey[fieldName as keyof Survey];
+    const value = typeof raw === 'number' ? raw : Number(raw);
+    if (raw !== undefined && raw !== null && !Number.isNaN(value)) {
       return value;
     }
   }
   
-  return (survey[possibleFields[0] as keyof Survey] as number) || 0;
+  const fallback = survey[possibleFields[0] as keyof Survey];
+  return typeof fallback === 'number' ? fallback : Number(fallback) || 0;
 };
 
 const getChartData = (surveys: Survey[], selectedQuestions: string[]): Dataset[] => {
