@@ -3,6 +3,8 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
+import { getQuestionsByIds } from '../../TestQuestions/questionConfig';
+import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
 interface Competitor {
   competitor_product_id?: {
@@ -14,6 +16,12 @@ interface Competitor {
   convenience: number;
   trust: number;
   utility: number;
+  appearance?: number;
+  confidence?: number;
+  brand?: number;
+  appetizing?: number;
+  target_audience?: number;
+  novelty?: number;
   isTestProduct?: boolean;
 }
 
@@ -22,6 +30,7 @@ interface CompetitiveInsightsTableSectionProps {
   variantTitle: string;
   competitiveinsights: Competitor[];
   orientation?: PDFOrientation;
+  selectedQuestions?: string[];
 }
 
 // Constants for styling
@@ -125,27 +134,51 @@ const getColorStyle = (value: number) => {
   return { backgroundColor: '#FEF9C3', color: '#854D0E', padding: '4px 8px' }; // amarillo para valor cero
 };
 
-const calculateAverageMetrics = (competitors: Competitor[]) => {
+const calculateAverageMetrics = (competitors: Competitor[], selectedQuestions: string[] = []) => {
   if (!competitors.length) return null;
 
-  const sum = competitors.reduce(
-    (acc, curr) => ({
-      value: acc.value + (curr.value || 0),
-      aesthetics: acc.aesthetics + (curr.aesthetics || 0),
-      convenience: acc.convenience + (curr.convenience || 0),
-      trust: acc.trust + (curr.trust || 0),
-      utility: acc.utility + (curr.utility || 0),
-    }),
-    { value: 0, aesthetics: 0, convenience: 0, trust: 0, utility: 0 }
-  );
+  // Get value with fallback logic for each competitor
+  const getValueForQuestion = (competitor: Competitor, questionId: string): number => {
+    const fieldMappings: { [key: string]: string[] } = {
+      'value': ['value'],
+      'appearance': ['appearance', 'aesthetics'],
+      'aesthetics': ['aesthetics', 'appearance'],
+      'brand': ['brand', 'trust'],
+      'confidence': ['confidence', 'utility'],
+      'convenience': ['convenience'],
+      'utility': ['utility', 'confidence'],
+      'appetizing': ['appetizing', 'aesthetics'],
+      'target_audience': ['target_audience', 'utility'],
+      'novelty': ['novelty', 'utility']
+    };
 
-  return {
-    value: sum.value / competitors.length,
-    aesthetics: sum.aesthetics / competitors.length,
-    convenience: sum.convenience / competitors.length,
-    trust: sum.trust / competitors.length,
-    utility: sum.utility / competitors.length,
+    const possibleFields = fieldMappings[questionId] || [questionId];
+    
+    for (const fieldName of possibleFields) {
+      const value = competitor[fieldName as keyof Competitor] as number;
+      if (value !== undefined && value !== null && value !== 0) {
+        return value;
+      }
+    }
+    
+    return (competitor[possibleFields[0] as keyof Competitor] as number) || 0;
   };
+
+  // Calculate sum for each question using fallback logic
+  const sums: Record<string, number> = {};
+  selectedQuestions.forEach(questionId => {
+    sums[questionId] = competitors.reduce((sum, competitor) => {
+      return sum + getValueForQuestion(competitor, questionId);
+    }, 0);
+  });
+
+  // Calculate averages
+  const averages: Record<string, number> = {};
+  selectedQuestions.forEach(questionId => {
+    averages[questionId] = sums[questionId] / competitors.length;
+  });
+
+  return averages;
 };
 
 const Footer: React.FC = () => (
@@ -176,8 +209,40 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   variantKey,
   competitiveinsights,
   orientation = 'landscape',
+  selectedQuestions = [],
 }) => {
   const isLandscape = orientation === 'landscape';
+
+  // Get dynamic headers based on selected questions
+  const getDynamicHeaders = () => {
+    const questionConfigs = getQuestionsByIds(selectedQuestions);
+    
+    // Map question IDs to their display names
+    const questionDisplayNames: { [key: string]: string } = {
+      'value': 'Value',
+      'appearance': 'Appearance', 
+      'aesthetics': 'Aesthetics',
+      'brand': 'Trust',
+      'confidence': 'Confidence',
+      'convenience': 'Convenience',
+      'utility': 'Utility',
+      'appetizing': 'Appetizing',
+      'target_audience': 'Target Audience',
+      'novelty': 'Novelty'
+    };
+
+    // Create headers array with Share of Buy first, then selected questions
+    const headers = ['Share of Buy'];
+    
+    questionConfigs.forEach(question => {
+      const displayName = questionDisplayNames[question.id] || question.title;
+      headers.push(displayName);
+    });
+
+    return headers;
+  };
+
+  const dynamicHeaders = getDynamicHeaders();
 
   // Ajustar estilos para landscape
   const tableStyles = {
@@ -270,14 +335,14 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
     );
   }
 
-  const averageMetrics = calculateAverageMetrics(validCompetitors);
+  const averageMetrics = calculateAverageMetrics(validCompetitors, selectedQuestions);
 
   return (
     <Page size="A4" orientation={orientation} style={styles.page}>
       <View style={styles.section}>
         <Header title={`Competitive Insights - Variant ${variantKey.toUpperCase()}`} />
 
-        {averageMetrics && (
+        {averageMetrics && Object.keys(averageMetrics).length > 0 && (
           <View
             style={{
               marginTop: isLandscape ? 12 : 24,
@@ -306,21 +371,33 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 gap: isLandscape ? 12 : 16,
               }}
             >
-              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
-                Value: {averageMetrics.value.toFixed(1)}
-              </Text>
-              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
-                Aesthetics: {averageMetrics.aesthetics.toFixed(1)}
-              </Text>
-              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
-                Convenience: {averageMetrics.convenience.toFixed(1)}
-              </Text>
-              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
-                Trust: {averageMetrics.trust.toFixed(1)}
-              </Text>
-              <Text style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
-                Utility: {averageMetrics.utility.toFixed(1)}
-              </Text>
+              {selectedQuestions.map(questionId => {
+                const questionConfigs = getQuestionsByIds([questionId]);
+                const question = questionConfigs[0];
+                if (!question) return null;
+
+                const questionDisplayNames: { [key: string]: string } = {
+                  'value': 'Value',
+                  'appearance': 'Appearance', 
+                  'aesthetics': 'Aesthetics',
+                  'brand': 'Trust',
+                  'confidence': 'Confidence',
+                  'convenience': 'Convenience',
+                  'utility': 'Utility',
+                  'appetizing': 'Appetizing',
+                  'target_audience': 'Target Audience',
+                  'novelty': 'Novelty'
+                };
+
+                const displayName = questionDisplayNames[questionId] || question.title;
+                const value = averageMetrics[questionId] || 0;
+
+                return (
+                  <Text key={questionId} style={{ fontSize: isLandscape ? 9 : 11, color: '#374151' }}>
+                    {displayName}: {value.toFixed(1)}
+                  </Text>
+                );
+              })}
             </View>
           </View>
         )}
@@ -331,59 +408,116 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
             <View style={tableStyles.headerCellFirst}>
               <Text style={tableStyles.headerText}>Competitor</Text>
             </View>
-            <View style={tableStyles.headerCell}>
-              <Text style={tableStyles.headerText}>Share</Text>
-            </View>
-            <View style={tableStyles.headerCell}>
-              <Text style={tableStyles.headerText}>Value</Text>
-            </View>
-            <View style={tableStyles.headerCell}>
-              <Text style={tableStyles.headerText}>Appearance</Text>
-            </View>
-            <View style={tableStyles.headerCell}>
-              <Text style={tableStyles.headerText}>Convenience</Text>
-            </View>
-            <View style={tableStyles.headerCell}>
-              <Text style={tableStyles.headerText}>Trust</Text>
-            </View>
-            <View style={tableStyles.headerCellLast}>
-              <Text style={tableStyles.headerText}>Confidence</Text>
-            </View>
+            {dynamicHeaders.map((header, index) => (
+              <View 
+                key={index} 
+                style={index === dynamicHeaders.length - 1 ? tableStyles.headerCellLast : tableStyles.headerCell}
+              >
+                <Text style={tableStyles.headerText}>{header}</Text>
+              </View>
+            ))}
           </View>
-          {validCompetitors.map((competitor, index) => (
-            <View
-              key={index}
-              style={
-                index === validCompetitors.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
+          {validCompetitors.map((competitor, index) => {
+            const questionConfigs = getQuestionsByIds(selectedQuestions);
+            
+            // Map question IDs to their corresponding data fields with fallbacks for legacy data
+            const getValueForQuestion = (questionId: string): number => {
+              // Define primary field and fallback fields for each question
+              const fieldMappings: { [key: string]: string[] } = {
+                'value': ['value'],
+                'appearance': ['appearance', 'aesthetics'], // appearance falls back to aesthetics
+                'aesthetics': ['aesthetics', 'appearance'],
+                'brand': ['brand', 'trust'], // brand falls back to trust
+                'confidence': ['confidence', 'utility'], // confidence falls back to utility
+                'convenience': ['convenience'],
+                'utility': ['utility', 'confidence'],
+                'appetizing': ['appetizing', 'aesthetics'], // appetizing falls back to aesthetics
+                'target_audience': ['target_audience', 'utility'], // target_audience falls back to utility
+                'novelty': ['novelty', 'utility'] // novelty falls back to utility
+              };
+
+              const possibleFields = fieldMappings[questionId] || [questionId];
+              
+              // Try each field in order until we find one with a value
+              for (const fieldName of possibleFields) {
+                const value = competitor[fieldName as keyof Competitor] as number;
+                if (value !== undefined && value !== null && value !== 0) {
+                  return value;
+                }
               }
-            >
-              <Text style={tableStyles.productCell}>
-                {truncateTitle(
-                  competitor.competitor_product_id?.title || 'Unknown Product', 
-                  isLandscape ? 45 : 45
-                )}
-              </Text>
-              <Text style={tableStyles.metricCell}>
-                {competitor.share_of_buy != null && !isNaN(Number(competitor.share_of_buy)) ? 
-                  (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(2)) : '0.00'}%
-              </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.value || 0) }}>
-                {(competitor.value || 0).toFixed(1)}
-              </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.aesthetics || 0) }}>
-                {(competitor.aesthetics || 0).toFixed(1)}
-              </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.convenience || 0) }}>
-                {(competitor.convenience || 0).toFixed(1)}
-              </Text>
-              <Text style={{ ...tableStyles.metricCell, ...getColorStyle(competitor.trust || 0) }}>
-                {(competitor.trust || 0).toFixed(1)}
-              </Text>
-              <Text style={{ ...tableStyles.metricCellLast, ...getColorStyle(competitor.utility || 0) }}>
-                {(competitor.utility || 0).toFixed(1)}
-              </Text>
-            </View>
-          ))}
+              
+              // If all fields are 0 or undefined, return the first field's value (which might be 0)
+              return (competitor[possibleFields[0] as keyof Competitor] as number) || 0;
+            };
+
+            return (
+              <View
+                key={index}
+                style={
+                  index === validCompetitors.length - 1 ? TABLE_STYLES.lastRow : TABLE_STYLES.row
+                }
+              >
+                <Text style={tableStyles.productCell}>
+                  {truncateTitle(
+                    competitor.competitor_product_id?.title || 'Unknown Product', 
+                    isLandscape ? 45 : 45
+                  )}
+                </Text>
+                <Text style={tableStyles.metricCell}>
+                  {competitor.share_of_buy != null && !isNaN(Number(competitor.share_of_buy)) ? 
+                    (typeof competitor.share_of_buy === 'string' ? competitor.share_of_buy : Number(competitor.share_of_buy).toFixed(2)) : '0.00'}%
+                </Text>
+                {questionConfigs.map((question, questionIndex) => {
+                  const value = getValueForQuestion(question.id);
+                  const isLastColumn = questionIndex === questionConfigs.length - 1;
+                  
+                  return (
+                    <Text 
+                      key={question.id}
+                      style={{ 
+                        ...(isLastColumn ? tableStyles.metricCellLast : tableStyles.metricCell), 
+                        ...getColorStyle(value) 
+                      }}
+                    >
+                      {value.toFixed(1)}
+                    </Text>
+                  );
+                })}
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Footnotes */}
+        <View style={{ marginTop: 16, padding: 8, backgroundColor: '#F9FAFB', borderRadius: 4 }}>
+          <Text style={{ fontSize: 8, fontWeight: 'bold', marginBottom: 4, color: '#374151' }}>
+            Metric Definitions:
+          </Text>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+              • Share of Buy: {getMetricDescription('share_of_buy')}
+            </Text>
+            {selectedQuestions.map(questionId => {
+              const questionDisplayNames: { [key: string]: string } = {
+                'value': 'Value',
+                'appearance': 'Appearance',
+                'aesthetics': 'Aesthetics',
+                'brand': 'Trust',
+                'confidence': 'Confidence',
+                'convenience': 'Convenience',
+                'utility': 'Utility',
+                'appetizing': 'Appetizing',
+                'target_audience': 'Target Audience',
+                'novelty': 'Novelty'
+              };
+              const displayName = questionDisplayNames[questionId] || questionId;
+              return (
+                <Text key={questionId} style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+                  • {displayName}: {getMetricDescription(questionId)}
+                </Text>
+              );
+            })}
+          </View>
         </View>
       </View>
       <Footer />

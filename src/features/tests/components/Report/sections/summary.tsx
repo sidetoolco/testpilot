@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
+import { InfoTooltip } from '../../../../../components/ui/InfoTooltip';
 
 const COLORS = {
   success: {
@@ -46,6 +47,12 @@ const getColorForValue = (value: string, columnIndex: number, allRows: string[][
 };
 
 const headers = ['Variant', 'Share of Clicks', 'Share of Buy', 'Value Score'];
+
+const headerDescriptions: { [key: string]: string } = {
+  'Share of Clicks': 'The percentage of participants who clicked on this product variant when viewing the product grid.',
+  'Share of Buy': 'The percentage of participants who selected this product variant as their final purchase choice.',
+  'Value Score': 'An aggregate score representing how participants rated the overall value proposition of this variant.'
+};
 
 const Summary: React.FC<{
   summaryData: any;
@@ -97,17 +104,21 @@ const Summary: React.FC<{
         </div>
       )}
       <div className="p-6 bg-white rounded-xl shadow-md">
-        <div className="overflow-x-auto mt-6">
+        <div className="overflow-x-auto overflow-y-visible mt-6">
           <table className="w-full border-collapse bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <thead>
               <tr>
                 {headers.map(header => (
                   <th
                     key={header}
-                    className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50"
-                    title={`Sort by ${header}`}
+                    className="p-4 text-left text-gray-600 font-medium border border-gray-200 bg-gray-50 relative"
                   >
-                    {header}
+                    <div className="flex items-center gap-1">
+                      <span>{header}</span>
+                      {headerDescriptions[header] && (
+                        <InfoTooltip content={headerDescriptions[header]} />
+                      )}
+                    </div>
                   </th>
                 ))}
               </tr>

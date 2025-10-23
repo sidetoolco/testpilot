@@ -51,6 +51,7 @@ interface PDFDocumentProps {
   averagesurveys: any;
   aiInsights?: any[];
   disabled?: boolean;
+  selectedQuestions?: string[];
   shopperComments?: {
     comparision: {
       a: any[];
@@ -245,6 +246,7 @@ const PDFDocument = ({
   competitiveinsights,
   averagesurveys,
   aiInsights,
+  selectedQuestions = [],
   orientation = 'landscape',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
@@ -253,6 +255,7 @@ const PDFDocument = ({
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
   aiInsights?: PDFDocumentProps['aiInsights'];
+  selectedQuestions?: PDFDocumentProps['selectedQuestions'];
   orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
@@ -350,6 +353,7 @@ const PDFDocument = ({
               <PurchaseDriversCombinedChartSection
                 key="purchase-drivers-combined"
                 averagesurveys={purchaseDataVariants}
+                selectedQuestions={selectedQuestions}
                 orientation={orientation}
               />
             );
@@ -419,6 +423,7 @@ const PDFDocument = ({
                   (item: any) => item.variant_type === key
                 ) || []
               }
+              selectedQuestions={selectedQuestions}
               orientation={orientation}
             />
           );
@@ -576,6 +581,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   competitiveinsights,
   aiInsights,
   disabled,
+  selectedQuestions: propSelectedQuestions,
   shopperComments,
   testData,
 }) => {
@@ -588,8 +594,41 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [showCompleteTestModal, setShowCompleteTestModal] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>(propSelectedQuestions || []);
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
+
+  // Fetch selected questions from database if not provided as props
+  useEffect(() => {
+    if (!propSelectedQuestions && testDetails?.id) {
+      const fetchSelectedQuestions = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('test_survey_questions')
+            .select('selected_questions')
+            .eq('test_id', testDetails.id as any)
+            .single();
+          
+          if (error) {
+            console.log('Survey questions query error:', error.message, 'Code:', error.code);
+            // Use default questions if no data found
+            setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
+          } else if (data && 'selected_questions' in data) {
+            console.log('Successfully loaded survey questions from database');
+            setSelectedQuestions((data as any).selected_questions);
+          } else {
+            console.log('No survey questions data found, using defaults');
+            setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
+          }
+        } catch (error) {
+          console.error('Exception fetching survey questions:', error);
+          setSelectedQuestions(['value', 'appearance', 'brand', 'confidence', 'convenience']);
+        }
+      };
+
+      fetchSelectedQuestions();
+    }
+  }, [testDetails?.id, propSelectedQuestions]);
 
   const handleExportToExcel = async () => {
     if (!testDetails?.id) {
@@ -675,6 +714,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
           aiInsights={pdfData.aiInsights}
+          selectedQuestions={selectedQuestions}
           orientation={'landscape' as PDFOrientation}
         />
       ).toBlob();

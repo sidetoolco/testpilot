@@ -13,6 +13,8 @@ import { useTestDetail } from '../../hooks/useTestDetail';
 import { useInsightStore } from '../../hooks/useIaInsight';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/hooks/useAuth';
+import { supabase } from '../../../../lib/supabase';
+import { getDefaultQuestions } from '../TestQuestions/questionConfig';
 
 interface ReportProps {
   id: string;
@@ -126,6 +128,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
   const [averagesurveys, setAveragesurveys] = useState<any>(null);
   const [competitiveinsights, setCompetitiveinsights] = useState<any>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const fetchingRef = useRef(false);
 
   const navigate = useNavigate();
@@ -224,6 +227,37 @@ const Report: React.FC<ReportProps> = ({ id }) => {
       };
     }
   }, [isPrinting]); // Add isPrinting to dependencies
+
+  // Fetch selected questions from database
+  useEffect(() => {
+    if (testInfo?.id) {
+      const fetchSelectedQuestions = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('test_survey_questions')
+            .select('selected_questions')
+            .eq('test_id', testInfo.id as any)
+            .single();
+          
+          if (error) {
+            console.log('Survey questions query error:', error.message, 'Code:', error.code);
+            setSelectedQuestions(getDefaultQuestions());
+          } else if (data && 'selected_questions' in data) {
+            console.log('Successfully loaded survey questions from database');
+            setSelectedQuestions((data as any).selected_questions);
+          } else {
+            console.log('No survey questions data found, using defaults');
+            setSelectedQuestions(getDefaultQuestions());
+          }
+        } catch (error) {
+          console.error('Exception fetching survey questions:', error);
+          setSelectedQuestions(getDefaultQuestions());
+        }
+      };
+
+      fetchSelectedQuestions();
+    }
+  }, [testInfo?.id]);
 
   const handleTabChange = (tab: string, userEmail: string) => {
     if (
@@ -324,6 +358,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
             competitiveinsights={competitiveinsights}
             averagesurveys={averagesurveys}
             aiInsights={aiInsights}
+            selectedQuestions={selectedQuestions}
             shopperComments={{
               comparision: {
                 a: (testInfo?.responses?.comparisons as any)?.a || [],
@@ -383,6 +418,7 @@ const Report: React.FC<ReportProps> = ({ id }) => {
           averagesurveys={averagesurveys?.summaryData}
           competitiveinsights={competitiveinsights?.summaryData}
           aiInsights={aiInsights}
+          testId={id}
         />
       )}
     </div>

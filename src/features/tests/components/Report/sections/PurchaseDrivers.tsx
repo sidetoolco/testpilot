@@ -1,7 +1,9 @@
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useState, useEffect } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
+import { supabase } from '../../../../../lib/supabase';
+import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -12,8 +14,11 @@ interface Survey {
   };
   value: number | null;
   appearance: number | null;
+  aesthetics: number | null;
   confidence: number | null;
+  utility: number | null;
   brand: number | null;
+  trust: number | null;
   convenience: number | null;
   appetizing: number | null;
   target_audience: number | null;
@@ -21,41 +26,93 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?: any[] }> = ({
+const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?: any[]; testId?: string }> = ({
   surveys,
   insights,
   aiInsights,
+  testId,
 }) => {
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+
+  // Fetch selected questions from database
+  useEffect(() => {
+    if (!testId) {
+      setSelectedQuestions(getDefaultQuestions());
+      return;
+    }
+    
+    const fetchSelectedQuestions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('test_survey_questions')
+          .select('selected_questions')
+          .eq('test_id', testId as any)
+          .single();
+        
+        if (error) {
+          setSelectedQuestions(getDefaultQuestions());
+        } else if (data && 'selected_questions' in data) {
+          setSelectedQuestions((data as any).selected_questions);
+        } else {
+          setSelectedQuestions(getDefaultQuestions());
+        }
+      } catch (error) {
+        setSelectedQuestions(getDefaultQuestions());
+      }
+    };
+
+    fetchSelectedQuestions();
+  }, [testId]);
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
-  // Define all possible question fields and their labels
-  const questionFields = [
-    { field: 'value', label: 'Value' },
-    { field: 'appearance', label: 'Aesthetics' },
-    { field: 'confidence', label: 'Utility' },
-    { field: 'brand', label: 'Trust' },
-    { field: 'convenience', label: 'Convenience' },
-    { field: 'appetizing', label: 'Appetizing' },
-    { field: 'target_audience', label: 'Target Audience' },
-    { field: 'novelty', label: 'Novelty' },
-  ];
-
-  // Determine which questions have actual data (not all null)
-  const getActiveQuestions = () => {
-    const questionStats = questionFields.map(({ field, label }) => {
-      const hasData = surveys.some(survey => {
-        const value = survey[field as keyof Survey];
-        return value !== null && value !== undefined && !isNaN(Number(value));
-      });
-      
-      return { field, label, hasData };
-    });
-
-    return questionStats.filter(q => q.hasData);
+  // Map question IDs to display names
+  const questionDisplayNames: { [key: string]: string } = {
+    'value': 'Value',
+    'appearance': 'Appearance',
+    'aesthetics': 'Aesthetics',
+    'brand': 'Trust',
+    'confidence': 'Confidence',
+    'convenience': 'Convenience',
+    'utility': 'Utility',
+    'appetizing': 'Appetizing',
+    'target_audience': 'Target Audience',
+    'novelty': 'Novelty'
   };
 
-  const activeQuestions = getActiveQuestions();
+  // Function to get value with fallback for legacy data
+  const getValueForQuestion = (survey: Survey, questionId: string): number | null => {
+    const fieldMappings: { [key: string]: string[] } = {
+      'value': ['value'],
+      'appearance': ['appearance', 'aesthetics'],
+      'aesthetics': ['aesthetics', 'appearance'],
+      'brand': ['brand', 'trust'],
+      'confidence': ['confidence', 'utility'],
+      'convenience': ['convenience'],
+      'utility': ['utility', 'confidence'],
+      'appetizing': ['appetizing', 'aesthetics'],
+      'target_audience': ['target_audience', 'convenience'],
+      'novelty': ['novelty', 'utility']
+    };
+
+    const possibleFields = fieldMappings[questionId] || [questionId];
+    
+    for (const fieldName of possibleFields) {
+      const value = survey[fieldName as keyof Survey] as number | null;
+      if (value !== null && value !== undefined && !isNaN(Number(value))) {
+        return value;
+      }
+    }
+    
+    return null;
+  };
+
+  // Use selected questions to determine active questions
+  const activeQuestions = selectedQuestions.map(questionId => ({
+    field: questionId,
+    label: questionDisplayNames[questionId] || questionId
+  }));
+
   const LABELS = activeQuestions.map(q => q.label);
   const COLORS = ['#43A8F6', '#708090', '#008080'];
 
@@ -66,7 +123,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
         productId: product.id,
         backgroundColor: COLORS[productIndex % COLORS.length],
         borderRadius: 5,
-        data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
+        data: activeQuestions.map(q => getValueForQuestion(product, q.field) || 0),
       };
     }
     return {
@@ -74,7 +131,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
       productId: product.id,
       backgroundColor: COLORS[productIndex % COLORS.length],
       borderRadius: 5,
-      data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
+      data: activeQuestions.map(q => getValueForQuestion(product, q.field) || 0),
     };
   });
 

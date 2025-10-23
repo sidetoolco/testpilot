@@ -220,6 +220,27 @@ export const SummaryPDFSection: React.FC<SummaryPDFSectionProps> = ({
             No comparison data available
           </Text>
         )}
+
+        {/* Footnotes */}
+        <View style={{ marginTop: 16, padding: 8, backgroundColor: '#F9FAFB', borderRadius: 4 }}>
+          <Text style={{ fontSize: 8, fontWeight: 'bold', marginBottom: 4, color: '#374151' }}>
+            Metric Definitions:
+          </Text>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+              • Share of Clicks: The percentage of participants who clicked on this product variant when viewing the product grid.
+            </Text>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+              • Share of Buy: The percentage of participants who selected this product variant as their final purchase choice.
+            </Text>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+              • Value Score: An aggregate score representing how participants rated the overall value proposition of this variant.
+            </Text>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+              • Win? (90% Confidence): Indicates whether this variant is statistically significantly better than others at a 90% confidence level.
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View

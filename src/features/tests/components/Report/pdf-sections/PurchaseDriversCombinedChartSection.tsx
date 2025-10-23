@@ -3,18 +3,25 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { PDFOrientation } from '../types';
+import { getQuestionsByIds } from '../../TestQuestions/questionConfig';
+import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
-const LABELS = ['Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'] as const;
 const COLORS = ['#34A270', '#075532', '#E0D30D', '#FF6B35', '#4ECDC4'] as const;
 
 interface Survey {
   id: number;
   created_at: string;
-  appearance: number;
-  confidence: number;
-  convenience: number;
-  brand: number;
+  appearance?: number;
+  aesthetics?: number;
+  confidence?: number;
+  utility?: number;
+  convenience?: number;
+  brand?: number;
+  trust?: number;
   value: number;
+  appetizing?: number;
+  target_audience?: number;
+  novelty?: number;
   test_id: string;
   variant_type: string;
   count: number;
@@ -34,25 +41,42 @@ interface Dataset {
 interface PurchaseDriversCombinedChartSectionProps {
   averagesurveys: Survey[];
   orientation?: PDFOrientation;
+  selectedQuestions?: string[];
 }
 
-const getChartData = (surveys: Survey[]): Dataset[] => {
+const getValueForQuestion = (survey: Survey, questionId: string): number => {
+  const fieldMappings: { [key: string]: string[] } = {
+    'value': ['value'],
+    'appearance': ['appearance', 'aesthetics'],
+    'aesthetics': ['aesthetics', 'appearance'],
+    'brand': ['brand', 'trust'],
+    'confidence': ['confidence', 'utility'],
+    'convenience': ['convenience'],
+    'utility': ['utility', 'confidence'],
+    'appetizing': ['appetizing', 'aesthetics'],
+    'target_audience': ['target_audience', 'convenience'],
+    'novelty': ['novelty', 'utility']
+  };
+
+  const possibleFields = fieldMappings[questionId] || [questionId];
+  
+  for (const fieldName of possibleFields) {
+    const value = survey[fieldName as keyof Survey] as number | undefined;
+    if (value !== undefined && value !== null && !isNaN(Number(value)) && value !== 0) {
+      return value;
+    }
+  }
+  
+  return (survey[possibleFields[0] as keyof Survey] as number) || 0;
+};
+
+const getChartData = (surveys: Survey[], selectedQuestions: string[]): Dataset[] => {
   if (!surveys || surveys.length === 0) {
     return [];
   }
 
-  // Ensure data mapping is correct by aligning with LABELS array
-  // The desired order is: 'Value', 'Aesthetics', 'Utility', 'Trust', 'Convenience'
-  // The survey object has: 'value', 'appearance', 'confidence', 'brand', 'convenience'
-  // Let's assume: Aesthetics -> appearance, Utility -> confidence, Trust -> brand
   return surveys.map((survey, index) => {
-    const data = [
-      survey.value,
-      survey.appearance, // Aesthetics
-      survey.confidence,  // Utility
-      survey.brand,       // Trust
-      survey.convenience,
-    ];
+    const data = selectedQuestions.map(questionId => getValueForQuestion(survey, questionId));
 
     return {
       label: `Variant ${survey.variant_type.toUpperCase()}`,
@@ -90,8 +114,24 @@ const Footer: React.FC = () => (
 export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombinedChartSectionProps> = ({
   averagesurveys,
   orientation = 'landscape',
+  selectedQuestions = ['value', 'appearance', 'brand', 'confidence', 'convenience'],
 }) => {
-  const datasets = getChartData(averagesurveys);
+  // Map question IDs to display names
+  const questionDisplayNames: { [key: string]: string } = {
+    'value': 'Value',
+    'appearance': 'Appearance',
+    'aesthetics': 'Aesthetics',
+    'brand': 'Trust',
+    'confidence': 'Confidence',
+    'convenience': 'Convenience',
+    'utility': 'Utility',
+    'appetizing': 'Appetizing',
+    'target_audience': 'Target Audience',
+    'novelty': 'Novelty'
+  };
+
+  const LABELS = selectedQuestions.map(qId => questionDisplayNames[qId] || qId);
+  const datasets = getChartData(averagesurveys, selectedQuestions);
 
   if (!averagesurveys || averagesurveys.length === 0) {
     return (
@@ -238,6 +278,35 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
                   </View>
                 ))}
               </View>
+            </View>
+          </View>
+
+          {/* Footnotes */}
+          <View style={{ marginTop: 16, padding: 8, backgroundColor: '#F9FAFB', borderRadius: 4 }}>
+            <Text style={{ fontSize: 8, fontWeight: 'bold', marginBottom: 4, color: '#374151' }}>
+              Metric Definitions:
+            </Text>
+            <View style={{ flexDirection: 'column', gap: 2 }}>
+              {selectedQuestions.map(questionId => {
+                const questionDisplayNames: { [key: string]: string } = {
+                  'value': 'Value',
+                  'appearance': 'Appearance',
+                  'aesthetics': 'Aesthetics',
+                  'brand': 'Trust',
+                  'confidence': 'Confidence',
+                  'convenience': 'Convenience',
+                  'utility': 'Utility',
+                  'appetizing': 'Appetizing',
+                  'target_audience': 'Target Audience',
+                  'novelty': 'Novelty'
+                };
+                const displayName = questionDisplayNames[questionId] || questionId;
+                return (
+                  <Text key={questionId} style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
+                    • {displayName}: {getMetricDescription(questionId)}
+                  </Text>
+                );
+              })}
             </View>
           </View>
         </View>

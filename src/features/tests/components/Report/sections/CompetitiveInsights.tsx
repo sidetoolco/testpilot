@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
+import { supabase } from '../../../../../lib/supabase';
+import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
+import { InfoTooltip } from '../../../../../components/ui/InfoTooltip';
+import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
+import { SurveyExampleModal } from '../../../../../components/ui/SurveyExampleModal';
+import { Info } from 'lucide-react';
 
 interface CompetitorProduct {
   product_url: string;
@@ -29,6 +35,9 @@ interface InsightItem {
   appearance?: number;
   confidence?: number;
   brand?: number;
+  appetizing?: number;
+  target_audience?: number;
+  novelty?: number;
   isTestProduct?: boolean;
 }
 
@@ -36,6 +45,7 @@ interface CompetitiveInsightsProps {
   competitiveinsights: InsightItem[];
   variants: any;
   sumaryvariations: any;
+  testId?: string;
 }
 
 const getColorClass = (value: number): string => {
@@ -58,9 +68,42 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   competitiveinsights,
   variants,
   sumaryvariations,
+  testId,
 }) => {
   const [selectedVariant, setSelectedVariant] = useState('a');
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { insight, aiInsights, getInsightForVariant } = useInsightStore();
+
+  // Fetch selected questions from database
+  useEffect(() => {
+    if (!testId) {
+      setSelectedQuestions(getDefaultQuestions());
+      return;
+    }
+    
+    const fetchSelectedQuestions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('test_survey_questions')
+          .select('selected_questions')
+          .eq('test_id', testId as any)
+          .single();
+        
+        if (error) {
+          setSelectedQuestions(getDefaultQuestions());
+        } else if (data && 'selected_questions' in data) {
+          setSelectedQuestions((data as any).selected_questions);
+        } else {
+          setSelectedQuestions(getDefaultQuestions());
+        }
+      } catch (error) {
+        setSelectedQuestions(getDefaultQuestions());
+      }
+    };
+
+    fetchSelectedQuestions();
+  }, [testId]);
 
   if (!competitiveinsights || competitiveinsights.length === 0) {
     return null;
@@ -86,8 +129,36 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   // The filtered data now includes both test product and competitors from the dataInsightService
   const filteredInsights = filtered;
 
-  // Define table headers
-  const headers = [
+  // Generate dynamic headers based on selected questions
+  const getDynamicHeaders = () => {
+    const questionConfigs = getQuestionsByIds(selectedQuestions);
+    
+    // Map question IDs to their display names
+    const questionDisplayNames: { [key: string]: string } = {
+      'value': 'Value',
+      'appearance': 'Appearance', 
+      'aesthetics': 'Aesthetics',
+      'brand': 'Trust',
+      'confidence': 'Confidence',
+      'convenience': 'Convenience',
+      'utility': 'Utility',
+      'appetizing': 'Appetizing',
+      'target_audience': 'Target Audience',
+      'novelty': 'Novelty'
+    };
+
+    // Create headers array
+    const headers = ['Product', 'Share of Buy'];
+    
+    questionConfigs.forEach(question => {
+      const displayName = questionDisplayNames[question.id] || question.title;
+      headers.push(displayName);
+    });
+
+    return headers;
+  };
+
+  const headers = selectedQuestions.length > 0 ? getDynamicHeaders() : [
     'Product',
     'Share of Buy',
     'Value',
@@ -181,83 +252,158 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
               <tr className="bg-gray-100 border-none">
                 <th colSpan={2} className="p-2 bg-white"></th>
                 <th colSpan={headers.length - 2} className="border border-gray-300 p-2">
-                  Your Item vs Competitor
+                  <div className="flex items-center justify-center gap-2">
+                    <span>Your Item vs Competitor</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(true)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="View example"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </div>
                 </th>
               </tr>
               <tr className="bg-gray-100">
-                {headers.map(header => (
-                  <th key={header} className="border border-gray-300 p-2 text-left">
-                    {header}
-                  </th>
-                ))}
+                {headers.map((header, index) => {
+                  // Get the question ID for this header to show the right tooltip
+                  let questionId = '';
+                  if (index === 0) {
+                    questionId = 'product';
+                  } else if (index === 1) {
+                    questionId = 'share_of_buy';
+                  } else if (selectedQuestions.length > 0) {
+                    questionId = selectedQuestions[index - 2] || '';
+                  }
+                  
+                  return (
+                    <th key={header} className="border border-gray-300 p-2 text-left">
+                      <div className="flex items-center gap-1">
+                        <span>{header}</span>
+                        {questionId && questionId !== 'product' && (
+                          <InfoTooltip content={getMetricDescription(questionId)} />
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {filteredInsights.map((item, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
-                    <div className="relative group">
-                      <a
-                        href={item.competitor_product_id?.product_url || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3"
-                      >
-                        <img
-                          src={item.competitor_product_id?.image_url || item.product?.image_url}
-                          alt={item.competitor_product_id?.title || item.product?.title}
-                          className="w-16 h-16 rounded object-cover shadow-sm"
-                        />
-                        <span className="text-xs font-semibold text-gray-700">
-                          ${item.competitor_product_id?.price || item.product?.price}
-                        </span>
-                      </a>
+              {filteredInsights.map((item, index) => {
+                const questionConfigs = getQuestionsByIds(selectedQuestions);
+                
+                // Map question IDs to their corresponding data fields with fallbacks for legacy data
+                const getValueForQuestion = (questionId: string): number => {
+                  // Define primary field and fallback fields for each question
+                  const fieldMappings: { [key: string]: string[] } = {
+                    'value': ['value'],
+                    'appearance': ['appearance', 'aesthetics'], // appearance falls back to aesthetics
+                    'aesthetics': ['aesthetics', 'appearance'],
+                    'brand': ['brand', 'trust'], // brand falls back to trust
+                    'confidence': ['confidence', 'utility'], // confidence falls back to utility
+                    'convenience': ['convenience'],
+                    'utility': ['utility', 'confidence'],
+                    'appetizing': ['appetizing', 'aesthetics'], // appetizing falls back to aesthetics
+                    'target_audience': ['target_audience', 'utility'], // target_audience falls back to utility
+                    'novelty': ['novelty', 'utility'] // novelty falls back to utility
+                  };
 
-                      <div
-                        className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
-                      whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                      >
-                        {(item.competitor_product_id?.title || item.product?.title || '').slice(
-                          0,
-                          40
-                        )}
-                        {(item.competitor_product_id?.title || item.product?.title || '').length >
-                        40
-                          ? '...'
-                          : ''}
-                      </div>
-
-                      {item.count === 1 && (
-                        <span
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
-                        rounded-full flex items-center justify-center text-[10px] shadow"
-                        >
-                          🔍
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {item.isTestProduct ? 
-                      `${Number(item.share_of_buy || 0).toFixed(2)}%` : 
-                      (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-')
+                  const possibleFields = fieldMappings[questionId] || [questionId];
+                  
+                  // Try each field in order until we find one with a value
+                  for (const fieldName of possibleFields) {
+                    const value = item[fieldName as keyof InsightItem] as number;
+                    if (value !== undefined && value !== null && value !== 0) {
+                      return value;
                     }
-                  </td>
-                  {renderCell(Number(item.value), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
-                  {renderCell(
-                    Number(item.aesthetics || item.appearance || 0),
-                    item.count || (item.isTestProduct ? 1 : 0),
-                    !!item.product
-                  )}
-                  {renderCell(
-                    Number(item.utility || item.confidence || 0),
-                    item.count || (item.isTestProduct ? 1 : 0),
-                    !!item.product
-                  )}
-                  {renderCell(Number(item.trust || item.brand || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
-                  {renderCell(Number(item.convenience || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
-                </tr>
-              ))}
+                  }
+                  
+                  // If all fields are 0 or undefined, return the first field's value (which might be 0)
+                  return (item[possibleFields[0] as keyof InsightItem] as number) || 0;
+                };
+
+                return (
+                  <tr key={index}>
+                    <td className="border border-gray-200 px-3 py-2 align-top bg-gray-50">
+                      <div className="relative group">
+                        <a
+                          href={item.competitor_product_id?.product_url || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3"
+                        >
+                          <img
+                            src={item.competitor_product_id?.image_url || item.product?.image_url}
+                            alt={item.competitor_product_id?.title || item.product?.title}
+                            className="w-16 h-16 rounded object-cover shadow-sm"
+                          />
+                          <span className="text-xs font-semibold text-gray-700">
+                            ${item.competitor_product_id?.price || item.product?.price}
+                          </span>
+                        </a>
+
+                        <div
+                          className="absolute top-0 left-full ml-3 px-2 py-1 rounded bg-gray-900 text-white text-xs 
+                        whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                        >
+                          {(item.competitor_product_id?.title || item.product?.title || '').slice(
+                            0,
+                            40
+                          )}
+                          {(item.competitor_product_id?.title || item.product?.title || '').length >
+                          40
+                            ? '...'
+                            : ''}
+                        </div>
+
+                        {item.count === 1 && (
+                          <span
+                            className="absolute -top-1 -right-1 w-5 h-5 bg-blue-200 text-blue-900 
+                          rounded-full flex items-center justify-center text-[10px] shadow"
+                          >
+                            🔍
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      {item.isTestProduct ? 
+                        `${Number(item.share_of_buy || 0).toFixed(2)}%` : 
+                        (item.count > 0 ? `${Number(item.share_of_buy || 0).toFixed(2)}%` : '-')
+                      }
+                    </td>
+                    {selectedQuestions.length > 0 ? (
+                      questionConfigs.map((question, questionIndex) => {
+                        const value = getValueForQuestion(question.id);
+                        const cell = renderCell(
+                          Number(value),
+                          item.count || (item.isTestProduct ? 1 : 0),
+                          !!item.product
+                        );
+                        return <React.Fragment key={`${index}-${questionIndex}`}>{cell}</React.Fragment>;
+                      })
+                    ) : (
+                      <>
+                        {renderCell(Number(item.value), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
+                        {renderCell(
+                          Number(item.aesthetics || item.appearance || 0),
+                          item.count || (item.isTestProduct ? 1 : 0),
+                          !!item.product
+                        )}
+                        {renderCell(
+                          Number(item.utility || item.confidence || 0),
+                          item.count || (item.isTestProduct ? 1 : 0),
+                          !!item.product
+                        )}
+                        {renderCell(Number(item.trust || item.brand || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
+                        {renderCell(Number(item.convenience || 0), item.count || (item.isTestProduct ? 1 : 0), !!item.product)}
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
@@ -278,6 +424,11 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
           </div>
         </>
       )}
+      
+      <SurveyExampleModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
