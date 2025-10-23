@@ -2,6 +2,8 @@ import React, { CSSProperties } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
+import { getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
+import { getValueForMetric } from '../../TestQuestions/metricHelpers';
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -12,8 +14,11 @@ interface Survey {
   };
   value: number | null;
   appearance: number | null;
+  aesthetics: number | null;
   confidence: number | null;
+  utility: number | null;
   brand: number | null;
+  trust: number | null;
   convenience: number | null;
   appetizing: number | null;
   target_audience: number | null;
@@ -21,41 +26,26 @@ interface Survey {
   count?: number;
 }
 
-const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?: any[] }> = ({
+const PurchaseDrivers: React.FC<{ 
+  surveys: Survey[]; 
+  insights?: any; 
+  aiInsights?: any[]; 
+  selectedQuestions?: string[];
+}> = ({
   surveys,
   insights,
   aiInsights,
+  selectedQuestions = getDefaultQuestions(),
 }) => {
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
-  // Define all possible question fields and their labels
-  const questionFields = [
-    { field: 'value', label: 'Value' },
-    { field: 'appearance', label: 'Aesthetics' },
-    { field: 'confidence', label: 'Utility' },
-    { field: 'brand', label: 'Trust' },
-    { field: 'convenience', label: 'Convenience' },
-    { field: 'appetizing', label: 'Appetizing' },
-    { field: 'target_audience', label: 'Target Audience' },
-    { field: 'novelty', label: 'Novelty' },
-  ];
+  // Use selected questions to determine active questions
+  const activeQuestions = selectedQuestions.map(questionId => ({
+    field: questionId,
+    label: getQuestionDisplayName(questionId)
+  }));
 
-  // Determine which questions have actual data (not all null)
-  const getActiveQuestions = () => {
-    const questionStats = questionFields.map(({ field, label }) => {
-      const hasData = surveys.some(survey => {
-        const value = survey[field as keyof Survey];
-        return value !== null && value !== undefined && !isNaN(Number(value));
-      });
-      
-      return { field, label, hasData };
-    });
-
-    return questionStats.filter(q => q.hasData);
-  };
-
-  const activeQuestions = getActiveQuestions();
   const LABELS = activeQuestions.map(q => q.label);
   const COLORS = ['#43A8F6', '#708090', '#008080'];
 
@@ -66,7 +56,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
         productId: product.id,
         backgroundColor: COLORS[productIndex % COLORS.length],
         borderRadius: 5,
-        data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
+        data: activeQuestions.map(q => getValueForMetric(product, q.field)),
       };
     }
     return {
@@ -74,7 +64,7 @@ const PurchaseDrivers: React.FC<{ surveys: Survey[]; insights?: any; aiInsights?
       productId: product.id,
       backgroundColor: COLORS[productIndex % COLORS.length],
       borderRadius: 5,
-      data: activeQuestions.map(q => product[q.field as keyof Survey] as number || 0),
+      data: activeQuestions.map(q => getValueForMetric(product, q.field)),
     };
   });
 

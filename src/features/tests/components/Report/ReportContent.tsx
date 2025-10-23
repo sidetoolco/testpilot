@@ -15,6 +15,8 @@ interface ReportContentProps {
   competitiveinsights: any;
   insights: any;
   aiInsights?: any[];
+  testId?: string;
+  selectedQuestions?: string[];
 }
 
 const ReportContent: React.FC<ReportContentProps> = ({
@@ -25,6 +27,8 @@ const ReportContent: React.FC<ReportContentProps> = ({
   competitiveinsights,
   insights,
   aiInsights,
+  testId,
+  selectedQuestions,
 }) => {
   return (
     <div className="flex-1 overflow-hidden p-4">
@@ -44,7 +48,12 @@ const ReportContent: React.FC<ReportContentProps> = ({
             id="content-purchase-drivers"
             className={clsx(activeTab !== 'purchase-drivers' && 'hidden')}
           >
-            <PurchaseDrivers surveys={averagesurveys} insights={insights} aiInsights={aiInsights} />
+            <PurchaseDrivers 
+              surveys={averagesurveys} 
+              insights={insights} 
+              aiInsights={aiInsights} 
+              selectedQuestions={selectedQuestions}
+            />
           </div>
           <div
             id="content-competitive-insights"
@@ -54,6 +63,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
               competitiveinsights={competitiveinsights}
               variants={averagesurveys}
               sumaryvariations={summaryData?.rows}
+              selectedQuestions={selectedQuestions}
             />
           </div>
           <div

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileSpreadsheet, File as FilePdf, X, RefreshCcw, Edit, FileWarning } from 'lucide-react';
 import { Document, pdf, Page, View, Text } from '@react-pdf/renderer';
 import { Buffer } from 'buffer';
@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 import { EditDataModal } from './EditDataModal';
 import { useAdmin } from '../../../../hooks/useAdmin';
 import { getCompetitiveInsights } from './services/dataInsightService';
+import { getDefaultQuestions } from '../TestQuestions/questionConfig';
 
 // Configure Buffer for browser
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -51,6 +52,7 @@ interface PDFDocumentProps {
   averagesurveys: any;
   aiInsights?: any[];
   disabled?: boolean;
+  selectedQuestions?: string[];
   shopperComments?: {
     comparision: {
       a: any[];
@@ -245,6 +247,7 @@ const PDFDocument = ({
   competitiveinsights,
   averagesurveys,
   aiInsights,
+  selectedQuestions = [],
   orientation = 'landscape',
 }: {
   testDetails: PDFDocumentProps['testDetails'];
@@ -253,6 +256,7 @@ const PDFDocument = ({
   competitiveinsights: PDFDocumentProps['competitiveinsights'];
   averagesurveys: PDFDocumentProps['averagesurveys'];
   aiInsights?: PDFDocumentProps['aiInsights'];
+  selectedQuestions?: PDFDocumentProps['selectedQuestions'];
   orientation?: PDFOrientation;
 }) => {
   if (!testDetails || !summaryData) {
@@ -350,6 +354,7 @@ const PDFDocument = ({
               <PurchaseDriversCombinedChartSection
                 key="purchase-drivers-combined"
                 averagesurveys={purchaseDataVariants}
+                selectedQuestions={selectedQuestions}
                 orientation={orientation}
               />
             );
@@ -419,6 +424,7 @@ const PDFDocument = ({
                   (item: any) => item.variant_type === key
                 ) || []
               }
+              selectedQuestions={selectedQuestions}
               orientation={orientation}
             />
           );
@@ -576,6 +582,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   competitiveinsights,
   aiInsights,
   disabled,
+  selectedQuestions: propSelectedQuestions,
   shopperComments,
   testData,
 }) => {
@@ -588,6 +595,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
   const [showCompleteTestModal, setShowCompleteTestModal] = useState(false);
   const { isAdmin } = useAdmin();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const selectedQuestions = propSelectedQuestions || getDefaultQuestions();
   const isTestActiveOrComplete =
     testDetails?.status === 'active' || testDetails?.status === 'complete';
 
@@ -675,6 +683,7 @@ export const ReportPDF: React.FC<PDFDocumentProps> = ({
           competitiveinsights={pdfData.competitiveinsights}
           averagesurveys={pdfData.averagesurveys}
           aiInsights={pdfData.aiInsights}
+          selectedQuestions={selectedQuestions}
           orientation={'landscape' as PDFOrientation}
         />
       ).toBlob();
