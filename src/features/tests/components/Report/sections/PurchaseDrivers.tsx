@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react';
 import { scaleBand, scaleLinear } from 'd3';
 
 import { MarkdownContent } from '../utils/MarkdownContent';
-import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
+import { getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 
 // Define interfaces for surveys and products
 interface Survey {
@@ -39,20 +39,6 @@ const PurchaseDrivers: React.FC<{
   if (!insights && !aiInsights) return <p>Loading insights...</p>;
   if (!surveys || surveys.length === 0) return <p>Your product was not chosen for this test</p>;
 
-  // Map question IDs to display names
-  const questionDisplayNames: { [key: string]: string } = {
-    'value': 'Value',
-    'appearance': 'Appearance',
-    'aesthetics': 'Aesthetics',
-    'brand': 'Trust',
-    'confidence': 'Confidence',
-    'convenience': 'Convenience',
-    'utility': 'Utility',
-    'appetizing': 'Appetizing',
-    'target_audience': 'Target Audience',
-    'novelty': 'Novelty'
-  };
-
   // Function to get value with fallback for legacy data
   const getValueForQuestion = (survey: Survey, questionId: string): number | null => {
     const fieldMappings: { [key: string]: string[] } = {
@@ -83,7 +69,7 @@ const PurchaseDrivers: React.FC<{
   // Use selected questions to determine active questions
   const activeQuestions = selectedQuestions.map(questionId => ({
     field: questionId,
-    label: questionDisplayNames[questionId] || questionId
+    label: getQuestionDisplayName(questionId)
   }));
 
   const LABELS = activeQuestions.map(q => q.label);

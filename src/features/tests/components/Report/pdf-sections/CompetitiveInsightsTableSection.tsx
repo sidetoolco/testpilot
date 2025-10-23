@@ -3,7 +3,7 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { Header } from './Header';
 import { styles } from '../utils/styles';
 import { PDFOrientation } from '../types';
-import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
+import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
 interface Competitor {
@@ -221,26 +221,12 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
   // Get dynamic headers based on selected questions
   const getDynamicHeaders = () => {
     const questionConfigs = getQuestionsByIds(selectedQuestions);
-    
-    // Map question IDs to their display names
-    const questionDisplayNames: { [key: string]: string } = {
-      'value': 'Value',
-      'appearance': 'Appearance', 
-      'aesthetics': 'Aesthetics',
-      'brand': 'Trust',
-      'confidence': 'Confidence',
-      'convenience': 'Convenience',
-      'utility': 'Utility',
-      'appetizing': 'Appetizing',
-      'target_audience': 'Target Audience',
-      'novelty': 'Novelty'
-    };
 
     // Create headers array with Share of Buy first, then selected questions
     const headers = ['Share of Buy'];
     
     questionConfigs.forEach(question => {
-      const displayName = questionDisplayNames[question.id] || question.title;
+      const displayName = getQuestionDisplayName(question.id);
       headers.push(displayName);
     });
 
@@ -381,20 +367,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
                 const question = questionConfigs[0];
                 if (!question) return null;
 
-                const questionDisplayNames: { [key: string]: string } = {
-                  'value': 'Value',
-                  'appearance': 'Appearance', 
-                  'aesthetics': 'Aesthetics',
-                  'brand': 'Trust',
-                  'confidence': 'Confidence',
-                  'convenience': 'Convenience',
-                  'utility': 'Utility',
-                  'appetizing': 'Appetizing',
-                  'target_audience': 'Target Audience',
-                  'novelty': 'Novelty'
-                };
-
-                const displayName = questionDisplayNames[questionId] || question.title;
+                const displayName = getQuestionDisplayName(questionId);
                 const value = averageMetrics[questionId] || 0;
 
                 return (
@@ -503,19 +476,7 @@ export const CompetitiveInsightsTableSection: React.FC<CompetitiveInsightsTableS
               • Share of Buy: {getMetricDescription('share_of_buy')}
             </Text>
             {selectedQuestions.map(questionId => {
-              const questionDisplayNames: { [key: string]: string } = {
-                'value': 'Value',
-                'appearance': 'Appearance',
-                'aesthetics': 'Aesthetics',
-                'brand': 'Trust',
-                'confidence': 'Confidence',
-                'convenience': 'Convenience',
-                'utility': 'Utility',
-                'appetizing': 'Appetizing',
-                'target_audience': 'Target Audience',
-                'novelty': 'Novelty'
-              };
-              const displayName = questionDisplayNames[questionId] || questionId;
+              const displayName = getQuestionDisplayName(questionId);
               return (
                 <Text key={questionId} style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
                   • {displayName}: {getMetricDescription(questionId)}

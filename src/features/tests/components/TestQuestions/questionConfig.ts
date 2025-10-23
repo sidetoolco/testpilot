@@ -98,4 +98,23 @@ export const getQuestionText = (questionId: string, isComparison: boolean = fals
   }
   
   return baseText;
+};
+
+// Centralized display names for questions (used in tables, charts, PDFs)
+export const QUESTION_DISPLAY_NAMES: { [key: string]: string } = {
+  'value': 'Value',
+  'appearance': 'Appearance',
+  'aesthetics': 'Aesthetics',
+  'brand': 'Trust',
+  'confidence': 'Confidence',
+  'convenience': 'Convenience',
+  'utility': 'Utility',
+  'appetizing': 'Appetizing',
+  'target_audience': 'Target Audience',
+  'novelty': 'Novelty',
+  'trust': 'Trust',
+};
+
+export const getQuestionDisplayName = (questionId: string): string => {
+  return QUESTION_DISPLAY_NAMES[questionId] || questionId;
 }; 

@@ -3,7 +3,7 @@ import { View, Text, Page, Link } from '@react-pdf/renderer';
 import { styles } from '../utils/styles';
 import { Header } from './Header';
 import { PDFOrientation } from '../types';
-import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
+import { getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 
 const COLORS = ['#34A270', '#075532', '#E0D30D', '#FF6B35', '#4ECDC4'] as const;
@@ -118,21 +118,7 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
   orientation = 'landscape',
   selectedQuestions = getDefaultQuestions(),
 }) => {
-  // Map question IDs to display names
-  const questionDisplayNames: { [key: string]: string } = {
-    'value': 'Value',
-    'appearance': 'Appearance',
-    'aesthetics': 'Aesthetics',
-    'brand': 'Trust',
-    'confidence': 'Confidence',
-    'convenience': 'Convenience',
-    'utility': 'Utility',
-    'appetizing': 'Appetizing',
-    'target_audience': 'Target Audience',
-    'novelty': 'Novelty'
-  };
-
-  const LABELS = selectedQuestions.map(qId => questionDisplayNames[qId] || qId);
+  const LABELS = selectedQuestions.map(qId => getQuestionDisplayName(qId));
   const datasets = getChartData(averagesurveys, selectedQuestions);
 
   if (!averagesurveys || averagesurveys.length === 0) {
@@ -290,19 +276,7 @@ export const PurchaseDriversCombinedChartSection: React.FC<PurchaseDriversCombin
             </Text>
             <View style={{ flexDirection: 'column', gap: 2 }}>
               {selectedQuestions.map(questionId => {
-                const questionDisplayNames: { [key: string]: string } = {
-                  'value': 'Value',
-                  'appearance': 'Appearance',
-                  'aesthetics': 'Aesthetics',
-                  'brand': 'Trust',
-                  'confidence': 'Confidence',
-                  'convenience': 'Convenience',
-                  'utility': 'Utility',
-                  'appetizing': 'Appetizing',
-                  'target_audience': 'Target Audience',
-                  'novelty': 'Novelty'
-                };
-                const displayName = questionDisplayNames[questionId] || questionId;
+                const displayName = getQuestionDisplayName(questionId);
                 return (
                   <Text key={questionId} style={{ fontSize: 7, color: '#6B7280', marginBottom: 2 }}>
                     • {displayName}: {getMetricDescription(questionId)}

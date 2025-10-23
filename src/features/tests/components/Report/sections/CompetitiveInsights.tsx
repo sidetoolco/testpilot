@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
-import { getQuestionsByIds, getDefaultQuestions } from '../../TestQuestions/questionConfig';
+import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
 import { InfoTooltip } from '../../../../../components/ui/InfoTooltip';
 import { getMetricDescription } from '../../TestQuestions/metricDescriptions';
 import { SurveyExampleModal } from '../../../../../components/ui/SurveyExampleModal';
@@ -102,26 +102,12 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   // Generate dynamic headers based on selected questions
   const getDynamicHeaders = () => {
     const questionConfigs = getQuestionsByIds(selectedQuestions);
-    
-    // Map question IDs to their display names
-    const questionDisplayNames: { [key: string]: string } = {
-      'value': 'Value',
-      'appearance': 'Appearance', 
-      'aesthetics': 'Aesthetics',
-      'brand': 'Trust',
-      'confidence': 'Confidence',
-      'convenience': 'Convenience',
-      'utility': 'Utility',
-      'appetizing': 'Appetizing',
-      'target_audience': 'Target Audience',
-      'novelty': 'Novelty'
-    };
 
     // Create headers array
     const headers = ['Product', 'Share of Buy'];
     
     questionConfigs.forEach(question => {
-      const displayName = questionDisplayNames[question.id] || question.title;
+      const displayName = getQuestionDisplayName(question.id);
       headers.push(displayName);
     });
 
