@@ -130,7 +130,6 @@ const CommentItem: React.FC<{
 
   return (
     <div
-      key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
       className={`p-4 rounded-lg border justify-between flex flex-col italic bg-gray-50`}
     >
       {chosenProduct && (
@@ -207,18 +206,22 @@ const CommentSection: React.FC<{
         {sortedComments.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
             
-            {sortedComments.map((comment, index) => (
-              <CommentItem
-                key={`comment-${comment.competitor_id || comment.products?.id || index}-${index}`}
-                comment={comment}
-                field={field}
-                testData={testData}
-                onProductClick={onProductClick}
-                competitorCounts={competitorCounts}
-                index={index}
-                showQuestions={showQuestions}
-              />
-            ))}
+            {sortedComments.map((comment, index) => {
+              const productId = comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || comment.competitor_id || '';
+              const testerId = comment.tester_id ? JSON.stringify(comment.tester_id) : '';
+              return (
+                <CommentItem
+                  key={`comment-${productId}-${testerId}-${index}`}
+                  comment={comment}
+                  field={field}
+                  testData={testData}
+                  onProductClick={onProductClick}
+                  competitorCounts={competitorCounts}
+                  index={index}
+                  showQuestions={showQuestions}
+                />
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-500">No comments available.</p>
@@ -231,7 +234,9 @@ const CommentSection: React.FC<{
 CommentSection.displayName = 'CommentSection';
 
 const getStableKey = (comment: Comment, prefix: string, index: number): string => {
-  return `${prefix}-${comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || `fallback-${index}`}`;
+  const productId = comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || '';
+  const testerId = comment.tester_id ? JSON.stringify(comment.tester_id) : '';
+  return `${prefix}-${productId}-${testerId}-${index}`;
 };
 
 const MergedBuyersSection: React.FC<{
