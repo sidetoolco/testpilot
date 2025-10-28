@@ -2,6 +2,7 @@ import React from 'react';
 import { useWaitingListStatus } from '../../hooks/useWaitingListStatus';
 import WaitingListModal from '../WaitingListModal';
 import SideNav from './SideNav';
+import PageTransition from './PageTransition';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -16,7 +17,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <div className="lg:min-h-screen">
         <SideNav />
       </div>
-      <div className="flex-1 h-screen overflow-auto">{children}</div>
+      <div className="flex-1 h-screen overflow-auto">
+        <PageTransition>
+          {children}
+        </PageTransition>
+      </div>
     </div>
   );
 }
