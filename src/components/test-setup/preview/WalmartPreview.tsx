@@ -26,6 +26,37 @@ export default function WalmartPreview({ searchTerm, products, competitorIndices
   
   // State for full product details for each product
   const [fullProductDetails, setFullProductDetails] = useState<Record<string, WalmartProductDetailType>>({});
+  
+  // Randomize product positions once on mount
+  const [shuffledProducts, setShuffledProducts] = useState<WalmartProduct[]>([]);
+  const [shuffledCompetitorIndices, setShuffledCompetitorIndices] = useState<number[]>([]);
+
+  // Shuffle products on mount
+  useEffect(() => {
+    if (products.length === 0) return;
+
+    const ownProductIndex = 0;
+    const randomPosition = Math.floor(Math.random() * products.length);
+    
+    const newProducts = [...products];
+    const newCompetitorIndices = [...competitorIndices];
+    
+    if (randomPosition !== ownProductIndex) {
+      [newProducts[ownProductIndex], newProducts[randomPosition]] = [newProducts[randomPosition], newProducts[ownProductIndex]];
+      
+      const updatedCompetitorIndices = newCompetitorIndices.map(index => {
+        if (index === randomPosition) return ownProductIndex;
+        if (index === ownProductIndex) return randomPosition;
+        return index;
+      });
+      
+      setShuffledProducts(newProducts);
+      setShuffledCompetitorIndices(updatedCompetitorIndices);
+    } else {
+      setShuffledProducts(newProducts);
+      setShuffledCompetitorIndices(newCompetitorIndices);
+    }
+  }, [products, competitorIndices]);
 
   // Fetch full details for all products when component mounts
   useEffect(() => {
@@ -55,7 +86,7 @@ export default function WalmartPreview({ searchTerm, products, competitorIndices
 
   const handleProductClick = async (product: WalmartProduct, index: number) => {
     // Check if this product is a competitor
-    if (competitorIndices.includes(index)) {
+    if (shuffledCompetitorIndices.includes(index)) {
       return; // Don't allow clicking on competitors
     }
 
@@ -130,6 +161,8 @@ export default function WalmartPreview({ searchTerm, products, competitorIndices
   };
 
   if (isLoading) return <div className="flex justify-center items-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+
+  if (shuffledProducts.length === 0) return null;
 
   return (
     <>
@@ -215,7 +248,7 @@ export default function WalmartPreview({ searchTerm, products, competitorIndices
       <div className="bg-white p-4  rounded-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-[#565959]">{products.length} results for</span>
+            <span className="text-sm text-[#565959]">{shuffledProducts.length} results for</span>
             <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
           
@@ -226,8 +259,8 @@ export default function WalmartPreview({ searchTerm, products, competitorIndices
       {/* Product Grid */}
       <div className="bg-white p-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => {
-            const isCompetitor = competitorIndices.includes(index);
+          {shuffledProducts.map((product, index) => {
+            const isCompetitor = shuffledCompetitorIndices.includes(index);
             return (
               <div 
                 key={`walmart-preview-product-${product.id || index}`} 
