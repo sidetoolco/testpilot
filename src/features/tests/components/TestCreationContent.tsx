@@ -22,6 +22,9 @@ interface TestCreationContentProps {
   expertMode?: boolean;
 }
 
+// Transition duration constant to match CSS
+const TRANSITION_MS = 300; // matches `duration-300`
+
 export function TestCreationContent({
   currentStep,
   testData,
@@ -50,7 +53,7 @@ export function TestCreationContent({
       const timer = setTimeout(() => {
         setDisplayStep(currentStep);
         setIsTransitioning(false);
-      }, 150);
+      }, TRANSITION_MS);
 
       return () => clearTimeout(timer);
     }
