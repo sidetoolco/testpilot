@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Star, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { AmazonProduct } from '../../../features/amazon/types';
 import AmazonHeader from './AmazonHeader';
@@ -26,16 +25,26 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Randomize product positions once on mount
+  const [shuffledProducts, setShuffledProducts] = useState<AmazonProduct[]>([]);
 
-  // Function to check if a product is a variation (not a competitor)
-  const isVariation = (product: AmazonProduct): boolean => {
-    if (!variations) return false;
-    return Object.values(variations).some(variation => 
-      variation && (variation.id === product.id || variation.asin === product.asin)
-    );
-  };
+  // Shuffle products on mount - only randomize the first product's position
+  useEffect(() => {
+    if (products.length === 0) return;
 
-  const handleProductClick = async (product: AmazonProduct) => {
+    const randomPosition = Math.floor(Math.random() * products.length);
+    const newProducts = [...products];
+    
+    // Swap first product with random position
+    if (randomPosition !== 0) {
+      [newProducts[0], newProducts[randomPosition]] = [newProducts[randomPosition], newProducts[0]];
+    }
+    
+    setShuffledProducts(newProducts);
+  }, [products]);
+
+  const handleProductClick = async (product: any) => {
     setIsLoading(true);
     try {
       // For Amazon products, search in the database using ASIN
@@ -51,22 +60,22 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
         console.error('Error fetching product details:', error);
         // If there's an error, use the product data with fallback
         setProductDetails({
-          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
-          feature_bullets: product.bullet_points || [],
+          images: (product as any).images && (product as any).images.length > 0 ? (product as any).images : [product.image_url],
+          feature_bullets: (product as any).bullet_points || [],
         });
       } else if (data) {
         // Use the fetched data from database
         console.log('Fetched product data from database:', data);
         setProductDetails({
-          images: data.images && data.images.length > 0 ? data.images : [data.image_url || product.image_url],
-          feature_bullets: data.bullet_points || data.feature_bullets || [],
+          images: (data as any).images && (data as any).images.length > 0 ? (data as any).images : [(data as any).image_url || product.image_url],
+          feature_bullets: (data as any).bullet_points || (data as any).feature_bullets || [],
         });
       } else {
         // No data found, use product data
         console.log('No data found, using product data:', product);
         setProductDetails({
-          images: product.images && product.images.length > 0 ? product.images : [product.image_url],
-          feature_bullets: product.bullet_points || product.feature_bullets || [],
+          images: (product as any).images && (product as any).images.length > 0 ? (product as any).images : [product.image_url],
+          feature_bullets: (product as any).bullet_points || (product as any).feature_bullets || [],
         });
       }
       setSelectedProduct(product);
@@ -74,8 +83,8 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
       console.error('Error fetching product details:', error);
       // In case of error, use the product data
       setProductDetails({
-        images: product.images && product.images.length > 0 ? product.images : [product.image_url],
-        feature_bullets: product.bullet_points || [],
+        images: (product as any).images && (product as any).images.length > 0 ? (product as any).images : [product.image_url],
+        feature_bullets: (product as any).bullet_points || [],
       });
       setSelectedProduct(product);
     } finally {
@@ -97,7 +106,7 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
         {/* Results Count */}
         <div className="bg-white p-4 mb-4 rounded-sm">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-[#565959]">{products.length} results for</span>
+            <span className="text-sm text-[#565959]">{shuffledProducts.length} results for</span>
             <span className="text-sm font-bold text-[#0F1111]">"{searchTerm}"</span>
           </div>
         </div>
@@ -107,7 +116,7 @@ export default function AmazonPreview({ searchTerm, products, variations }: Amaz
           {/* Product Grid */}
           <div className="flex-1">
             <PreviewGrid 
-              products={products} 
+              products={shuffledProducts} 
               onProductClick={handleProductClick}
               variations={variations}
             />
