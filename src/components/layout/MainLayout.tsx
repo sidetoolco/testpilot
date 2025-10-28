@@ -17,7 +17,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <div className="lg:min-h-screen">
         <SideNav />
       </div>
-      <div className="flex-1 h-screen overflow-auto">
+      <div className="flex-1 h-screen overflow-auto relative">
         <PageTransition>
           {children}
         </PageTransition>
