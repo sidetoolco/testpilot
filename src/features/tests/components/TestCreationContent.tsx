@@ -5,7 +5,7 @@ import TestPreview from '../../../components/test-setup/TestPreview';
 import TestReview from '../../../components/test-setup/TestReview';
 import { TestData } from '../types';
 import ObjectiveSelection from '../../../components/test-setup/ObjectiveSelection';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SearchAndCompetitorSelection from '../../../components/test-setup/SearchAndCompetitorSelection';
 import SearchTermEntry from '../../../components/test-setup/SearchTermEntry';
 
@@ -34,100 +34,126 @@ export function TestCreationContent({
   setSurveyQuestionsValid,
   expertMode = false,
 }: TestCreationContentProps) {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayStep, setDisplayStep] = useState(currentStep);
+  const prevStepRef = useRef(currentStep);
+
+  useEffect(() => {
+    if (prevStepRef.current !== currentStep) {
+      setIsTransitioning(true);
+      
+      const timer = setTimeout(() => {
+        setDisplayStep(currentStep);
+        setIsTransitioning(false);
+      }, 300);
+
+      prevStepRef.current = currentStep;
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
+
   const handleUpdateData = (key: keyof TestData, value: any) => {
     onUpdateTestData(prevTestData => ({ ...prevTestData, [key]: value }));
   };
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
-      {currentStep === 'objective' && (
-        <ObjectiveSelection
-          onSelect={selectedObjective => {
-            handleUpdateData('objective', selectedObjective);
-            onNext();
-          }}
-        />
-      )}
+      <div
+        key={displayStep}
+        className={`transition-opacity duration-300 ease-in-out ${
+          isTransitioning ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {displayStep === 'objective' && (
+          <ObjectiveSelection
+            onSelect={selectedObjective => {
+              handleUpdateData('objective', selectedObjective);
+              onNext();
+            }}
+          />
+        )}
 
-      {currentStep === 'variations' && (
-        <TestVariations
-          variations={testData.variations}
-          onChange={variations => handleUpdateData('variations', variations)}
-          onNext={onNext}
-          onBack={onBack}
-          testData={testData}
-          onUpdateTestData={onUpdateTestData}
-        />
-      )}
+        {displayStep === 'variations' && (
+          <TestVariations
+            variations={testData.variations}
+            onChange={variations => handleUpdateData('variations', variations)}
+            onNext={onNext}
+            onBack={onBack}
+            testData={testData}
+            onUpdateTestData={onUpdateTestData}
+          />
+        )}
 
-      {currentStep === 'search-term' && (
-        <SearchTermEntry
-          value={testData.searchTerm}
-          onChange={term => handleUpdateData('searchTerm', term)}
-          onNext={onNext}
-          skin={testData.skin}
-          onSkinChange={skin => {
-            // Clear competitors when skin changes to prevent showing wrong products
-            onUpdateTestData(prevTestData => ({
-              ...prevTestData,
-              skin,
-              competitors: []
-            }));
-          }}
-        />
-      )}
+        {displayStep === 'search-term' && (
+          <SearchTermEntry
+            value={testData.searchTerm}
+            onChange={term => handleUpdateData('searchTerm', term)}
+            onNext={onNext}
+            skin={testData.skin}
+            onSkinChange={skin => {
+              // Clear competitors when skin changes to prevent showing wrong products
+              onUpdateTestData(prevTestData => ({
+                ...prevTestData,
+                skin,
+                competitors: []
+              }));
+            }}
+          />
+        )}
 
-      {currentStep === 'search-competitors' && (
-        <SearchAndCompetitorSelection
-          searchTerm={testData.searchTerm}
-          selectedCompetitors={testData.competitors}
-          onSearchTermChange={term => handleUpdateData('searchTerm', term)}
-          onCompetitorsChange={competitors => handleUpdateData('competitors', competitors)}
-          skin={testData.skin}
-        />
-      )}
+        {displayStep === 'search-competitors' && (
+          <SearchAndCompetitorSelection
+            searchTerm={testData.searchTerm}
+            selectedCompetitors={testData.competitors}
+            onSearchTermChange={term => handleUpdateData('searchTerm', term)}
+            onCompetitorsChange={competitors => handleUpdateData('competitors', competitors)}
+            skin={testData.skin}
+          />
+        )}
 
-      {currentStep === 'demographics' && (
-        <DemographicSelection
-          demographics={testData.demographics}
-          variations={testData.variations}
-          onChange={updater =>
-            onUpdateTestData(prevTestData => ({
-              ...prevTestData,
-              demographics: updater(prevTestData.demographics),
-            }))
-          }
-          onNext={onNext}
-          onBack={onBack}
-          onValidationChange={setDemographicsValid}
-        />
-      )}
+        {displayStep === 'demographics' && (
+          <DemographicSelection
+            demographics={testData.demographics}
+            variations={testData.variations}
+            onChange={updater =>
+              onUpdateTestData(prevTestData => ({
+                ...prevTestData,
+                demographics: updater(prevTestData.demographics),
+              }))
+            }
+            onNext={onNext}
+            onBack={onBack}
+            onValidationChange={setDemographicsValid}
+          />
+        )}
 
-      {currentStep === 'survey-questions' && expertMode && (
-        <SurveyQuestions
-          selectedQuestions={testData.surveyQuestions || []}
-          onChange={questions =>
-            onUpdateTestData(prevTestData => ({
-              ...prevTestData,
-              surveyQuestions: questions,
-            }))
-          }
-          onValidationChange={setSurveyQuestionsValid}
-        />
-      )}
+        {displayStep === 'survey-questions' && expertMode && (
+          <SurveyQuestions
+            selectedQuestions={testData.surveyQuestions || []}
+            onChange={questions =>
+              onUpdateTestData(prevTestData => ({
+                ...prevTestData,
+                surveyQuestions: questions,
+              }))
+            }
+            onValidationChange={setSurveyQuestionsValid}
+          />
+        )}
 
-      {currentStep === 'preview' && (
-        <TestPreview
-          searchTerm={testData.searchTerm}
-          competitors={testData.competitors}
-          variations={testData.variations}
-          skin={testData.skin}
-        />
-      )}
+        {displayStep === 'preview' && (
+          <TestPreview
+            searchTerm={testData.searchTerm}
+            competitors={testData.competitors}
+            variations={testData.variations}
+            skin={testData.skin}
+          />
+        )}
 
-      {currentStep === 'review' && (
-        <TestReview testData={testData} onUpdateTestData={onUpdateTestData} />
-      )}
+        {displayStep === 'review' && (
+          <TestReview testData={testData} onUpdateTestData={onUpdateTestData} />
+        )}
+      </div>
     </div>
   );
 }
