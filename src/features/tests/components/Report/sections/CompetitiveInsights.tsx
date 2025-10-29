@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 import { getQuestionsByIds, getDefaultQuestions, getQuestionDisplayName } from '../../TestQuestions/questionConfig';
@@ -71,9 +71,29 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
 }) => {
   const [selectedVariant, setSelectedVariant] = useState('a');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayVariant, setDisplayVariant] = useState('a');
+  const prevVariantRef = useRef('a');
   const { insight, aiInsights, getInsightForVariant } = useInsightStore();
   
   const selectedQuestions = propSelectedQuestions;
+
+  useEffect(() => {
+    if (prevVariantRef.current !== selectedVariant) {
+      setIsTransitioning(true);
+      
+      const timer = setTimeout(() => {
+        setDisplayVariant(selectedVariant);
+        setIsTransitioning(false);
+      }, 150);
+
+      prevVariantRef.current = selectedVariant;
+
+      return () => clearTimeout(timer);
+    } else {
+      setDisplayVariant(selectedVariant);
+    }
+  }, [selectedVariant]);
 
   // Memoize question configs to avoid recomputing on every row render
   const questionConfigs = useMemo(() => getQuestionsByIds(selectedQuestions), [selectedQuestions]);
@@ -97,12 +117,12 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   }
 
   // Get variant-specific AI insights
-  const currentVariantInsight = getInsightForVariant(selectedVariant);
+  const currentVariantInsight = getInsightForVariant(displayVariant);
 
   // Filter competitive insights for selected variant and sort by share of buy
 
   const filtered = competitiveinsights
-    .filter(item => item.variant_type === selectedVariant)
+    .filter(item => item.variant_type === displayVariant)
     .sort((a, b) => {
       // Test products always come first
       if (a.isTestProduct && !b.isTestProduct) return -1;
@@ -150,6 +170,7 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
   // If selected variant is not available, switch to the first available variant
   if (availableVariants.length > 0 && !availableVariants.includes(selectedVariant)) {
     setSelectedVariant(availableVariants[0] as 'a' | 'b' | 'c');
+    setDisplayVariant(availableVariants[0] as 'a' | 'b' | 'c');
   }
 
   // If no variants have competitive insights data, show a message
@@ -188,28 +209,34 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
         </div>
       </div>
 
-      {/* Display variant-specific AI insights */}
-      {currentVariantInsight && currentVariantInsight.competitive_insights && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-gray-800">
-            AI Analysis for Variant {selectedVariant.toUpperCase()}
-          </h3>
-          <MarkdownContent content={currentVariantInsight.competitive_insights} />
-        </div>
-      )}
+      <div
+        key={displayVariant}
+        className={`transition-opacity duration-150 ease-in-out ${
+          isTransitioning ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {/* Display variant-specific AI insights */}
+        {currentVariantInsight && currentVariantInsight.competitive_insights && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">
+              AI Analysis for Variant {displayVariant.toUpperCase()}
+            </h3>
+            <MarkdownContent content={currentVariantInsight.competitive_insights} />
+          </div>
+        )}
 
-      {/* Fallback to general insights if no variant-specific insight */}
-      {!currentVariantInsight && insight && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
-          <MarkdownContent content={
-            selectedVariant === 'a' ? insight.competitive_insights_a || '' :
-            selectedVariant === 'b' ? insight.competitive_insights_b || '' :
-            selectedVariant === 'c' ? insight.competitive_insights_c || '' : ''
-          } />
-        </div>
-      )}
+        {/* Fallback to general insights if no variant-specific insight */}
+        {!currentVariantInsight && insight && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg mb-6">
+            <MarkdownContent content={
+              displayVariant === 'a' ? insight.competitive_insights_a || '' :
+              displayVariant === 'b' ? insight.competitive_insights_b || '' :
+              displayVariant === 'c' ? insight.competitive_insights_c || '' : ''
+            } />
+          </div>
+        )}
 
-            {filteredInsights.length === 0 ? (
+        {filteredInsights.length === 0 ? (
         <p className="text-red-500">No data available for this variant</p>
       ) : (
         <>
@@ -381,7 +408,8 @@ const CompetitiveInsights: React.FC<CompetitiveInsightsProps> = ({
             </p>
           </div>
         </>
-      )}
+        )}
+      </div>
       
       <SurveyExampleModal 
         isOpen={isModalOpen}

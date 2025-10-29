@@ -45,7 +45,7 @@ export function TestCreationContent({
       const timer = setTimeout(() => {
         setDisplayStep(currentStep);
         setIsTransitioning(false);
-      }, 300);
+      }, 150);
 
       prevStepRef.current = currentStep;
 
@@ -61,7 +61,7 @@ export function TestCreationContent({
     <div className="max-w-6xl mx-auto px-8 py-12">
       <div
         key={displayStep}
-        className={`transition-opacity duration-300 ease-in-out ${
+        className={`transition-opacity duration-150 ease-in-out ${
           isTransitioning ? 'opacity-0' : 'opacity-100'
         }`}
       >
