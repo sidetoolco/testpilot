@@ -7,14 +7,279 @@ import { pdf } from '@react-pdf/renderer';
 import { createClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'fs';
 import dotenv from 'dotenv';
+import axios from 'axios';
 
 dotenv.config();
 
-// Supabase setup
+// Supabase setup (same as default report)
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
+
+// Replicate getSummaryData logic exactly as in default report
+async function getSummaryData(id) {
+  if (!id) {
+    return { rows: [], error: 'Not enough data for analysis.' };
+  }
+
+  try {
+    const { data: summaryData, error: summaryError } = await supabase
+      .from('summary')
+      .select('*, product:product_id(title)')
+      .eq('test_id', id)
+      .order('variant_type');
+
+    if (summaryError) throw summaryError;
+
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('testers_session')
+      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .eq('test_id', id);
+
+    if (sessionsError) throw sessionsError;
+
+    const selectionsByVariant = {};
+    (sessions || []).forEach((row) => {
+      const variant = String(row.variation_type || '').toLowerCase();
+      if (variant === 'a' || variant === 'b' || variant === 'c') {
+        if (!selectionsByVariant[variant]) {
+          selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+        }
+        const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+        const isTestProduct = !!row.product_id && !isCompetitor;
+        if (isCompetitor) selectionsByVariant[variant].competitors++;
+        if (isTestProduct) selectionsByVariant[variant].testProduct++;
+        if (isCompetitor || isTestProduct) selectionsByVariant[variant].total++;
+      }
+    });
+
+    const { data: variations } = await supabase
+      .from('test_variations')
+      .select('variation_type, product_id')
+      .eq('test_id', id);
+
+    const variantByProductId = new Map();
+    (variations || []).forEach((v) => {
+      const variant = String(v.variation_type || '').toLowerCase();
+      if (variant === 'a' || variant === 'b' || variant === 'c') {
+        variantByProductId.set(String(v.product_id), variant);
+      }
+    });
+
+    const { data: surveys } = await supabase
+      .from('responses_surveys')
+      .select('product_id')
+      .eq('test_id', id);
+
+    (surveys || []).forEach((row) => {
+      const variant = variantByProductId.get(String(row.product_id));
+      if (variant && (selectionsByVariant[variant]?.testProduct || 0) === 0) {
+        if (!selectionsByVariant[variant]) selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+        selectionsByVariant[variant].testProduct = 1;
+        selectionsByVariant[variant].total = (selectionsByVariant[variant].total || 0) + 1;
+      }
+    });
+
+    const correctedSummaryData = summaryData.map((item) => {
+      const variant = String(item.variant_type).toLowerCase();
+      const selections = selectionsByVariant[variant] || { testProduct: 0, competitors: 0, total: 0 };
+      const correctShareOfBuy = selections.total > 0 
+        ? ((selections.testProduct / selections.total) * 100).toFixed(1)
+        : '0.0';
+      return { ...item, share_of_buy: correctShareOfBuy };
+    });
+
+    return {
+      rows: correctedSummaryData.map(item => ({
+        title: `Variant ${item.variant_type.toUpperCase()} - ${item.product.title}`,
+        shareOfClicks: item.share_of_click.toString(),
+        shareOfBuy: item.share_of_buy,
+        valueScore: item.value_score.toString(),
+        isWinner: item.win ? 'Yes' : 'No',
+      })),
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error loading summary data:', error);
+    return { rows: [], error: 'Failed to load summary data.' };
+  }
+}
+
+// Replicate getAveragesurveys logic
+async function getAveragesurveys(id) {
+  if (!id) return { summaryData: [], error: 'Not enough data.' };
+  try {
+    const { data, error } = await supabase
+      .from('purchase_drivers')
+      .select('*, product:product_id(title, image_url, price)')
+      .eq('test_id', id)
+      .order('variant_type');
+    if (error) throw error;
+    return { summaryData: data || [], error: null };
+  } catch (error) {
+    return { summaryData: [], error: 'Failed to load data.' };
+  }
+}
+
+// Replicate getCompetitiveInsights logic exactly as in default report
+async function getCompetitiveInsights(id) {
+  if (!id) return { summaryData: [], error: 'Not enough data.' };
+  try {
+    // Robust Walmart detection with parallel queries
+    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
+      supabase.from('competitive_insights_walmart').select('id').eq('test_id', id).limit(1),
+      supabase.from('testers_session').select('walmart_product_id').eq('test_id', id).limit(1),
+      supabase.from('test_competitors').select('product_type').eq('test_id', id).limit(1)
+    ]);
+
+    const isWalmartTest = !!(
+      (walmartInsightsResult.data && walmartInsightsResult.data.length > 0) ||
+      (sessionProbeResult.data && sessionProbeResult.data.some((r) => r.walmart_product_id)) ||
+      (compProbeResult.data && compProbeResult.data.some((c) => c.product_type === 'walmart_product'))
+    );
+
+    const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
+    
+    const { data: summaryData, error: summaryError } = await supabase
+      .from(tableName)
+      .select('*, competitor_product_id:competitor_product_id(id, title, image_url, product_url, price)')
+      .eq('test_id', id)
+      .order('variant_type');
+
+    if (summaryError) throw summaryError;
+
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('testers_session')
+      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .eq('test_id', id);
+
+    if (sessionsError) throw sessionsError;
+
+    const selectionsByVariant = {};
+    (sessions || []).forEach((row) => {
+      const variant = String(row.variation_type || '').toLowerCase();
+      if (variant === 'a' || variant === 'b' || variant === 'c') {
+        if (!selectionsByVariant[variant]) {
+          selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
+        }
+        const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+        const isTestProduct = !!row.product_id && !isCompetitor;
+        if (isCompetitor) selectionsByVariant[variant].competitors++;
+        if (isTestProduct) selectionsByVariant[variant].testProduct++;
+        if (isCompetitor || isTestProduct) selectionsByVariant[variant].total++;
+      }
+    });
+
+    const { data: testProductData } = await supabase
+      .from('summary')
+      .select('*, product:product_id(title, image_url, price)')
+      .eq('test_id', id)
+      .order('variant_type');
+
+    const competitorCountsByVariant = {};
+    (sessions || []).forEach((session) => {
+      const v = String(session.variation_type || '').toLowerCase();
+      if (v === 'a' || v === 'b' || v === 'c') {
+        const cid = session.competitor_id || session.walmart_product_id;
+        if (cid) {
+          if (!competitorCountsByVariant[v]) competitorCountsByVariant[v] = {};
+          competitorCountsByVariant[v][cid] = (competitorCountsByVariant[v][cid] || 0) + 1;
+        }
+      }
+    });
+
+    const groupedByVariant = (summaryData || []).reduce((acc, item) => {
+      const variant = item.variant_type;
+      if (!acc[variant]) acc[variant] = [];
+      acc[variant].push(item);
+      return acc;
+    }, {});
+
+    const recalculatedData = Object.entries(groupedByVariant).flatMap(([variant, items]) => {
+      const variantItems = items;
+      const normalizedVariant = String(variant).toLowerCase();
+      const selections = selectionsByVariant[normalizedVariant] || { testProduct: 0, competitors: 0, total: 0 };
+      const testProduct = (testProductData || [])?.find((item) => String(item.variant_type).toLowerCase() === normalizedVariant);
+      const competitorCountsMap = competitorCountsByVariant[normalizedVariant] || {};
+
+      const competitorResults = variantItems.map((item) => {
+        const originalCompetitorProduct = item.competitor_product_id;
+        const competitorId = String(originalCompetitorProduct?.id || '');
+        const competitorCount = Number(competitorCountsMap[competitorId] || 0);
+        const recalculatedShareOfBuy = selections.total > 0 
+          ? ((competitorCount / selections.total) * 100).toFixed(2)
+          : '0.00';
+
+        return {
+          ...item,
+          competitor_product_id: {
+            ...originalCompetitorProduct,
+            id: `${competitorId}_${variant}`,
+          },
+          share_of_buy: recalculatedShareOfBuy,
+          count: competitorCount,
+        };
+      });
+
+      if (testProduct) {
+        const testProductCount = selections.testProduct;
+        const recalculatedTestProductShareOfBuy = selections.total > 0 
+          ? ((testProductCount / selections.total) * 100).toFixed(2)
+          : '0.00';
+
+        const testProductResult = {
+          ...testProduct,
+          variant_type: variant,
+          isTestProduct: true,
+          share_of_buy: recalculatedTestProductShareOfBuy,
+          count: testProductCount,
+        };
+        
+        return [testProductResult, ...competitorResults];
+      }
+
+      return competitorResults;
+    });
+
+    const sortedData = recalculatedData.sort((a, b) => {
+      if (a.variant_type !== b.variant_type) {
+        return a.variant_type.localeCompare(b.variant_type);
+      }
+      return (parseFloat(b.share_of_buy) || 0) - (parseFloat(a.share_of_buy) || 0);
+    });
+
+    return { summaryData: sortedData, error: null };
+  } catch (error) {
+    console.error('Error loading competitive insights:', error);
+    return { summaryData: [], error: 'Failed to load data.' };
+  }
+}
+
+// Replicate getAiInsights logic
+async function getAiInsights(id) {
+  if (!id) return { insights: null, error: 'Test ID required.' };
+  try {
+    // Get session token for API call
+    const { data: { session } } = await supabase.auth.getSession();
+    const apiUrl = process.env.VITE_API_URL || 'https://testpilot-api-301794542770.us-central1.run.app';
+    
+    const response = await axios.get(`${apiUrl}/insights/${id}?type=ai`, {
+      headers: session?.access_token ? {
+        Authorization: `Bearer ${session.access_token}`
+      } : {}
+    });
+    
+    let insights = response.data;
+    if (Array.isArray(insights)) {
+      insights = insights.length > 0 ? insights[0] : null;
+    }
+    return { insights: insights || null, error: null };
+  } catch (error) {
+    console.error('Error fetching AI insights:', error);
+    return { insights: null, error: error.message || 'Failed to load AI insights.' };
+  }
+}
 
 // Test IDs
 const TEST_IDS = [
@@ -117,16 +382,7 @@ const styles = {
   },
 };
 
-// Custom data override
-const CUSTOM_SUMMARY_DATA = {
-  '8f7d9fa5-d15e-46d6-9454-defb8b2e9c89': { share_of_click: 8.4, share_of_buy: 7.4 },
-  '915a3552-28a8-47dc-8803-07bc7d69b3ac': { share_of_click: 11.5, share_of_buy: 11.6 },
-  '016c764b-fa90-46d9-9b44-ab63ff50ac72': { share_of_click: 8.9, share_of_buy: 6.9 },
-  '59a8a275-cc42-4dcd-b0e0-31f287cf228d': { share_of_click: 5.8, share_of_buy: 5.0 },
-  '3c47356d-f8bd-4884-bb0e-e4514bd61cfd': { share_of_click: 12.2, share_of_buy: 9.4 },
-};
-
-// Fetch test data
+// Fetch test data using the same services as the default report
 async function fetchTestData(testId) {
   try {
     console.log(`Fetching test ${testId}...`);
@@ -146,38 +402,35 @@ async function fetchTestData(testId) {
 
     if (testError) throw testError;
 
-    const { data: summaryData } = await supabase
-      .from('summary')
-      .select('*, product:product_id(title)')
-      .eq('test_id', testId)
-      .order('variant_type')
-      .limit(1);
+    // Use the same service functions as the default report
+    const [summaryDataResult, averagesurveysResult, competitiveInsightsResult, aiInsightsResult] = await Promise.all([
+      getSummaryData(testId),
+      getAveragesurveys(testId),
+      getCompetitiveInsights(testId),
+      getAiInsights(testId),
+    ]);
 
-    const { data: purchaseDrivers } = await supabase
-      .from('purchase_drivers')
-      .select('*')
-      .eq('test_id', testId)
-      .order('variant_type')
-      .limit(1);
+    const variant = testData.variations?.find(v => v.variation_type === 'a') || 
+                   testData.variations?.find(v => v.variation_type === 'b') ||
+                   testData.variations?.find(v => v.variation_type === 'c');
 
+    // Get first row from summary (same as default report)
+    const summaryRow = summaryDataResult.rows?.[0] || {};
+    
+    // Get first purchase driver entry (same as default report)
+    const purchaseDriver = averagesurveysResult.summaryData?.[0] || {};
+    
     // Add fallback values for missing columns in purchase drivers
-    const processedPurchaseDrivers = purchaseDrivers?.[0] ? {
-      ...purchaseDrivers[0],
-      appearance: purchaseDrivers[0].appearance || purchaseDrivers[0].aesthetics || 0,
-      confidence: purchaseDrivers[0].confidence || purchaseDrivers[0].trust || 0,
-      brand: purchaseDrivers[0].brand || purchaseDrivers[0].trust || 0,
-      target_audience: purchaseDrivers[0].target_audience || purchaseDrivers[0].utility || 0,
-    } : null;
+    const processedPurchaseDrivers = {
+      ...purchaseDriver,
+      appearance: purchaseDriver.appearance || purchaseDriver.aesthetics || 0,
+      confidence: purchaseDriver.confidence || purchaseDriver.trust || 0,
+      brand: purchaseDriver.brand || purchaseDriver.trust || 0,
+      target_audience: purchaseDriver.target_audience || purchaseDriver.utility || 0,
+    };
 
-    // Fetch competitive insights with fallback columns
-    const { data: competitiveInsights } = await supabase
-      .from('competitive_insights')
-      .select('*, competitor_product_id:competitor_product_id(id, title, image_url, price)')
-      .eq('test_id', testId)
-      .order('variant_type');
-
-    // Add fallback values for missing columns
-    const processedCompetitiveInsights = (competitiveInsights || []).map(comp => ({
+    // Process competitive insights with fallbacks
+    const processedCompetitiveInsights = (competitiveInsightsResult.summaryData || []).map(comp => ({
       ...comp,
       appearance: comp.appearance || comp.aesthetics || 0,
       confidence: comp.confidence || comp.trust || 0,
@@ -185,32 +438,21 @@ async function fetchTestData(testId) {
       target_audience: comp.target_audience || comp.utility || 0,
     }));
 
-    // Fetch AI insights
-    const { data: aiInsights } = await supabase
-      .from('ai_insights')
-      .select('*')
-      .eq('test_id', testId)
-      .single();
-
-    const variant = testData.variations?.find(v => v.variation_type === 'a') || 
-                   testData.variations?.find(v => v.variation_type === 'b') ||
-                   testData.variations?.find(v => v.variation_type === 'c');
-
-    // Apply custom summary data if available
-    const customData = CUSTOM_SUMMARY_DATA[testId];
-    const summaryWithCustom = summaryData?.[0] ? {
-      ...summaryData[0],
-      ...(customData || {})
-    } : (customData || {});
+    // Prepare summary data in format needed for display (using values from summary row)
+    const summary = {
+      share_of_click: summaryRow.shareOfClicks?.replace('%', '') || summaryRow.shareOfClicks || '',
+      share_of_buy: summaryRow.shareOfBuy?.replace('%', '') || summaryRow.shareOfBuy || '',
+      value_score: summaryRow.valueScore || '',
+    };
 
     return {
       id: testId,
       name: testData.name,
       product: variant?.product || {},
-      summary: summaryWithCustom,
-      purchaseDriver: processedPurchaseDrivers || {},
-      competitiveInsights: processedCompetitiveInsights || [],
-      aiInsights: aiInsights || {},
+      summary: summary,
+      purchaseDriver: processedPurchaseDrivers,
+      competitiveInsights: processedCompetitiveInsights,
+      aiInsights: aiInsightsResult.insights || {},
     };
   } catch (error) {
     console.error(`Error fetching test ${testId}:`, error);
@@ -508,7 +750,7 @@ const PurchaseDriversChart = ({ tests }) => {
                               },
                             ]}
                           >
-                            <Text style={styles.barValue}>{value.toFixed(1)}</Text>
+                            <Text style={styles.barValue}>{value}</Text>
                           </View>
                         );
                       })}
@@ -611,7 +853,7 @@ const IndividualPurchaseDrivers = ({ test, index }) => {
                           },
                         ]}
                       >
-                        <Text style={styles.barValue}>{value.toFixed(1)}</Text>
+                        <Text style={styles.barValue}>{value}</Text>
                       </View>
                     </View>
                   );
