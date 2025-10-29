@@ -427,8 +427,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       </div>
 
       <div
-        key={displayVariant}
-        className={`transition-opacity duration-150 ease-in-out ${
+        className={`transition-opacity duration-50 ease-in-out ${
           isTransitioning ? 'opacity-0' : 'opacity-100'
         }`}
       >
