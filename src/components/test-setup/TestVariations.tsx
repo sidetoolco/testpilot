@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Package, Search } from 'lucide-react';
 import { Product } from '../../types';
 import { useProducts } from '../../features/tests/hooks/useProducts';
@@ -251,8 +250,8 @@ export default function TestVariations({ variations, onChange, testData, onUpdat
         {renderVariation('c')}
       </div>
 
-      {showProductSelector && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+      {showProductSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center space-x-8 flex-1">
@@ -326,8 +325,7 @@ export default function TestVariations({ variations, onChange, testData, onUpdat
               </>
             )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {showProductForm && (

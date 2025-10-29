@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import PurchaseDrivers from './sections/PurchaseDrivers';
 import CompetitiveInsights from './sections/CompetitiveInsights';
@@ -30,6 +30,25 @@ const ReportContent: React.FC<ReportContentProps> = ({
   testId,
   selectedQuestions,
 }) => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayTab, setDisplayTab] = useState(activeTab);
+  const prevTabRef = useRef(activeTab);
+
+  useEffect(() => {
+    if (prevTabRef.current !== activeTab) {
+      setIsTransitioning(true);
+      
+      const timer = setTimeout(() => {
+        setDisplayTab(activeTab);
+        setIsTransitioning(false);
+      }, 150);
+
+      prevTabRef.current = activeTab;
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
+
   return (
     <div className="flex-1 overflow-hidden p-4">
       <div
@@ -41,53 +60,60 @@ const ReportContent: React.FC<ReportContentProps> = ({
         id="report-content"
       >
         <div className="max-w-screen-2xl mx-auto flex flex-col gap-4 h-full">
-          <div id="content-summary" className={clsx(activeTab !== 'summary' && 'hidden')}>
-            <Summary summaryData={summaryData} insights={insights} />
-          </div>
           <div
-            id="content-purchase-drivers"
-            className={clsx(activeTab !== 'purchase-drivers' && 'hidden')}
+            key={displayTab}
+            className={`transition-opacity duration-150 ease-in-out ${
+              isTransitioning ? 'opacity-0' : 'opacity-100'
+            }`}
           >
-            <PurchaseDrivers 
-              surveys={averagesurveys} 
-              insights={insights} 
-              aiInsights={aiInsights} 
-              selectedQuestions={selectedQuestions}
-            />
-          </div>
-          <div
-            id="content-competitive-insights"
-            className={clsx(activeTab !== 'competitive-insights' && 'hidden')}
-          >
-            <CompetitiveInsights
-              competitiveinsights={competitiveinsights}
-              variants={averagesurveys}
-              sumaryvariations={summaryData?.rows}
-              selectedQuestions={selectedQuestions}
-            />
-          </div>
-          <div
-            id="content-shopper-comments"
-            className={clsx( activeTab !== 'shopper-comments' && 'hidden')}
-          >
-            <ShopperComments
-              comparision={variant.responses.comparisons}
-              surveys={variant.responses.surveys}
-              testName={variant.name}
-              testData={{
-                competitors: variant.competitors || [],
-                variations: variant.variations || { a: null, b: null, c: null },
-              }}
-            />
-          </div>
-          <div
-            id="content-recommendations"
-            className={clsx(activeTab !== 'recommendations' && 'hidden')}
-          >
-            <Recommendations />
-          </div>
-          <div id="content-test-details" className={clsx(activeTab !== 'test-details' && 'hidden')}>
-            <TestSummary test={variant} />
+            <div id="content-summary" className={clsx(displayTab !== 'summary' && 'hidden')}>
+              <Summary summaryData={summaryData} insights={insights} />
+            </div>
+            <div
+              id="content-purchase-drivers"
+              className={clsx(displayTab !== 'purchase-drivers' && 'hidden')}
+            >
+              <PurchaseDrivers 
+                surveys={averagesurveys} 
+                insights={insights} 
+                aiInsights={aiInsights} 
+                selectedQuestions={selectedQuestions}
+              />
+            </div>
+            <div
+              id="content-competitive-insights"
+              className={clsx(displayTab !== 'competitive-insights' && 'hidden')}
+            >
+              <CompetitiveInsights
+                competitiveinsights={competitiveinsights}
+                variants={averagesurveys}
+                sumaryvariations={summaryData?.rows}
+                selectedQuestions={selectedQuestions}
+              />
+            </div>
+            <div
+              id="content-shopper-comments"
+              className={clsx( displayTab !== 'shopper-comments' && 'hidden')}
+            >
+              <ShopperComments
+                comparision={variant.responses.comparisons}
+                surveys={variant.responses.surveys}
+                testName={variant.name}
+                testData={{
+                  competitors: variant.competitors || [],
+                  variations: variant.variations || { a: null, b: null, c: null },
+                }}
+              />
+            </div>
+            <div
+              id="content-recommendations"
+              className={clsx(displayTab !== 'recommendations' && 'hidden')}
+            >
+              <Recommendations />
+            </div>
+            <div id="content-test-details" className={clsx(displayTab !== 'test-details' && 'hidden')}>
+              <TestSummary test={variant} />
+            </div>
           </div>
         </div>
       </div>

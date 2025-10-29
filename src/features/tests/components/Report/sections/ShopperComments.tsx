@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useInsightStore } from '../../../hooks/useIaInsight';
 import { MarkdownContent } from '../utils/MarkdownContent';
 import ChosenProductCard, { Product } from './ChosenProductCard';
@@ -309,12 +309,32 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
   }, [comparision]);
 
   const [variant, setVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayVariant, setDisplayVariant] = useState<'a' | 'b' | 'c' | 'summary'>('summary');
+  const prevVariantRef = useRef<'a' | 'b' | 'c' | 'summary'>('summary');
+
+  useEffect(() => {
+    if (prevVariantRef.current !== variant) {
+      setIsTransitioning(true);
+      
+      const timer = setTimeout(() => {
+        setDisplayVariant(variant);
+        setIsTransitioning(false);
+      }, 150);
+
+      prevVariantRef.current = variant;
+
+      return () => clearTimeout(timer);
+    } else {
+      setDisplayVariant(variant);
+    }
+  }, [variant]);
 
   const { currentComparision, currentSurveys, hasComparision, hasSurveys, testProductBuyers, competitorBuyers, hasTestProductBuyers, hasCompetitorBuyers, allTestProductBuyers, hasAllTestProductBuyers } = useMemo(() => {
-    const currentComp = variant === 'summary' ? [] : comparision[variant];
-    const currentSurv = variant === 'summary' ? [] : surveys[variant];
-    const hasComp = variant !== 'summary' && currentComp?.length > 0;
-    const hasSurv = variant !== 'summary' && currentSurv?.length > 0;
+    const currentComp = displayVariant === 'summary' ? [] : comparision[displayVariant];
+    const currentSurv = displayVariant === 'summary' ? [] : surveys[displayVariant];
+    const hasComp = displayVariant !== 'summary' && currentComp?.length > 0;
+    const hasSurv = displayVariant !== 'summary' && currentSurv?.length > 0;
 
     // Separate test product buyers (synthetic entries without comments) from competitor buyers (with comments)
     // Use the explicit isTestProductBuyer flag to identify test-product buyers
@@ -341,9 +361,9 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
       allTestProductBuyers: mergedTestProductBuyers,
       hasAllTestProductBuyers: hasAnyTestProductBuyers,
     };
-  }, [variant, comparision, surveys]);
+  }, [displayVariant, comparision, surveys]);
 
-  if (variant !== 'summary' && !hasComparision && !hasSurveys) {
+  if (displayVariant !== 'summary' && !hasComparision && !hasSurveys) {
     return (
       <div className="h-80 flex flex-col items-center justify-center bg-white p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Shopper Comments</h2>
@@ -354,7 +374,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
               onClick={() => setVariant(v)}
               className={`px-6 py-2 rounded font-medium transition-colors
                                 ${
-                                  variant === v
+                                  displayVariant === v
                                     ? 'bg-green-500 text-white hover:bg-green-600'
                                     : 'bg-green-200 text-black hover:bg-gray-400'
                                 }`}
@@ -364,7 +384,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
           ))}
         </div>
         <p className="text-gray-500 text-center">
-          No comments available for variant {variant.toUpperCase()}
+          No comments available for variant {displayVariant.toUpperCase()}
         </p>
       </div>
     );
@@ -382,7 +402,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             <button
               onClick={() => setVariant('summary')}
               className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                'summary' === variant
+                'summary' === displayVariant
                   ? 'border-green-600 text-green-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -394,7 +414,7 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
                 key={`variant-btn-${v}`}
                 onClick={() => setVariant(v)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  v === variant
+                  v === displayVariant
                     ? 'border-green-600 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
@@ -406,16 +426,21 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
         </div>
       </div>
 
-      {variant === 'summary' && insight?.comment_summary && (
-        <MarkdownContent content={insight.comment_summary} />
-      )}
-      {variant === 'summary' && !insight?.comment_summary && (
-        <div className="text-gray-500 text-center py-8">
-          No comment summary available for this test.
-        </div>
-      )}
+      <div
+        className={`transition-opacity duration-50 ease-in-out ${
+          isTransitioning ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {displayVariant === 'summary' && insight?.comment_summary && (
+          <MarkdownContent content={insight.comment_summary} />
+        )}
+        {displayVariant === 'summary' && !insight?.comment_summary && (
+          <div className="text-gray-500 text-center py-8">
+            No comment summary available for this test.
+          </div>
+        )}
 
-      {hasAllTestProductBuyers && (
+        {hasAllTestProductBuyers && (
         <div className="mb-8">
           <MergedBuyersSection
             title={`Your chosen product buyers (${allTestProductBuyers.length})`}
@@ -438,7 +463,8 @@ const ShopperComments: React.FC<ShopperCommentsProps> = ({
             sortByCompetitor={true}
           />
         </div>
-      )}
+        )}
+      </div>
 
       <ProductModal
         isOpen={isProductModalOpen}

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './components/ui/toast';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './features/auth/stores/authStore';
@@ -37,12 +37,38 @@ import SkinDemo from './pages/SkinDemo';
 
 const queryClient = new QueryClient();
 
-// Separate component to use useLocation hook
-function AnimatedRoutes() {
-  const location = useLocation();
-  
+function App() {
+  const { setUser, setSession } = useAuthStore();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [setUser, setSession]);
+
   return (
-    <Routes location={location} key={location.pathname}>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Routes>
               {/* Unprotected Route */}
 
               <Route path="/test/:id" element={<TestUserPage />} />
@@ -203,36 +229,10 @@ function AnimatedRoutes() {
 
 
               <Route path="*" element={<Navigate to="/my-tests" replace />} />
-      </Routes>
-  );
-}
-
-function App() {
-  const { setUser, setSession } = useAuthStore();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [setUser, setSession]);
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
-        <AnimatedRoutes />
-        <Toast />
+            </Routes>
+            <Toast />
+          </motion.div>
+        </AnimatePresence>
       </BrowserRouter>
     </QueryClientProvider>
   );
