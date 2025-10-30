@@ -15,6 +15,9 @@ import { MAX_COMPETITORS } from './constants';
 import ModalLayout from '../../layouts/ModalLayout';
 import { useSavedCompetitors } from './hooks/useSavedCompetitors';
 
+const isAmazon = (p: AmazonProduct | WalmartProduct): p is AmazonProduct => 'asin' in p;
+const isWalmart = (p: AmazonProduct | WalmartProduct): p is WalmartProduct => 'walmart_id' in p;
+
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
   selectedCompetitors: (AmazonProduct | WalmartProduct)[];
@@ -82,8 +85,8 @@ export default function SearchAndCompetitorSelection({
   const loading = skin === 'amazon' ? amazonLoading : walmartLoading;
   const error = skin === 'amazon' ? amazonError : walmartError;
 
-  // Saved competitors by company (based on skin)
-  const { products: savedCompetitors, loading: savedLoading, error: savedError, refetch: refetchSaved } = useSavedCompetitors(skin);
+  // Saved competitors by company (lazy-load when modal opens)
+  const { products: savedCompetitors, loading: savedLoading, error: savedError, refetch: refetchSaved } = useSavedCompetitors(skin, { enabled: isSavedModalOpen });
   
   // Debug logging
   console.log('SearchAndCompetitorSelection state:', {
@@ -172,7 +175,7 @@ export default function SearchAndCompetitorSelection({
         product,
         isSelected: !!isSelected,
         canSelect,
-        key: `${productId}`,
+        key: `${skin}-${productId}-${(product as any).image_url || ''}`,
       };
     });
   }, [products, selectedCompetitors, MAX_COMPETITORS]);
@@ -181,27 +184,27 @@ export default function SearchAndCompetitorSelection({
     const seen = new Set<string>();
     const items: { product: any; isSelected: boolean; canSelect: boolean; key: string }[] = [];
     for (const product of savedCompetitors) {
-      const price = Number((product as any)?.price);
+      const price = typeof (product as any)?.price === 'number' ? (product as any).price : Number((product as any)?.price);
       if (Number.isNaN(price) || price <= 0) continue;
-      const asin = (product as any).asin as string | undefined;
-      const walmartId = (product as any).walmart_id as string | undefined;
+      const asin = isAmazon(product) ? product.asin : undefined;
+      const walmartId = isWalmart(product) ? product.walmart_id : undefined;
       const dbId = (product as any).id as string | undefined;
-      const normalizedTitle = (product as any).title ? String((product as any).title).toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim() : '';
+      const normalizedTitle = product.title ? product.title.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim() : '';
       const identifier = asin || walmartId || '';
-      const dedupeKey = identifier || `${normalizedTitle}__${(product as any).image_url || ''}`;
+      const dedupeKey = identifier || `${normalizedTitle}__${product.image_url || ''}`;
       if (!dedupeKey || seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
       const isSelected = !!selectedCompetitors.find(p => {
-        if ('asin' in p && asin) {
+        if (isAmazon(p) && asin) {
           return p.asin === asin;
-        } else if ('walmart_id' in p && walmartId) {
-          return (p as any).walmart_id === walmartId;
+        } else if (isWalmart(p) && walmartId) {
+          return p.walmart_id === walmartId;
         }
         return false;
       });
       const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
-      const key = identifier || dbId || dedupeKey;
+      const key = `${skin}-saved-${identifier || dbId || dedupeKey}`;
       items.push({ product, isSelected, canSelect, key });
     }
     return items;
@@ -252,7 +255,7 @@ export default function SearchAndCompetitorSelection({
             {loading ? 'Searching...' : 'Search'}
           </button>
           <button
-            onClick={() => { setIsSavedModalOpen(true); refetchSaved(); }}
+            onClick={() => { setIsSavedModalOpen(true); }}
             className="px-6 py-3 rounded-xl font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
           >
             Saved Competitors
