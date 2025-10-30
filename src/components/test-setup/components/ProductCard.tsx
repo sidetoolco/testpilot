@@ -20,6 +20,31 @@ export const ProductCard = React.memo(function ProductCard({
   showTooltip = false,
   variant = 'grid',
 }: ProductCardProps) {
+  const priceText = (p: AmazonProduct | WalmartProduct) => {
+    const val = (p as any)?.price;
+    if (val == null || Number.isNaN(Number(val))) return '—';
+    try {
+      return Number(val).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+    } catch {
+      return `$${Number(val).toFixed(2)}`;
+    }
+  };
+
+  const ratingText = (p: AmazonProduct | WalmartProduct) => {
+    const val = (p as any)?.rating;
+    if (val == null || Number.isNaN(Number(val))) return '—';
+    return `${Number(val).toFixed(1)}★`;
+    };
+
+  const reviewsText = (p: AmazonProduct | WalmartProduct) => {
+    const val = (p as any)?.reviews_count;
+    if (val == null || Number.isNaN(Number(val))) return '';
+    try {
+      return `(${Number(val).toLocaleString()})`;
+    } catch {
+      return `(${Number(val)})`;
+    }
+  };
   const handleClick = () => {
     if (isSelected || canSelect) {
       onSelect(product);
@@ -38,8 +63,8 @@ export const ProductCard = React.memo(function ProductCard({
           />
         </div>
         <div className="mt-2 text-center">
-          <p className="text-xs text-gray-600 font-medium">${product.price}</p>
-          <p className="text-xs text-gray-500">{product.rating}★</p>
+          <p className="text-xs text-gray-600 font-medium">{priceText(product)}</p>
+          <p className="text-xs text-gray-500">{ratingText(product)}</p>
         </div>
       </div>
     );
@@ -72,10 +97,10 @@ export const ProductCard = React.memo(function ProductCard({
         
         <div className="flex items-center justify-between mb-2">
           <span className="text-lg font-bold text-gray-900">
-            ${product.price}
+            {priceText(product)}
           </span>
           <span className="text-sm text-gray-500">
-            {product.rating}★ ({product.reviews_count.toLocaleString()})
+            {ratingText(product)} {reviewsText(product)}
           </span>
         </div>
 

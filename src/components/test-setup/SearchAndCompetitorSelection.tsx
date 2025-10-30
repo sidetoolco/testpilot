@@ -12,6 +12,11 @@ import { FloatingCounter } from './components/FloatingCounter';
 import { ProductCard } from './components/ProductCard';
 import { SelectedProductsDisplay } from './components/SelectedProductsDisplay';
 import { MAX_COMPETITORS } from './constants';
+import ModalLayout from '../../layouts/ModalLayout';
+import { useSavedCompetitors } from './hooks/useSavedCompetitors';
+
+const isAmazon = (p: AmazonProduct | WalmartProduct): p is AmazonProduct => 'asin' in p;
+const isWalmart = (p: AmazonProduct | WalmartProduct): p is WalmartProduct => 'walmart_id' in p;
 
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
@@ -33,6 +38,7 @@ export default function SearchAndCompetitorSelection({
   const [isSearching, setIsSearching] = useState(false);
   const [hasUserSearched, setHasUserSearched] = useState(false);
   const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
+  const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   
   // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
@@ -78,6 +84,9 @@ export default function SearchAndCompetitorSelection({
   const products = skin === 'amazon' ? amazonProducts : walmartProducts;
   const loading = skin === 'amazon' ? amazonLoading : walmartLoading;
   const error = skin === 'amazon' ? amazonError : walmartError;
+
+  // Saved competitors by company (lazy-load when modal opens)
+  const { products: savedCompetitors, loading: savedLoading, error: savedError, refetch: refetchSaved } = useSavedCompetitors(skin, { enabled: isSavedModalOpen });
   
   // Debug logging
   console.log('SearchAndCompetitorSelection state:', {
@@ -145,7 +154,11 @@ export default function SearchAndCompetitorSelection({
 
   // Memoize expensive computations to prevent re-renders during scrolling
   const memoizedProducts = useMemo(() => {
-    return products.map((product, index) => {
+    const valid = products.filter((product) => {
+      const price = Number((product as any)?.price);
+      return !Number.isNaN(price) && price > 0;
+    });
+    return valid.map((product, index) => {
       // Handle both Amazon and Walmart products
       const productId = 'asin' in product ? product.asin : (product as any).walmart_id;
       const isSelected = selectedCompetitors.find(p => {
@@ -162,10 +175,40 @@ export default function SearchAndCompetitorSelection({
         product,
         isSelected: !!isSelected,
         canSelect,
-        key: `${productId}-${index}`,
+        key: `${skin}-${productId}-${(product as any).image_url || ''}`,
       };
     });
   }, [products, selectedCompetitors, MAX_COMPETITORS]);
+
+  const memoizedSaved = useMemo(() => {
+    const seen = new Set<string>();
+    const items: { product: any; isSelected: boolean; canSelect: boolean; key: string }[] = [];
+    for (const product of savedCompetitors) {
+      const price = typeof (product as any)?.price === 'number' ? (product as any).price : Number((product as any)?.price);
+      if (Number.isNaN(price) || price <= 0) continue;
+      const asin = isAmazon(product) ? product.asin : undefined;
+      const walmartId = isWalmart(product) ? product.walmart_id : undefined;
+      const dbId = (product as any).id as string | undefined;
+      const normalizedTitle = product.title ? product.title.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim() : '';
+      const identifier = asin || walmartId || '';
+      const dedupeKey = identifier || `${normalizedTitle}__${product.image_url || ''}`;
+      if (!dedupeKey || seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+
+      const isSelected = !!selectedCompetitors.find(p => {
+        if (isAmazon(p) && asin) {
+          return p.asin === asin;
+        } else if (isWalmart(p) && walmartId) {
+          return p.walmart_id === walmartId;
+        }
+        return false;
+      });
+      const canSelect = !isSelected && selectedCompetitors.length < MAX_COMPETITORS;
+      const key = `${skin}-saved-${identifier || dbId || dedupeKey}`;
+      items.push({ product, isSelected, canSelect, key });
+    }
+    return items;
+  }, [savedCompetitors, selectedCompetitors, MAX_COMPETITORS]);
 
   // Show loading screen for initial search or when searching with no results
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
@@ -210,6 +253,12 @@ export default function SearchAndCompetitorSelection({
             }`}
           >
             {loading ? 'Searching...' : 'Search'}
+          </button>
+          <button
+            onClick={() => { setIsSavedModalOpen(true); }}
+            className="px-6 py-3 rounded-xl font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+          >
+            Saved Competitors
           </button>
         </div>
         
@@ -308,6 +357,41 @@ export default function SearchAndCompetitorSelection({
         isAllSelected={isAllSelected}
         variant="simple"
       />
+
+      <ModalLayout
+        isOpen={isSavedModalOpen}
+        onClose={() => setIsSavedModalOpen(false)}
+        title="Saved Competitors"
+      >
+        {savedError && (
+          <div className="text-red-600 text-sm mb-4">{savedError}</div>
+        )}
+        {savedLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#00A67E] border-t-transparent"></div>
+          </div>
+        ) : (
+          <>
+            {memoizedSaved.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No saved competitors found for your company.</div>
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                {memoizedSaved.map(({ product, isSelected, canSelect, key }) => (
+                  <ProductCard
+                    key={key}
+                    product={product}
+                    isSelected={isSelected}
+                    canSelect={canSelect}
+                    onSelect={(p) => {
+                      handleProductSelect(p);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </ModalLayout>
     </div>
   );
 }

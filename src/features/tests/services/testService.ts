@@ -219,8 +219,31 @@ export const testService = {
 
   async saveWalmartProducts(testId: string, products: any[]) {
     try {
+      // Normalize products to ensure required Walmart fields exist
+      const normalized = (products || [])
+        .map((p: any) => {
+          const source = p.product || p;
+          const walmartId = source.walmart_id; // must be present for Walmart
+          const ratingVal = source.rating;
+          const reviewsVal = source.reviews_count;
+          return {
+            // API expects id to be the Walmart product identifier
+            id: walmartId,
+            walmart_id: walmartId,
+            title: source.title,
+            image_url: source.image_url,
+            price: source.price ?? 0,
+            product_url: source.product_url || source.url,
+            brand: source.brand,
+            rating: ratingVal == null || Number.isNaN(Number(ratingVal)) ? null : Number(ratingVal),
+            reviews_count: reviewsVal == null || Number.isNaN(Number(reviewsVal)) ? null : Number(reviewsVal),
+            search_term: typeof source.search_term === 'string' ? source.search_term : '',
+          };
+        })
+        .filter((p: any) => !!p.walmart_id && !!p.id && !!p.title && !!p.image_url);
+
       // Use the correct Walmart service method
-      await walmartService.saveProductsWithTest(products, testId);
+      await walmartService.saveProductsWithTest(normalized, testId);
     } catch (error) {
       console.error('Walmart products save error:', error);
       throw new TestCreationError('Failed to save Walmart competitors', { error });
