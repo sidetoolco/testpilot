@@ -84,11 +84,12 @@ export function TestCreationSteps({
           {isLastStep ? (
             <div className="flex space-x-4">
               <button
+                type="button"
                 onClick={onConfirm}
                 disabled={!canProceed}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
                   canProceed
-                    ? 'bg-gray-500 text-white hover:bg-gray-600'
+                    ? 'bg-gray-500 text-white hover:bg-gray-600 active:bg-gray-700'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >

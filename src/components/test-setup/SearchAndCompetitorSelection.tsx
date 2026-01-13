@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Database } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
 import { WalmartProduct } from '../../features/walmart/services/walmartService';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
@@ -11,6 +11,7 @@ import { useCompetitorSelection } from './hooks/useCompetitorSelection';
 import { FloatingCounter } from './components/FloatingCounter';
 import { ProductCard } from './components/ProductCard';
 import { SelectedProductsDisplay } from './components/SelectedProductsDisplay';
+import { BrowseSavedCompetitorsModal } from './BrowseSavedCompetitorsModal';
 import { MAX_COMPETITORS } from './constants';
 
 interface SearchAndCompetitorSelectionProps {
@@ -33,6 +34,7 @@ export default function SearchAndCompetitorSelection({
   const [isSearching, setIsSearching] = useState(false);
   const [hasUserSearched, setHasUserSearched] = useState(false);
   const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
@@ -140,6 +142,10 @@ export default function SearchAndCompetitorSelection({
     }
   }, [handleSearchSubmit]);
 
+  const handleSelectFromSaved = useCallback((competitors: (AmazonProduct | WalmartProduct)[]) => {
+    onCompetitorsChange(competitors);
+  }, [onCompetitorsChange]);
+
   const hasSearchResults = products.length > 0;
   const isSearchingForProducts = (loading || isSearching) && hasUserSearched;
 
@@ -169,26 +175,40 @@ export default function SearchAndCompetitorSelection({
 
   // Show loading screen for initial search or when searching with no results
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
-    return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
+    const displaySearchTerm = searchTerm || currentSearchTerm;
+    return <LoadingState showProgress message={`Searching for products matching "${displaySearchTerm}"...`} />;
   }
-  if (error) return <ErrorState error={error} onRetry={() => {
-    if (skin === 'amazon') {
-      amazonRefetch();
-    } else if (skin === 'walmart') {
-      walmartSearchProducts(currentSearchTerm);
-    }
-  }} />;
+  
+  // Only show error if user has searched and there are no selected competitors yet
+  if (error && hasUserSearched && selectedCompetitors.length === 0) return (
+    <ErrorState 
+      error={error} 
+      onRetry={() => {
+        if (skin === 'amazon') {
+          amazonRefetch();
+        } else if (skin === 'walmart') {
+          walmartSearchProducts(currentSearchTerm);
+        }
+      }}
+      onNewSearch={() => {
+        setHasUserSearched(false);
+        setCurrentSearchTerm('');
+        setSearchInputValue('');
+        onSearchTermChange('');
+      }}
+    />
+  );
 
   return (
     <div className="max-w-6xl mx-auto">
       <SearchHeader
-        title={`Search & Select Competitors - "${originalSearchTerm}"`}
+        title={`Search & Select Competitors - "${originalSearchTerm || currentSearchTerm}"`}
         subtitle={` Search for additional products or select from existing results. You can also search for specific brands if needed.`}
       />
 
       {/* Search Input - Always visible at top */}
       <div className="mb-8">
-        <div className="flex gap-3  mx-auto">
+        <div className="flex gap-3 mx-auto">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -211,10 +231,17 @@ export default function SearchAndCompetitorSelection({
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3 rounded-xl font-medium bg-gray-600 text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <Database className="h-5 w-5" />
+            Saved Competitors
+          </button>
         </div>
         
         {/* Show current search term if there are results */}
-        {hasSearchResults && currentSearchTerm && currentSearchTerm !== originalSearchTerm && (
+        {hasSearchResults && currentSearchTerm && currentSearchTerm !== (originalSearchTerm || currentSearchTerm) && originalSearchTerm && (
           <div className="mt-2 text-sm text-gray-500">
             Additional search: <span className="font-medium">"{currentSearchTerm}"</span>
           </div>
@@ -238,9 +265,9 @@ export default function SearchAndCompetitorSelection({
               Search Results ({products.length} products)
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {currentSearchTerm === originalSearchTerm 
-                ? `Showing results for your original search: "${currentSearchTerm}"`
-                : `Showing results for additional search: "${currentSearchTerm}"`
+              {originalSearchTerm && currentSearchTerm === originalSearchTerm
+                ? `Showing results for your original search: "${originalSearchTerm}"`
+                : `Showing results for "${currentSearchTerm}"`
               }
             </p>
           </div>
@@ -292,11 +319,8 @@ export default function SearchAndCompetitorSelection({
         <div className="mb-8 text-center py-12">
           <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">
-            Preparing your search...
+            You are ready to start your search...
           </h3>
-          <p className="text-gray-400">
-            Setting up search for "{originalSearchTerm}". This will only take a moment.
-          </p>
         </div>
       )}
 
@@ -307,6 +331,16 @@ export default function SearchAndCompetitorSelection({
         isPopping={isPopping}
         isAllSelected={isAllSelected}
         variant="simple"
+      />
+
+      {/* Browse Saved Competitors Modal */}
+      <BrowseSavedCompetitorsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={handleSelectFromSaved}
+        skin={skin}
+        currentlySelected={selectedCompetitors}
+        maxCompetitors={MAX_COMPETITORS}
       />
     </div>
   );
