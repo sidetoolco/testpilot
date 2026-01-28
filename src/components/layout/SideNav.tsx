@@ -6,7 +6,6 @@ import {
   LogOut,
   Menu,
   X,
-  HelpCircle,
   Settings,
   Users,
   DollarSign,
@@ -29,7 +28,7 @@ import { useAdmin } from '../../hooks/useAdmin';
 const menuItems = [
   { path: '/my-tests', icon: Beaker, label: 'My Tests' },
   { path: '/all-products', icon: Package, label: 'My Products' },
-  { path: '/support', icon: HelpCircle, label: 'Support Videos' },
+  // { path: '/support', icon: HelpCircle, label: 'Support Videos' }, // hidden for now
 ];
 
 // Steps where a test is considered in progress
