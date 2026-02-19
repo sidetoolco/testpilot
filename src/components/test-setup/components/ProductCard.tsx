@@ -75,9 +75,11 @@ export const ProductCard = React.memo(function ProductCard({
           <span className="text-lg font-bold text-gray-900">
             ${product.price}
           </span>
-          <span className="text-sm text-gray-500">
-            {product.rating || 0}★ ({(product.reviews_count || 0).toLocaleString()})
-          </span>
+          {!'tiktok_id' in product && (
+            <span className="text-sm text-gray-500">
+              {product.rating || 0}★ ({(product.reviews_count || 0).toLocaleString()})
+            </span>
+          )}
         </div>
 
         <div className="mt-auto">

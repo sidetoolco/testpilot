@@ -117,31 +117,11 @@ export default function TikTokShopProductDetail({
             {product.title}
           </h1>
 
-          <p className="text-sm text-gray-500">
-            Sold by {product.brand || 'Seller'}
-          </p>
-
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <span className="font-medium">{rating.toFixed(1)} ★</span>
             <span>({reviewsCount})</span>
             <span>{formatSold(soldCount)} sold</span>
             <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-          </div>
-
-          {/* Description */}
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-sm font-medium text-gray-800 mb-2">Description</p>
-            {product.description ? (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.description}</p>
-            ) : (productDetails?.feature_bullets?.length || product.bullet_points?.length) ? (
-              <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
-                {(productDetails?.feature_bullets ?? product.bullet_points ?? []).map((bullet, i) => (
-                  <li key={i}>{bullet}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">No description available.</p>
-            )}
           </div>
 
           {product.price != null && (

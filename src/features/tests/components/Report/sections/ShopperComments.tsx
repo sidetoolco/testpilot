@@ -32,6 +32,12 @@ interface Comment {
     image_url: string;
     price: number;
   };
+  tiktok_products?: {
+    id: string;
+    title: string;
+    image_url: string;
+    price: number;
+  };
   competitor_id?: string;
 }
 
@@ -64,8 +70,7 @@ const getChosenProduct = (
   if (comment.competitor_id) {
     return testData?.competitors.find(comp => comp.id === comment.competitor_id) || null;
   } else {
-    // Check for both amazon_products and walmart_products
-    return comment.products || comment.amazon_products || comment.walmart_products || null;
+    return comment.products || comment.amazon_products || comment.walmart_products || comment.tiktok_products || null;
   }
 };
 
@@ -240,7 +245,7 @@ const CommentSection: React.FC<{
 CommentSection.displayName = 'CommentSection';
 
 const getStableKey = (comment: Comment, prefix: string, index: number): string => {
-  const productId = comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || '';
+  const productId = comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || comment.tiktok_products?.id || '';
   const testerId = comment.tester_id ? JSON.stringify(comment.tester_id) : '';
   return `${prefix}-${productId}-${testerId}-${index}`;
 };

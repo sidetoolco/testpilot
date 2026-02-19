@@ -134,7 +134,7 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
           )}
 
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white border border-gray-200 p-2">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-black p-3">
               <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
             </div>
 

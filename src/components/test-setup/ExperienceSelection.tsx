@@ -125,11 +125,11 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
           )}
 
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white border border-gray-200 p-2">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-black p-3">
               <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop Experience</h3>
             <p className="text-gray-600 mb-4">
               Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
             </p>
