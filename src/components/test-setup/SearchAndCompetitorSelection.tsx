@@ -18,7 +18,7 @@ interface SearchAndCompetitorSelectionProps {
   selectedCompetitors: (AmazonProduct | WalmartProduct)[];
   onSearchTermChange: (term: string) => void;
   onCompetitorsChange: (competitors: (AmazonProduct | WalmartProduct)[]) => void;
-  skin: 'amazon' | 'walmart';
+  skin: 'amazon' | 'walmart' | 'tiktokshop';
 }
 
 export default function SearchAndCompetitorSelection({
@@ -36,7 +36,7 @@ export default function SearchAndCompetitorSelection({
   
   // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
-    hasUserSearched && skin === 'amazon' ? currentSearchTerm : ''
+    hasUserSearched && (skin === 'amazon' || skin === 'tiktokshop') ? currentSearchTerm : ''
   );
   const { products: walmartProducts, loading: walmartLoading, error: walmartError, searchProducts: walmartSearchProducts } = useWalmartProducts();
   
@@ -61,7 +61,7 @@ export default function SearchAndCompetitorSelection({
       setIsSearching(true);
       
       // Trigger search based on skin
-      if (skin === 'amazon') {
+      if (skin === 'amazon' || skin === 'tiktokshop') {
         console.log('Initial Amazon search for:', searchTerm);
         // Amazon search is handled by useProductFetch hook
       } else if (skin === 'walmart') {
@@ -74,10 +74,10 @@ export default function SearchAndCompetitorSelection({
     }
   }, [searchTerm, hasUserSearched, skin, walmartSearchProducts]);
 
-  // Get products and loading state based on skin
-  const products = skin === 'amazon' ? amazonProducts : walmartProducts;
-  const loading = skin === 'amazon' ? amazonLoading : walmartLoading;
-  const error = skin === 'amazon' ? amazonError : walmartError;
+  // Get products and loading state based on skin (tiktokshop uses Amazon API)
+  const products = skin === 'walmart' ? walmartProducts : amazonProducts;
+  const loading = skin === 'walmart' ? walmartLoading : amazonLoading;
+  const error = skin === 'walmart' ? walmartError : amazonError;
   
   // Debug logging
   console.log('SearchAndCompetitorSelection state:', {
@@ -112,10 +112,9 @@ export default function SearchAndCompetitorSelection({
     setIsSearching(true);
     setHasUserSearched(true);
     
-    // Trigger search based on skin
-    if (skin === 'amazon') {
+    // Trigger search based on skin (tiktokshop uses Amazon API)
+    if (skin === 'amazon' || skin === 'tiktokshop') {
       console.log('Using Amazon search for:', next);
-      // Trigger a refetch for Amazon products
       amazonRefetch();
     } else if (skin === 'walmart') {
       console.log('Using Walmart search for:', next);
@@ -172,7 +171,7 @@ export default function SearchAndCompetitorSelection({
     return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
   }
   if (error) return <ErrorState error={error} onRetry={() => {
-    if (skin === 'amazon') {
+    if (skin === 'amazon' || skin === 'tiktokshop') {
       amazonRefetch();
     } else if (skin === 'walmart') {
       walmartSearchProducts(currentSearchTerm);

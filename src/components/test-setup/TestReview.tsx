@@ -108,7 +108,7 @@ export default function TestReview({ testData, onUpdateTestData }: TestReviewPro
                 <div>
                   <div className="text-sm font-medium text-gray-500 mb-1">Test Interface</div>
                   <div className="text-gray-900 capitalize">
-                    {testData.skin === 'walmart' ? 'Walmart' : 'Amazon'} Skin
+                    {testData.skin === 'walmart' ? 'Walmart' : testData.skin === 'tiktokshop' ? 'TikTok Shop' : 'Amazon'} Skin
                   </div>
                 </div>
                 {/* Custom Screening Section */}

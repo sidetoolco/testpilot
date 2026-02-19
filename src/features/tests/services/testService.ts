@@ -227,9 +227,9 @@ export const testService = {
     }
   },
 
-  async saveCompetitors(testId: string, products: any[], skin: 'amazon' | 'walmart') {
+  async saveCompetitors(testId: string, products: any[], skin: 'amazon' | 'walmart' | 'tiktokshop') {
     try {
-      if (skin === 'amazon') {
+      if (skin === 'amazon' || skin === 'tiktokshop') {
         await this.saveAmazonProducts(testId, products);
       } else if (skin === 'walmart') {
         await this.saveWalmartProducts(testId, products);
@@ -302,8 +302,8 @@ export const testService = {
       throw new TestCreationError('Failed to add survey questions', { error });
     }
   },
-  generateDynamicTitle(searchTerm: string, skin: 'amazon' | 'walmart' = 'amazon'): string {
-    const storeName = skin === 'walmart' ? 'Walmart' : 'Amazon';
+  generateDynamicTitle(searchTerm: string, skin: 'amazon' | 'walmart' | 'tiktokshop' = 'amazon'): string {
+    const storeName = skin === 'walmart' ? 'Walmart' : skin === 'tiktokshop' ? 'TikTok Shop' : 'Amazon';
     return `${storeName} shopping: Discover '${searchTerm}'!`;
   },
   // Función para crear el proyecto en Respondent

@@ -21,7 +21,7 @@ export interface TestData {
     customScreening: CustomScreening;
   };
   surveyQuestions: string[];
-  skin: 'amazon' | 'walmart';
+  skin: 'amazon' | 'walmart' | 'tiktokshop';
 }
 
 export interface ValidationResult {

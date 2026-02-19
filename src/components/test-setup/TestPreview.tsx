@@ -1,6 +1,7 @@
 import React from 'react';
 import AmazonPreview from './preview/AmazonPreview';
 import WalmartPreview from './preview/WalmartPreview';
+import TikTokShopPreview from './preview/TikTokShopPreview';
 import { AmazonProduct } from '../../features/amazon/types';
 import { WalmartProduct } from '../../features/walmart/services/walmartService';
 
@@ -12,7 +13,7 @@ interface TestPreviewProps {
     b: any | null;
     c: any | null;
   };
-  skin?: 'amazon' | 'walmart';
+  skin?: 'amazon' | 'walmart' | 'tiktokshop';
 }
 
 export default function TestPreview({ searchTerm, competitors, variations, skin = 'amazon' }: TestPreviewProps) {
@@ -34,13 +35,12 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
     }))
   });
   
-  // Filter products based on skin type
+  // Filter products based on skin type (tiktokshop uses Amazon products)
   const filteredCompetitors = React.useMemo(() => {
     if (skin === 'walmart') {
       return competitors.filter(product => !('asin' in product)) as WalmartProduct[];
-    } else {
-      return competitors.filter(product => 'asin' in product) as AmazonProduct[];
     }
+    return competitors.filter(product => 'asin' in product) as AmazonProduct[];
   }, [competitors, skin]);
 
   // Memoize the initial product list with variation A prioritized
@@ -52,8 +52,7 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
       if (skin === 'walmart') {
         // For Walmart skin, add the variation (it should be a Walmart product)
         products.unshift(variations.a as WalmartProduct);
-      } else if (skin === 'amazon') {
-        // For Amazon skin, add the variation (it should be an Amazon product)
+      } else if (skin === 'amazon' || skin === 'tiktokshop') {
         products.unshift(variations.a as AmazonProduct);
       }
     }
@@ -68,7 +67,7 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
   );
 
   React.useEffect(() => {
-    if (skin === 'amazon') {
+    if (skin === 'amazon' || skin === 'tiktokshop') {
       setAmazonDisplayProducts(allProducts as AmazonProduct[]);
       setWalmartDisplayProducts([]);
     } else {
@@ -93,7 +92,7 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
       let variantToUse = null;
       if (skin === 'walmart') {
         variantToUse = variant as WalmartProduct;
-      } else if (skin === 'amazon') {
+      } else if (skin === 'amazon' || skin === 'tiktokshop') {
         variantToUse = variant as AmazonProduct;
       }
       
@@ -101,7 +100,7 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
         const allProductsToShuffle = [variantToUse, ...filteredCompetitors];
         const shuffledProducts = shuffleArray(allProductsToShuffle);
         
-        if (skin === 'amazon') {
+        if (skin === 'amazon' || skin === 'tiktokshop') {
           setAmazonDisplayProducts(shuffledProducts as AmazonProduct[]);
         } else {
           setWalmartDisplayProducts(shuffledProducts as WalmartProduct[]);
@@ -144,7 +143,11 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
         </div>
       </div>
 
-      {skin === 'walmart' ? (
+      {skin === 'tiktokshop' ? (
+        <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-inner max-h-[80vh] overflow-y-auto">
+          <TikTokShopPreview embedded searchTerm={searchTerm} products={amazonDisplayProducts} variations={variations} />
+        </div>
+      ) : skin === 'walmart' ? (
         (() => {
           // Calculate competitor indices - competitors start from index 1 (after variation A)
           const competitorIndices = walmartDisplayProducts.length > 1 
@@ -166,10 +169,16 @@ export default function TestPreview({ searchTerm, competitors, variations, skin 
               isCompetitor: competitorIndices.includes(index)
             }))
           });
-          return <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} competitorIndices={competitorIndices} />;
+          return (
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-inner max-h-[80vh] overflow-y-auto">
+            <WalmartPreview searchTerm={searchTerm} products={walmartDisplayProducts} competitorIndices={competitorIndices} />
+          </div>
+        );
         })()
       ) : (
-        <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} variations={variations} />
+        <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-inner max-h-[80vh] overflow-y-auto">
+          <AmazonPreview searchTerm={searchTerm} products={amazonDisplayProducts} variations={variations} />
+        </div>
       )}
     </div>
   );

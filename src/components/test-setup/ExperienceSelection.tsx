@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface ExperienceSelectionProps {
-  selectedExperience: 'amazon' | 'walmart';
-  onExperienceChange: (experience: 'amazon' | 'walmart') => void;
+  selectedExperience: 'amazon' | 'walmart' | 'tiktokshop';
+  onExperienceChange: (experience: 'amazon' | 'walmart' | 'tiktokshop') => void;
 }
 
 export default function ExperienceSelection({ selectedExperience, onExperienceChange }: ExperienceSelectionProps) {
@@ -12,7 +12,7 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
         Choose your shopping experience
       </h4>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Amazon Experience Option */}
         <div 
           className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
@@ -100,6 +100,48 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
               <div className="flex items-start gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
                 <span className="leading-tight">Complete Walmart experience</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* TikTok Shop Experience Option */}
+        <div
+          className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+            selectedExperience === 'tiktokshop'
+              ? 'border-black bg-gray-50'
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => onExperienceChange('tiktokshop')}
+        >
+          {selectedExperience === 'tiktokshop' && (
+            <div className="absolute top-4 right-4">
+              <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white border border-gray-200 p-2">
+              <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop</h3>
+            <p className="text-gray-600 mb-4">
+              Testers will see a TikTok Shop-style interface with carousels (products from Amazon API)
+            </p>
+
+            <div className="space-y-2 text-sm text-gray-500">
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-black rounded-full flex-shrink-0 mt-1" />
+                <span>TikTok Shop layout</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-black rounded-full flex-shrink-0 mt-1" />
+                <span className="leading-tight">Amazon product data</span>
               </div>
             </div>
           </div>

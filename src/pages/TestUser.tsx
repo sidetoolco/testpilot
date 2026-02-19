@@ -5,6 +5,8 @@ import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import WalmartGrid from '../components/walmart/WalmartGrid';
 import WalmartHeaderLayout from '../components/walmart/WalmartHeaderLayout';
+import TikTokShopGrid from '../components/tiktokshop/TikTokShopGrid';
+import TikTokShopHeaderLayout from '../components/tiktokshop/TikTokShopHeaderLayout';
 import { useSessionStore } from '../store/useSessionStore';
 import { useTestCompletionStore } from '../store/useTestCompletionStore';
 import {
@@ -427,6 +429,37 @@ const TestUserPage = () => {
   }
 
   // Render the appropriate skin based on testSkin
+  if (testSkin === 'tiktokshop') {
+    return (
+      <TikTokShopHeaderLayout searchTerm={combinedData.search_term}>
+        <div className="bg-white min-h-[750px]">
+          <div key={combinedData.id}>
+            <Modal
+              isOpen={isModalOpen}
+              onClose={closeModal}
+              test={combinedData.search_term}
+              onCaptchaVerify={handleCaptchaVerify}
+              captchaVerified={captchaVerified}
+              captchaLoading={captchaLoading}
+            />
+            <div className="px-4 py-4">
+              <p className="text-sm text-gray-600 mb-4">
+                {combinedData.competitors.length} results for &quot;{combinedData.search_term}&quot;
+              </p>
+              <TikTokShopGrid
+                products={combinedData.competitors}
+                addToCart={addToCart}
+                variantType={id ? id[id.length - 1] : ''}
+                testId={id ? id.slice(0, -2) : ''}
+                mainProduct={combinedData.variations?.[0]?.product}
+              />
+            </div>
+          </div>
+        </div>
+      </TikTokShopHeaderLayout>
+    );
+  }
+
   if (testSkin === 'walmart') {
     return (
               <WalmartHeaderLayout searchTerm={combinedData.search_term}>

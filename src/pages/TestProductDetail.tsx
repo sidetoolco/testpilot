@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Star, Share2, Heart, ChevronDown, CheckCircle, X } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useSessionStore } from '../store/useSessionStore'; // Asegúrate de importar el hook
+import { useSessionStore } from '../store/useSessionStore';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
+import TikTokShopHeaderLayout from '../components/tiktokshop/TikTokShopHeaderLayout';
+import TikTokShopProductDetail from '../components/tiktokshop/TikTokShopProductDetail';
 import { recordTimeSpent, updateSession } from '../features/tests/services/testersSessionService';
 import RedirectModal from '../components/test-setup/RedirectQuestionModal';
 import { trackEvent } from '../lib/events';
@@ -116,6 +118,47 @@ export default function ProductDetail() {
   if (!product) {
     console.error('No product found');
     return <div>Product not found</div>;
+  }
+
+  const isTikTokSkin = location.state?.skin === 'tiktokshop';
+  const tiktokProductDetails = isTikTokSkin
+    ? {
+        images: Array.isArray(product.images) && product.images.length > 0
+          ? product.images
+          : [product.image_url || product.image],
+        feature_bullets: product.bullet_points || [],
+      }
+    : null;
+
+  if (isTikTokSkin) {
+    return (
+      <TikTokShopHeaderLayout searchTerm="">
+        <div className="max-w-5xl mx-auto px-4">
+          <TikTokShopProductDetail
+            product={product}
+            productDetails={tiktokProductDetails}
+            onBack={() => navigate(-1)}
+            onAddToCart={handleAddToCart}
+          />
+        </div>
+        {isModalOpen && (
+          <ProductModal
+            testId={testId || ''}
+            product={product}
+            closeModal={closeModal}
+            variationType={variationType || ''}
+          />
+        )}
+        {isWarningModalOpen && (
+          <WarningModal
+            closeModal={() => setIsWarningModalOpen(false)}
+            replaceProduct={handleReplaceProduct}
+            selectedProduct={itemSelectedAtCheckout}
+          />
+        )}
+        <RedirectModal isOpen={isRedirectModalOpen} onClose={handleRedirectClose} />
+      </TikTokShopHeaderLayout>
+    );
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);

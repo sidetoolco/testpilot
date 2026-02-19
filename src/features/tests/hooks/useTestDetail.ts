@@ -11,7 +11,7 @@ type TestResponse = {
   status: 'draft' | 'active' | 'complete' | 'incomplete';
   search_term: string;
   objective?: string;
-  skin?: 'amazon' | 'walmart';
+  skin?: 'amazon' | 'walmart' | 'tiktokshop';
   created_at: string;
   updated_at: string;
   company?: { name: string };
