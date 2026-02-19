@@ -414,6 +414,12 @@ const TestUserPage = () => {
     }
   }, [shopperId, id]);
 
+  const addToCartTikTok = useCallback((item: any) => {
+    useSessionStore.getState().selectItemAtCheckout(item);
+    const tracker = getTracker(`shopperSessionID:${shopperId}-testID:${id}`);
+    tracker.trackWs('CartEvents')?.('Item Added', JSON.stringify({ item }), 'up');
+  }, [shopperId, id]);
+
   if (error) return <p>Error: {error}</p>;
 
   // Show full-screen loading until we have determined the skin and data
@@ -448,7 +454,7 @@ const TestUserPage = () => {
               </p>
               <TikTokShopGrid
                 products={combinedData.competitors}
-                addToCart={addToCart}
+                addToCart={addToCartTikTok}
                 variantType={id ? id[id.length - 1] : ''}
                 testId={id ? id.slice(0, -2) : ''}
                 mainProduct={combinedData.variations?.[0]?.product}
