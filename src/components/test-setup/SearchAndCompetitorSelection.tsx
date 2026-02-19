@@ -2,8 +2,10 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { AmazonProduct } from '../../features/amazon/types';
 import { WalmartProduct } from '../../features/walmart/services/walmartService';
+import { TikTokProduct } from '../../features/tiktok/types';
 import { useProductFetch } from '../../features/amazon/hooks/useProductFetch';
 import { useWalmartProducts } from '../../features/walmart/hooks/useWalmartProducts';
+import { useTikTokProducts } from '../../features/tiktok/hooks/useTikTokProducts';
 import { LoadingState } from './LoadingState';
 import { ErrorState } from './ErrorState';
 import { SearchHeader } from './SearchHeader';
@@ -15,9 +17,11 @@ import { MAX_COMPETITORS } from './constants';
 
 interface SearchAndCompetitorSelectionProps {
   searchTerm: string;
-  selectedCompetitors: (AmazonProduct | WalmartProduct)[];
+  selectedCompetitors: (AmazonProduct | WalmartProduct | TikTokProduct)[];
   onSearchTermChange: (term: string) => void;
-  onCompetitorsChange: (competitors: (AmazonProduct | WalmartProduct)[]) => void;
+  onCompetitorsChange: (
+    competitors: (AmazonProduct | WalmartProduct | TikTokProduct)[]
+  ) => void;
   skin: 'amazon' | 'walmart' | 'tiktokshop';
 }
 
@@ -34,26 +38,20 @@ export default function SearchAndCompetitorSelection({
   const [hasUserSearched, setHasUserSearched] = useState(false);
   const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
   
-  // Use appropriate hook based on skin - only call useProductFetch when we actually want to search
+  // Use appropriate hook based on skin
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
-    hasUserSearched && (skin === 'amazon' || skin === 'tiktokshop') ? currentSearchTerm : ''
+    hasUserSearched && skin === 'amazon' ? currentSearchTerm : ''
   );
   const { products: walmartProducts, loading: walmartLoading, error: walmartError, searchProducts: walmartSearchProducts } = useWalmartProducts();
-  
-  // Monitor skin prop changes
-  useEffect(() => {
-    console.log('SearchAndCompetitorSelection: Skin prop changed to:', skin);
-  }, [skin]);
+  const {
+    products: tiktokProducts,
+    loading: tiktokLoading,
+    error: tiktokError,
+    searchProducts: tiktokSearchProducts,
+  } = useTikTokProducts();
 
   // Single consolidated search effect - handles initial search only
   useEffect(() => {
-    console.log('Initial search useEffect triggered:', {
-      searchTerm: searchTerm.trim(),
-      hasUserSearched,
-      skin,
-      currentSearchTerm
-    });
-    
     // Only proceed if we have a search term and haven't searched yet
     if (searchTerm.trim() && !hasUserSearched) {
       setCurrentSearchTerm(searchTerm);
@@ -61,36 +59,26 @@ export default function SearchAndCompetitorSelection({
       setIsSearching(true);
       
       // Trigger search based on skin
-      if (skin === 'amazon' || skin === 'tiktokshop') {
-        console.log('Initial Amazon search for:', searchTerm);
+      if (skin === 'amazon') {
         // Amazon search is handled by useProductFetch hook
       } else if (skin === 'walmart') {
-        console.log('Initial Walmart search for:', searchTerm);
         walmartSearchProducts(searchTerm);
+      } else if (skin === 'tiktokshop') {
+        tiktokSearchProducts(searchTerm);
       }
       
       // Reset searching state after a short delay
       setTimeout(() => setIsSearching(false), 100);
     }
-  }, [searchTerm, hasUserSearched, skin, walmartSearchProducts]);
+  }, [searchTerm, hasUserSearched, skin, walmartSearchProducts, tiktokSearchProducts]);
 
-  // Get products and loading state based on skin (tiktokshop uses Amazon API)
-  const products = skin === 'walmart' ? walmartProducts : amazonProducts;
-  const loading = skin === 'walmart' ? walmartLoading : amazonLoading;
-  const error = skin === 'walmart' ? walmartError : amazonError;
-  
-  // Debug logging
-  console.log('SearchAndCompetitorSelection state:', {
-    skin,
-    hasUserSearched,
-    currentSearchTerm,
-    isSearching,
-    loading,
-    amazonProducts: amazonProducts.length,
-    walmartProducts: walmartProducts.length,
-    products: products.length,
-    error
-  });
+  // Get products and loading state based on skin
+  const products =
+    skin === 'walmart' ? walmartProducts : skin === 'tiktokshop' ? tiktokProducts : amazonProducts;
+  const loading =
+    skin === 'walmart' ? walmartLoading : skin === 'tiktokshop' ? tiktokLoading : amazonLoading;
+  const error =
+    skin === 'walmart' ? walmartError : skin === 'tiktokshop' ? tiktokError : amazonError;
 
   const {
     handleProductSelect,
@@ -112,18 +100,18 @@ export default function SearchAndCompetitorSelection({
     setIsSearching(true);
     setHasUserSearched(true);
     
-    // Trigger search based on skin (tiktokshop uses Amazon API)
-    if (skin === 'amazon' || skin === 'tiktokshop') {
-      console.log('Using Amazon search for:', next);
+    // Trigger search based on skin
+    if (skin === 'amazon') {
       amazonRefetch();
     } else if (skin === 'walmart') {
-      console.log('Using Walmart search for:', next);
       walmartSearchProducts(next);
+    } else if (skin === 'tiktokshop') {
+      tiktokSearchProducts(next);
     }
     
     // Reset searching state after a short delay
     setTimeout(() => setIsSearching(false), 100);
-  }, [skin, walmartSearchProducts, amazonRefetch]);
+  }, [skin, walmartSearchProducts, tiktokSearchProducts, amazonRefetch]);
 
   const handleSearchInputChange = useCallback((value: string) => {
     setSearchInputValue(value);
@@ -145,13 +133,19 @@ export default function SearchAndCompetitorSelection({
   // Memoize expensive computations to prevent re-renders during scrolling
   const memoizedProducts = useMemo(() => {
     return products.map((product, index) => {
-      // Handle both Amazon and Walmart products
-      const productId = 'asin' in product ? product.asin : (product as any).walmart_id;
+      const productId =
+        'asin' in product
+          ? product.asin
+          : 'walmart_id' in product
+            ? (product as any).walmart_id
+            : (product as any).tiktok_id;
       const isSelected = selectedCompetitors.find(p => {
         if ('asin' in p && 'asin' in product) {
           return p.asin === product.asin;
         } else if ('walmart_id' in p && 'walmart_id' in product) {
           return p.walmart_id === product.walmart_id;
+        } else if ('tiktok_id' in p && 'tiktok_id' in product) {
+          return p.tiktok_id === product.tiktok_id;
         }
         return false;
       });
@@ -171,10 +165,12 @@ export default function SearchAndCompetitorSelection({
     return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
   }
   if (error) return <ErrorState error={error} onRetry={() => {
-    if (skin === 'amazon' || skin === 'tiktokshop') {
+    if (skin === 'amazon') {
       amazonRefetch();
     } else if (skin === 'walmart') {
       walmartSearchProducts(currentSearchTerm);
+    } else if (skin === 'tiktokshop') {
+      tiktokSearchProducts(currentSearchTerm);
     }
   }} />;
 

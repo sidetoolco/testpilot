@@ -14,7 +14,6 @@ interface TikTokShopProductCardProps {
   showFreeShipping?: boolean;
   showFlashSale?: boolean;
   showImmediateShip?: boolean;
-  originalPrice?: number;
   onProductClick?: (product: TikTokProduct) => void;
   onAddToCart?: (product: TikTokProduct) => void;
 }
@@ -23,29 +22,17 @@ function formatPrice(value: number) {
   return value.toFixed(2);
 }
 
-function formatSold(count: number) {
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-  return String(count);
-}
-
 export default function TikTokShopProductCard({
   product,
   showFreeShipping = false,
   showFlashSale = false,
   showImmediateShip = false,
-  originalPrice,
   onProductClick,
   onAddToCart,
 }: TikTokShopProductCardProps) {
   const rating = typeof product.rating === 'number' && Number.isFinite(product.rating)
     ? Math.min(5, Math.max(0, product.rating))
     : 4;
-  const reviewsCount = typeof product.reviews_count === 'number' ? product.reviews_count : 0;
-  const hasDiscount = originalPrice != null && originalPrice > product.price && originalPrice > 0;
-  const discountPct = hasDiscount
-    ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
-    : 0;
-
   const canClick = Boolean(onProductClick);
 
   return (
@@ -91,22 +78,10 @@ export default function TikTokShopProductCard({
               />
             ))}
           </div>
-          <span>{formatSold(reviewsCount)} sold</span>
         </div>
 
         <div className="mt-auto">
-          {hasDiscount && (
-            <div className="flex items-baseline gap-1 flex-wrap">
-              <span className="text-gray-400 text-[11px] line-through">
-                ${formatPrice(originalPrice!)}
-              </span>
-              <span className="text-red-600 font-bold text-sm">${formatPrice(product.price)}</span>
-              <span className="text-red-600 text-[10px] font-medium">-{discountPct}%</span>
-            </div>
-          )}
-          {!hasDiscount && (
-            <p className="text-gray-900 font-bold text-sm">${formatPrice(product.price)}</p>
-          )}
+          <p className="text-gray-900 font-bold text-sm">${formatPrice(product.price)}</p>
           {showFlashSale && (
             <p className="text-orange-600 text-[10px] font-medium mt-0.5">Flash sale 19:44:36</p>
           )}

@@ -80,11 +80,6 @@ export default function TikTokShopCarousel({
                   showFreeShipping={index % 3 === 0}
                   showFlashSale={index === 1}
                   showImmediateShip={index === products.length - 1 && products.length > 2}
-                  originalPrice={
-                    index % 2 === 0 && product.price > 5
-                      ? Math.round(product.price * (1.2 + Math.random() * 0.4) * 100) / 100
-                      : undefined
-                  }
                   onProductClick={onProductClick}
                   onAddToCart={onAddToCart}
                 />

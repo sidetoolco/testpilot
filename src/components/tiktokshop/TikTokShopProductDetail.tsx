@@ -15,29 +15,13 @@ interface TikTokShopProductDetailProps {
     reviews_count?: number;
     image_url: string;
     brand?: string;
+    description?: string;
+    bullet_points?: string[];
   };
   productDetails: ProductDetails | null;
   onBack: () => void;
   onAddToCart?: () => void;
 }
-
-const MOCK_COLORS = [
-  { id: '1', label: 'preto', image: null },
-  { id: '2', label: 'rosa', image: null },
-  { id: '3', label: 'cinza', image: null },
-  { id: '4', label: 'azul mari...', image: null },
-  { id: '5', label: 'pelicula 3D*1', image: null },
-];
-
-const MOCK_MODELS = [
-  'iPhone 11',
-  'iPhone 12...',
-  'iPhone 13',
-  'iPhone 13...',
-  'iPhone 14',
-  'iPhone 16',
-  'iPhone 15',
-];
 
 function formatSold(count: number) {
   if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -51,8 +35,6 @@ export default function TikTokShopProductDetail({
   onAddToCart,
 }: TikTokShopProductDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedColor, setSelectedColor] = useState('5');
-  const [selectedModel, setSelectedModel] = useState('iPhone 11');
 
   const images = productDetails?.images?.length
     ? productDetails.images
@@ -142,52 +124,24 @@ export default function TikTokShopProductDetail({
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <span className="font-medium">{rating.toFixed(1)} ★</span>
             <span>({reviewsCount})</span>
-            <span>{formatSold(soldCount)} vendido</span>
+            <span>{formatSold(soldCount)} sold</span>
             <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
           </div>
 
-          {/* Color/type variant */}
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              Color: {MOCK_COLORS.find(c => c.id === selectedColor)?.label ?? '3D film *1'}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {MOCK_COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`px-3 py-2 rounded-lg border text-sm ${
-                    selectedColor === c.id
-                      ? 'border-black bg-gray-50 font-medium'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setSelectedColor(c.id)}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Model variant */}
-          <div>
-            <p className="text-sm text-gray-600 mb-2">Model: {selectedModel}</p>
-            <div className="flex flex-wrap gap-2">
-              {MOCK_MODELS.map((model) => (
-                <button
-                  key={model}
-                  type="button"
-                  className={`px-3 py-2 rounded-lg border text-sm ${
-                    selectedModel === model
-                      ? 'border-black bg-gray-50 font-medium'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setSelectedModel(model)}
-                >
-                  {model}
-                </button>
-              ))}
-            </div>
+          {/* Description */}
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-sm font-medium text-gray-800 mb-2">Description</p>
+            {product.description ? (
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.description}</p>
+            ) : (productDetails?.feature_bullets?.length || product.bullet_points?.length) ? (
+              <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                {(productDetails?.feature_bullets ?? product.bullet_points ?? []).map((bullet, i) => (
+                  <li key={i}>{bullet}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">No description available.</p>
+            )}
           </div>
 
           {product.price != null && (

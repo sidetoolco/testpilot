@@ -207,7 +207,13 @@ const CommentSection: React.FC<{
           <div className="grid grid-cols-2 gap-4">
             
             {sortedComments.map((comment, index) => {
-              const productId = comment.products?.id || comment.amazon_products?.id || comment.walmart_products?.id || comment.competitor_id || '';
+              const productId =
+                comment.products?.id ||
+                comment.amazon_products?.id ||
+                comment.walmart_products?.id ||
+                comment.tiktok_products?.id ||
+                comment.competitor_id ||
+                '';
               const testerId = comment.tester_id ? JSON.stringify(comment.tester_id) : '';
               return (
                 <CommentItem

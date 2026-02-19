@@ -7,6 +7,7 @@ import { TestCreationError } from '../utils/errors';
 import apiClient from '../../../lib/api';
 import { Profile } from '../../../lib/db';
 import { walmartService } from '../../walmart/services/walmartService';
+import { tiktokService } from '../../tiktok/services/tiktokService';
 
 interface TestResponse {
   id: string;
@@ -227,12 +228,23 @@ export const testService = {
     }
   },
 
+  async saveTikTokProducts(testId: string, products: any[]) {
+    try {
+      await tiktokService.saveProductsWithTest(products, testId);
+    } catch (error) {
+      console.error('TikTok products save error:', error);
+      throw new TestCreationError('Failed to save TikTok competitors', { error });
+    }
+  },
+
   async saveCompetitors(testId: string, products: any[], skin: 'amazon' | 'walmart' | 'tiktokshop') {
     try {
-      if (skin === 'amazon' || skin === 'tiktokshop') {
+      if (skin === 'amazon') {
         await this.saveAmazonProducts(testId, products);
       } else if (skin === 'walmart') {
         await this.saveWalmartProducts(testId, products);
+      } else if (skin === 'tiktokshop') {
+        await this.saveTikTokProducts(testId, products);
       }
     } catch (error) {
       console.error(error);
@@ -517,6 +529,19 @@ export const testService = {
         console.log('Walmart comparison responses deleted successfully');
       }
 
+      // 3.1 Delete comparison responses (TikTok)
+      console.log('Deleting TikTok comparison responses...');
+      const { error: tiktokComparisonsError } = await supabase
+        .from('responses_comparisons_tiktok')
+        .delete()
+        .eq('test_id', testId as any);
+
+      if (tiktokComparisonsError) {
+        console.error('Error deleting TikTok comparison responses:', tiktokComparisonsError);
+      } else {
+        console.log('TikTok comparison responses deleted successfully');
+      }
+
       // 4. Delete test times (check if table exists first)
       console.log('Deleting test times...');
       const { error: timesError } = await supabase
@@ -705,6 +730,7 @@ export const testService = {
         user_id: user.id,
         objective: testData.objective || null,
         settings: {},
+        skin: testData.skin || 'amazon',
         step: currentStep ? mapStepToEnum(currentStep) : 'objective', // Guardar el paso actual en la columna step
       } as any;
 
@@ -738,7 +764,7 @@ export const testService = {
 
       // Competidores - OPTIMIZADO: Inserción directa sin API externa
       if (testData.competitors && testData.competitors.length > 0) {
-        allOperations.push(this.saveCompetitorsBatch(test.id, testData.competitors));
+        allOperations.push(this.saveCompetitorsBatch(test.id, testData.competitors, testData.skin));
       }
 
       // Variaciones
@@ -776,7 +802,11 @@ export const testService = {
   },
 
   // Nueva función optimizada para guardar competidores sin API externa
-  async saveCompetitorsBatch(testId: string, competitors: any[]) {
+  async saveCompetitorsBatch(
+    testId: string,
+    competitors: any[],
+    skin: 'amazon' | 'walmart' | 'tiktokshop' = 'amazon'
+  ) {
     if (!competitors || competitors.length === 0) return;
 
     try {
@@ -816,19 +846,22 @@ export const testService = {
         throw new TestCreationError('Company profile not found');
       }
 
-      // Buscar los IDs correctos de amazon_products usando el ASIN
+      // Find product IDs in the corresponding source table
       const productIds: string[] = [];
 
-      console.log('Buscando productos en amazon_products por ASIN');
-
       for (const competitor of competitors) {
-        console.log(`Buscando producto con ASIN: ${competitor.asin}`);
+        const sourceTable = skin === 'walmart' ? 'walmart_products' : skin === 'tiktokshop' ? 'tiktok_products' : 'amazon_products';
+        const sourceKey = skin === 'walmart' ? 'walmart_id' : skin === 'tiktokshop' ? 'tiktok_id' : 'asin';
+        const lookupValue = competitor[sourceKey];
 
-        // Buscar el producto en amazon_products usando solo ASIN (sin company_id)
+        if (!lookupValue) {
+          continue;
+        }
+
         const { data: existingProduct, error: searchError } = await supabase
-          .from('amazon_products')
-          .select('id, asin, title')
-          .eq('asin', competitor.asin)
+          .from(sourceTable as any)
+          .select('id')
+          .eq(sourceKey, lookupValue)
           .limit(1)
           .maybeSingle();
 
@@ -838,16 +871,11 @@ export const testService = {
         }
 
         if (!existingProduct) {
-          console.warn(`Producto no encontrado en amazon_products para ASIN: ${competitor.asin}`);
           continue; // Saltar este producto si no existe
         }
 
         const productId = (existingProduct as any).id;
         productIds.push(productId);
-        console.log(`Producto encontrado para ASIN ${competitor.asin}:`, {
-          id: productId,
-          title: existingProduct.title,
-        });
       }
 
       console.log(`Total de productos encontrados: ${productIds.length} de ${competitors.length}`);
@@ -1184,6 +1212,7 @@ export const testService = {
           search_term: testData.searchTerm.trim(),
           status: 'draft',
           objective: testData.objective,
+          skin: testData.skin || 'amazon',
         })
         .eq('id', testId as any);
 
@@ -1221,7 +1250,7 @@ export const testService = {
 
       // Competidores
       if (testData.competitors && testData.competitors.length > 0) {
-        insertOperations.push(this.saveCompetitorsBatch(testId, testData.competitors));
+        insertOperations.push(this.saveCompetitorsBatch(testId, testData.competitors, testData.skin));
       }
 
       // Variaciones

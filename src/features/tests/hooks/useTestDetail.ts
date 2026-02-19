@@ -159,6 +159,16 @@ export function useTestDetail(id: string) {
               if (walmartProduct) {
                 product = walmartProduct;
               }
+            } else if (typedTestData.skin === 'tiktokshop') {
+              const { data: tiktokProduct } = await supabase
+                .from('tiktok_products')
+                .select('id, title, image_url, price, tiktok_id, rating, reviews_count, product_url, search_term, brand')
+                .eq('id', comp.product_id)
+                .single();
+
+              if (tiktokProduct) {
+                product = tiktokProduct;
+              }
             } else {
               // For Amazon tests (default), only fetch from amazon_products
               const { data: amazonProduct } = await supabase
@@ -228,7 +238,12 @@ export function useTestDetail(id: string) {
 
         // Fetch comparison responses for the test
         // Use the appropriate table based on test skin
-        const comparisonTable = typedTestData.skin === 'walmart' ? 'responses_comparisons_walmart' : 'responses_comparisons';
+        const comparisonTable =
+          typedTestData.skin === 'walmart'
+            ? 'responses_comparisons_walmart'
+            : typedTestData.skin === 'tiktokshop'
+              ? 'responses_comparisons_tiktok'
+              : 'responses_comparisons';
         
         const { data: comparisonsData, error: comparisonsError } = await supabase
           .from(comparisonTable)
@@ -270,7 +285,8 @@ export function useTestDetail(id: string) {
           .eq('test_id', id as any)
           .not('product_id', 'is', null)
           .is('competitor_id', null)
-          .is('walmart_product_id', null);
+          .is('walmart_product_id', null)
+          .is('tiktok_product_id', null);
 
         if (testProductSessionsError) throw testProductSessionsError;
 
@@ -303,7 +319,13 @@ export function useTestDetail(id: string) {
                 ...item,
                 ...(competitorData && { 
                   // Use the appropriate product key based on test skin
-                  [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: competitorData
+                  [
+                    typedTestData.skin === 'walmart'
+                      ? 'walmart_products'
+                      : typedTestData.skin === 'tiktokshop'
+                        ? 'tiktok_products'
+                        : 'amazon_products'
+                  ]: competitorData
                 }),
               });
             }
@@ -337,7 +359,13 @@ export function useTestDetail(id: string) {
               },
               ...(testProductData && { 
                 // Use the appropriate product key based on test skin
-                [typedTestData.skin === 'walmart' ? 'walmart_products' : 'amazon_products']: testProductData,
+                [
+                  typedTestData.skin === 'walmart'
+                    ? 'walmart_products'
+                    : typedTestData.skin === 'tiktokshop'
+                      ? 'tiktok_products'
+                      : 'amazon_products'
+                ]: testProductData,
                 products: testProductData // Also set products for compatibility
               }),
             });

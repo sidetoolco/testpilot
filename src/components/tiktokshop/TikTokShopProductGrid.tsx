@@ -33,7 +33,7 @@ export default function TikTokShopProductGrid({
   if (!products.length) return null;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
       {products.map((product, index) => (
         <div key={product.id} className="min-w-0">
           {tester && onAddToCart ? (
@@ -57,11 +57,6 @@ export default function TikTokShopProductGrid({
               showFreeShipping={index % 3 === 0}
               showFlashSale={index === 1}
               showImmediateShip={index === products.length - 1 && products.length > 2}
-              originalPrice={
-                index % 2 === 0 && product.price > 5
-                  ? Math.round(product.price * (1.2 + Math.random() * 0.4) * 100) / 100
-                  : undefined
-              }
               onProductClick={onProductClick}
               onAddToCart={onAddToCart}
             />

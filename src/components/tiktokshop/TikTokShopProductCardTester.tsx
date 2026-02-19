@@ -27,11 +27,6 @@ function formatPrice(value: number) {
   return value.toFixed(2);
 }
 
-function formatSold(count: number) {
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-  return String(count);
-}
-
 export default function TikTokShopProductCardTester({
   product,
   onAddToCart: handleAddToCart,
@@ -46,12 +41,6 @@ export default function TikTokShopProductCardTester({
   const rating = typeof product.rating === 'number' && Number.isFinite(product.rating)
     ? Math.min(5, Math.max(0, product.rating))
     : 4;
-  const reviewsCount = typeof product.reviews_count === 'number' ? product.reviews_count : 0;
-  const originalPrice = product.price > 5 ? Math.round(product.price * 1.4 * 100) / 100 : undefined;
-  const hasDiscount = originalPrice != null && originalPrice > product.price;
-  const discountPct = hasDiscount
-    ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
-    : 0;
 
   useEffect(() => {
     const startTime = Date.now();
@@ -115,20 +104,10 @@ export default function TikTokShopProductCardTester({
                 />
               ))}
             </div>
-            <span>{formatSold(reviewsCount)} sold</span>
           </div>
 
           <div className="mt-auto">
-            {hasDiscount && (
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-gray-400 text-[11px] line-through">${formatPrice(originalPrice!)}</span>
-                <span className="text-red-600 font-bold text-sm">${formatPrice(product.price)}</span>
-                <span className="text-red-600 text-[10px] font-medium">-{discountPct}%</span>
-              </div>
-            )}
-            {!hasDiscount && (
-              <p className="text-gray-900 font-bold text-sm">${formatPrice(product.price)}</p>
-            )}
+            <p className="text-gray-900 font-bold text-sm">${formatPrice(product.price)}</p>
           </div>
 
           <button

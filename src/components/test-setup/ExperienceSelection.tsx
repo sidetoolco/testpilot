@@ -131,7 +131,7 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
 
             <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop</h3>
             <p className="text-gray-600 mb-4">
-              Testers will see a TikTok Shop-style interface with carousels (products from Amazon API)
+              Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
             </p>
 
             <div className="space-y-2 text-sm text-gray-500">
@@ -141,7 +141,7 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
               </div>
               <div className="flex items-start gap-2">
                 <div className="w-3 h-3 bg-black rounded-full flex-shrink-0 mt-1" />
-                <span className="leading-tight">Amazon product data</span>
+                <span className="leading-tight">Real TikTok Shop products</span>
               </div>
             </div>
           </div>

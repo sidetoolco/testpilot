@@ -140,7 +140,7 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
 
             <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop Skin</h3>
             <p className="text-gray-600 mb-4">
-              Testers will see a TikTok Shop-like interface with sidebar and product carousels (uses Amazon product data)
+              Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
             </p>
 
             <div className="space-y-2 text-sm text-gray-500">
@@ -150,7 +150,7 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
               </div>
               <div className="flex items-center justify-center gap-2">
                 <div className="w-3 h-3 bg-black rounded-full" />
-                <span>Amazon API products</span>
+                <span>TikTok Shop products</span>
               </div>
             </div>
           </div>

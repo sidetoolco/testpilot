@@ -1,12 +1,13 @@
 import { TestObjective } from '../../../lib/enum';
 import { AmazonProduct } from '../../amazon/types';
 import { WalmartProduct } from '../../walmart/services/walmartService';
+import { TikTokProduct } from '../../tiktok/types';
 
 export interface TestData {
   name: string;
   searchTerm: string;
   objective: TestObjective | null;
-  competitors: (AmazonProduct | WalmartProduct)[];
+  competitors: (AmazonProduct | WalmartProduct | TikTokProduct)[];
   variations: {
     a: { id: string; name?: string } | null;
     b: { id: string; name?: string } | null;

@@ -2,12 +2,13 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { WalmartProduct } from '../../../features/walmart/services/walmartService';
+import { TikTokProduct } from '../../../features/tiktok/types';
 
 interface ProductCardProps {
-  product: AmazonProduct | WalmartProduct;
+  product: AmazonProduct | WalmartProduct | TikTokProduct;
   isSelected: boolean;
   canSelect: boolean;
-  onSelect: (product: AmazonProduct | WalmartProduct) => void;
+  onSelect: (product: AmazonProduct | WalmartProduct | TikTokProduct) => void;
   showTooltip?: boolean;
   variant?: 'grid' | 'horizontal';
 }
@@ -75,7 +76,7 @@ export const ProductCard = React.memo(function ProductCard({
             ${product.price}
           </span>
           <span className="text-sm text-gray-500">
-            {product.rating}★ ({product.reviews_count.toLocaleString()})
+            {product.rating || 0}★ ({(product.reviews_count || 0).toLocaleString()})
           </span>
         </div>
 

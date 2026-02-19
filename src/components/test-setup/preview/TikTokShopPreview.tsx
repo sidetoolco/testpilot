@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
-import { AmazonProduct } from '../../../features/amazon/types';
+import { TikTokProduct } from '../../../features/tiktok/types';
 import TikTokShopHeader from '../../tiktokshop/TikTokShopHeader';
 import TikTokShopSidebar from '../../tiktokshop/TikTokShopSidebar';
 import TikTokShopProductGrid from '../../tiktokshop/TikTokShopProductGrid';
 import ProductDetailModal from './ProductDetailModal';
+import { tiktokService } from '../../../features/tiktok/services/tiktokService';
 
 interface ProductDetails {
   images: string[];
@@ -13,11 +13,11 @@ interface ProductDetails {
 
 interface TikTokShopPreviewProps {
   searchTerm: string;
-  products: AmazonProduct[];
+  products: TikTokProduct[];
   variations?: {
-    a: AmazonProduct | null;
-    b: AmazonProduct | null;
-    c: AmazonProduct | null;
+    a: TikTokProduct | null;
+    b: TikTokProduct | null;
+    c: TikTokProduct | null;
   };
   embedded?: boolean;
 }
@@ -27,10 +27,10 @@ export default function TikTokShopPreview({
   products,
   embedded = false,
 }: TikTokShopPreviewProps) {
-  const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<TikTokProduct | null>(null);
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [shuffledProducts, setShuffledProducts] = useState<AmazonProduct[]>(products);
+  const [shuffledProducts, setShuffledProducts] = useState<TikTokProduct[]>(products);
 
   useEffect(() => {
     if (!products.length) {
@@ -45,27 +45,21 @@ export default function TikTokShopPreview({
     setShuffledProducts(arr);
   }, [products]);
 
-  const buildProductDetails = (product: AmazonProduct) => {
-    const ext = product as AmazonProduct & { images?: string[]; bullet_points?: string[]; feature_bullets?: string[] };
+  const buildProductDetails = (product: TikTokProduct) => {
+    const ext = product as TikTokProduct & { images?: string[]; bullet_points?: string[]; feature_bullets?: string[] };
     return {
       images: ext.images?.length ? ext.images : [product.image_url],
       feature_bullets: ext.bullet_points || ext.feature_bullets || [],
     };
   };
 
-  const handleProductClick = async (product: AmazonProduct) => {
+  const handleProductClick = async (product: TikTokProduct) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('amazon_products')
-        .select('*')
-        .eq('asin', product.asin as string)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const data = await tiktokService.getProductDetails(product.tiktok_id || product.id || '');
 
-      if (!error && data) {
-        const ext = data as unknown as AmazonProduct & { images?: string[]; bullet_points?: string[]; feature_bullets?: string[] };
+      if (data) {
+        const ext = data as unknown as TikTokProduct & { images?: string[]; bullet_points?: string[]; feature_bullets?: string[] };
         setProductDetails({
           images: ext.images?.length ? ext.images : [ext.image_url || product.image_url],
           feature_bullets: ext.bullet_points || ext.feature_bullets || [],

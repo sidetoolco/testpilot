@@ -2,11 +2,12 @@ import React from 'react';
 import { X, Check } from 'lucide-react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { WalmartProduct } from '../../../features/walmart/services/walmartService';
+import { TikTokProduct } from '../../../features/tiktok/types';
 import { ProductCard } from './ProductCard';
 import { MAX_COMPETITORS } from '../constants';
 
 interface SelectedProductsDisplayProps {
-  selectedCompetitors: (AmazonProduct | WalmartProduct)[];
+  selectedCompetitors: (AmazonProduct | WalmartProduct | TikTokProduct)[];
   maxCompetitors?: number;
   onRemoveCompetitor: (productId: string) => void;
   isPopping: boolean;
@@ -35,7 +36,12 @@ export const SelectedProductsDisplay = React.memo(function SelectedProductsDispl
       <div className="flex gap-4 overflow-x-auto pb-2 pt-2">
         {selectedCompetitors.map((product, index) => {
           // Use the correct ID for each product type
-          const productId = 'asin' in product ? product.asin : (product as any).walmart_id || product.id;
+          const productId =
+            'asin' in product
+              ? product.asin
+              : 'walmart_id' in product
+                ? (product as any).walmart_id || product.id
+                : (product as any).tiktok_id || product.id;
           return (
             <div
               key={`${productId}-${index}`}
