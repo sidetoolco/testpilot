@@ -36,7 +36,8 @@ export default function SearchAndCompetitorSelection({
   const [searchInputValue, setSearchInputValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [hasUserSearched, setHasUserSearched] = useState(false);
-  const [originalSearchTerm] = useState(searchTerm); // Preserve the original search term
+  const [errorDismissed, setErrorDismissed] = useState(false);
+  const [originalSearchTerm] = useState(searchTerm);
   
   // Use appropriate hook based on skin
   const { products: amazonProducts, loading: amazonLoading, error: amazonError, refetch: amazonRefetch } = useProductFetch(
@@ -96,11 +97,11 @@ export default function SearchAndCompetitorSelection({
     const next = term.trim();
     if (!next) return;
     
+    setErrorDismissed(false);
     setCurrentSearchTerm(next);
     setIsSearching(true);
     setHasUserSearched(true);
     
-    // Trigger search based on skin
     if (skin === 'amazon') {
       amazonRefetch();
     } else if (skin === 'walmart') {
@@ -109,7 +110,6 @@ export default function SearchAndCompetitorSelection({
       tiktokSearchProducts(next);
     }
     
-    // Reset searching state after a short delay
     setTimeout(() => setIsSearching(false), 100);
   }, [skin, walmartSearchProducts, tiktokSearchProducts, amazonRefetch]);
 
@@ -164,15 +164,19 @@ export default function SearchAndCompetitorSelection({
   if (isSearchingForProducts && !hasSearchResults && selectedCompetitors.length === 0) {
     return <LoadingState showProgress message={`Searching for products matching "${searchTerm}"...`} />;
   }
-  if (error) return <ErrorState error={error} onRetry={() => {
-    if (skin === 'amazon') {
-      amazonRefetch();
-    } else if (skin === 'walmart') {
-      walmartSearchProducts(currentSearchTerm);
-    } else if (skin === 'tiktokshop') {
-      tiktokSearchProducts(currentSearchTerm);
-    }
-  }} />;
+  if (error && !errorDismissed) {
+    return (
+      <ErrorState
+        error={error}
+        onRetry={() => {
+          if (skin === 'amazon') amazonRefetch();
+          else if (skin === 'walmart') walmartSearchProducts(currentSearchTerm);
+          else if (skin === 'tiktokshop') tiktokSearchProducts(currentSearchTerm);
+        }}
+        onNewSearch={() => setErrorDismissed(true)}
+      />
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
