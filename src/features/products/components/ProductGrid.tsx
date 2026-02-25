@@ -1,8 +1,9 @@
 import { Star, MoreVertical, Edit, Trash2, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, KeyboardEvent } from 'react';
 import { Product } from '../../../types';
 import { toast } from 'sonner';
+import ModalLayout from '../../../layouts/ModalLayout';
 
 interface ProductGridProps {
   products: Product[];
@@ -117,6 +118,16 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
     setProductToDelete(null);
   }, []);
 
+  const handleProductKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>, product: Product) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onEdit(product);
+      }
+    },
+    [onEdit]
+  );
+
   // Memoize filtered products to avoid unnecessary re-renders
   const visibleProducts = useMemo(
     () => products.filter(product => !deletedProducts.has(product.id || '')),
@@ -159,8 +170,12 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
             className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
           >
             <div
-              className="h-48 mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer flex items-center justify-center"
+              className="h-48 mb-4 relative bg-gray-50 rounded-lg p-4 cursor-pointer flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               onClick={() => onEdit(product)}
+              onKeyDown={event => handleProductKeyDown(event, product)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Edit product ${product.title}`}
             >
               <img
                 src={product.image_url}
@@ -192,7 +207,8 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
                       e.stopPropagation();
                       handleDropdownToggle(product.id);
                     }}
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 min-h-[44px] min-w-[44px] rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                    aria-label={`Open actions menu for ${product.title}`}
                   >
                     <MoreVertical className="h-4 w-4 text-gray-500" />
                   </button>
@@ -241,10 +257,13 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && productToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Product</h3>
-            <p className="text-gray-600 mb-6">
+        <ModalLayout
+          isOpen={showDeleteConfirm}
+          onClose={closeDeleteModal}
+          title="Delete Product"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-600">
               Are you sure you want to delete "{productToDelete.title}"? This action cannot be
               undone.
             </p>
@@ -263,7 +282,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onDuplicate }:
               </button>
             </div>
           </div>
-        </div>
+        </ModalLayout>
       )}
     </>
   );

@@ -32,14 +32,14 @@ export function TestCreationSteps({
 
   return (
     <div className="border-b">
-      <div className="max-w-6xl mx-auto px-8 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
           {steps.map((step, index) => (
             <div key={step.key} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-2 text-sm sm:text-base ${
                     index <= currentIndex
                       ? 'bg-primary-400 text-white'
                       : 'bg-gray-100 text-gray-400'
@@ -48,7 +48,7 @@ export function TestCreationSteps({
                   {index + 1}
                 </div>
                 <span
-                  className={`text-sm ${
+                  className={`text-xs sm:text-sm ${
                     index <= currentIndex ? 'text-gray-900 font-medium' : 'text-gray-400'
                   }`}
                 >
@@ -56,7 +56,7 @@ export function TestCreationSteps({
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className="w-full mx-4 h-[2px] bg-gray-200 flex-1">
+                <div className="w-full mx-2 sm:mx-4 h-[2px] bg-gray-200 flex-1">
                   <div
                     className={`h-full transition-all ${
                       index < currentIndex ? 'bg-primary-400' : 'bg-gray-200'
@@ -69,10 +69,10 @@ export function TestCreationSteps({
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-3">
           <button
             onClick={onBack}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-colors ${
               isFirstStep ? 'opacity-0 cursor-default' : 'border border-gray-200 hover:bg-gray-50'
             }`}
             disabled={isFirstStep}
@@ -82,11 +82,11 @@ export function TestCreationSteps({
           </button>
 
           {isLastStep ? (
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap justify-end gap-3">
               <button
                 onClick={onConfirm}
                 disabled={!canProceed}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+                className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-colors ${
                   canProceed
                     ? 'bg-gray-500 text-white hover:bg-gray-600'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -113,7 +113,7 @@ export function TestCreationSteps({
             <button
               onClick={onNext}
               disabled={!canProceed}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-colors ${
+              className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-colors ${
                 canProceed
                   ? 'bg-primary-400 text-white hover:bg-primary-500'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'

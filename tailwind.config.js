@@ -20,6 +20,9 @@ export default {
           800: '#004A30',
           900: '#00331D',
         },
+        surface: '#F9FCFA',
+        accent: '#0A0A29',
+        muted: '#2E90FA',
       },
       screens: {
         'custom-hide': { max: '1099px' }, // Define un punto de quiebre personalizado

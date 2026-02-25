@@ -10,7 +10,7 @@ export default function ProductHeader({ onAddProduct, onConnectShopify }: Produc
   return (
     <div className="flex justify-between items-center mb-8">
       <div>
-        <h1 className="text-[2.5rem] text-[#1B1B1B] font-normal mb-2">My Products</h1>
+        <h1 className="text-[2.5rem] text-gray-900 font-normal mb-2">My Products</h1>
         <p className="text-gray-600">Manage and organize your product catalog</p>
       </div>
       <div className="flex items-center space-x-4">
@@ -27,7 +27,7 @@ export default function ProductHeader({ onAddProduct, onConnectShopify }: Produc
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onAddProduct}
-          className="flex items-center space-x-2 px-6 py-3 bg-[#0a0a29de] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-sm hover:shadow-md"
+          className="flex items-center space-x-2 px-6 py-3 bg-accent/90 text-white rounded-xl hover:bg-accent transition-colors shadow-sm hover:shadow-md"
         >
           <Plus className="h-5 w-5" />
           <span>Add Product</span>

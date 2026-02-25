@@ -48,18 +48,18 @@ export default function SearchTermEntry({ value, onChange, onNext, skin, onSkinC
   const canContinue = value.trim().length > 0 && !!skin;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-12">
-        <h3 className="text-3xl font-semibold text-gray-900 mb-3">
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-8 sm:mb-10">
+        <h3 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-3">
           Which search term defines your competitive set?
         </h3>
-        <p className="text-lg text-gray-500">
+        <p className="text-base sm:text-lg text-gray-500">
           Enter the search term that shoppers would use to find your product category. This helps us
           identify the right competitive set for your test.
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div className="relative">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -72,7 +72,7 @@ export default function SearchTermEntry({ value, onChange, onNext, skin, onSkinC
                   handleContinue();
                 }
               }}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
               placeholder="e.g., 'Fabric Softener'"
             />
           </div>

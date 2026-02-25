@@ -6,21 +6,35 @@ interface ExperienceSelectionProps {
 }
 
 export default function ExperienceSelection({ selectedExperience, onExperienceChange }: ExperienceSelectionProps) {
+  const handleKeySelect = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+    experience: 'amazon' | 'walmart' | 'tiktokshop'
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onExperienceChange(experience);
+    }
+  };
+
   return (
     <div className="mt-8">
-      <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+      <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 text-center">
         Choose your shopping experience
       </h4>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {/* Amazon Experience Option */}
         <div 
-          className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+          className={`relative border-2 rounded-xl p-5 sm:p-6 cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 ${
             selectedExperience === 'amazon' 
-              ? 'border-orange-500 bg-orange-50' 
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-orange-500 bg-orange-50 shadow-sm' 
+              : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
           }`}
           onClick={() => onExperienceChange('amazon')}
+          onKeyDown={event => handleKeySelect(event, 'amazon')}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selectedExperience === 'amazon'}
         >
           {selectedExperience === 'amazon' && (
             <div className="absolute top-4 right-4">
@@ -41,8 +55,8 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
               />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Amazon Store Experience</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Amazon Store Experience</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               Testers will shop from actual Amazon products in a complete Amazon-like shopping interface
             </p>
             
@@ -61,12 +75,16 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
 
         {/* Walmart Experience Option */}
         <div 
-          className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+          className={`relative border-2 rounded-xl p-5 sm:p-6 cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 ${
             selectedExperience === 'walmart' 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-blue-500 bg-blue-50 shadow-sm' 
+              : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
           }`}
           onClick={() => onExperienceChange('walmart')}
+          onKeyDown={event => handleKeySelect(event, 'walmart')}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selectedExperience === 'walmart'}
         >
           {selectedExperience === 'walmart' && (
             <div className="absolute top-4 right-4">
@@ -87,8 +105,8 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
               />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Walmart Store Experience</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Walmart Store Experience</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               Testers will shop from actual Walmart products in a complete Walmart-like shopping interface
             </p>
             
@@ -107,12 +125,16 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
 
         {/* TikTok Shop Experience Option */}
         <div
-          className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+          className={`relative border-2 rounded-xl p-5 sm:p-6 cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 ${
             selectedExperience === 'tiktokshop'
-              ? 'border-black bg-gray-50'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-black bg-gray-50 shadow-sm'
+              : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
           }`}
           onClick={() => onExperienceChange('tiktokshop')}
+          onKeyDown={event => handleKeySelect(event, 'tiktokshop')}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selectedExperience === 'tiktokshop'}
         >
           {selectedExperience === 'tiktokshop' && (
             <div className="absolute top-4 right-4">
@@ -129,8 +151,8 @@ export default function ExperienceSelection({ selectedExperience, onExperienceCh
               <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop Experience</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">TikTok Shop Experience</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
             </p>
 

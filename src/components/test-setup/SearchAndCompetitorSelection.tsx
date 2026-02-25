@@ -186,7 +186,7 @@ export default function SearchAndCompetitorSelection({
       />
 
       {/* Search Input - Always visible at top */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex gap-3  mx-auto">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -195,7 +195,7 @@ export default function SearchAndCompetitorSelection({
               value={searchInputValue}
               onChange={e => handleSearchInputChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00A67E] focus:border-[#00A67E] transition-colors"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
               placeholder="Search for additional products..."
             />
           </div>
@@ -204,7 +204,7 @@ export default function SearchAndCompetitorSelection({
             disabled={!searchInputValue.trim() || loading}
             className={`px-6 py-3 rounded-xl font-medium transition-colors ${
               searchInputValue.trim() && !loading
-                ? 'bg-[#00A67E] text-white hover:bg-[#008f6b]'
+                ? 'bg-primary-400 text-white hover:bg-primary-500'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
@@ -231,7 +231,7 @@ export default function SearchAndCompetitorSelection({
 
       {/* Search Results - Only show when there are results and not searching */}
       {hasSearchResults && !isSearchingForProducts && (
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
               Search Results ({products.length} products)

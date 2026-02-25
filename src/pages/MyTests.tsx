@@ -31,6 +31,10 @@ import { CreditIcon } from '../components/ui/CreditIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import TestFilters from '../components/ui/TestFilters';
 import { useAdmin } from '../hooks/useAdmin';
+import { PageShell } from '../components/ui/layout/PageShell';
+import { PageHeader } from '../components/ui/layout/PageHeader';
+import { SectionCard } from '../components/ui/layout/SectionCard';
+import { EmptyState } from '../components/ui/layout/EmptyState';
 
 const CREDITS_PER_TESTER = 1;
 const CREDITS_PER_TESTER_CUSTOM_SCREENING = 1.1;
@@ -441,29 +445,32 @@ export default function MyTests() {
 
   if (loading) {
     return (
-      <div className="mx-auto px-8 py-6 w-full">
-        <div className="min-h-screen bg-[#f9fcfa] flex items-center justify-center">
+      <PageShell>
+        <div className="min-h-screen bg-surface flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 py-6 w-full">
+    <PageShell>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-[2rem] sm:text-[2.5rem] text-[#1B1B1B] font-normal">My Tests</h1>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/create-test')}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#0a0a29de] text-white rounded-xl hover:bg-[#1a1a3a] transition-colors shadow-lg hover:shadow-xl"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Create New Test</span>
-        </motion.button>
-      </div>
+      <PageHeader
+        title="My Tests"
+        className="mb-8"
+        actions={
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/create-test')}
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-accent/90 text-white rounded-xl hover:bg-accent transition-colors shadow-lg hover:shadow-xl"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Create New Test</span>
+          </motion.button>
+        }
+      />
 
       {/* Statistics Cards */}
       <StatisticsCards
@@ -532,39 +539,41 @@ export default function MyTests() {
       {/* Test List */}
       <div className="space-y-4">
         {filteredTests.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+          <SectionCard>
             {searchQuery || companyFilter || blockedFilter !== 'all' || statusFilter !== 'all' || timeFilter !== 'all' ? (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No tests found</h3>
-                <p className="text-gray-500 mb-4">
-                  No tests match your current filters
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setCompanyFilter('');
-                    setBlockedFilter('all');
-                    setStatusFilter('all');
-                    setTimeFilter('all');
-                  }}
-                  className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
-                >
-                  Clear All Filters
-                </button>
-              </>
+              <EmptyState
+                title="No tests found"
+                description="No tests match your current filters."
+                action={
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setCompanyFilter('');
+                      setBlockedFilter('all');
+                      setStatusFilter('all');
+                      setTimeFilter('all');
+                    }}
+                    className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
+                  >
+                    Clear All Filters
+                  </button>
+                }
+              />
             ) : (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No tests yet</h3>
-                <p className="text-gray-500 mb-4">Create your first test to get started</p>
-                <button
-                  onClick={() => navigate('/create-test')}
-                  className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
-                >
-                  Create New Test
-                </button>
-              </>
+              <EmptyState
+                title="No tests yet"
+                description="Create your first test to get started."
+                action={
+                  <button
+                    onClick={() => navigate('/create-test')}
+                    className="px-6 py-3 bg-primary-400 text-white rounded-xl hover:bg-primary-500"
+                  >
+                    Create New Test
+                  </button>
+                }
+              />
             )}
-          </div>
+          </SectionCard>
         ) : (
           filteredTests.map(test => {
             const config =
@@ -579,14 +588,22 @@ export default function MyTests() {
             return (
               <motion.div
                 key={test.id}
-                className={`bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all relative ${
+                role="button"
+                tabIndex={isCompleteBlockedForNonAdmin ? -1 : 0}
+                aria-label={isCompleteBlockedForNonAdmin ? undefined : `View test ${test.name}`}
+                className={`bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
                   isCompleteBlockedForNonAdmin ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
                 onClick={() => {
-                  if (isCompleteBlockedForNonAdmin) {
-                    return; // Prevent navigation for blocked tests (only for non-admins)
-                  }
+                  if (isCompleteBlockedForNonAdmin) return;
                   navigate(`/tests/${test.id}`);
+                }}
+                onKeyDown={e => {
+                  if (isCompleteBlockedForNonAdmin) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/tests/${test.id}`);
+                  }
                 }}
                 whileHover={{ y: -2 }}
               >
@@ -600,8 +617,9 @@ export default function MyTests() {
                       setDeleteModal({ isOpen: true, testId: test.id, testName: test.name });
                     }}
                     disabled={deletingTests.includes(test.id)}
-                    className="absolute top-1 left-2 z-20 text-gray-200"
+                    className="absolute top-1 left-2 z-20 text-gray-200 min-h-[44px] min-w-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded-full"
                     title="Delete test"
+                    aria-label={`Delete test ${test.name}`}
                   >
                     {deletingTests.includes(test.id) ? (
                       <div className="w-4 h-4 text-gray-400 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -626,7 +644,7 @@ export default function MyTests() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-medium text-[#1B1B1B] truncate">{test.name}</h3>
+                        <h3 className="text-lg font-medium text-gray-900 truncate">{test.name}</h3>
                         {/* Company name for admin users */}
                         {isAdmin && test.companyName && (
                           <>
@@ -943,6 +961,6 @@ export default function MyTests() {
           }
         />
       </Elements>
-    </div>
+    </PageShell>
   );
 }

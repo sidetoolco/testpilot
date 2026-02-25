@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import { useProductStore } from '../store/useProductStore';
 import { Product } from '../types';
-import ProductHeader from '../features/products/components/ProductHeader';
 import ProductSearch from '../features/products/components/ProductSearch';
 import ProductGrid from '../features/products/components/ProductGrid';
 import ProductModal from '../features/products/components/ProductModal';
-import ComingSoonModal from '../components/ComingSoonModal';
 import ModalLayout from '../layouts/ModalLayout';
 import { toast } from 'sonner';
+import { PageShell } from '../components/ui/layout/PageShell';
+import { PageHeader } from '../components/ui/layout/PageHeader';
 
 export default function AllProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -83,16 +83,26 @@ export default function AllProducts() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f9fcfa] p-8 w-full">
-      <ProductHeader
-        onAddProduct={() => setShowAddProduct(true)}
-        onConnectShopify={() => setShowComingSoon(true)}
+    <PageShell className="min-h-screen bg-surface">
+      <PageHeader
+        title="My Products"
+        subtitle="Manage and organize your product catalog"
+        className="mb-8"
+        actions={
+          <button
+            onClick={() => setShowAddProduct(true)}
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-accent/90 text-white rounded-xl hover:bg-accent transition-colors shadow-sm hover:shadow-md"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Product</span>
+          </button>
+        }
       />
 
       <ProductSearch value={searchTerm} onChange={setSearchTerm} />
 
       {loading ? (
-        <div className="-mx-8 text-center py-12">
+        <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading products...</p>
         </div>
@@ -155,12 +165,6 @@ export default function AllProducts() {
         </div>
       </ModalLayout>
 
-      <ComingSoonModal
-        isOpen={showComingSoon}
-        onClose={() => setShowComingSoon(false)}
-        title="Shopify Integration Coming Soon"
-        description="We're currently working on integrating with Shopify to make it easier for you to import and manage your products."
-      />
-    </div>
+    </PageShell>
   );
 }

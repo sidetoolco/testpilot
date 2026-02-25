@@ -11,12 +11,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { isWaitingList, loading } = useWaitingListStatus();
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f9fcfa] flex-col lg:flex-row overflow-hidden">
+    <div className="flex min-h-screen w-full bg-surface flex-col lg:flex-row overflow-x-hidden">
       {!loading && isWaitingList && <WaitingListModal />}
       <div className="lg:min-h-screen">
         <SideNav />
       </div>
-      <div className="flex-1 h-screen overflow-auto">{children}</div>
+      <main className="flex-1 min-h-screen overflow-y-auto">{children}</main>
     </div>
   );
 }

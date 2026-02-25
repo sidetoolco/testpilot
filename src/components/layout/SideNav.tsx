@@ -66,6 +66,25 @@ export default function SideNav() {
   }
 
   const isActive = (path: string) => location.pathname === path;
+  const isSettingsRoute = location.pathname.startsWith('/settings');
+  const navItemClass = (active: boolean) =>
+    `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+      active
+        ? 'bg-[#008F6B] text-white'
+        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+    }`;
+  const subNavItemClass = (active: boolean) =>
+    `flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
+      active
+        ? 'bg-[#008F6B] text-white'
+        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
+    }`;
+
+  useEffect(() => {
+    if (isSettingsRoute) {
+      setIsSettingsOpen(true);
+    }
+  }, [isSettingsRoute]);
 
   const handleLogout = async () => {
     try {
@@ -165,12 +184,13 @@ export default function SideNav() {
   return (
     <>
       {/* Mobile Menu Button */}
-      <div className="lg:hidden bg-[#00A67E] px-4">
+      <div className="lg:hidden sticky top-0 z-30 bg-[#00A67E] px-4 shadow-sm">
         {/* Container for your content with vertical padding */}
         <div className="flex justify-between items-center py-4">
           <button
             onClick={toggleMenu}
-            className="z-50  rounded-lg bg-[#00A67E] text-white hover:bg-[#008F6B]"
+            className="z-50 rounded-lg bg-[#00A67E] text-white hover:bg-[#008F6B] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -192,7 +212,7 @@ export default function SideNav() {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -202,11 +222,10 @@ export default function SideNav() {
         className={`
         fixed lg:static
         inset-y-0 left-0
-        w-56 h-full
+        w-60 h-full
         bg-[#00A67E]
         flex flex-col
         transition-transform duration-300 ease-in-out
-        
         z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
@@ -228,11 +247,7 @@ export default function SideNav() {
                 <a
                   href={item.path}
                   onClick={e => handleNavigation(item.path, e)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-[#008F6B] text-white'
-                      : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                  }`}
+                  className={navItemClass(isActive(item.path))}
                 >
                   <item.icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
@@ -247,11 +262,7 @@ export default function SideNav() {
                   <a
                     href="/users"
                     onClick={e => handleNavigation('/users', e)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/users')
-                        ? 'bg-[#008F6B] text-white'
-                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                    }`}
+                    className={navItemClass(isActive('/users'))}
                   >
                     <Shield className="h-5 w-5" />
                     <span className="font-medium">Users</span>
@@ -261,11 +272,7 @@ export default function SideNav() {
                   <a
                     href="/admin/companies"
                     onClick={e => handleNavigation('/admin/companies', e)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/admin/companies')
-                        ? 'bg-[#008F6B] text-white'
-                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                    }`}
+                    className={navItemClass(isActive('/admin/companies'))}
                   >
                     <Building2 className="h-5 w-5" />
                     <span className="font-medium">Companies</span>
@@ -278,14 +285,9 @@ export default function SideNav() {
             <li>
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
-                  isActive('/settings') ||
-                  isActive('/settings/team') ||
-                  isActive('/settings/billing') ||
-                  isActive('/settings/coupons')
-                    ? 'bg-[#008F6B] text-white'
-                    : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                }`}
+                className={`${navItemClass(isSettingsRoute)} justify-between w-full`}
+                aria-expanded={isSettingsOpen}
+                aria-label="Toggle settings menu"
               >
                 <div className="flex items-center space-x-3">
                   <Settings className="h-5 w-5" />
@@ -299,11 +301,7 @@ export default function SideNav() {
                     <a
                       href="/settings/team"
                       onClick={e => handleNavigation('/settings/team', e)}
-                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/settings/team')
-                          ? 'bg-[#008F6B] text-white'
-                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                      }`}
+                      className={subNavItemClass(isActive('/settings/team'))}
                     >
                       <Users className="h-4 w-4" />
                       <span className="font-medium">Team</span>
@@ -313,11 +311,7 @@ export default function SideNav() {
                     <a
                       href="/settings/billing"
                       onClick={e => handleNavigation('/settings/billing', e)}
-                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/settings/billing')
-                          ? 'bg-[#008F6B] text-white'
-                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                      }`}
+                      className={subNavItemClass(isActive('/settings/billing'))}
                     >
                       <DollarSign className="h-4 w-4" />
                       <span className="font-medium">Billing</span>
@@ -328,11 +322,7 @@ export default function SideNav() {
                     <a
                       href="/settings/coupons"
                       onClick={e => handleNavigation('/settings/coupons', e)}
-                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/settings/coupons')
-                          ? 'bg-[#008F6B] text-white'
-                          : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                      }`}
+                      className={subNavItemClass(isActive('/settings/coupons'))}
                     >
                       <Percent className="h-4 w-4" />
                       <span className="font-medium">Coupons</span>
@@ -343,11 +333,7 @@ export default function SideNav() {
                   <a
                     href="/settings/expert-mode"
                     onClick={e => handleNavigation('/settings/expert-mode', e)}
-                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
-                      isActive('/settings/expert-mode')
-                        ? 'bg-[#008F6B] text-white'
-                        : 'text-white/90 hover:bg-[#008F6B] hover:text-white'
-                    }`}
+                    className={subNavItemClass(isActive('/settings/expert-mode'))}
                   >
                     <Brain className="h-4 w-4" />
                     <span className="font-medium">Expert Mode</span>

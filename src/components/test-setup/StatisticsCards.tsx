@@ -51,12 +51,12 @@ export function StatisticsCards({
           className="bg-gradient-to-br from-[#F0F7FF] to-[#F8FAFF] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm hover:shadow-md "
         >
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-[#2E90FA] bg-opacity-10 rounded-full flex items-center justify-center">
-              <Users2 className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-[#2E90FA]" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-muted/10 rounded-full flex items-center justify-center">
+              <Users2 className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-muted" />
             </div>
             <div>
               <h3 className="text-sm sm:text-lg lg:text-xl font-medium text-gray-900">Completed Tests</h3>
-              <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#2E90FA] mt-1">{completedTests}</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-muted mt-1">{completedTests}</p>
             </div>
           </div>
         </motion.div>
