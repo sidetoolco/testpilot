@@ -130,6 +130,7 @@ export const updateSession = async (
   
   // Check if this is a Walmart product by looking for walmart_id
   const isWalmartProduct = product.walmart_id;
+  const isTikTokProduct = product.tiktok_id;
   // For Amazon products, check if it has asin (which indicates it's from amazon_products table)
   const isAmazonProduct = product.asin;
   // Determine if it's a competitor based on the product type
@@ -160,6 +161,34 @@ export const updateSession = async (
       return sessionId;
     } catch (error) {
       console.error('Unexpected error while updating session for Walmart product:', error);
+      return null;
+    }
+  }
+
+  if (isTikTokProduct) {
+    try {
+      const updateObject: any = {
+        status: 'questions',
+        tiktok_product_id: product.id,
+        competitor_id: null,
+        product_id: null,
+        walmart_product_id: null,
+      };
+
+      const { error } = await supabase
+        .from('testers_session')
+        .update(updateObject)
+        .eq('id', sessionId)
+        .select('id');
+
+      if (error) {
+        console.error('Error updating session for TikTok product:', error);
+        return null;
+      }
+
+      return sessionId;
+    } catch (error) {
+      console.error('Unexpected error while updating session for TikTok product:', error);
       return null;
     }
   }
@@ -240,7 +269,7 @@ export async function recordTimeSpent(
   const timeSpent = Math.floor(endTime - startTime);
   
   try {
-    let column: 'competitor_id' | 'product_id' | 'walmart_product_id';
+    let column: 'competitor_id' | 'product_id' | 'walmart_product_id' | 'tiktok_product_id';
     
     if (isWalmartExperience) {
       // In Walmart experience, verify the product exists before tracking
@@ -287,7 +316,17 @@ export async function recordTimeSpent(
             if (walmartProduct && !walmartError) {
               column = 'walmart_product_id';
             } else {
-              return;
+              const { data: tiktokProduct, error: tiktokError } = await supabase
+                .from('tiktok_products')
+                .select('id, tiktok_id')
+                .eq('id', itemId)
+                .single();
+
+              if (tiktokProduct && !tiktokError) {
+                column = 'tiktok_product_id';
+              } else {
+                return;
+              }
             }
           }
         } catch (error) {
@@ -341,6 +380,11 @@ export async function recordTimeSpent(
           insertData.product_id = actualMainProductId;
         }
         // Don't set competitor_id for Walmart tests - it only accepts Amazon product IDs
+      } else if (column === 'tiktok_product_id') {
+        insertData.tiktok_product_id = itemId;
+        if (actualMainProductId) {
+          insertData.product_id = actualMainProductId;
+        }
       } else {
         // For Amazon tests, include proper competitor linking
         if (isCompetitor && competitorId) {
@@ -454,6 +498,18 @@ export const fetchProductAndCompetitorData = async (id: string): Promise<TestDat
               return product.data;
             } else {
               console.warn(`Amazon product not found for ID: ${comp.product_id}`);
+            }
+          } else if (productType === 'tiktok_product') {
+            const product = await supabase
+              .from('tiktok_products')
+              .select('*')
+              .eq('id', comp.product_id)
+              .maybeSingle();
+
+            if (product.data) {
+              return product.data;
+            } else {
+              console.warn(`TikTok product not found for ID: ${comp.product_id}`);
             }
           } else {
             console.warn(`Unknown product type: ${productType} for product ID: ${comp.product_id}`);

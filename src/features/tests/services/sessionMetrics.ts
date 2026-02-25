@@ -26,7 +26,12 @@ export async function getCompletedSessionsCount(testId: string): Promise<number>
         .limit(1);
 
       const isWalmartTest = testCompetitors?.some((c: any) => c.product_type === 'walmart_product');
-      const comparisonTable = isWalmartTest ? 'responses_comparisons_walmart' : 'responses_comparisons';
+      const isTikTokTest = testCompetitors?.some((c: any) => c.product_type === 'tiktok_product');
+      const comparisonTable = isWalmartTest
+        ? 'responses_comparisons_walmart'
+        : isTikTokTest
+          ? 'responses_comparisons_tiktok'
+          : 'responses_comparisons';
 
       const { count: comparisonTestersCount, error: comparisonError } = await supabase
         .from(comparisonTable)

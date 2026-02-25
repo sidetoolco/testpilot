@@ -645,8 +645,11 @@ export default function MyTests() {
                         {test.skin && (
                           <>
                             <span className="hidden sm:inline">•</span>
-                            <span className={`font-medium ${test.skin === 'walmart' ? 'text-blue-600' : 'text-orange-600'}`}>
-                              {test.skin.charAt(0).toUpperCase() + test.skin.slice(1)}
+                            <span className={`font-medium ${
+                              test.skin === 'walmart' ? 'text-blue-600' :
+                              test.skin === 'tiktokshop' ? 'text-gray-800' : 'text-orange-600'
+                            }`}>
+                              {test.skin === 'tiktokshop' ? 'TikTok Shop' : test.skin.charAt(0).toUpperCase() + test.skin.slice(1)}
                             </span>
                           </>
                         )}

@@ -84,7 +84,7 @@ export const getSummaryData = async (
     // Use testers_session as source of truth for selections (exclude unknown rows)
     const { data: sessions, error: sessionsError } = await supabase
       .from('testers_session')
-      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .select('variation_type, product_id, competitor_id, walmart_product_id, tiktok_product_id')
       .eq('test_id', id as any);
 
     if (sessionsError) throw sessionsError;
@@ -98,7 +98,7 @@ export const getSummaryData = async (
           if (!selectionsByVariant[variant]) {
             selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
           }
-          const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+          const isCompetitor = !!(row.competitor_id || row.walmart_product_id || row.tiktok_product_id);
           const isTestProduct = !!row.product_id && !isCompetitor;
 
           if (isCompetitor) selectionsByVariant[variant].competitors++;
@@ -233,15 +233,20 @@ export const getCompetitiveInsights = async (
 
   try {
     // Robust Walmart detection with parallel queries
-    const [walmartInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
+    const [walmartInsightsResult, tiktokInsightsResult, sessionProbeResult, compProbeResult] = await Promise.all([
       supabase
         .from('competitive_insights_walmart')
         .select('id')
         .eq('test_id', id as any)
         .limit(1),
       supabase
+        .from('competitive_insights_tiktok')
+        .select('id')
+        .eq('test_id', id as any)
+        .limit(1),
+      supabase
         .from('testers_session')
-        .select('walmart_product_id')
+        .select('walmart_product_id, tiktok_product_id')
         .eq('test_id', id as any)
         .limit(1),
       supabase
@@ -256,9 +261,18 @@ export const getCompetitiveInsights = async (
       (sessionProbeResult.data && sessionProbeResult.data.some((r: any) => r.walmart_product_id)) ||
       (compProbeResult.data && compProbeResult.data.some((c: any) => c.product_type === 'walmart_product'))
     );
+    const isTikTokTest = !!(
+      (tiktokInsightsResult.data && tiktokInsightsResult.data.length > 0) ||
+      (sessionProbeResult.data && sessionProbeResult.data.some((r: any) => r.tiktok_product_id)) ||
+      (compProbeResult.data && compProbeResult.data.some((c: any) => c.product_type === 'tiktok_product'))
+    );
 
     // Use the appropriate table based on test type
-    const tableName = isWalmartTest ? 'competitive_insights_walmart' : 'competitive_insights';
+    const tableName = isWalmartTest
+      ? 'competitive_insights_walmart'
+      : isTikTokTest
+        ? 'competitive_insights_tiktok'
+        : 'competitive_insights';
     
     const { data: summaryData, error: summaryError } = await supabase
       .from(tableName)
@@ -273,7 +287,7 @@ export const getCompetitiveInsights = async (
     // Use testers_session as source of truth for selections (same as summary)
     const { data: sessions, error: sessionsError } = await supabase
       .from('testers_session')
-      .select('variation_type, product_id, competitor_id, walmart_product_id')
+      .select('variation_type, product_id, competitor_id, walmart_product_id, tiktok_product_id')
       .eq('test_id', id as any);
 
     if (sessionsError) throw sessionsError;
@@ -288,7 +302,7 @@ export const getCompetitiveInsights = async (
           if (!selectionsByVariant[variant]) {
             selectionsByVariant[variant] = { testProduct: 0, competitors: 0, total: 0 };
           }
-          const isCompetitor = !!(row.competitor_id || row.walmart_product_id);
+          const isCompetitor = !!(row.competitor_id || row.walmart_product_id || row.tiktok_product_id);
           const isTestProduct = !!row.product_id && !isCompetitor;
 
           if (isCompetitor) selectionsByVariant[variant].competitors++;
@@ -315,7 +329,7 @@ export const getCompetitiveInsights = async (
     (sessions || []).forEach((session: any) => {
       const v = String(session.variation_type || '').toLowerCase();
       if (v === 'a' || v === 'b' || v === 'c') {
-        const cid = session.competitor_id || session.walmart_product_id;
+        const cid = session.competitor_id || session.walmart_product_id || session.tiktok_product_id;
         if (cid) {
           if (!competitorCountsByVariant[v]) competitorCountsByVariant[v] = {};
           competitorCountsByVariant[v][cid] = (competitorCountsByVariant[v][cid] || 0) + 1;

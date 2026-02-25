@@ -6,8 +6,8 @@ interface SearchTermEntryProps {
   value: string;
   onChange: (term: string) => void;
   onNext: () => void;
-  skin: 'amazon' | 'walmart';
-  onSkinChange: (skin: 'amazon' | 'walmart') => void;
+  skin: 'amazon' | 'walmart' | 'tiktokshop';
+  onSkinChange: (skin: 'amazon' | 'walmart' | 'tiktokshop') => void;
 }
 
 const defaultSuggestions = [

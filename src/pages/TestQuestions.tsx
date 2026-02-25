@@ -220,7 +220,13 @@ const TestDisplay: React.FC = () => {
 
       // Use the appropriate table based on test skin
       const tableName = isComparison 
-        ? (test.skin === 'walmart' ? 'responses_comparisons_walmart' : 'responses_comparisons')
+        ? (
+            test.skin === 'walmart'
+              ? 'responses_comparisons_walmart'
+              : test.skin === 'tiktokshop'
+                ? 'responses_comparisons_tiktok'
+                : 'responses_comparisons'
+          )
         : 'responses_surveys';
 
       const { data, error } = await supabase.from(tableName).insert([payload] as any);

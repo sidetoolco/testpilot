@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AmazonProduct } from '../../../features/amazon/types';
 import { WalmartProduct } from '../../../features/walmart/services/walmartService';
+import { TikTokProduct } from '../../../features/tiktok/types';
 import { toast } from 'sonner';
 import { MAX_COMPETITORS } from '../constants';
 
 interface UseCompetitorSelectionProps {
-  selectedCompetitors: (AmazonProduct | WalmartProduct)[];
-  onCompetitorsChange: (competitors: (AmazonProduct | WalmartProduct)[]) => void;
+  selectedCompetitors: (AmazonProduct | WalmartProduct | TikTokProduct)[];
+  onCompetitorsChange: (
+    competitors: (AmazonProduct | WalmartProduct | TikTokProduct)[]
+  ) => void;
   maxCompetitors?: number;
 }
 
@@ -18,22 +21,15 @@ export function useCompetitorSelection({
   const [isPopping, setIsPopping] = useState(false);
   const prevCount = useRef(selectedCompetitors.length);
 
-  const handleProductSelect = useCallback((product: AmazonProduct | WalmartProduct) => {
-    // Handle both Amazon and Walmart products
-    let productId: string;
-    if ('asin' in product) {
-      // Amazon product
-      productId = product.asin;
-    } else {
-      // Walmart product - use walmart_id if available
-      productId = (product as WalmartProduct).walmart_id || '';
-    }
+  const handleProductSelect = useCallback((product: AmazonProduct | WalmartProduct | TikTokProduct) => {
     
     const existingProduct = selectedCompetitors.find(p => {
       if ('asin' in p && 'asin' in product) {
         return p.asin === product.asin;
       } else if ('walmart_id' in p && 'walmart_id' in product) {
         return p.walmart_id === product.walmart_id;
+        } else if ('tiktok_id' in p && 'tiktok_id' in product) {
+          return p.tiktok_id === product.tiktok_id;
       }
       return false;
     });
@@ -44,6 +40,8 @@ export function useCompetitorSelection({
           return p.asin !== product.asin;
         } else if ('walmart_id' in p && 'walmart_id' in product) {
           return p.walmart_id !== product.walmart_id;
+        } else if ('tiktok_id' in p && 'tiktok_id' in product) {
+          return p.tiktok_id !== product.tiktok_id;
         }
         return true;
       });
@@ -62,8 +60,10 @@ export function useCompetitorSelection({
         return p.asin !== productId;
       } else if ('walmart_id' in p) {
         return p.walmart_id !== productId;
+      } else if ('tiktok_id' in p) {
+        return p.tiktok_id !== productId;
       }
-      return false; // No other ID types supported
+      return false;
     });
     onCompetitorsChange(newCompetitors);
   }, [selectedCompetitors, onCompetitorsChange]);
