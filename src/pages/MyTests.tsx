@@ -200,11 +200,9 @@ export default function MyTests() {
         throw new Error('No access token available');
       }
 
-      // Use the configured API client instead of hardcoded URL
-      const isDevelopment = import.meta.env.DEV;
-      const apiUrl = isDevelopment 
-        ? `/api/insights/${testId}`  // Use Vite proxy in development
-        : `${import.meta.env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app'}/insights/${testId}`;
+      const apiUrl = import.meta.env.DEV
+        ? `/api/insights/${testId}`
+        : `${import.meta.env.VITE_API_URL || '/api'}/insights/${testId}`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',

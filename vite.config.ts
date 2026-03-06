@@ -35,14 +35,13 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
     },
 
-    // Add proxy for development to avoid CORS issues
-    // vite.config.js
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8080', // ← Local backend
+          target: env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: true,
         },
       },
     },
