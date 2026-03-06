@@ -200,9 +200,7 @@ export default function MyTests() {
         throw new Error('No access token available');
       }
 
-      const apiUrl = import.meta.env.DEV
-        ? `/api/insights/${testId}`
-        : `${import.meta.env.VITE_API_URL || '/api'}/insights/${testId}`;
+      const apiUrl = `/api/insights/${testId}`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',
