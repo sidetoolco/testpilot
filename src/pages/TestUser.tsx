@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import ReCAPTCHA from 'react-google-recaptcha';
 import FakeAmazonGrid from '../components/testers-session/FakeAmazonGrid';
 import HeaderTesterSessionLayout from '../components/testers-session/HeaderLayout';
 import WalmartGrid from '../components/walmart/WalmartGrid';
@@ -89,19 +88,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   test: string;
-  onCaptchaVerify: (token: string | null) => void;
-  captchaVerified: boolean;
-  captchaLoading: boolean;
 }
 
-const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captchaLoading }: ModalProps) => {
+const Modal = ({ isOpen, onClose, test }: ModalProps) => {
   if (!isOpen) return null;
-
-  const handleButtonClick = () => {
-    if (captchaVerified && !captchaLoading) {
-      onClose();
-    }
-  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -115,32 +105,11 @@ const Modal = ({ isOpen, onClose, test, onCaptchaVerify, captchaVerified, captch
           <strong> "{test} </strong>. Please browse as you normally would, add your selection to
           cart, and then checkout.
         </p>
-        
-        {/* reCAPTCHA - Visible checkbox */}
-        <div className="flex justify-center py-4">
-          {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
-            <ReCAPTCHA
-              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-              onChange={onCaptchaVerify}
-              size="normal"
-            />
-          ) : (
-            <div className="text-red-500">
-              reCAPTCHA site key not found. Please check your environment variables.
-            </div>
-          )}
-        </div>
-        
         <button
-          onClick={handleButtonClick}
-          disabled={captchaLoading || !captchaVerified}
-          className={`mt-4 py-2 px-6 md:px-7 rounded-full font-medium ${
-            captchaVerified && !captchaLoading
-              ? 'bg-[#00A67E] hover:bg-[#00A67E] text-white'
-              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-          }`}
+          onClick={onClose}
+          className="mt-4 py-2 px-6 md:px-7 rounded-full font-medium bg-[#00A67E] hover:bg-[#00A67E] text-white"
         >
-          {captchaLoading ? 'Verifying...' : 'Ok'}
+          Ok
         </button>
       </div>
     </div>
@@ -232,22 +201,14 @@ const TestUserPage = () => {
   const { startSession, shopperId } = useSessionStore();
   const { isTestCompleted, markTestCompleted } = useTestCompletionStore();
   const [sessionStarted, setSessionStarted] = useState(() => {
-    // Check if session was already started in this session
     return sessionStorage.getItem(`sessionStarted-${id}`) === 'true';
   });
-  const [captchaVerified, setCaptchaVerified] = useState(() => {
-    // Check if captcha was already verified in this session
-    return sessionStorage.getItem(`captchaVerified-${id}`) === 'true';
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [hasShownInstructions, setHasShownInstructions] = useState(() => {
+    return sessionStorage.getItem(`hasShownInstructions-${id}`) === 'true';
   });
-  const [captchaLoading, setCaptchaLoading] = useState(false);
-  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
-  const [hasShownCaptcha, setHasShownCaptcha] = useState(() => {
-    // Check if captcha was already shown in this session
-    return sessionStorage.getItem(`hasShownCaptcha-${id}`) === 'true';
-  });
-  
-  // Modal should show if no session started yet OR if captcha not verified
-  const isModalOpen = !sessionStarted || !captchaVerified || showCaptchaModal;
+
+  const isModalOpen = !sessionStarted || showInstructionsModal;
 
   // Memoize the combined data to prevent re-shuffling on every render
   const combinedData = useMemo(() => {
@@ -263,58 +224,27 @@ const TestUserPage = () => {
     }
   }, [prolificPid]);
 
-  // Show captcha modal when data is available (only once)
   useEffect(() => {
-    if (data && !sessionStarted && !hasShownCaptcha) {
-      // Check if test is already completed
+    if (data && !sessionStarted && !hasShownInstructions) {
       const result = processString(id ?? '');
       const testId = result?.modifiedString ?? '';
       const variant = result?.lastCharacter ?? '';
-      
       if (isTestCompleted(testId, variant)) {
-        // Test already completed, redirect to thanks page
         navigate('/thanks', { state: { testId: id + '-' + variant } });
         return;
       }
-      
-      setShowCaptchaModal(true);
-      setHasShownCaptcha(true);
-      // Persist that captcha has been shown
-      sessionStorage.setItem(`hasShownCaptcha-${id}`, 'true');
+      setShowInstructionsModal(true);
+      setHasShownInstructions(true);
+      sessionStorage.setItem(`hasShownInstructions-${id}`, 'true');
     }
-  }, [data, sessionStarted, hasShownCaptcha, id, isTestCompleted, navigate]);
-
-  const handleCaptchaVerify = async (token: string | null) => {
-    if (!token) {
-      toast.error('Captcha verification failed. Please refresh the page and try again.');
-      setCaptchaLoading(false);
-      return;
-    }
-
-    setCaptchaLoading(true);
-    try {
-      setCaptchaVerified(true);
-      setCaptchaLoading(false);
-      sessionStorage.setItem(`captchaVerified-${id}`, 'true');
-    } catch (error) {
-      console.error('Captcha verification failed:', error);
-      toast.error('Captcha verification failed. Please refresh the page and try again.');
-      setCaptchaLoading(false);
-    }
-  };
-
+  }, [data, sessionStarted, hasShownInstructions, id, isTestCompleted, navigate]);
 
   const closeModal = async () => {
-    // Only proceed if captcha is verified
-    if (!captchaVerified) {
-      return;
-    }
-    
-    // Create session after captcha verification
-    await createSessionAfterCaptcha();
+    setShowInstructionsModal(false);
+    await createSession();
   };
 
-  const createSessionAfterCaptcha = async () => {
+  const createSession = async () => {
     if (!data || sessionStarted) return;
     
     try {
@@ -350,8 +280,6 @@ const TestUserPage = () => {
           prolificPid
         );
         setSessionStarted(true);
-        setShowCaptchaModal(false);
-        // Persist session started state
         sessionStorage.setItem(`sessionStarted-${id}`, 'true');
         
         // Restore analytics tracking for resumed session
@@ -375,8 +303,6 @@ const TestUserPage = () => {
         if (sessionId) {
           startSession(sessionId, data.id, data, new Date(), undefined, prolificPid);
           setSessionStarted(true);
-          setShowCaptchaModal(false);
-          // Persist session started state
           sessionStorage.setItem(`sessionStarted-${id}`, 'true');
           
           // Restore analytics tracking
@@ -389,7 +315,7 @@ const TestUserPage = () => {
         }
       }
     } catch (error) {
-      console.error('Error creating session after captcha:', error);
+      console.error('Error creating session:', error);
       toast.error('Failed to start session. Please try again.');
     }
   };
@@ -444,9 +370,6 @@ const TestUserPage = () => {
               isOpen={isModalOpen}
               onClose={closeModal}
               test={combinedData.search_term}
-              onCaptchaVerify={handleCaptchaVerify}
-              captchaVerified={captchaVerified}
-              captchaLoading={captchaLoading}
             />
             <div className="px-4 py-4">
               <p className="text-sm text-gray-600 mb-4">
@@ -471,13 +394,10 @@ const TestUserPage = () => {
               <WalmartHeaderLayout searchTerm={combinedData.search_term}>
         <div className="bg-white min-h-[750px]">
           <div key={combinedData.id}>
-            <Modal 
-              isOpen={isModalOpen} 
-              onClose={closeModal} 
+            <Modal
+              isOpen={isModalOpen}
+              onClose={closeModal}
               test={combinedData.search_term}
-              onCaptchaVerify={handleCaptchaVerify}
-              captchaVerified={captchaVerified}
-              captchaLoading={captchaLoading}
             />
             <div className="max-w-screen-2xl mx-auto px-4 py-4 bg-white">
               <div className="bg-white p-4 rounded-sm">
@@ -513,13 +433,10 @@ const TestUserPage = () => {
     <HeaderTesterSessionLayout>
       <div className="bg-[#EAEDED] min-h-[600px]">
         <div key={combinedData.id}>
-          <Modal 
-            isOpen={isModalOpen} 
-            onClose={closeModal} 
+          <Modal
+            isOpen={isModalOpen}
+            onClose={closeModal}
             test={combinedData.search_term}
-            onCaptchaVerify={handleCaptchaVerify}
-            captchaVerified={captchaVerified}
-            captchaLoading={captchaLoading}
           />
           <div className="max-w-screen-2xl mx-auto px-4 py-4">
             <div className="bg-white p-4 rounded-sm">

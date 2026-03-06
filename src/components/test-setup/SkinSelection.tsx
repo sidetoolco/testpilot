@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TestData } from '../../features/tests/types';
+
+const TIKTOK_SKIN_ENABLED = false;
 
 interface SkinSelectionProps {
   testData: TestData;
@@ -9,6 +11,12 @@ interface SkinSelectionProps {
 }
 
 export default function SkinSelection({ testData, setTestData, onNext, onBack }: SkinSelectionProps) {
+  useEffect(() => {
+    if (!TIKTOK_SKIN_ENABLED && testData.skin === 'tiktokshop') {
+      setTestData({ ...testData, skin: 'amazon' });
+    }
+  }, []);
+
   const handleSkinChange = (skin: 'amazon' | 'walmart' | 'tiktokshop') => {
     setTestData({
       ...testData,
@@ -25,7 +33,7 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className={`grid grid-cols-1 gap-8 ${TIKTOK_SKIN_ENABLED ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
         {/* Amazon Skin Option */}
         <div 
           className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
@@ -114,47 +122,51 @@ export default function SkinSelection({ testData, setTestData, onNext, onBack }:
           </div>
         </div>
 
-        {/* TikTok Shop Skin Option */}
-        <div
-          className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
-            testData.skin === 'tiktokshop'
-              ? 'border-black bg-gray-50'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => handleSkinChange('tiktokshop')}
-        >
-          {testData.skin === 'tiktokshop' && (
-            <div className="absolute top-4 right-4">
-              <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+        {TIKTOK_SKIN_ENABLED && (
+          <>
+            {/* TikTok Shop Skin Option */}
+            <div
+              className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                testData.skin === 'tiktokshop'
+                  ? 'border-black bg-gray-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => handleSkinChange('tiktokshop')}
+            >
+              {testData.skin === 'tiktokshop' && (
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-black p-3">
+                  <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop Skin</h3>
+                <p className="text-gray-600 mb-4">
+                  Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
+                </p>
+
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-3 h-3 bg-black rounded-full" />
+                    <span>Sidebar + carousels</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-3 h-3 bg-black rounded-full" />
+                    <span>TikTok Shop products</span>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-black p-3">
-              <img src="/assets/images/tiktok-logo.png" alt="TikTok" className="h-full w-full object-contain" />
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-2">TikTok Shop Skin</h3>
-            <p className="text-gray-600 mb-4">
-              Testers will shop from real TikTok Shop products in a TikTok Shop-style interface
-            </p>
-
-            <div className="space-y-2 text-sm text-gray-500">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-black rounded-full" />
-                <span>Sidebar + carousels</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-black rounded-full" />
-                <span>TikTok Shop products</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
