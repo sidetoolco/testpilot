@@ -2,7 +2,7 @@ import axios, { HttpStatusCode } from 'axios';
 import { supabase } from './supabase';
 
 const isDev = import.meta.env.DEV;
-const baseURL = isDev ? '/api' : (import.meta.env.VITE_API_URL || '/api');
+const baseURL = isDev ? '/api' : '/api';
 export const apiBaseUrl = baseURL;
 
 const apiClient = axios.create({
