@@ -38,10 +38,21 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'https://tespilot-api-301794542770.us-central1.run.app',
+          target: env.VITE_API_URL || 'https://testpilot-be.onrender.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
-          secure: true,
+          secure: false,
+          timeout: 60000,
+          configure: (proxy) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.error('[vite proxy]', err.message);
+            });
+            proxy.on('proxyRes', (proxyRes, req) => {
+              if (proxyRes.statusCode && proxyRes.statusCode >= 400) {
+                console.error('[vite proxy]', req.url, '->', proxyRes.statusCode);
+              }
+            });
+          },
         },
       },
     },

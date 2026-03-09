@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://tespilot-api-301794542770.us-central1.run.app/:path*"
+      "destination": "https://testpilot-be.onrender.com/:path*"
     },
     {
       "source": "/webhook-test/:path*",
